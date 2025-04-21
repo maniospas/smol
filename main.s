@@ -8,14 +8,18 @@ smo sub(i64 x, i64 y) @body{i64 z=x-y;} => z
 smo mul(i64 x, i64 y) @body{i64 z=x*y;} => z
 smo div(i64 x, i64 y) @body{i64 z=x/y;} => z
 
-smo Point(@type, i64 x, i64 y) => @new
-smo Field(@type, Point start, Point end) => @new
+
+
+smo Point(i64 x, i64 y) => (x,y)
+smo Field(Point start, Point end) => @new
 
 smo main()
-    Point p1(@type, 1,2)
-    Point p2(@type, 3,4)
-    Field f(true, 1, p1, true,2)
+    Point p1(1,2)
+    Point p2(3,4)
+    Field f(1, p1, 3)
     print(f.start.x)
     print(f.end.y)
-    add i(f.start.x, f.start.y)
+    add i(f.start)
     print(i)
+
+    unsafe mem(p1,p2)

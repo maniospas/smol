@@ -220,19 +220,44 @@ public:
                 }
                 if(imp->at(p++)!="(") imp->error(p, "Expecting opening parenthesis");
             }
-            if(var.size()) internalTypes.vars[var] = type;
+            internalTypes.vars[var] = type;
             preample += type->preample;
+
+            if(type->name=="unsafe") {
+                preample += "#include<cstdlib>\n";
+                vector<string> unpacks;
+                while(true) {
+                    string arg = imp->at(p++);
+                    if(arg==")") break;
+                    while(imp->at(p)==".") {arg += "__";++p;arg += imp->at(p++);}
+                    if(internalTypes.vars.find(arg)==internalTypes.vars.end() && !is_primitive(arg)) imp->error(--p, "Symbol not declared");
+                    if(!is_primitive(arg)) {
+                        Type internalType = internalTypes.vars[arg];
+                        if(!internalType->packs.size()) unpacks.push_back(arg);
+                        else for(const string& pack : internalType->packs) unpacks.push_back(arg+"__"+pack);
+                    }
+                    else unpacks.push_back(arg);
+                    arg = imp->at(p++);
+                    if(arg==")") break;
+                    if(arg!=",") imp->error(--p, "Comma expected (not implemented expressions other than field access in calls yet)");
+                }
+
+                implementation += "u64 "+var+"__size = "+to_string(unpacks.size())+";\n";
+                implementation += "ptr "+var+"__contents = malloc(sizeof(i64)*"+var+"__size);\n";
+                for(int i=0;i<unpacks.size();++i) implementation += "((i64*)"+var+"__contents)["+to_string(i)+"] = "+unpacks[i]+";\n";
+                internalTypes.vars[var] = type;
+                internalTypes.vars[var+"__size"] = types.vars["u64"];
+                internalTypes.vars[var+"__contents"] = types.vars["ptr"];
+                continue;
+            }
 
             if(!type->args.size()) {
                 string value = imp->at(p++);
                 while(imp->at(p)==".") {value += "__";++p;value += imp->at(p++);}
                 if(internalTypes.vars.find(value)==internalTypes.vars.end() && !is_primitive(value)) imp->error(--p, "Symbol not declared");
                 if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis because builtin `smo "+next+"` can only have one argument");
-                if(var.size()) {
-                    implementation += next + " " + var + " = " + value + ";\n";
-                    internalTypes.vars[var] = type;
-                }
-                else implementation += next + "("+value + ");\n";
+                implementation += next + " " + var + " = " + value + ";\n";
+                internalTypes.vars[var] = type;
                 continue;
             }
             vector<string> unpacks;
@@ -251,7 +276,6 @@ public:
                 if(arg!=",") imp->error(--p, "Comma expected (not implemented expressions other than field access in calls yet)");
             }
             if(unpacks.size()!=type->args.size()) imp->error(--p, "Unexpected closed parenthesis: smol "+next+" requires "+to_string(type->args.size())+" arguments");
-            if(var.size())
             for(int i=0;i<unpacks.size();++i) {
                 if(type->args[i].type->args.size()) imp->error(--p, "Internal errors failed to resolve the type " + type->args[i].type->name + " of "+type->args[i].name);
                 if(type->args[i].type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) imp->error(--p, "Different types between " + type->args[i].type->name + " "+ type->args[i].name+" and "+unpacks[i]);
@@ -273,9 +297,11 @@ int Def::temp = 0;
 int main() {
     auto imp = tokenize("main.s");
     Memory types;
+    types.vars["u64"] = make_shared<Def>("u64");
     types.vars["i64"] = make_shared<Def>("i64");
     types.vars["f64"] = make_shared<Def>("f64");
-
+    types.vars["ptr"] = make_shared<Def>("ptr");
+    types.vars["unsafe"] = make_shared<Def>("unsafe");
 
     stack<pair<string, int>> brackets;
     for(int p=0;p<imp->size();++p) {
@@ -301,6 +327,8 @@ int main() {
     string implementation = types.vars["main"]->implementation;
     string preample = types.vars["main"]->preample;
     implementation =
+    "#define ptr void*\n"
+    "#define u64 unsigned long\n"
     "#define i64 long\n"
     "#define f64 double\n\n"
     +preample+
