@@ -9,6 +9,16 @@ Under the hood, it transpiles to C++.
 **Contact:** Emmanouil (Manios) Krasanakis
 **License:** Apache 2.0
 
+## Keywords
+
+- `smo` - Introduces a data type/inlineable function (this is how you will normally declare functions too). They can have any other data type as argument.
+- `service` - Introduces a function that works as a service. Is exactly like `smo`
+- `i64,u64,f64,ptr` -  Primitive data types corresponding to integers, unsigned integers, doubles, and memory pointers (the latter are needed but unsafe - use `buffer` instead).
+- `buffer` - Memory-allocated buffer. The only advanced data type manually implemented by the langugage, and the only way to interact with the heap.
+- `@new` - The provided arguments to avoid explicitly writting them down.
+- `@head,@body` - Inject C++ code using your variables, though restricted to certain conventions.
+- `=>` - Returns a value. This marks the end of `smo` or `env`.
+
 ## Quick Peek
 
 Since I'm currently developing the language, let's take a look at an example program.
@@ -39,6 +49,8 @@ that it requires you to declare your own print functions and basic arithmetic op
 However, it provides a direct-to-C++ interface that lets you bring in more powerful functionality.
 The only built-in elements are the `main` function and a couple of number types.
 
+### smo
+
 Let's break down the code above piece by piece, starting with the simpler segments —
 for example, you can write the addition across multiple lines like this:
 
@@ -62,7 +74,7 @@ because command boundaries are uniquely understood.
 Functions end at their return statement or at the end of the file —
 nested functions cannot be defined, so you will receive helpful error messages if you try.
 
-Now, on to the data types.
+### Data types
 
 
 ```java
@@ -90,12 +102,9 @@ The syntax `Point p(2, 3) Field(1, p, 4)` is also valid.
 However, you can add type annotations to avoid ambiguity — more on that later,
 though this is often zero-cost as well.
 
-### Final Notes
+### Processes
 
 Finally, put all your code inside a `main` function.
 
-> :warning: **Calling conventions are of the form:** `type name(arguments)`
-> This design choice makes a lot of sense within the language's architecture,
-> but more conventional syntax options will be added in the future.
 
 
