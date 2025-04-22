@@ -1,3 +1,6 @@
+// keywords: smo, dyn
+
+
 smo print(i64 x)
     @head{#include <stdio.h>}
     @body{printf("%ld\n", x);}

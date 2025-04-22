@@ -28,11 +28,9 @@ i64 i__y = f__start__y;
 i64 i__z=i__x+i__y;
 i64 __temp3__x = i__z;
 printf("%ld\n",__temp3__x);
-u64 mem__size = 4;
+u64 mem__size = 2;
 ptr mem__contents = malloc(sizeof(i64)*mem__size);
 ((i64*)mem__contents)[0] = p1__x;
 ((i64*)mem__contents)[1] = p1__y;
-((i64*)mem__contents)[2] = p2__x;
-((i64*)mem__contents)[3] = p2__y;
 return 0;
 }

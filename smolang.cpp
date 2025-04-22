@@ -223,7 +223,7 @@ public:
             internalTypes.vars[var] = type;
             preample += type->preample;
 
-            if(type->name=="unsafe") {
+            if(type->name=="buffer") {
                 preample += "#include<cstdlib>\n";
                 vector<string> unpacks;
                 while(true) {
@@ -301,7 +301,13 @@ int main() {
     types.vars["i64"] = make_shared<Def>("i64");
     types.vars["f64"] = make_shared<Def>("f64");
     types.vars["ptr"] = make_shared<Def>("ptr");
-    types.vars["unsafe"] = make_shared<Def>("unsafe");
+
+
+    types.vars["buffer"] = make_shared<Def>("buffer");
+    types.vars["buffer"]->packs.push_back("contents");
+    types.vars["buffer"]->packs.push_back("size");
+    types.vars["buffer"]->internalTypes.vars["contents"] = types.vars["ptr"];
+    types.vars["buffer"]->internalTypes.vars["size"] = types.vars["u64"];
 
     stack<pair<string, int>> brackets;
     for(int p=0;p<imp->size();++p) {

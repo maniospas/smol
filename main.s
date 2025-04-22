@@ -22,4 +22,4 @@ smo main()
     add i(f.start)
     print(i)
 
-    unsafe mem(p1,p2)
+    buffer mem(p1)
