@@ -15,9 +15,11 @@ Under the hood, it transpiles to C++.
 - `service` - Introduces a function that works as a service. Is exactly like `smo`
 - `i64,u64,f64,ptr` -  Primitive data types corresponding to integers, unsigned integers, doubles, and memory pointers (the latter are needed but unsafe - use `buffer` instead).
 - `buffer` - Memory-allocated buffer. The only advanced data type manually implemented by the langugage, and the only way to interact with the heap.
-- `@new` - The provided arguments to avoid explicitly writting them down.
+- `=>@new` - Returns the arguments to avoid explicitly writting them down.
+- `=>@scope` - The command creates a new scope.
 - `@head,@body` - Inject C++ code using your variables, though restricted to certain conventions.
-- `=>` - Returns a value. This marks the end of `smo` or `env`.
+- `=>` - Returns a value. This marks the end of `smo`, `env`, or scopes.
+- `=>>,=>>>`... - Forces the parent scope to return a value. Note that returned values should be aligned.
 
 ## Quick Peek
 

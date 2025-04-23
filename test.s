@@ -1,4 +1,21 @@
-// keywords: smo, dyn
+smo abs(i64 x)
+    if(x>0) =>> 1
+    => 0
+
+
+service test1(i64 x, buffer x) // retain these, internals are hidden from the outside
+    if(x>0) => true
+    => true
+
+
+
+
+smo test2()
+    test1()
+    i64 i(0)
+    while(test1.runs)
+        test1.buffer.push() // test1.push()
+
 
 
 smo print(i64 x)

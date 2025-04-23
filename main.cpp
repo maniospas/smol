@@ -7,30 +7,39 @@
 #include<stdio.h>
 #include<stdio.h>
 #include<stdio.h>
-#include<stdio.h>
-#include<stdio.h>
-#include<cstdlib>
 int main() {
-i64 p1__x = 1;
-i64 p1__y = 2;
-i64 p2__x = 3;
-i64 p2__y = 4;
-i64 f__start__x = 1;
-i64 f__start__y = p1__x;
-i64 f__end__x = p1__y;
-i64 f__end__y = 3;
-i64 __temp1__x = f__start__x;
-printf("%ld\n",__temp1__x);
-i64 __temp2__x = f__end__y;
-printf("%ld\n",__temp2__x);
-i64 i__x = f__start__x;
-i64 i__y = f__start__y;
-i64 i__z=i__x+i__y;
-i64 __temp3__x = i__z;
-printf("%ld\n",__temp3__x);
-u64 mem__size = 2;
-ptr mem__contents = malloc(sizeof(i64)*mem__size);
-((i64*)mem__contents)[0] = p1__x;
-((i64*)mem__contents)[1] = p1__y;
+i64 res__x;
+i64 res__y;
+i64 res__zero;
+i64 res__comp__x;
+i64 res__comp__y;
+bool res__comp__z;
+bool res____v1__condition;
+i64 res__z;
+i64 __v3__x;
+res__x = 1;
+res__y = 0;
+res__zero = 0;
+res__comp__x = res__y;
+res__comp__y = res__zero;
+res__comp__z=(res__comp__x==res__comp__y);
+res__comp____end:
+res____v1__condition = res__comp__z;
+if(!res____v1__condition)goto res____finally;
+res____v1____end:
+goto __v2;
+res____finally:
+res__z=res__x/res__y;
+res____end:
+__v3__x = res__z;
+printf("%ld\n",__v3__x);
+__v3____end:
+__end:
+goto __return;
+__error:
+__v2:
+printf("Division by zero\n");
+goto __return;
+__return:
 return 0;
 }

@@ -34,7 +34,7 @@ bool is_primitive(const string& name) {
 }
 
 bool accepted_var_name(const string& name) {
-    if(name=="(" || name==")" || name=="{" || name=="}" || name == "|" || name=="&" || name=="=" || name=="," || name=="." || name=="smo")
+    if(name=="(" || name==")" || name=="{" || name=="}" || name == "|" || name=="&" || name=="=" || name=="," || name=="." || name=="smo" || name=="@")
         return false;
     return true;
 }
@@ -57,7 +57,7 @@ public:
 class Def {
     static int temp;
     static string create_temp() {
-        return "__temp"+to_string(++temp);
+        return "__v"+to_string(++temp);
     }
 public:
     string canonic_name() {
@@ -73,61 +73,75 @@ public:
     int pos;
     int start;
     int end;
+    string vardecl;
     string implementation;
     string preample;
-    string rebase_implementation(const string& var) {
-        stringstream input(implementation);
+    string errors;
+    string finals;
+
+    string rebase(string& impl, const string& var) {
+        stringstream input(impl);
         string line, output;
         while (getline(input, line)) {
-            int i = 0;
+            int i = 0; bool in_str = false;
             while (i < line.size()) {
+                if (line[i] == '"' && (i == 0 || line[i - 1] != '\\')) { output += line[i++]; in_str = !in_str; continue; }
+                if (in_str) { output += line[i++]; continue; }
                 while (i < line.size() && isspace(line[i])) output += line[i++];
                 if (i >= line.size()) break;
-                if (is_symbol(line[i])) {output += line[i++];continue;}
+                if (is_symbol(line[i])) { output += line[i++]; continue; }
                 int start = i;
                 while (i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) i++;
                 string token = line.substr(start, i - start);
-                if (internalTypes.vars.find(token)!=internalTypes.vars.end()) output += var+"__"+token;
-                else output += token;
+                if (i > 7 && token.substr(0, 7) == "__scope") token = token.substr(7);
+                output += internalTypes.vars.count(token) ? var + "__" + token : token;
             }
             output += '\n';
         }
-
         return output;
     }
-    Def(const string& builtin): name(builtin) {}
-    Def(const shared_ptr<Import>& i, int& p, Memory& types) : imp(i), pos(p) {
-        if(imp->at(p++)!="smo") imp->error(--p, "Missing `smo`");
-        name = imp->at(p++);
-        if(imp->at(p++)!="(") imp->error(--p, "Missing left parenthesis");
-        while(true) {
-            string next = imp->at(p++);
-            if(next==")") break;
-            if(args.size()) {
-                if(next!=",")imp->error(--p, "Expecting comma between arguments");
-                next = imp->at(p++);
-            }
-            if(!accepted_var_name(next)) imp->error(--p, "Expecting type declaration but this is not a valid type name");
-            if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Type name not visible");
-            string arg_name = imp->at(p++);
-            if(!accepted_var_name(arg_name)) imp->error(--p, "Expecting variable name");
-            Type argType = types.vars.find(next)->second;
 
-            if(argType->args.size()) {
-                internalTypes.vars[arg_name] = argType;
-                for(const auto& it : argType->args) {
-                    args.emplace_back(arg_name+"__"+it.name, it.type);
-                    internalTypes.vars[arg_name+"__"+it.name] = it.type;
-                    implementation += it.type->rebase_implementation(arg_name);
-                    preample += it.type->preample;
-                    for(const auto& it : it.type->internalTypes.vars) internalTypes.vars[arg_name+"__"+it.first] = it.second;
+    Def(const string& builtin): name(builtin) {}
+    Def(): implementation(""), preample(""), errors(""), finals(""), vardecl("") {}
+    void parse(const shared_ptr<Import>& i, int& p, Memory& types, bool with_signature=true) {
+        pos = p;
+        imp = i;
+        if(with_signature) {
+            if(imp->at(p++)!="smo") imp->error(--p, "Missing `smo`");
+            name = imp->at(p++);
+            if(imp->at(p++)!="(") imp->error(--p, "Missing left parenthesis");
+            while(true) {
+                string next = imp->at(p++);
+                if(next==")") break;
+                if(args.size()) {
+                    if(next!=",")imp->error(--p, "Expecting comma between arguments");
+                    next = imp->at(p++);
                 }
+                if(!accepted_var_name(next)) imp->error(--p, "Expecting type declaration but this is not a valid type name");
+                if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Type name not visible");
+                string arg_name = imp->at(p++);
+                if(!accepted_var_name(arg_name)) imp->error(--p, "Expecting variable name");
+                Type argType = types.vars.find(next)->second;
+
+                if(argType->args.size()) {
+                    internalTypes.vars[arg_name] = argType;
+                    for(const auto& it : argType->args) {
+                        args.emplace_back(arg_name+"__"+it.name, it.type);
+                        internalTypes.vars[arg_name+"__"+it.name] = it.type;
+                        vardecl += it.type->rebase(it.type->vardecl, arg_name);
+                        implementation += it.type->rebase(it.type->implementation, arg_name);
+                        preample += it.type->rebase(it.type->preample, arg_name);
+                        finals = it.type->rebase(it.type->finals, arg_name)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
+                        errors = errors+it.type->rebase(it.type->errors, arg_name);
+                        for(const auto& it : it.type->internalTypes.vars) internalTypes.vars[arg_name+"__"+it.first] = it.second;
+                    }
+                }
+                else {
+                    args.emplace_back(arg_name, argType);
+                    internalTypes.vars[arg_name] = argType;
+                }
+                if(p>=imp->size()) imp->error(pos+2, "Missing matching right parenthesis");
             }
-            else {
-                args.emplace_back(arg_name, argType);
-                internalTypes.vars[arg_name] = argType;
-            }
-            if(p>=imp->size()) imp->error(pos+2, "Missing matching right parenthesis");
         }
 
         start = p;
@@ -160,34 +174,80 @@ public:
                         if(next=="{") depth++;
                         if(next=="}") {depth--;if(depth==0) break;}
                         string nextnext = imp->at(p);
-                        implementation += next;
-                        if(!is_symbol(next) && !is_symbol(nextnext)) implementation += " ";
-                        if(next=="=" && !is_symbol(nextnext)) {
-                            string argname = imp->at(p-2);
-                            string argtype = imp->at(p-3);
-                            if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->args.size()) internalTypes.vars[argname] = types.vars.find(argtype)->second;
+                        if(p<imp->size()-1 && imp->at(p+1)=="=" && (!is_symbol(imp->at(p+2)) || imp->at(p+2)=="(") && !is_symbol(next) && !is_symbol(nextnext)) {
+                            string argname = nextnext;
+                            string argtype = next;
+                            if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->args.size()) {
+                                internalTypes.vars[argname] = types.vars.find(argtype)->second;
+                                vardecl += argtype+" "+argname+";\n";
+                            }
+                            else imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
+                        }
+                        else {
+                            implementation += next;
+                            if(!is_symbol(next) && !is_symbol(nextnext)) implementation += " ";
                         }
                     }
                     implementation += "\n";
+                    continue;
+                }
+                else if(next=="fail") {
+                    string fail_label = create_temp();
+                    errors += fail_label+":\n";
+                    next = imp->at(p++);
+                    if(next!="{") imp->error(--p, "Expected brackets");
+                    int depth = 1;
+                    while(true) {
+                        next = imp->at(p++);
+                        if(next=="{") depth++;
+                        if(next=="}") {depth--;if(depth==0) break;}
+                        string nextnext = imp->at(p);
+                        if(p<imp->size()-1 && imp->at(p+1)=="=" && (!is_symbol(imp->at(p+2)) || imp->at(p+2)=="(") && !is_symbol(next) && !is_symbol(nextnext)) {
+                            string argname = nextnext;
+                            string argtype = next;
+                            if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->args.size()) {
+                                internalTypes.vars[argname] = types.vars.find(argtype)->second;
+                                vardecl += argtype+" "+argname+";\n";
+                            }
+                            else imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
+                        }
+                        else {
+                            errors += next;
+                            if(!is_symbol(next) && !is_symbol(nextnext)) errors += " ";
+                        }
+                    }
+                    errors += "\ngoto __return;\n";
+                    implementation += "goto "+fail_label+";\n";
                     continue;
                 }
                 imp->error(--p, "Invalid symbol after @");
             }
             // return statement
             if(next=="=") {
-                if(imp->at(p++)!=">") imp->error(--p, "Expecting => to return");
+                if(imp->at(p++)!=">") imp->error(--p, "Expecting `=>` to return for expressions starting with `=`");
                 next = imp->at(p++);
                 if(next=="@") {
                     next = imp->at(p++);
-                    if(next!="new") imp->error(--p, "Only allowed special command here is`=>@new`");
-                    for(const auto& arg : args) packs.push_back(arg.name);
+                    if(next == "scope") {
+                        packs.push_back("@scope");
+                    }
+                    else {
+                        if(next!="new") imp->error(--p, "Only allowed special command here is`=>@new` or `=>@scope`");
+                        for(const auto& arg : args) packs.push_back(arg.name);
+                    }
                 }
                 else if(next!="(") {
                     while(imp->at(p)==".") {
                         //if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared"); // declare all up to this point
                         next += "__";++p;next += imp->at(p++);
                     }
-                    if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared");
+                    if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared (error during return)");
+                    if(!is_primitive(next) && internalTypes.vars[next]->args.size()) {
+                        if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during return)");
+                        auto oneType = internalTypes.vars[next];
+                        if(oneType->packs.size()!=1) imp->error(--p, "Can only convert a primitive result to a primitive");
+                        next = next+"__"+oneType->packs[0];
+                    }
                     packs.push_back(next);
                 }
                 else { // we are starting parenthesis
@@ -197,7 +257,13 @@ public:
                             //if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared"); // declare all up to this point
                             next += "__";++p;next += imp->at(p++);
                         }
-                        if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared");
+                        if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared (error during return)");
+                        if(!is_primitive(next) && internalTypes.vars[next]->args.size()) {
+                            if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during return)");
+                            auto oneType = internalTypes.vars[next];
+                            if(oneType->packs.size()!=1) imp->error(--p, "Can only convert a primitive result to a primitive");
+                            next = next+"__"+oneType->packs[0];
+                        }
                         packs.push_back(next);
                         next = imp->at(p++);
                         if(next==")") break;
@@ -209,7 +275,7 @@ public:
                 break;
             }
 
-            if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Symbol not declared");
+            if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Symbol not declared (cannot find `smo` definition)");
             Type type = types.vars.find(next)->second;
             string var = imp->at(p++);
             if(var=="(") var = create_temp();
@@ -254,17 +320,27 @@ public:
             if(!type->args.size()) {
                 string value = imp->at(p++);
                 while(imp->at(p)==".") {value += "__";++p;value += imp->at(p++);}
-                if(internalTypes.vars.find(value)==internalTypes.vars.end() && !is_primitive(value)) imp->error(--p, "Symbol not declared");
+                if(internalTypes.vars.find(value)==internalTypes.vars.end() && !is_primitive(value)) imp->error(--p, "Symbol not declared (error during argument parsing)");
                 if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis because builtin `smo "+next+"` can only have one argument");
-                implementation += next + " " + var + " = " + value + ";\n";
+
+                if(!is_primitive(value)) {
+                    if(internalTypes.vars.find(value)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during unpacking)");
+                    auto oneType = internalTypes.vars[value];
+                    if(oneType->packs.size()!=1) imp->error(--p, "Can only convert a primitive result to a primitive");
+                    value = value+"__"+oneType->packs[0];
+                }
+
+                implementation += var + " = " + value + ";\n";
+                vardecl += next + " " + var+";\n";
                 internalTypes.vars[var] = type;
                 continue;
             }
+
             vector<string> unpacks;
             while(true) {
                 string arg = imp->at(p++);
                 while(imp->at(p)==".") {arg += "__";++p;arg += imp->at(p++);}
-                if(internalTypes.vars.find(arg)==internalTypes.vars.end() && !is_primitive(arg)) imp->error(--p, "Symbol not declared");
+                if(internalTypes.vars.find(arg)==internalTypes.vars.end() && !is_primitive(arg)) imp->error(--p, "Symbol not declared (error during unpacking)");
                 if(!is_primitive(arg)) {
                     Type internalType = internalTypes.vars[arg];
                     if(!internalType->packs.size()) unpacks.push_back(arg);
@@ -280,14 +356,41 @@ public:
                 if(type->args[i].type->args.size()) imp->error(--p, "Internal errors failed to resolve the type " + type->args[i].type->name + " of "+type->args[i].name);
                 if(type->args[i].type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) imp->error(--p, "Different types between " + type->args[i].type->name + " "+ type->args[i].name+" and "+unpacks[i]);
                 string target = var+"__"+type->args[i].name;
-                implementation += type->args[i].type->name+" "+ target + " = " + unpacks[i]+";\n";
+                implementation += target + " = " + unpacks[i]+";\n";
+                vardecl += type->args[i].type->name+" "+ target+";\n";
                 internalTypes.vars[target] = type->args[i].type;
             }
-            implementation += type->rebase_implementation(var);
-            preample += type->preample;
+
+
+            vardecl += type->rebase(type->vardecl, var);
+            implementation += type->rebase(type->implementation, var);
+            preample += type->rebase(type->preample, var);
+            finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
+            errors = errors+type->rebase(type->errors, var);
             for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
-            //imp->error(p, "Not implemented 'smo' body yet");
-            //if(!accepted_var_name(next)) imp->error(--p, "Expecting variable declaration but this is not a valid variable name");
+
+            if(type->packs.size()==1 && type->packs[0]=="@scope") {
+                Def def;
+                for(const auto& it : internalTypes.vars) def.internalTypes.vars[it.first] = it.second;
+                def.parse(imp, p, types, false); // this consumes until return
+                p++;
+
+                vardecl += def.rebase(def.vardecl, var);
+                implementation += def.rebase(def.implementation, var);
+                preample += def.rebase(def.preample, var);
+                finals = def.rebase(def.finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
+                errors = errors+def.rebase(def.errors, var);
+                for(const auto& it : def.internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
+                internalTypes.vars["__finally"] = types.vars["__label"];
+                implementation += "__finally:\n";
+                continue;
+            }
+
+
+        }
+        if(with_signature) {
+            internalTypes.vars["__end"] = types.vars["__label"];
+            implementation += "__end:\n";
         }
     }
 };
@@ -301,6 +404,8 @@ int main() {
     types.vars["i64"] = make_shared<Def>("i64");
     types.vars["f64"] = make_shared<Def>("f64");
     types.vars["ptr"] = make_shared<Def>("ptr");
+    types.vars["bool"] = make_shared<Def>("bool");
+    types.vars["__label"] = make_shared<Def>("__label");
 
 
     types.vars["buffer"] = make_shared<Def>("buffer");
@@ -323,15 +428,19 @@ int main() {
     int p = 0;
     while(p<imp->tokens.size()) {
         if(imp->at(p)=="smo") {
-            auto def = make_shared<Def>(imp, p, types);
+            auto def = make_shared<Def>();
+            def->parse(imp, p, types);
             types.vars[def->name] = def;
         }
         else imp->error(p, "Unexpected token: only smo allowed here");
         p++;
     }
 
+    string vardecl = types.vars["main"]->vardecl;
     string implementation = types.vars["main"]->implementation;
     string preample = types.vars["main"]->preample;
+    string finals = types.vars["main"]->finals;
+    string errors = types.vars["main"]->errors;
     implementation =
     "#define ptr void*\n"
     "#define u64 unsigned long\n"
@@ -339,8 +448,15 @@ int main() {
     "#define f64 double\n\n"
     +preample+
     "int main() {\n" +
+    vardecl +
     implementation +
-    "return 0;\n"
+    "goto __return;\n" + // skip error handling block that resides at the end of the service
+    finals+
+    "__error:\n" +// error handling (each of those runs goto __finally)
+    errors +
+    "__return:\n" + // resource deallocation
+    finals +
+    "return 0;\n" // actually return from the service
     "}\n";
     std::ofstream out("main.cpp");
     out << implementation;
