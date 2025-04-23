@@ -12,6 +12,7 @@
 #include "common.h"
 #include <cctype>
 #include <cstdlib>
+#include <unordered_set>
 
 // g++ smolang.cpp -o smolang -O2 -std=c++23
 
@@ -529,11 +530,13 @@ int main() {
         }
         if(brackets.size()) imp->error(brackets.top().second, "Never closed");
 
-
+        unordered_set<string> imported;
         int p = 0;
         while(p<imp->tokens.size()) {
             if (imp->at(p) == "@" && imp->at(p + 1) == "include") {
                 string path = imp->at(p + 2)+".s";
+                if(imported.find(path)!=imported.end()) imp->error(p+2, "Already included");
+                imported.insert(path);
                 auto new_tokens = tokenize(path);
                 p += 3;
                 //imp->tokens.erase(imp->tokens.begin() + p, imp->tokens.begin() + p + 3);
