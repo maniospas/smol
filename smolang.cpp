@@ -42,9 +42,9 @@ string type_primitive(const string& name) {
     while (isspace(*str)) ++str;
     if (*str == '\0') return "CANNOT DETECT TYPE";
     long l = std::strtol(str, &end, 10);
-    if (end != str && *end == '\0') return "int";
+    if (end != str && *end == '\0') return "i64";
     double d = std::strtod(str, &end);
-    if (end != str && *end == '\0') return "float";
+    if (end != str && *end == '\0') return "f64";
     if (name.size() >= 2 && name.front() == '"' && name.back() == '"') return "str";
     return "CANNOT DETECT TYPE";
 }
@@ -348,12 +348,9 @@ public:
                     string arg = imp->at(p++);
                     if(arg==")") break;
                     arg = parse_expression(imp, p, arg, types);
-                    if(!is_primitive(arg)) {
-                        Type internalType = internalTypes.vars[arg];
-                        if(!internalType->packs.size()) unpacks.push_back(arg);
-                        else for(const string& pack : internalType->packs) unpacks.push_back(arg+"__"+pack);
-                    }
-                    else unpacks.push_back(arg);
+                    Type internalType = internalTypes.vars[arg];
+                    if(!internalType->packs.size()) unpacks.push_back(arg);
+                    else for(const string& pack : internalType->packs) unpacks.push_back(arg+"__"+pack);
                     arg = imp->at(p++);
                     if(arg==")") break;
                     if(arg!=",") imp->error(--p, "Comma expected (not implemented expressions other than field access in calls yet)");

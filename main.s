@@ -36,12 +36,7 @@ smo Field(Point start, Point end) => @new
 
 
 smo main()
-    i64 b1(1)
-    i64 b2(2)
-    i64 b3(3)
-    i64 b4(4)
-
-    buffer buf(b1,b2,b3,b4)
+    buffer buf(1,2,3,4)
     Field f(buf)
     print(f.start.x)
 
