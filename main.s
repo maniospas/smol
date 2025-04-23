@@ -34,6 +34,22 @@ smo abs(i64 x)
 smo Point(i64 x, i64 y) => (x,y)
 smo Field(Point start, Point end) => @new
 
+
 smo main()
+    i64 b1(1)
+    i64 b2(2)
+    i64 b3(3)
+    i64 b4(4)
+
+    buffer buf(b1,b2,b3,b4)
+    Field f(buf)
+    print(f.start.x)
+
+    f.start.x = i64(0)
+    print(f.start.x)
+
+    Field f2(buf)
+    print(f2.start.x)
+
     div res(1,0)
     print(res)

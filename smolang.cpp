@@ -20,8 +20,9 @@ using namespace std;
 struct Def;
 typedef shared_ptr<Def> Type;
 
+
 bool is_primitive(const string& name) {
-    if(name=="true" || name=="false") return true;
+    if (name == "true" || name == "false") return true;
     const char* str = name.c_str();
     char* end;
     while (isspace(*str)) ++str;
@@ -30,7 +31,22 @@ bool is_primitive(const string& name) {
     if (end != str && *end == '\0') return true;
     double d = std::strtod(str, &end);
     if (end != str && *end == '\0') return true;
+    if (name.size() >= 2 && name.front() == '"' && name.back() == '"') return true;
     return false;
+}
+
+string type_primitive(const string& name) {
+    if (name == "true" || name == "false") return "bool";
+    const char* str = name.c_str();
+    char* end;
+    while (isspace(*str)) ++str;
+    if (*str == '\0') return "CANNOT DETECT TYPE";
+    long l = std::strtol(str, &end, 10);
+    if (end != str && *end == '\0') return "int";
+    double d = std::strtod(str, &end);
+    if (end != str && *end == '\0') return "float";
+    if (name.size() >= 2 && name.front() == '"' && name.back() == '"') return "str";
+    return "CANNOT DETECT TYPE";
 }
 
 bool accepted_var_name(const string& name) {
@@ -103,6 +119,29 @@ public:
 
     Def(const string& builtin): name(builtin) {}
     Def(): implementation(""), preample(""), errors(""), finals(""), vardecl("") {}
+
+    string next_var(const shared_ptr<Import>& i, int& p, const string& first_token) {
+        string next = first_token;
+        while(imp->at(p)==".") {
+            //if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared"); // declare all up to this point
+            next += "__";++p;next += imp->at(p++);
+        }
+        if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared");
+        return next;
+    }
+
+    string parse_expression(const shared_ptr<Import>& i, int& p, const string& first_token, const Memory& types) {
+        if(is_primitive(first_token)) {
+            string var = create_temp();
+            string vartype = type_primitive(first_token);
+            if(types.vars.find(vartype)==types.vars.end()) return first_token;// fallback
+            internalTypes.vars[var] = types.vars.find(vartype)->second;
+            vardecl += vartype+" "+var+" = "+first_token+";\n";
+            return var;
+        }
+        return next_var(i, p, first_token);
+    }
+
     void parse(const shared_ptr<Import>& i, int& p, Memory& types, bool with_signature=true) {
         pos = p;
         imp = i;
@@ -237,11 +276,7 @@ public:
                     }
                 }
                 else if(next!="(") {
-                    while(imp->at(p)==".") {
-                        //if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared"); // declare all up to this point
-                        next += "__";++p;next += imp->at(p++);
-                    }
-                    if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared (error during return)");
+                    next = parse_expression(imp, p, next, types);
                     if(!is_primitive(next) && internalTypes.vars[next]->args.size()) {
                         if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during return)");
                         auto oneType = internalTypes.vars[next];
@@ -252,12 +287,7 @@ public:
                 }
                 else { // we are starting parenthesis
                     while(true) {
-                        next = imp->at(p++);
-                        while(imp->at(p)==".") {
-                            //if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared"); // declare all up to this point
-                            next += "__";++p;next += imp->at(p++);
-                        }
-                        if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared (error during return)");
+                        next = parse_expression(imp, p, imp->at(p++), types);
                         if(!is_primitive(next) && internalTypes.vars[next]->args.size()) {
                             if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during return)");
                             auto oneType = internalTypes.vars[next];
@@ -275,15 +305,37 @@ public:
                 break;
             }
 
-            if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Symbol not declared (cannot find `smo` definition)");
-            Type type = types.vars.find(next)->second;
+            string assignTo("");
+            Type assignType(nullptr);
+
             string var = imp->at(p++);
-            if(var=="(") var = create_temp();
+            if(var=="." || var=="=") {
+                p--;
+                var = next_var(imp, p, next);
+                if(internalTypes.vars.find(var)!=internalTypes.vars.end()) assignType = internalTypes.vars.find(var)->second;
+                next = imp->at(p++);
+                if(next!="=") imp->error(--p, "Assign to this variable per: `"+var+" = ...`");
+                assignTo = var;
+                next = imp->at(p++);
+                var = imp->at(p++);
+            }
+
+            if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Symbol is not a `smo` definition");
+            auto type = types.vars.find(next)->second;
+            if(assignTo.size() && assignType.get() && type!=assignType) imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with a different `smo` type");
+
+            if(var=="(") {
+                if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Symbol is not a `smo` definition");
+                type = types.vars.find(next)->second;
+                var = create_temp();
+            }
             else {
+                if(assignTo.size()) imp->error(--p, "Expecting opening parenthesis when you call a `smo` anonymously with an assignment (you tried to assign a second name)");
                 while(imp->at(p)==".") {
                     //if(internalTypes.vars.find(var)==internalTypes.vars.end() && !is_primitive(var)) imp->error(--p, "Symbol not declared"); // declare all up to this point
                     var += "__";++p;var += imp->at(p++);
                 }
+                if(internalTypes.vars.find(var)!=internalTypes.vars.end()) imp->error(--p, "Cannot reconstruct data - use assignment instead");
                 if(imp->at(p++)!="(") imp->error(p, "Expecting opening parenthesis");
             }
             internalTypes.vars[var] = type;
@@ -295,8 +347,7 @@ public:
                 while(true) {
                     string arg = imp->at(p++);
                     if(arg==")") break;
-                    while(imp->at(p)==".") {arg += "__";++p;arg += imp->at(p++);}
-                    if(internalTypes.vars.find(arg)==internalTypes.vars.end() && !is_primitive(arg)) imp->error(--p, "Symbol not declared");
+                    arg = parse_expression(imp, p, arg, types);
                     if(!is_primitive(arg)) {
                         Type internalType = internalTypes.vars[arg];
                         if(!internalType->packs.size()) unpacks.push_back(arg);
@@ -308,12 +359,29 @@ public:
                     if(arg!=",") imp->error(--p, "Comma expected (not implemented expressions other than field access in calls yet)");
                 }
 
-                implementation += "u64 "+var+"__size = "+to_string(unpacks.size())+";\n";
-                implementation += "ptr "+var+"__contents = malloc(sizeof(i64)*"+var+"__size);\n";
-                for(int i=0;i<unpacks.size();++i) implementation += "((i64*)"+var+"__contents)["+to_string(i)+"] = "+unpacks[i]+";\n";
+                vardecl += "u64 "+var+"__size;\n";
+                vardecl += "u64 "+var+"__offset;\n";
+                vardecl += "ptr "+var+"__contents;\n";
+                implementation += var+"__size = "+to_string(unpacks.size())+";\n";
+                implementation += var+"__offset = 0;\n";
+                implementation += var + "__contents = malloc(sizeof(i64)*" + var + "__size);\n";
+                for (int i = 0; i < unpacks.size(); ++i) implementation += "std::memcpy((unsigned char*)" + var + "__contents + sizeof(i64) * " + to_string(i) + ", &" + unpacks[i] + ", sizeof(i64));\n";
                 internalTypes.vars[var] = type;
                 internalTypes.vars[var+"__size"] = types.vars["u64"];
                 internalTypes.vars[var+"__contents"] = types.vars["ptr"];
+                finals += var+"__size = 0;\nfree(" + var + "__contents);\n";
+
+                if(assignTo.size()) {
+                    // assign type is automatically inferred
+                    internalTypes.vars[assignTo] = type;
+                    for(const auto& it : type->internalTypes.vars) {
+                        if(!assignType) {
+                            internalTypes.vars[assignTo+"__"+it.first] = it.second;
+                            vardecl += it.second->name+" "+assignTo+"__"+it.first+";\n";
+                        }
+                        implementation += assignTo+"__"+it.first +" = "+var+"__"+it.first+";\n";
+                    }
+                }
                 continue;
             }
 
@@ -333,6 +401,15 @@ public:
                 implementation += var + " = " + value + ";\n";
                 vardecl += next + " " + var+";\n";
                 internalTypes.vars[var] = type;
+
+                if(assignTo.size()) {
+                    // assign type is automatically inferred
+                    if(!assignType) {
+                        vardecl += type->name+" "+assignTo+";\n";
+                        internalTypes.vars[assignTo] = type;
+                    }
+                    implementation += assignTo +" = "+var+";\n";
+                }
                 continue;
             }
 
@@ -343,8 +420,29 @@ public:
                 if(internalTypes.vars.find(arg)==internalTypes.vars.end() && !is_primitive(arg)) imp->error(--p, "Symbol not declared (error during unpacking)");
                 if(!is_primitive(arg)) {
                     Type internalType = internalTypes.vars[arg];
-                    if(!internalType->packs.size()) unpacks.push_back(arg);
-                    else for(const string& pack : internalType->packs) unpacks.push_back(arg+"__"+pack);
+                    if(internalType->name=="buffer") {
+                        if(imp->at(p)!=")") imp->error(p, "Argument of builtin type `buffer` can only be last (it unpacks as many elements as possible)");
+                        int remaining = type->args.size()-unpacks.size();
+                        if(remaining>0) {
+                            string fail_var = create_temp();
+                            implementation += "if("+arg+"__size-"+arg+"__offset<"+to_string(remaining)+") goto "+fail_var+";\n";
+                            errors += fail_var+":\nprintf(\"Runtime error: `"+arg+"` does not have enough remaining elements\\n\");\ngoto __return;\n";
+                            preample += "#include <stdio.h>\n";
+                        }
+                        for(int i=0;i<remaining;++i) {
+                            string cast = type->args[unpacks.size()].type->name; // don't add i because we push back the element
+                            string element = "__"+arg+"__"+to_string(i);
+                            if(internalTypes.vars.find(element)==internalTypes.vars.end()) vardecl += cast+" "+element+";\n";
+                            implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "__contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"__offset), sizeof("+element+"));\n";
+                            internalTypes.vars[element] = types.vars[cast];
+                            unpacks.push_back(element);
+                        }
+                        implementation += arg+"__offset += "+to_string(remaining)+";\n";
+                    }
+                    else {
+                        if(!internalType->packs.size()) unpacks.push_back(arg);
+                        else for(const string& pack : internalType->packs) unpacks.push_back(arg+"__"+pack);
+                    }
                 }
                 else unpacks.push_back(arg);
                 arg = imp->at(p++);
@@ -382,10 +480,20 @@ public:
                 errors = errors+def.rebase(def.errors, var);
                 for(const auto& it : def.internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
                 internalTypes.vars["__finally"] = types.vars["__label"];
-                implementation += "__finally:\n";
-                continue;
+                internalTypes.vars["__start"] = types.vars["__label"];
+                implementation = "__start:\n"+implementation+"__finally:\n";
             }
-
+            if(assignTo.size()) {
+                // assign type is automatically inferred
+                internalTypes.vars[assignTo] = type;
+                for(const auto& it : type->internalTypes.vars) {
+                    if(!assignType) {
+                        internalTypes.vars[assignTo+"__"+it.first] = it.second;
+                        vardecl += it.second->name+" "+assignTo+"__"+it.first+";\n";
+                    }
+                    implementation += assignTo+"__"+it.first +" = "+var+"__"+it.first+";\n";
+                }
+            }
 
         }
         if(with_signature) {
@@ -398,70 +506,77 @@ int Def::temp = 0;
 
 
 int main() {
-    auto imp = tokenize("main.s");
-    Memory types;
-    types.vars["u64"] = make_shared<Def>("u64");
-    types.vars["i64"] = make_shared<Def>("i64");
-    types.vars["f64"] = make_shared<Def>("f64");
-    types.vars["ptr"] = make_shared<Def>("ptr");
-    types.vars["bool"] = make_shared<Def>("bool");
-    types.vars["__label"] = make_shared<Def>("__label");
+    try {
+        auto imp = tokenize("main.s");
+        Memory types;
+        types.vars["u64"] = make_shared<Def>("u64");
+        types.vars["i64"] = make_shared<Def>("i64");
+        types.vars["f64"] = make_shared<Def>("f64");
+        types.vars["ptr"] = make_shared<Def>("ptr");
+        types.vars["bool"] = make_shared<Def>("bool");
+        types.vars["__label"] = make_shared<Def>("__label");
 
 
-    types.vars["buffer"] = make_shared<Def>("buffer");
-    types.vars["buffer"]->packs.push_back("contents");
-    types.vars["buffer"]->packs.push_back("size");
-    types.vars["buffer"]->internalTypes.vars["contents"] = types.vars["ptr"];
-    types.vars["buffer"]->internalTypes.vars["size"] = types.vars["u64"];
+        types.vars["buffer"] = make_shared<Def>("buffer");
+        types.vars["buffer"]->packs.push_back("contents");
+        types.vars["buffer"]->packs.push_back("size");
+        types.vars["buffer"]->internalTypes.vars["contents"] = types.vars["ptr"];
+        types.vars["buffer"]->internalTypes.vars["size"] = types.vars["u64"];
+        types.vars["buffer"]->internalTypes.vars["offset"] = types.vars["offset"];
 
-    stack<pair<string, int>> brackets;
-    for(int p=0;p<imp->size();++p) {
-        string next = imp->at(p);
-        if(next=="(" || next=="{" || next=="[") brackets.push(make_pair(next, p));
-        if(next==")") {if(!brackets.size() || brackets.top().first!="(") imp->error(brackets.top().second, "Never closed");brackets.pop();continue;}
-        if(next=="}") {if(!brackets.size() || brackets.top().first!="{") imp->error(brackets.top().second, "Never closed");brackets.pop();continue;}
-        if(next=="]") {if(!brackets.size() || brackets.top().first!="[") imp->error(brackets.top().second, "Never closed");brackets.pop();continue;}
-    }
-    if(brackets.size()) imp->error(brackets.top().second, "Never closed");
-
-
-    int p = 0;
-    while(p<imp->tokens.size()) {
-        if(imp->at(p)=="smo") {
-            auto def = make_shared<Def>();
-            def->parse(imp, p, types);
-            types.vars[def->name] = def;
+        stack<pair<string, int>> brackets;
+        for(int p=0;p<imp->size();++p) {
+            string next = imp->at(p);
+            if(next=="(" || next=="{" || next=="[") brackets.push(make_pair(next, p));
+            if(next==")") {if(!brackets.size() || brackets.top().first!="(") imp->error(brackets.top().second, "Never closed");brackets.pop();continue;}
+            if(next=="}") {if(!brackets.size() || brackets.top().first!="{") imp->error(brackets.top().second, "Never closed");brackets.pop();continue;}
+            if(next=="]") {if(!brackets.size() || brackets.top().first!="[") imp->error(brackets.top().second, "Never closed");brackets.pop();continue;}
         }
-        else imp->error(p, "Unexpected token: only smo allowed here");
-        p++;
-    }
+        if(brackets.size()) imp->error(brackets.top().second, "Never closed");
 
-    string vardecl = types.vars["main"]->vardecl;
-    string implementation = types.vars["main"]->implementation;
-    string preample = types.vars["main"]->preample;
-    string finals = types.vars["main"]->finals;
-    string errors = types.vars["main"]->errors;
-    implementation =
-    "#define ptr void*\n"
-    "#define u64 unsigned long\n"
-    "#define i64 long\n"
-    "#define f64 double\n\n"
-    +preample+
-    "int main() {\n" +
-    vardecl +
-    implementation +
-    "goto __return;\n" + // skip error handling block that resides at the end of the service
-    finals+
-    "__error:\n" +// error handling (each of those runs goto __finally)
-    errors +
-    "__return:\n" + // resource deallocation
-    finals +
-    "return 0;\n" // actually return from the service
-    "}\n";
-    std::ofstream out("main.cpp");
-    out << implementation;
-    out.close();
-    int run_status = system("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections main.cpp -o main && ./main");
-    if (run_status != 0) return run_status;
+
+        int p = 0;
+        while(p<imp->tokens.size()) {
+            if(imp->at(p)=="smo") {
+                auto def = make_shared<Def>();
+                def->parse(imp, p, types);
+                types.vars[def->name] = def;
+            }
+            else imp->error(p, "Unexpected token: only smo allowed here");
+            p++;
+        }
+
+        string vardecl = types.vars["main"]->vardecl;
+        string implementation = types.vars["main"]->implementation;
+        string preample = types.vars["main"]->preample;
+        string finals = types.vars["main"]->finals;
+        string errors = types.vars["main"]->errors;
+        implementation =
+        "#include <cstring>\n"
+        "#define ptr void*\n"
+        "#define u64 unsigned long\n"
+        "#define i64 long\n"
+        "#define f64 double\n\n"
+        +preample+
+        "int main() {\n" +
+        vardecl +
+        implementation +
+        "goto __return;\n" + // skip error handling block that resides at the end of the service
+        finals+
+        "__error:\n" +// error handling (each of those runs goto __finally)
+        errors +
+        "__return:\n" + // resource deallocation
+        finals +
+        "return 0;\n" // actually return from the service
+        "}\n";
+        std::ofstream out("main.cpp");
+        out << implementation;
+        out.close();
+        int run_status = system("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections main.cpp -o main && ./main");
+        if (run_status != 0) return run_status;
+    }
+    catch (const std::runtime_error& e) {
+        cerr << "Parsing error: " << e.what() << std::endl;
+    }
     return 0;
 }
