@@ -532,9 +532,18 @@ int main() {
 
         int p = 0;
         while(p<imp->tokens.size()) {
-            if(imp->at(p)=="smo") {
+            if (imp->at(p) == "@" && imp->at(p + 1) == "include") {
+                string path = imp->at(p + 2)+".s";
+                auto new_tokens = tokenize(path);
+                p += 3;
+                //imp->tokens.erase(imp->tokens.begin() + p, imp->tokens.begin() + p + 3);
+                imp->tokens.insert(imp->tokens.begin() + p, new_tokens->tokens.begin(), new_tokens->tokens.end());
+                continue;
+            }
+            else if(imp->at(p)=="smo") {
                 auto def = make_shared<Def>();
                 def->parse(imp, p, types);
+                if(types.vars.find(def->name)!=types.vars.end()) imp->error(def->pos+1, "Already defined");
                 types.vars[def->name] = def;
             }
             else imp->error(p, "Unexpected token: only smo allowed here");
