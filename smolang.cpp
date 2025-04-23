@@ -384,16 +384,14 @@ public:
 
             if(!type->args.size()) {
                 string value = imp->at(p++);
-                while(imp->at(p)==".") {value += "__";++p;value += imp->at(p++);}
+                value = parse_expression(imp, p, value, types);
                 if(internalTypes.vars.find(value)==internalTypes.vars.end() && !is_primitive(value)) imp->error(--p, "Symbol not declared (error during argument parsing)");
                 if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis because builtin `smo "+next+"` can only have one argument");
 
-                if(!is_primitive(value)) {
-                    if(internalTypes.vars.find(value)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during unpacking)");
-                    auto oneType = internalTypes.vars[value];
-                    if(oneType->packs.size()!=1) imp->error(--p, "Can only convert a primitive result to a primitive");
-                    value = value+"__"+oneType->packs[0];
-                }
+                if(internalTypes.vars.find(value)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during unpacking)");
+                auto oneType = internalTypes.vars[value];
+                if(oneType->packs.size()>1) imp->error(--p, "Can only convert a primitive result to a primitive");
+                if(oneType->packs.size())value = value+"__"+oneType->packs[0];
 
                 implementation += var + " = " + value + ";\n";
                 vardecl += next + " " + var+";\n";
@@ -413,7 +411,7 @@ public:
             vector<string> unpacks;
             while(true) {
                 string arg = imp->at(p++);
-                while(imp->at(p)==".") {arg += "__";++p;arg += imp->at(p++);}
+                arg = parse_expression(imp, p, arg, types);
                 if(internalTypes.vars.find(arg)==internalTypes.vars.end() && !is_primitive(arg)) imp->error(--p, "Symbol not declared (error during unpacking)");
                 if(!is_primitive(arg)) {
                     Type internalType = internalTypes.vars[arg];

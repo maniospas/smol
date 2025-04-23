@@ -10,16 +10,13 @@ smo leq(i64 x, i64 y) @body{bool z=x<=y;} => z
 smo geq(i64 x, i64 y) @body{bool z=x>=y;} => z
 smo eq(i64 x, i64 y) @body{bool z=(x==y);} => z
 smo neq(i64 x, i64 y) @body{bool z=(x!=y);} => z
-smo and(bool x, bool y) @body{bool z=x&&y;} => z
-smo or(bool x, bool y) @body{bool z=x||y;} => z
 
 smo add(i64 x, i64 y) @body{i64 z=x+y;} => z
 smo sub(i64 x, i64 y) @body{i64 z=x-y;} => z
 smo mul(i64 x, i64 y) @body{i64 z=x*y;} => z
 smo div(i64 x, i64 y)
     @head{#include <stdio.h>}
-    i64 zero(0)
-    eq comp(y, zero)
+    eq comp(y, 0)
     if(comp)
         @fail{printf("Division by zero\n");}
         => true
@@ -27,8 +24,7 @@ smo div(i64 x, i64 y)
     => z
 
 smo abs(i64 x)
-    i64 zero(0)
-    le check(x, zero)
+    le check(x, 0)
     => check
 
 smo Point(i64 x, i64 y) => (x,y)
