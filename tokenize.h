@@ -59,7 +59,7 @@ public:
             }
         }
         string red_marker = "\033[31m" + string(display_col, ' ') +"^" + string(name.size()-1, '^') + "\033[0m";
-        return "at \033[90mfile "+imp->path+" line "+to_string(line)+"\033[0m\n"+expanded_line + "\n" + red_marker;
+        return "at \033[90m "+imp->path+" line "+to_string(line)+"\033[0m\n"+expanded_line + "\n" + red_marker;
     }
 };
 

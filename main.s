@@ -4,7 +4,7 @@ smo Point(i64 x, i64 y) => (x,y)
 smo Field(Point start, Point end) => @new
 
 smo main()
-    f64 i(0)
+    bool i(false)
     print(i)
 
     buffer buf(1,2,3,4)

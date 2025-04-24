@@ -77,7 +77,7 @@ bool is_symbol(const std::string& s) {
 }
 
 class Memory {
-    public:unordered_map<string, Type> vars;
+public:unordered_map<string, Type> vars;
 };
 class Arg {
 public:
@@ -91,10 +91,20 @@ class Def {
         return "__v"+to_string(++temp);
     }
 public:
+    Type next_overload_to_try;
     string canonic_name() {
         string ret = name;
         for(const auto& arg : args) ret += "__"+arg.type->canonic_name();
         return ret;
+    }
+    string signature() {
+        string ret("");
+        for(const auto& arg : args) {
+            if(ret.size())
+                ret += ", ";
+            ret += ""+arg.type->canonic_name()+" "+arg.name;
+        }
+        return name+"("+ret+")";
     }
     string name;
     vector<Arg> args;
@@ -424,6 +434,7 @@ public:
             }
 
             vector<string> unpacks;
+            bool has_buffer = 0;
             while(true) {
                 string arg = imp->at(p++);
                 arg = parse_expression(imp, p, arg, types);
@@ -431,6 +442,7 @@ public:
                 if(!is_primitive(arg)) {
                     Type internalType = internalTypes.vars[arg];
                     if(internalType->name=="buffer") {
+                        has_buffer = p;
                         if(imp->at(p)!=")") imp->error(p, "Argument of builtin type `buffer` can only be last (it unpacks as many elements as possible)");
                         int remaining = type->args.size()-unpacks.size();
                         if(remaining>0) {
@@ -459,18 +471,34 @@ public:
                 if(arg==")") break;
                 if(arg!=",") imp->error(--p, "Comma expected (not implemented expressions other than field access in calls yet)");
             }
-            if(unpacks.size()!=type->args.size()) imp->error(--p, "Unexpected closed parenthesis: smol "+next+" requires "+to_string(type->args.size())+" arguments");
-            for(int i=0;i<unpacks.size();++i) {
-                if(type->args[i].type->args.size()) imp->error(--p, "Internal errors failed to resolve the type " + type->args[i].type->name + " of "+type->args[i].name);
-                if(type->args[i].type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
-                    imp->error(p-2, "Different types\n> needs " + pretty_var(type->args[i].type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+"\n> found "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
-                string target = var+"__"+type->args[i].name;
-                implementation += target + " = " + unpacks[i]+";\n";
-                vardecl += type->args[i].type->name+" "+ target+";\n";
-                internalTypes.vars[target] = type->args[i].type;
+            if(has_buffer && type->next_overload_to_try) imp->error(has_buffer-1, "Ambiguous syntax\n> Cannot pass a buffer to overloaded "+type->name);
+
+
+            bool found_overload = false;
+            string overloading_errors = "";
+            while(!found_overload && type) {
+                try {
+                    if(unpacks.size()!=type->args.size()) throw std::runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found "+to_string(unpacks.size())+" arguments");
+                    for(int i=0;i<unpacks.size();++i) {
+                        if(type->args[i].type->args.size()) throw std::runtime_error(type->signature()+": Internal errors failed to resolve the type " + type->args[i].type->name + " of "+type->args[i].name);
+                        if(type->args[i].type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
+                            throw std::runtime_error(type->signature()+": Needs " + pretty_var(type->args[i].type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but found "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                        string target = var+"__"+type->args[i].name;
+                        implementation += target + " = " + unpacks[i]+";\n";
+                        vardecl += type->args[i].type->name+" "+ target+";\n";
+                        internalTypes.vars[target] = type->args[i].type;
+                    }
+                    found_overload = true;
+                }
+                catch (const std::runtime_error& e) {
+                    overloading_errors += "\n";
+                    overloading_errors += e.what();
+                    type = type->next_overload_to_try;
+                }
             }
+            if(!type) imp->error(p-1, "Implementation not found"+overloading_errors);
 
-
+            internalTypes.vars[var] = type; // important to overload correctly
             vardecl += type->rebase(type->vardecl, var);
             implementation += type->rebase(type->implementation, var);
             preample += type->rebase(type->preample, var);
@@ -570,7 +598,15 @@ int main() {
                 else if(imp->at(p)=="smo") {
                     auto def = make_shared<Def>();
                     def->parse(imp, p, types);
-                    if(types.vars.find(def->name)!=types.vars.end()) imp->error(def->pos+1, "Already defined");
+                    if(types.vars.find(def->name)!=types.vars.end()) {
+                        auto prev_def = types.vars.find(def->name)->second;
+                        def->next_overload_to_try = prev_def;
+                        string new_name = def->canonic_name();
+                        while(prev_def) {
+                            if(prev_def->canonic_name()==new_name) imp->error(def->pos+1, "Already defined");
+                            prev_def = prev_def->next_overload_to_try;
+                        }
+                    }
                     types.vars[def->name] = def;
                 }
                 else imp->error(p, "Unexpected token: only smo allowed here");
