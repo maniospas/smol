@@ -21,6 +21,20 @@ using namespace std;
 struct Def;
 typedef shared_ptr<Def> Type;
 
+string pretty_var(const string& name) {
+    string result;
+    size_t i = 0;
+    while (i < name.size()) {
+        if (i > 0 && name[i] == '_' && i + 1 < name.size() && name[i + 1] == '_') {
+            if (name[i - 1] != '_') {result += '.';i += 2;continue;}
+        }
+        result += name[i];
+        ++i;
+    }
+    return result;
+}
+
+
 
 bool is_primitive(const string& name) {
     if (name == "true" || name == "false") return true;
@@ -448,7 +462,8 @@ public:
             if(unpacks.size()!=type->args.size()) imp->error(--p, "Unexpected closed parenthesis: smol "+next+" requires "+to_string(type->args.size())+" arguments");
             for(int i=0;i<unpacks.size();++i) {
                 if(type->args[i].type->args.size()) imp->error(--p, "Internal errors failed to resolve the type " + type->args[i].type->name + " of "+type->args[i].name);
-                if(type->args[i].type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) imp->error(--p, "Different types between " + type->args[i].type->name + " "+ type->args[i].name+" and "+unpacks[i]);
+                if(type->args[i].type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
+                    imp->error(p-2, "Different types\n> needs " + pretty_var(type->args[i].type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+"\n> found "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 string target = var+"__"+type->args[i].name;
                 implementation += target + " = " + unpacks[i]+";\n";
                 vardecl += type->args[i].type->name+" "+ target+";\n";
@@ -531,27 +546,53 @@ int main() {
         if(brackets.size()) imp->error(brackets.top().second, "Never closed");
 
         unordered_set<string> imported;
+        int count_errors = 0;
         int p = 0;
+        unordered_set<string> all_errors;
         while(p<imp->tokens.size()) {
-            if (imp->at(p) == "@" && imp->at(p + 1) == "include") {
-                string path = imp->at(p + 2)+".s";
-                if(imported.find(path)!=imported.end()) imp->error(p+2, "Already included");
-                imported.insert(path);
-                auto new_tokens = tokenize(path);
-                p += 3;
-                //imp->tokens.erase(imp->tokens.begin() + p, imp->tokens.begin() + p + 3);
-                imp->tokens.insert(imp->tokens.begin() + p, new_tokens->tokens.begin(), new_tokens->tokens.end());
-                continue;
+            try {
+                if (imp->at(p) == "@" && imp->at(p + 1) == "include") {
+                    p += 2;
+                    string path = imp->at(p);
+                    while(imp->at(p+1)==".") {
+                        p += 2;
+                        path += "/"+imp->at(p);
+                    }
+                    path += ".s";
+                    if(imported.find(path)!=imported.end()) imp->error(p, "Already included");
+                    imported.insert(path);
+                    auto new_tokens = tokenize(path);
+                    p += 1;
+                    //imp->tokens.erase(imp->tokens.begin() + p, imp->tokens.begin() + p + 3);
+                    imp->tokens.insert(imp->tokens.begin() + p, new_tokens->tokens.begin(), new_tokens->tokens.end());
+                    continue;
+                }
+                else if(imp->at(p)=="smo") {
+                    auto def = make_shared<Def>();
+                    def->parse(imp, p, types);
+                    if(types.vars.find(def->name)!=types.vars.end()) imp->error(def->pos+1, "Already defined");
+                    types.vars[def->name] = def;
+                }
+                else imp->error(p, "Unexpected token: only smo allowed here");
+                p++;
             }
-            else if(imp->at(p)=="smo") {
-                auto def = make_shared<Def>();
-                def->parse(imp, p, types);
-                if(types.vars.find(def->name)!=types.vars.end()) imp->error(def->pos+1, "Already defined");
-                types.vars[def->name] = def;
+            catch (const std::runtime_error& e) {
+                string message = e.what();
+                if(all_errors.find(message)==all_errors.end()) {
+                    all_errors.insert(message);
+                    cerr << message << "\n";
+                }
+                count_errors++;
+                while(p<imp->size()-1) {
+                    p++;
+                    if(imp->at(p)=="smo") break;
+                    if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
+                }
+                if(p>=imp->size()-1) break;
             }
-            else imp->error(p, "Unexpected token: only smo allowed here");
-            p++;
         }
+
+        if(count_errors) ERROR("Aborted due to the above "+to_string(count_errors)+" errors\n");
 
         string vardecl = types.vars["main"]->vardecl;
         string implementation = types.vars["main"]->implementation;
@@ -583,7 +624,7 @@ int main() {
         if (run_status != 0) return run_status;
     }
     catch (const std::runtime_error& e) {
-        cerr << "Parsing error: " << e.what() << std::endl;
+        cerr << e.what() << std::endl;
     }
     return 0;
 }

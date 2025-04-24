@@ -1,6 +1,10 @@
-smo print(i64 x)
+smo print(f64 message)
     @head{#include <stdio.h>}
-    @body{printf("%ld\n", x);}
+    @body{printf("%.6f\n", message);}
+    => true
+smo print(i64 message)
+    @head{#include <stdio.h>}
+    @body{printf("%ld\n", message);}
     => true
 smo if(bool condition) @body{if(!condition)goto __scope__finally;} => @scope
 
