@@ -211,3 +211,28 @@ smo main()
     print(i)
 ```
 
+
+## Inclusion
+
+You can include statements with the top-level include directive.
+Here is an example of including the standard library. Paths
+are separated by dots, and the *.s* extension is automatically appended.
+*smoλ* keeps track of included files and creates an error if you
+try to re-include some.
+
+```java
+@include std
+
+smo main()
+    i64 i(0)
+    print(i)
+```
+
+**Note:** All instructions starting with `@` have non-visible effect on code.
+
+
+## Overloading
+
+You can overload `smo` definitions, though for safety only in the same file.
+After overloading, types cannot be used in function signatures due to ambiguity that is
+impossible to resolve under *smoλ*'s data representation model.

@@ -186,6 +186,7 @@ public:
                 string arg_name = imp->at(p++);
                 if(!accepted_var_name(arg_name)) imp->error(--p, "Expecting variable name");
                 Type argType = types.vars.find(next)->second;
+                if(argType->next_overload_to_try) imp->error(p-2, "Overloaded names are ambiguous arguments");
 
                 if(argType->args.size()) {
                     internalTypes.vars[arg_name] = argType;
@@ -347,7 +348,13 @@ public:
 
             if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Symbol is not a `smo` definition");
             auto type = types.vars.find(next)->second;
-            if(assignTo.size() && assignType.get() && type!=assignType) imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with a different `smo` type");
+            if(assignTo.size() && assignType && type!=assignType) {
+                if(type->args.size()==0 && assignType->args.size()==0) {}
+                else if(type->args.size()==0 && assignType->packs.size()==1) {}
+                else if(type->packs.size()==1 && assignType->args.size()==0) {}
+                else if(type->packs.size()==assignType->packs.size()) {}
+                else imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible `smo` type");
+            }
 
             if(var=="(") {
                 if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Symbol is not a `smo` definition");
@@ -394,15 +401,16 @@ public:
                 finals += var+"__size = 0;\nfree(" + var + "__contents);\n";
 
                 if(assignTo.size()) {
+                    imp->error(--p, "Cannot assign a buffer");
                     // assign type is automatically inferred
-                    internalTypes.vars[assignTo] = type;
+                    /*internalTypes.vars[assignTo] = type;
                     for(const auto& it : type->internalTypes.vars) {
                         if(!assignType) {
                             internalTypes.vars[assignTo+"__"+it.first] = it.second;
                             vardecl += it.second->name+" "+assignTo+"__"+it.first+";\n";
                         }
                         implementation += assignTo+"__"+it.first +" = "+var+"__"+it.first+";\n";
-                    }
+                    }*/
                 }
                 continue;
             }
@@ -427,6 +435,16 @@ public:
                     if(!assignType) {
                         vardecl += type->name+" "+assignTo+";\n";
                         internalTypes.vars[assignTo] = type;
+                    }
+                    else {
+                        if(assignType->args.size()==0 && assignType!=type) imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible `smo` type");
+                        if(assignType->packs.size()>1) imp->error(p-2, "Cannot unpack to a builting a type with more than one values");
+                        if(assignType->packs.size()) {
+                            var += "__"+assignType->packs[0];
+                            if(internalTypes.vars.find(var)==internalTypes.vars.end()) imp->error(p-2, "Symbol not declared (error during unpacking)");
+                            assignType = internalTypes.vars.find(var)->second;
+                        }
+                        // if(assignType!=type) imp->error(p-2, "Mismatched types");
                     }
                     implementation += assignTo +" = "+var+";\n";
                 }
@@ -523,14 +541,21 @@ public:
                 implementation = "__start:\n"+implementation+"__finally:\n";
             }
             if(assignTo.size()) {
-                // assign type is automatically inferred
-                internalTypes.vars[assignTo] = type;
-                for(const auto& it : type->internalTypes.vars) {
-                    if(!assignType) {
-                        internalTypes.vars[assignTo+"__"+it.first] = it.second;
-                        vardecl += it.second->name+" "+assignTo+"__"+it.first+";\n";
+                if(assignType && assignType->args.size()==0) {
+                    //cout << type->args.size()<<"\n";
+                    if(type->packs.size()!=1) imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible `smo` type");
+                    implementation += assignTo+" = "+var+"__"+type->packs[0]+";\n";
+                }
+                else {
+                    internalTypes.vars[assignTo] = type;
+                    //rejectFields.insert(assignTo); // prevent subsequent element access
+                    for(const auto& it : type->internalTypes.vars) {
+                        if(!assignType) {
+                            internalTypes.vars[assignTo+"__"+it.first] = it.second;
+                            vardecl += it.second->name+" "+assignTo+"__"+it.first+";\n";
+                        }
+                        implementation += assignTo+"__"+it.first +" = "+var+"__"+it.first+";\n";
                     }
-                    implementation += assignTo+"__"+it.first +" = "+var+"__"+it.first+";\n";
                 }
             }
 
@@ -602,14 +627,16 @@ int main() {
                         auto prev_def = types.vars.find(def->name)->second;
                         def->next_overload_to_try = prev_def;
                         string new_name = def->canonic_name();
+                        string new_path = def->imp->path; // TODO: fix because currently we inserted includes to tokens (need to recursively parse instead maybe)
                         while(prev_def) {
+                            if(new_path!=prev_def->imp->path) imp->error(def->pos+1, "Defined in two different files\n"+new_path+"\n"+prev_def->imp->path);
                             if(prev_def->canonic_name()==new_name) imp->error(def->pos+1, "Already defined");
                             prev_def = prev_def->next_overload_to_try;
                         }
                     }
                     types.vars[def->name] = def;
                 }
-                else imp->error(p, "Unexpected token: only smo allowed here");
+                else imp->error(p, "Unexpected token\nOnly `smo` or `@include` allowed");
                 p++;
             }
             catch (const std::runtime_error& e) {
