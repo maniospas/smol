@@ -73,7 +73,6 @@ void Import::error(int pos, const string& message) {
     if(pos>=tokens.size()) ERROR("Premature end of file: "+path);
     ERROR(message+"\n"+tokens[pos].show());
 }
-
 auto tokenize(const string& path) {
     ifstream file(path);
     if (!file) ERROR("Could not open file: " + path);
@@ -89,19 +88,50 @@ auto tokenize(const string& path) {
             while (i < line.size() && isspace(line[i])) {if (line[i] == '\t') col += 4; else col++;i++;}
             if (i >= line.size()) break;
             if (line[i] == '\\' && i + 1 < line.size() && line[i + 1] == '\\') break;
-            if (is_symbol(line[i])) {
+            int start = i;
+            int start_col = col;
+            if (line[i] == '"') {
+                // String literal
+                i++;
+                col++;
+                while (i < line.size() && line[i] != '"') {
+                    if (line[i] == '\t') col += 4;
+                    else col++;
+                    i++;
+                }
+                if (i < line.size() && line[i] == '"' && line[i-1]!='\\') {
+                    i++;
+                    col++;
+                }
+                tokens.emplace_back(line.substr(start, i - start), line_num, start_col, main_file);
+            }
+            else if (is_symbol(line[i])) {
                 tokens.emplace_back(string(1, line[i]), line_num, col, main_file);
                 i++;
                 col++;
                 continue;
             }
-            int start = i;
-            int start_col = col;
-            while (i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) {i++;col++;}
-            if (start < i) tokens.emplace_back(line.substr(start, i - start), line_num, start_col, main_file);
+            else if (isdigit(line[i]) || (line[i] == '.' && i + 1 < line.size() && isdigit(line[i + 1]))) {
+                bool has_dot = false;
+                if (line[i] == '.') has_dot = true;
+                while (i < line.size() && (isdigit(line[i]) || (line[i] == '.' && !has_dot))) {
+                    if (line[i] == '.') has_dot = true;
+                    i++;
+                    col++;
+                }
+                tokens.emplace_back(line.substr(start, i - start), line_num, start_col, main_file);
+            }
+            else {
+                while (i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) {
+                    i++;
+                    col++;
+                }
+                if (start < i) tokens.emplace_back(line.substr(start, i - start), line_num, start_col, main_file);
+            }
         }
     }
     return main_file;
 }
+
 
 #endif // TOKENIZE_H

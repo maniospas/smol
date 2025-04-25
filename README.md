@@ -236,3 +236,13 @@ smo main()
 You can overload `smo` definitions, though for safety only in the same file.
 After overloading, types cannot be used in function signatures due to ambiguity that is
 impossible to resolve under *smoλ*'s data representation model.
+
+
+## Order for scope-continuous operations (implement your own ifs and loops)
+
+@head
+@body
+@scope
+@finally
+@tail
+@end

@@ -145,13 +145,13 @@ public:
     Def(const string& builtin): name(builtin) {}
     Def(): implementation(""), preample(""), errors(""), finals(""), vardecl("") {}
 
-    string next_var(const shared_ptr<Import>& i, int& p, const string& first_token) {
+    string next_var(const shared_ptr<Import>& i, int& p, const string& first_token, bool test=true) {
         string next = first_token;
         while(imp->at(p)==".") {
             //if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared"); // declare all up to this point
             next += "__";++p;next += imp->at(p++);
         }
-        if(internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared");
+        if(test && internalTypes.vars.find(next)==internalTypes.vars.end() && !is_primitive(next)) imp->error(--p, "Symbol not declared");
         return next;
     }
 
@@ -208,7 +208,6 @@ public:
                 if(p>=imp->size()) imp->error(pos+2, "Missing matching right parenthesis");
             }
         }
-
         start = p;
         while(p<imp->size()) {
             string next = imp->at(p++);
@@ -249,6 +248,7 @@ public:
                             else imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
                         }
                         else {
+                            if(next=="goto") internalTypes.vars[nextnext] = types.vars["__label"];
                             implementation += next;
                             if(!is_symbol(next) && !is_symbol(nextnext)) implementation += " ";
                         }
@@ -289,7 +289,7 @@ public:
             }
             // return statement
             if(next=="=") {
-                if(imp->at(p++)!=">") imp->error(--p, "Expecting `=>` to return for expressions starting with `=`");
+                if(imp->at(p++)!=">") imp->error(p-2, "Expecting `=>` to return for expressions starting with `=`");
                 next = imp->at(p++);
                 if(next=="@") {
                     next = imp->at(p++);
@@ -335,9 +335,10 @@ public:
             Type assignType(nullptr);
 
             string var = imp->at(p++);
+            Type type;
             if(var=="." || var=="=") {
                 p--;
-                var = next_var(imp, p, next);
+                var = next_var(imp, p, next, false);
                 if(internalTypes.vars.find(var)!=internalTypes.vars.end()) assignType = internalTypes.vars.find(var)->second;
                 next = imp->at(p++);
                 if(next!="=") imp->error(--p, "Assign to this variable per: `"+var+" = ...`");
@@ -345,19 +346,41 @@ public:
                 next = imp->at(p++);
                 var = imp->at(p++);
             }
-
-            if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Symbol is not a `smo` definition");
-            auto type = types.vars.find(next)->second;
+            if(is_primitive(next)) {
+                // direct assignment of primitive to value
+                assignTo = var;
+                var = next;
+                next = type_primitive(next);
+                if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Internal error: implicit type is not a `smo` definition");
+                type = types.vars.find(next)->second;
+                if(type->args.size()) imp->error(--p, "Type not declared");
+                if(assignType){
+                    if(assignType->args.size()==0 && assignType!=type) imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible `smo` type");
+                    if(assignType->packs.size()>1) imp->error(p-2, "Cannot unpack to a builting a type with more than one values");
+                    if(assignType->packs.size()) {
+                        var += "__"+assignType->packs[0];
+                        if(internalTypes.vars.find(var)==internalTypes.vars.end()) imp->error(p-2, "Symbol not declared (error during unpacking)");
+                        assignType = internalTypes.vars.find(var)->second;
+                    }
+                }
+                else internalTypes.vars[assignTo] = type;
+                implementation += assignTo +" = "+var+";\n";
+                vardecl += type->name+" "+assignTo+";\n";
+                --p;
+                continue;
+            }
+            if(types.vars.find(next)==types.vars.end()) imp->error(p-2, "Type not declared");
+            type = types.vars.find(next)->second;
             if(assignTo.size() && assignType && type!=assignType) {
                 if(type->args.size()==0 && assignType->args.size()==0) {}
                 else if(type->args.size()==0 && assignType->packs.size()==1) {}
                 else if(type->packs.size()==1 && assignType->args.size()==0) {}
                 else if(type->packs.size()==assignType->packs.size()) {}
-                else imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible `smo` type");
+                else imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible type");
             }
 
             if(var=="(") {
-                if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Symbol is not a `smo` definition");
+                if(types.vars.find(next)==types.vars.end()) imp->error(p-2, "Type not declared");
                 type = types.vars.find(next)->second;
                 var = create_temp();
             }
@@ -388,11 +411,12 @@ public:
                     if(arg!=",") imp->error(--p, "Comma expected (not implemented expressions other than field access in calls yet)");
                 }
 
-                vardecl += "u64 "+var+"__size;\n";
-                vardecl += "u64 "+var+"__offset;\n";
+                vardecl += "u64 "+var+"__size = 0;\n";
+                vardecl += "u64 "+var+"__offset = 0;\n";
                 vardecl += "ptr "+var+"__contents;\n";
                 implementation += var+"__size = "+to_string(unpacks.size())+";\n";
                 implementation += var+"__offset = 0;\n";
+                implementation += "if("+var+"__size-"+var+"__offset) free("+var+"__contents);\n";
                 implementation += var + "__contents = malloc(sizeof(i64)*" + var + "__size);\n";
                 for (int i = 0; i < unpacks.size(); ++i) implementation += "std::memcpy((unsigned char*)" + var + "__contents + sizeof(i64) * " + to_string(i) + ", &" + unpacks[i] + ", sizeof(i64));\n";
                 internalTypes.vars[var] = type;
@@ -532,6 +556,7 @@ public:
 
                 vardecl += def.rebase(def.vardecl, var);
                 implementation += def.rebase(def.implementation, var);
+
                 preample += def.rebase(def.preample, var);
                 finals = def.rebase(def.finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
                 errors = errors+def.rebase(def.errors, var);
