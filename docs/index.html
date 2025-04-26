@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>smoλ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
   <style>
@@ -9,9 +10,9 @@
     h1 {scroll-margin-top: 60px;}
     h2 {scroll-margin-top: 60px;}
     body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
-    .navbar {background-color: #333;padding: 10px 20px;position: sticky;top: 0;z-index: 1000;display: flex;justify-content: center;}
-    .navbar a {color: white;text-decoration: none;margin-right: 15px;font-weight: bold;}
-    .navbar a:hover {text-decoration: underline;}
+    .navbar {background-color: #333;padding: 2px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
+    .navbar a {color: white;text-decoration: none;padding: 5px;font-weight: bold;}
+    .navbar a:hover {background-color: #555;}//{text-decoration: underline;}
     .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
     h1, h2, h3 {color: #222;}
     table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
@@ -52,7 +53,7 @@ The only built-in elements are a few basic keywords.</p></p>
 
 <h1 id="quickstart">Quickstart</h1>
 
-<p>Let's take a look at an example program.</p>
+<p>Look at an example program:</p>
 
 <pre><code class="language-smolambda">@include std
 
@@ -78,12 +79,12 @@ keyword. Types and functions are the same, with the operator <code class="langua
 returning a value or tuple. <code class="language-smolambda">@new</code> is a shorthand for directly
 returning a tuple of all arguments.</p>
 
-<p>Given the defined types, once you write something like <code class="language-smolambda">p = Point(...)</code>,
+<p>Once you write something like <code class="language-smolambda">Point p(...)</code>,
 you can access all named values using
 <code class="language-smolambda">p.x</code> and <code class="language-smolambda">p.y</code>.
 When using the full name, values are unpacked into parts of a tuple:
-for example, <code class="language-smolambda">p1 = Point(p)</code> is equivalent to
-<code class="language-smolambda">p1 = Point(p.x, p.y)</code>.
+for example, <code class="language-smolambda">Point p1(p)</code> is equivalent to
+<code class="language-smolambda">Point p1(p.x, p.y)</code>.
 Unpacking creates a flat tuple (not a tuple of tuples) that can be reinterpreted in various ways
 as long as primitive types match.</p>
 
@@ -115,9 +116,11 @@ everything ends at return statements or at the end of file, or resides in a pare
 
 <h3>Assignment vs construction</h3>
 
-<p>In the above snippets the assignment operator was used to copy the outcome of function calls to variables.
-*This can only be used to access returned values, but does not retain intermediate variables.* To retain the latter,
-you need to construct runtypes by putting the name between the call and the calling parenthesis, like below.
+<p>The assignment operator can be used used to copy the outcome of function calls to variables.
+<i>This can only be used to access returned values, but not intermediate variables.</i> To retain the latter,
+you need to construct runtypes by putting the name between the call and the calling parenthesis, as we did above.
+An example to grasp the difference is shown below.
+</p>
 
 <pre><code class="language-smolambda">@include std
 
@@ -130,21 +133,26 @@ smo main()
     Point p(1)
     print(p.xinc)
 </code></pre>
-</p>
 
 
 <h3>Overloading</h3>
 
-<p>You can overload <code>smo</code> definitions with different argument types.
-The types should be structurally different when converted to a flat representation
-of primitives. After overloading, types cannot be used in function signatures
-due to ambiguity.</p>
+<p>You can overload runtypes with that are structurally
+different when converted to a flat representation of primitives.
+After overloading, types cannot be used in function signatures
+due to ambiguity. For example, the following two definitions come
+from the standard library:</p>
 
+<pre><code class="language-smolambda">smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
+smo add(f64 x, f64 y) @body{f64 z=x+y;} -> z
+</code></pre>
 
 <h1 id="buffers">Buffers</h1>
 
-<p>Handle dynamic memory with the special <code class="language-smolambda">buffer</code> type.
-This can only be statically</p>
+<p>Handle dynamic memory with the special <code class="language-smolambda">buffer</code> runtype.
+Think of this as a list where new data are pushed to the back and popped from the front.
+To avoid unintuitive behavior and common mistakes of creating copies,
+this is set to only be be statically instantiated.</p>
 
 <pre><code class="language-smolambda">@include std
 
