@@ -1,9 +1,10 @@
 @include std
 
-smo Point(i64 x, i64 y) -> (x,y)
-smo Field(Point start, Point end) -> @new
+smo Point(i64 x, i64 y) z=1 -> @new
 
 smo main()
-    buffer buf(1,2,3,4)
-    f = Field(buf)
-    print(f.start.x)
+    Point p(1,2)
+    p.z = 50
+    p = Point(2,3)
+    print(p.z)
+    print(p.x)

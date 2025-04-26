@@ -1,103 +1,15 @@
 void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_signature=true) {
     pos = p;
     imp = i;
-    if(with_signature) {
-        if(imp->at(p++)!="smo") imp->error(--p, "Missing `smo`");
-        name = imp->at(p++);
-        if(imp->at(p++)!="(") imp->error(--p, "Missing left parenthesis");
-        while(true) {
-            string next = imp->at(p++);
-            if(next==")") break;
-            if(args.size()) {
-                if(next!=",")imp->error(--p, "Expecting comma between arguments");
-                next = imp->at(p++);
-            }
-            if(!accepted_var_name(next)) imp->error(--p, "Expecting type declaration but this is not a valid type name");
-            if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Type name not visible");
-            string arg_name = imp->at(p++);
-            if(!accepted_var_name(arg_name)) imp->error(--p, "Expecting variable name");
-            Type argType = types.vars.find(next)->second;
-            if(argType->next_overload_to_try) imp->error(p-2, "Overloaded names are ambiguous arguments");
-
-            if(argType->args.size()) {
-                internalTypes.vars[arg_name] = argType;
-                for(const auto& it : argType->args) {
-                    args.emplace_back(arg_name+"__"+it.name, it.type);
-                    internalTypes.vars[arg_name+"__"+it.name] = it.type;
-                    vardecl += it.type->rebase(it.type->vardecl, arg_name);
-                    implementation += it.type->rebase(it.type->implementation, arg_name);
-                    preample += it.type->rebase(it.type->preample, arg_name);
-                    finals = it.type->rebase(it.type->finals, arg_name)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
-                    errors = errors+it.type->rebase(it.type->errors, arg_name);
-                    for(const auto& it : it.type->internalTypes.vars) internalTypes.vars[arg_name+"__"+it.first] = it.second;
-                }
-            }
-            else {
-                args.emplace_back(arg_name, argType);
-                internalTypes.vars[arg_name] = argType;
-            }
-            if(p>=imp->size()) imp->error(pos+2, "Missing matching right parenthesis");
-        }
-    }
+    if(with_signature) parse_signature(imp, p, types);
     start = p;
     while(p<imp->size()) {
         string next = imp->at(p++);
-        // custom behavior
-        if(next=="@") {
-            parse_directive(imp, p, next, types);
-            continue;
-        }
-        // return statement
-        if(next=="-") {
-            if(imp->at(p)=="-") {
-                end = p;
-                break;
-            }
-            if(imp->at(p++)!=">") imp->error(p-2, "Expecting `->` to return a value or `--` to return without a value for expressions starting with `-`");
-            next = imp->at(p++);
-            if(next=="@") {
-                next = imp->at(p++);
-                if(next == "scope") {
-                    packs.push_back("@scope");
-                }
-                else {
-                    if(next!="new") imp->error(--p, "Only allowed special command here is`->@new` or `->@scope`");
-                    for(const auto& arg : args) packs.push_back(arg.name);
-                }
-            }
-            else if(next!="(") {
-                next = parse_expression(imp, p, next, types);
-                if(!is_primitive(next) && internalTypes.vars[next]->args.size()) {
-                    if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during return)");
-                    auto oneType = internalTypes.vars[next];
-                    if(oneType->packs.size()!=1) imp->error(--p, "Can only convert a primitive result to a primitive");
-                    next = next+"__"+oneType->packs[0];
-                }
-                packs.push_back(next);
-            }
-            else { // we are starting parenthesis
-                while(true) {
-                    next = parse_expression(imp, p, imp->at(p++), types);
-                    if(!is_primitive(next) && internalTypes.vars[next]->args.size()) {
-                        if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during return)");
-                        auto oneType = internalTypes.vars[next];
-                        if(oneType->packs.size()!=1) imp->error(--p, "Can only convert a primitive result to a primitive");
-                        next = next+"__"+oneType->packs[0];
-                    }
-                    packs.push_back(next);
-                    next = imp->at(p++);
-                    if(next==")") break;
-                    if(next!=",") imp->error(--p, "Comma expected (not implemented expression in return statements yet)");
-                }
-            }
-            --p;
-            end = p;
-            break;
-        }
+        if(next=="@") {parse_directive(imp, p, next, types);continue;}
+        if(next=="-") {parse_return(imp, p, next, types);end = p--; break;}
 
         string assignTo("");
         Type assignType(nullptr);
-
         string var = imp->at(p++);
         Type type;
         if(var=="." || var=="=") {
@@ -116,6 +28,8 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
                 if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Internal error: implicit type is not a `smo` definition");
                 type = types.vars.find(next)->second;
                 if(type->args.size()) imp->error(--p, "Type not declared");
+                implementation += assignTo +" = "+var+";\n";
+                if(internalTypes.vars.find(assignTo)==internalTypes.vars.end()) vardecl += type->name+" "+assignTo+";\n";
                 if(assignType){
                     if(assignType->args.size()==0 && assignType!=type) imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible `smo` type");
                     if(assignType->packs.size()>1) imp->error(p-2, "Cannot unpack to a builting a type with more than one values");
@@ -126,8 +40,6 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
                     }
                 }
                 else internalTypes.vars[assignTo] = type;
-                implementation += assignTo +" = "+var+";\n";
-                vardecl += type->name+" "+assignTo+";\n";
                 continue;
             }
             var = imp->at(p++);
@@ -139,7 +51,7 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             else if(type->args.size()==0 && assignType->packs.size()==1) {}
             else if(type->packs.size()==1 && assignType->args.size()==0) {}
             else if(type->packs.size()==assignType->packs.size()) {}
-            else imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible type");
+            else imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible runtype");
         }
 
         if(var=="(") {
@@ -148,13 +60,13 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             var = create_temp();
         }
         else {
-            if(assignTo.size()) imp->error(--p, "Expecting opening parenthesis when you call a `smo` anonymously with an assignment (you tried to assign a second name)");
+            if(assignTo.size()) imp->error(--p, "Missing opening parenthesis (or remove assignment)");
             while(imp->at(p)==".") {
                 //if(internalTypes.vars.find(var)==internalTypes.vars.end() && !is_primitive(var)) imp->error(--p, "Symbol not declared"); // declare all up to this point
                 var += "__";++p;var += imp->at(p++);
             }
-            if(internalTypes.vars.find(var)!=internalTypes.vars.end()) imp->error(--p, "Cannot reconstruct data - use assignment instead");
-            if(imp->at(p++)!="(") imp->error(p, "Expecting opening parenthesis");
+            if(internalTypes.vars.find(var)!=internalTypes.vars.end()) imp->error(--p, "Already constructed, only assignment allowed");
+            if(imp->at(p++)!="(") imp->error(p, "Missing opening parenthesis");
         }
         internalTypes.vars[var] = type;
         preample += type->preample;
@@ -187,18 +99,7 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             internalTypes.vars[var+"__contents"] = types.vars["ptr"];
             finals += var+"__size = 0;\nfree(" + var + "__contents);\n";
 
-            if(assignTo.size()) {
-                imp->error(--p, "Cannot assign a buffer");
-                // assign type is automatically inferred
-                /*internalTypes.vars[assignTo] = type;
-                 *               for(const auto& it : type->internalTypes.vars) {
-                 *                   if(!assignType) {
-                 *                       internalTypes.vars[assignTo+"__"+it.first] = it.second;
-                 *                       vardecl += it.second->name+" "+assignTo+"__"+it.first+";\n";
-            }
-            implementation += assignTo+"__"+it.first +" = "+var+"__"+it.first+";\n";
-            }*/
-            }
+            if(assignTo.size()) imp->error(--p, "Cannot assign a buffer");
             continue;
         }
 
@@ -206,11 +107,11 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             string value = imp->at(p++);
             value = parse_expression(imp, p, value, types);
             if(internalTypes.vars.find(value)==internalTypes.vars.end() && !is_primitive(value)) imp->error(--p, "Symbol not declared (error during argument parsing)");
-            if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis because builtin `smo "+next+"` can only have one argument");
+            if(imp->at(p++)!=")") imp->error(--p, "Builtins "+next+" can only have one argument");
 
-            if(internalTypes.vars.find(value)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during unpacking)");
+            if(internalTypes.vars.find(value)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared");
             auto oneType = internalTypes.vars[value];
-            if(oneType->packs.size()>1) imp->error(--p, "Can only convert a primitive result to a primitive");
+            if(oneType->packs.size()>1) imp->error(--p, "Cannot unpack more than one values to a primitive");
             if(oneType->packs.size())value = value+"__"+oneType->packs[0];
 
             implementation += var + " = " + value + ";\n";
@@ -224,11 +125,11 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
                     internalTypes.vars[assignTo] = type;
                 }
                 else {
-                    if(assignType->args.size()==0 && assignType!=type) imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible `smo` type");
-                    if(assignType->packs.size()>1) imp->error(p-2, "Cannot unpack to a builting a type with more than one values");
+                    if(assignType->args.size()==0 && assignType!=type) imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible runtype");
+                    if(assignType->packs.size()>1) imp->error(p-2, "Cannot unpack more than one values to a primitive");
                     if(assignType->packs.size()) {
                         var += "__"+assignType->packs[0];
-                        if(internalTypes.vars.find(var)==internalTypes.vars.end()) imp->error(p-2, "Symbol not declared (error during unpacking)");
+                        if(internalTypes.vars.find(var)==internalTypes.vars.end()) imp->error(p-2, "Symbol not declared");
                         assignType = internalTypes.vars.find(var)->second;
                     }
                     // if(assignType!=type) imp->error(p-2, "Mismatched types");
@@ -243,17 +144,17 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
         while(true) {
             string arg = imp->at(p++);
             arg = parse_expression(imp, p, arg, types);
-            if(internalTypes.vars.find(arg)==internalTypes.vars.end() && !is_primitive(arg)) imp->error(--p, "Symbol not declared (error during unpacking)");
+            if(internalTypes.vars.find(arg)==internalTypes.vars.end() && !is_primitive(arg)) imp->error(--p, "Symbol not declared");
             if(!is_primitive(arg)) {
                 Type internalType = internalTypes.vars[arg];
                 if(internalType->name=="buffer") {
                     has_buffer = p;
-                    if(imp->at(p)!=")") imp->error(p, "Argument of builtin type `buffer` can only be last (it unpacks as many elements as possible)");
+                    if(imp->at(p)!=")") imp->error(p, "The buffer is not the last element");
                     int remaining = (int)(type->args.size()-unpacks.size());
                     if(remaining>0) {
                         string fail_var = create_temp();
                         implementation += "if("+arg+"__size-"+arg+"__offset<"+to_string(remaining)+") goto "+fail_var+";\n";
-                        errors += fail_var+":\nprintf(\"Runtime error: `"+arg+"` does not have enough remaining elements\\n\");\ngoto __return;\n";
+                        errors += fail_var+":\nprintf(\"Runtime error: buffer `"+arg+"` does not have enough remaining elements\\n\");\ngoto __return;\n";
                         preample += "#include <stdio.h>\n";
                     }
                     for(int i=0;i<remaining;++i) {
@@ -285,8 +186,8 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             try {
                 if(unpacks.size()!=type->args.size()) throw std::runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found "+to_string(unpacks.size())+" arguments");
                 for(size_t i=0;i<unpacks.size();++i) {
-                    if(type->args[i].type->args.size()) throw std::runtime_error(type->signature()+": Internal errors failed to resolve the type " + type->args[i].type->name + " of "+type->args[i].name);
-                    if(internalTypes.vars.find(unpacks[i])==internalTypes.vars.end()) throw std::runtime_error(type->signature()+": Failed to find type for "+unpacks[i]);
+                    if(type->args[i].type->args.size()) throw std::runtime_error(type->signature()+": Failed to create builtin for " + type->args[i].type->name + " of "+type->args[i].name);
+                    if(internalTypes.vars.find(unpacks[i])==internalTypes.vars.end()) throw std::runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
                     if(type->args[i].type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
                         throw std::runtime_error(type->signature()+": Needs " + pretty_var(type->args[i].type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but found "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 }
@@ -335,22 +236,21 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
         if(assignTo.size()) {
             if(assignType && assignType->args.size()==0) {
                 //cout << type->args.size()<<"\n";
-                if(type->packs.size()!=1) imp->error(p-2, "You are trying to overwrite "+assignType->name+" "+assignTo+" with an incompatible `smo` type");
+                if(type->packs.size()!=1) imp->error(p-2, "Cannot replace "+assignType->name+" "+assignTo+" with different type "+type->name);
                 if(type->packs[0]!="@scope") implementation += assignTo+" = "+var+"__"+type->packs[0]+";\n";
             }
             else {
                 internalTypes.vars[assignTo] = type;
                 //rejectFields.insert(assignTo); // prevent subsequent element access
-                for(const auto& it : type->internalTypes.vars) {
-                    if(it.second->name=="@scope") continue;
-                    if(it.second->name=="__label" || it.second->args.size()) {
-                        if(!assignType) internalTypes.vars[assignTo+"__"+it.first] = it.second;
+                for(const auto& it : type->packs) {
+                    if(it=="@scope") continue;
+                    if(type->internalTypes.vars[it]->name=="__label" || type->internalTypes.vars[it]->args.size()) {
+                        if(!assignType) internalTypes.vars[assignTo+"__"+it] = type->internalTypes.vars[it];
                         continue;
                     }
-                    if(internalTypes.vars.find(var+"__"+it.first)==internalTypes.vars.end()) continue;
-                    if(internalTypes.vars.find(assignTo+"__"+it.first)==internalTypes.vars.end()) vardecl += it.second->name+" "+assignTo+"__"+it.first+";\n";
-                    if(!assignType) internalTypes.vars[assignTo+"__"+it.first] = it.second;
-                    implementation += assignTo+"__"+it.first +" = "+var+"__"+it.first+";\n";
+                    if(internalTypes.vars.find(var+"__"+it)==internalTypes.vars.end()) continue;
+                    if(!assignType) internalTypes.vars[assignTo+"__"+it] = type->internalTypes.vars[it];
+                    assignVariable(type->internalTypes.vars[it], assignTo+"__"+it, var+"__"+it, imp, p);
                 }
             }
         }

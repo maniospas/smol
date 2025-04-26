@@ -27,6 +27,12 @@ class Arg {public:string name; Type type; Arg(const string& n, const Type& t):na
 class Def {
     static int temp;
     static string create_temp() {return "__v"+to_string(++temp);}
+    #include "parser/assign_variable.cpp"
+    #include "parser/parse_directive.cpp"
+    #include "parser/parse_expression.cpp"
+    #include "parser/parse_return.cpp"
+    #include "parser/parse_signature.cpp"
+
 public:
     Type next_overload_to_try;
     vector<Arg> args;
@@ -35,13 +41,12 @@ public:
     vector<string> packs;
     size_t pos, start, end;
     string name, preample, vardecl, implementation, errors, finals;
+    unordered_set<string> deactivated;
 
     Def(const string& builtin): name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
     Def(): name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
     #include "parser/signature.cpp"
     #include "parser/rebase.cpp"
-    #include "parser/parse_directive.cpp"
-    #include "parser/parse_expression.cpp"
     #include "parser/parse.cpp"
 
 };
@@ -134,7 +139,7 @@ int main() {
         }
 
         imp->tokens.clear();
-        if(count_errors) ERROR("Aborted dushared_ptre to the above "+to_string(count_errors)+" errors\n");
+        if(count_errors) ERROR("Aborted due to the above "+to_string(count_errors)+" errors\n");
 
         string vardecl = types.vars["main"]->vardecl;
         string implementation = types.vars["main"]->implementation;

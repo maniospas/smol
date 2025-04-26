@@ -11,7 +11,7 @@
     h2 {scroll-margin-top: 60px;}
     body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
     .navbar {background-color: #333;padding: 2px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
-    .navbar a {color: white;text-decoration: none;padding: 5px;font-weight: bold;}
+    .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
     .navbar a:hover {background-color: #555;}//{text-decoration: underline;}
     .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
     h1, h2, h3 {color: #222;}
@@ -118,8 +118,8 @@ everything ends at return statements or at the end of file, or resides in a pare
 
 <p>The assignment operator can be used used to copy the outcome of function calls to variables.
 <i>This can only be used to access returned values, but not intermediate variables.</i> To retain the latter,
-you need to construct runtypes by putting the name between the call and the calling parenthesis, as we did above.
-An example to grasp the difference is shown below.
+you need to construct runtypes by putting the name between the call and the calling parenthesis,
+as we did above. An example to grasp the difference is shown below.
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -140,30 +140,60 @@ smo main()
 <p>You can overload runtypes with that are structurally
 different when converted to a flat representation of primitives.
 After overloading, types cannot be used in function signatures
-due to ambiguity. For example, the following two definitions come
-from the standard library:</p>
+due to ambiguity but their usage is subsituted dynamically.
+The following definitions come from the standard library.</p>
 
-<pre><code class="language-smolambda">smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
+<pre><code class="language-smolambda">smo print(f64 message)
+    @head{#include &lt;stdio.h>}
+    @body{printf("%.6f\n", message);}
+    --
+smo print(i64 message)
+    @head{#include &lt;stdio.h>}
+    @body{printf("%ld\n", message);}
+    --
+smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
 smo add(f64 x, f64 y) @body{f64 z=x+y;} -> z
+
+smo main()
+    print(add(1,1)) // 2
+    print(add(0.2,0.3)) // 0.5
 </code></pre>
 
 <h1 id="buffers">Buffers</h1>
 
 <p>Handle dynamic memory with the special <code class="language-smolambda">buffer</code> runtype.
-Think of this as a list where new data are pushed to the back and popped from the front.
-To avoid unintuitive behavior and common mistakes of creating copies,
-this is set to only be be statically instantiated.</p>
+Think of this as a list where new data are pushed to the back and popped from the front. There is
+no equivalent definition, and it is part of the language.
+Buffers can be moved around normally, and stored in data types. Memory deallocation is safe, occurs
+always -even if runtime errors occur to terminate a service-
+and is injected automatically by <i>smoλ</i>. However,
+<i>data are stored in buffers without their type</i>.
+See next on how to also make this safe.</p>
+
+<p>The front of buffers can be unpacked, which is equivalent to front-popping until no
+more entries are required. This can be performed only by unpacking to a desired type and
+prefixing the buffer to be popped with <code class="language-smolambda">@pop</code>.
+Popping is memory safe in that it smoothly fails the service (e.g., <code class="language-smolambda">main</code>)
+with an appropriate error message
+</p>
 
 <pre><code class="language-smolambda">@include std
 
-smo Point(i64 x, i64 y) -> (x,y)
+smo Point(i64 x, i64 y) -> @new
 smo Field(Point start, Point end) -> @new
 
 smo main()
-    buffer buf(1,2,3,4)
-    f = Field(buf)
-    print(f.start.x)
+    buffer buf(1,2,3,4,5)
+    f = Field(@pop buf)
+    print(f.start.x) // 1
+    i = i64(@pop buf)
+    print(i) // 5
 </code></pre>
+
+
+
+<p>Add more
+</p>
 
 
 <h1 id="std">Std</h1>
