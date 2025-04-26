@@ -17,7 +17,7 @@
     table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
     th, td {border: 1px solid #ccc;padding: 10px;text-align: left;vertical-align: top;}
     th {background-color: #eee;}
-    code {background: #eee;padding: 2px 6px;border-radius: 4px;font-family: 'Courier New', Courier, monospace;font-size: 95%;}
+    code {background: #eee;padding: 2px 0px;border-radius: 4px;font-family: 'Courier New', Courier, monospace;font-size: 95%;}
     pre {background: #272822;padding: 15px;border-radius: 8px;overflow-x: auto;font-size: 90%;margin-bottom: 2em;}
     pre code {background: none;font-family: 'Courier New', Courier, monospace;font-size: 90%;}
     p strong {color: #444;}
@@ -60,8 +60,8 @@ smo Point(i64 x, i64 y) -> @new
 smo Field(Point start, Point end) -> @new
 
 smo main()
-    p = Point(3,4)
-    f = Field(1,2,p)
+    Point p(3,4)
+    Field f(1,2,p)
     print(f.start.x)
     print(f.end.y)
     i = add(f.start.x, f.start.y)
@@ -113,22 +113,47 @@ These symbols form visual barriers that are easy to spot while remaining, well, 
 Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
 everything ends at return statements or at the end of file, or resides in a parenthesis.</p>
 
-<p>Assignments copy all fields by value but can be applied only on compatible types.</p>
+<h3>Assignment vs construction</h3>
 
-<p>You can overload <code>smo</code> definitions in the same file.
-After overloading, types cannot be used in function signatures due to ambiguity that *smoλ* cannot resolve.</p>
+<p>In the above snippets the assignment operator was used to copy the outcome of function calls to variables.
+*This can only be used to access returned values, but does not retain intermediate variables.* To retain the latter,
+you need to construct runtypes by putting the name between the call and the calling parenthesis, like below.
+
+<pre><code class="language-smolambda">@include std
+
+smo Test(i64 x)
+    incx = add(x,1)
+    -> x
+
+smo main()
+    // p = Test(1) would not have p.incx but would have p.x
+    Point p(1)
+    print(p.xinc)
+</code></pre>
+</p>
+
+
+<h3>Overloading</h3>
+
+<p>You can overload <code>smo</code> definitions with different argument types.
+The types should be structurally different when converted to a flat representation
+of primitives. After overloading, types cannot be used in function signatures
+due to ambiguity.</p>
 
 
 <h1 id="buffers">Buffers</h1>
 
-<p>Handle dynamic memory with the <code>buffer</code> type:</p>
+<p>Handle dynamic memory with the special <code class="language-smolambda">buffer</code> type.
+This can only be statically</p>
 
-<pre><code class="language-smolambda">smo Point(i64 x, i64 y) -> (x,y)
+<pre><code class="language-smolambda">@include std
+
+smo Point(i64 x, i64 y) -> (x,y)
 smo Field(Point start, Point end) -> @new
 
 smo main()
-    buf = buffer(1,2,3,4)
-    Field f(buf)
+    buffer buf(1,2,3,4)
+    f = Field(buf)
     print(f.start.x)
 </code></pre>
 
@@ -159,10 +184,12 @@ Prism.languages.smolambda = {
   },
   'keyword': [
     {
-      pattern: /\b(?:smo|service|if|else|include)\b/
+      pattern: /\b(?:smo|service|if|else|include)\b/,
+      greedy: true
     },
     {
-      pattern: /(?:->|--)/
+      pattern: /(?:->|--)/,
+      greedy: true
     }
   ],
   'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main)\b/,

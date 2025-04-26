@@ -11,7 +11,7 @@ Under the hood, it transpiles to C++.
 
 ## [Docs](https://maniospas.github.io/smol/)
 
-## Quick Peek
+## Peek
 
 ```java
 @include std

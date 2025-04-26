@@ -1,10 +1,9 @@
 @include std
 
+smo Point(i64 x, i64 y) -> (x,y)
+smo Field(Point start, Point end) -> @new
+
 smo main()
-    a = 1
-    b = 2
-    c = 1
-    delta = true
-    if(delta)
-        print(b)
-        --
+    buffer buf(1,2,3,4)
+    f = Field(buf)
+    print(f.start.x)
