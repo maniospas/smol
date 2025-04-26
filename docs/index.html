@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>smoλ</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+  <style>
+    html {scroll-behavior: smooth;}
+    h1 {scroll-margin-top: 60px;}
+    h2 {scroll-margin-top: 60px;}
+    body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
+    .navbar {background-color: #333;padding: 10px 20px;position: sticky;top: 0;z-index: 1000;display: flex;justify-content: center;}
+    .navbar a {color: white;text-decoration: none;margin-right: 15px;font-weight: bold;}
+    .navbar a:hover {text-decoration: underline;}
+    .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
+    h1, h2, h3 {color: #222;}
+    table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
+    th, td {border: 1px solid #ccc;padding: 10px;text-align: left;vertical-align: top;}
+    th {background-color: #eee;}
+    code {background: #eee;padding: 2px 6px;border-radius: 4px;font-family: 'Courier New', Courier, monospace;font-size: 95%;}
+    pre {background: #272822;padding: 15px;border-radius: 8px;overflow-x: auto;font-size: 90%;margin-bottom: 2em;}
+    pre code {background: none;font-family: 'Courier New', Courier, monospace;font-size: 90%;}
+    p strong {color: #444;}
+  </style>
+</head>
+<body>
+
+
+<div class="navbar">
+  <a href="#home">Home</a>
+  <a href="#quickstart">Quickstart</a>
+  <a href="#smo">Runtypes</a>
+  <a href="#buffers">Buffers</a>
+  <a href="#std">Std</a>
+</div>
+
+<div class="container">
+
+<h1 id="home">smoλ</h1>
+
+<p><em>A safe & fast low-level language.</em></p>
+
+<p>This language creates zero-cost abstractions for managing data and functions.
+Its core is tiny — really tiny! So tiny, in fact, that print functions, conditions,
+and basic arithmetic operators are part of the standard library.
+But there's a direct-to-C++ interface for more powerful yet extensible functionality.
+The only built-in elements are a few basic keywords.</p></p>
+
+<p><strong>Dependencies:</strong> GCC<br>
+<strong>Contact:</strong> Emmanouil (Manios) Krasanakis<br>
+<strong>License:</strong> Apache 2.0</p>
+
+<h1 id="quickstart">Quickstart</h1>
+
+<p>Let's take a look at an example program.</p>
+
+<pre><code class="language-smolambda">@include std
+
+smo Point(i64 x, i64 y) -> @new
+smo Field(Point start, Point end) -> @new
+
+smo main()
+    p = Point(3,4)
+    f = Field(1,2,p)
+    print(f.start.x)
+    print(f.end.y)
+    i = add(f.start.x, f.start.y)
+    print(i)
+</code></pre>
+
+<p>The <code class="language-smolambda">@include</code> directive includes
+files directly. For safety, this cannot occur within definitions.
+Circular dependencies or re-imports are not allowed either. Here we included the
+<a href="#std">standard library</a>; you may create your own flavor of that too.</p>
+
+<p>Next are some type definitions, indicated by the <code class="language-smolambda">smo</code>
+keyword. Types and functions are the same, with the operator <code class="language-smolambda">-></code>
+returning a value or tuple. <code class="language-smolambda">@new</code> is a shorthand for directly
+returning a tuple of all arguments.</p>
+
+<p>Given the defined types, once you write something like <code class="language-smolambda">p = Point(...)</code>,
+you can access all named values using
+<code class="language-smolambda">p.x</code> and <code class="language-smolambda">p.y</code>.
+When using the full name, values are unpacked into parts of a tuple:
+for example, <code class="language-smolambda">p1 = Point(p)</code> is equivalent to
+<code class="language-smolambda">p1 = Point(p.x, p.y)</code>.
+Unpacking creates a flat tuple (not a tuple of tuples) that can be reinterpreted in various ways
+as long as primitive types match.</p>
+
+<p>Put all main business logic inside a <code class="language-smolambda">main</code> definition.
+
+<h1 id="smo">Runtypes</h1>
+
+<p>Types and functions are interchangeable in <i>smoλ</i>; functions are type declarations and conversely
+and marked as <code class="language-smolambda">smo</code>. We call these <i>runtypes</i>.
+Let's start with a definition from the standard library:</p>
+
+<pre><code class="language-smolambda">smo add(i64 x, i64 y)
+    @body{i64 z=x+y;}
+    -> z
+</code></pre>
+
+<p>This tells us that we are defining an integer addition runtype with the corresponding arguments.
+The definition is inlined when used, which is more optimization-friendly than simple C++ instructions because,
+despite the illusion of typing, everything is direct variable operations. For example
+<code class="language-smolambda">f.start.x</code> is represented by <code class="language-smolambda">f__start__x</code>
+under the hood. As a result, much more aggressive optimizations than normal are applicable.</p>
+
+<p>Return a value or tuple of values with <code class="language-smolambda">-&gt;</code>,
+and use <code class="language-smolambda">@body</code> to write C++ code directly.
+If you don't want to return with no value use <code class="language-smolambda">--</code>.
+These symbols form visual barriers that are easy to spot while remaining, well, small.
+Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
+everything ends at return statements or at the end of file, or resides in a parenthesis.</p>
+
+<p>Assignments copy all fields by value but can be applied only on compatible types.</p>
+
+<p>You can overload <code>smo</code> definitions in the same file.
+After overloading, types cannot be used in function signatures due to ambiguity that *smoλ* cannot resolve.</p>
+
+
+<h1 id="buffers">Buffers</h1>
+
+<p>Handle dynamic memory with the <code>buffer</code> type:</p>
+
+<pre><code class="language-smolambda">smo Point(i64 x, i64 y) -> (x,y)
+smo Field(Point start, Point end) -> @new
+
+smo main()
+    buf = buffer(1,2,3,4)
+    Field f(buf)
+    print(f.start.x)
+</code></pre>
+
+
+<h1 id="std">Std</h1>
+
+<p>Conditionals are second-class citizens in <i>smoλ</i> and are manually implemented in the standard library.
+Here is example usage:</p>
+
+<pre><code class="language-smolambda">smo div(i64 x, i64 y)
+    @head{#include &lt;stdio.h&gt;}
+    iszero = eq(y, 0)
+    if(iszero)
+        @fail{printf("Division by zero\n");}
+        --
+    @body{i64 z=x/y;}
+    -> z
+</code></pre>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script>
+Prism.languages.smolambda = {
+  'comment': /\/\/.*/,
+  'directive': {
+    pattern: /@\w+/,
+    alias: 'important'
+  },
+  'keyword': [
+    {
+      pattern: /\b(?:smo|service|if|else|include)\b/
+    },
+    {
+      pattern: /(?:->|--)/
+    }
+  ],
+  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main)\b/,
+  'punctuation': /[{}();,]/,
+  'number': /\b\d+\b/,
+  'string': {
+    pattern: /"(?:\\.|[^"\\])*"/,
+    greedy: true
+  }
+};
+</script>
+
+
+</body>
+</html>
