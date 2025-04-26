@@ -7,22 +7,24 @@
 #include<stdio.h>
 #include<stdio.h>
 int main() {
-i64 i;
-i64 __v13 = 3;
-i64 __v12__x;
-i64 __v12__y;
-i64 __v12__z;
-i64 __v14__message;
-bool __v14____v2 = true;
-i = 2;
-__v12__x = i;
-__v12__y = __v13;
-__v12__z=__v12__x+__v12__y;
-__v12____end:
-i = __v12__z;
-__v14__message = i;
-printf("%ld\n",__v14__message);
-__v14____end:
+i64 a;
+i64 b;
+i64 c;
+bool delta;
+bool __v9__condition;
+i64 __v9____v10__message;
+__v9__start:
+a = 1;
+b = 2;
+c = 1;
+delta = true;
+__v9__condition = delta;
+if(!__v9__condition)goto __v9____finally;
+__v9____end:
+__v9____v10__message = b;
+printf("%ld\n",__v9____v10__message);
+__v9____v10____end:
+__v9____finally:
 __end:
 goto __return;
 __error:

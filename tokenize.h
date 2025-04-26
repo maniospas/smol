@@ -16,28 +16,29 @@ class Token;
 class Import {
 public:
     string path;
-    int pair;
+    size_t pair;
     Import(const string& p): path(p) {}
     vector<Token> tokens;
-    string& at(int pos);
-    void error(int pos, const string& message);
-    int size() {return tokens.size();}
+    string& at(size_t pos);
+    void error(size_t pos, const string& message);
+    size_t size() {return tokens.size();}
 };
 bool is_symbol(char c) {return ispunct(c) && c != '_';}
 
 class Token {
 public:
     string name;
+    size_t line;
+    size_t character;
     shared_ptr<Import> imp;
-    int line;
-    int character;
-    Token(const string& n, int l, int c, const shared_ptr<Import>& i) : name(n), line(l), character(c), imp(i) {}
+    Token() {}
+    Token(const string& n, size_t l, size_t c, const shared_ptr<Import>& i) : name(n), line(l), character(c), imp(i) {}
     string show() const {
         if (!imp || imp->path.empty()) return "[no file]";
         ifstream file(imp->path);
         if (!file) return imp->path;
         string current;
-        int current_line = 1;
+        size_t current_line = 1;
         while (getline(file, current)) {
             if (current_line == line) break;
             current_line++;
@@ -48,8 +49,8 @@ public:
             if (c == '\t') expanded_line += "    ";
             else expanded_line += c;
         }
-        int display_col = 0;
-        for (int i = 0, col = 1; i < current.size() && col < character; ++i) {
+        size_t display_col = 0;
+        for (size_t i = 0, col = 1; i < current.size() && col < character; ++i) {
             if (current[i] == '\t') {
                 display_col += 4;
                 col++;
@@ -63,12 +64,12 @@ public:
     }
 };
 
-string& Import::at(int pos) {
+string& Import::at(size_t pos) {
     if(pos<0) ERROR("Tried to read before the beginning of file: "+path);
     if(pos>=tokens.size()) ERROR("Premature end of file: "+path);
     return tokens[pos].name;
 }
-void Import::error(int pos, const string& message) {
+void Import::error(size_t pos, const string& message) {
     if(pos<0) ERROR("Tried to read before the beginning of file: "+path);
     if(pos>=tokens.size()) ERROR("Premature end of file: "+path);
     ERROR(message+"\n"+tokens[pos].show());
@@ -77,19 +78,19 @@ auto tokenize(const string& path) {
     ifstream file(path);
     if (!file) ERROR("Could not open file: " + path);
     string line;
-    int line_num = 0;
+    size_t line_num = 0;
     auto main_file = make_shared<Import>(path);
     vector<Token>& tokens = main_file->tokens;
     while (getline(file, line)) {
         line_num++;
-        int i = 0;
-        int col = 1;
+        size_t i = 0;
+        size_t col = 1;
         while (i < line.size()) {
             while (i < line.size() && isspace(line[i])) {if (line[i] == '\t') col += 4; else col++;i++;}
             if (i >= line.size()) break;
             if (line[i] == '\\' && i + 1 < line.size() && line[i + 1] == '\\') break;
-            int start = i;
-            int start_col = col;
+            size_t start = i;
+            size_t start_col = col;
             if (line[i] == '"') {
                 // String literal
                 i++;
