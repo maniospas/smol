@@ -8,14 +8,14 @@
 #include <memory>
 #include <unordered_map>
 #include <cctype>
-#include "tokenize.h"
-#include "common.h"
+#include "parser/tokenize.h"
+#include "parser/common.h"
 #include <cctype>
 #include <cstdlib>
 #include <unordered_set>
 
-// g++ smolang.cpp -o smolang -O2 -std=c++23 -Wall
-// g++ smolang.cpp -o smolang -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
+// g++ smolang.cpp -o smol -O2 -std=c++23 -Wall
+// g++ smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
 using namespace std;
 
