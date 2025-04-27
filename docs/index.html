@@ -41,10 +41,10 @@
 
 <p><em>A safe & fast low-level language.</em></p>
 
-<p>This language creates zero-cost abstractions for managing data and functions.
+<p><i>Smoλ</i> creates zero-cost abstractions for managing data and functions.
 Its core is tiny — really tiny! So tiny, in fact, that print functions, conditions,
 and basic arithmetic operators are part of the standard library.
-But there's a direct-to-C++ interface for more powerful yet extensible functionality.
+But there's a direct-to-C++ interface for extensible functionality.
 The only built-in elements are a few basic keywords.</p></p>
 
 <p><strong>Dependencies:</strong> GCC<br>
@@ -61,8 +61,8 @@ smo Point(i64 x, i64 y) -> @new
 smo Field(Point start, Point end) -> @new
 
 smo main()
-    Point p(3,4)
-    Field f(1,2,p)
+    p = Point(3,4)
+    f = Field(1,2,p)
     print(f.start.x)
     print(f.end.y)
     i = add(f.start.x, f.start.y)
@@ -71,19 +71,20 @@ smo main()
 
 <p>The <code class="language-smolambda">@include</code> directive includes
 files directly. For safety, this cannot occur within definitions.
-Circular dependencies or re-imports are not allowed either. Here we included the
-<a href="#std">standard library</a>; you may create your own flavor of that too.</p>
+Circular dependencies or re-imports are not allowed either. We use the
+<a href="#std">standard library</a>, but you may create your own flavor.</p>
 
-<p>Next are some type definitions, indicated by the <code class="language-smolambda">smo</code>
-keyword. Types and functions are the same, with the operator <code class="language-smolambda">-></code>
-returning a value or tuple. <code class="language-smolambda">@new</code> is a shorthand for directly
-returning a tuple of all arguments.</p>
+<p>Next are some so-called <i>runtype</i> definitions, indicated by the <code class="language-smolambda">smo</code>
+keyword. These merge the concept of ypes of functions, where the keyword <code class="language-smolambda">-></code>
+returns a value or tuple. If variable names are part of the returned tuple, this can be accessed as fields
+from the result. <code class="language-smolambda">@new</code> is a shorthand for
+returning a tuple of all internal declarations.</p>
 
-<p>Once you write something like <code class="language-smolambda">Point p(...)</code>,
-you can access all named values using
+<p>Once you write something like <code class="language-smolambda">p = Point(...)</code>,
+you can access all returned name values using
 <code class="language-smolambda">p.x</code> and <code class="language-smolambda">p.y</code>.
-When using the full name, values are unpacked into parts of a tuple:
-for example, <code class="language-smolambda">Point p1(p)</code> is equivalent to
+You can also unpack the result as part of a tuple.
+For example, <code class="language-smolambda">p1 = Point(p)</code> is equivalent to
 <code class="language-smolambda">Point p1(p.x, p.y)</code>.
 Unpacking creates a flat tuple (not a tuple of tuples) that can be reinterpreted in various ways
 as long as primitive types match.</p>
@@ -92,8 +93,8 @@ as long as primitive types match.</p>
 
 <h1 id="smo">Runtypes</h1>
 
-<p>Types and functions are interchangeable in <i>smoλ</i>; functions are type declarations and conversely
-and marked as <code class="language-smolambda">smo</code>. We call these <i>runtypes</i>.
+<p>Types and functions are the same thing in <i>smoλ</i>
+and marked as <code class="language-smolambda">smo</code>. We call the merged concept <i>runtypes</i>.
 Let's start with a definition from the standard library:</p>
 
 <pre><code class="language-smolambda">smo add(i64 x, i64 y)
@@ -109,35 +110,33 @@ under the hood. As a result, much more aggressive optimizations than normal are 
 
 <p>Return a value or tuple of values with <code class="language-smolambda">-&gt;</code>,
 and use <code class="language-smolambda">@body</code> to write C++ code directly.
-If you don't want to return with no value use <code class="language-smolambda">--</code>.
+If you don't want to return anything, use <code class="language-smolambda">--</code>.
 These symbols form visual barriers that are easy to spot while remaining, well, small.
 Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
 everything ends at return statements or at the end of file, or resides in a parenthesis.</p>
 
-<h3>Assignment vs construction</h3>
+<h3>Locality</h3>
 
-<p>The assignment operator can be used used to copy the outcome of function calls to variables.
-<i>This can only be used to access returned values, but not intermediate variables.</i> To retain the latter,
-you need to construct runtypes by putting the name between the call and the calling parenthesis,
-as we did above. An example to grasp the difference is shown below.
+<p>The assignment operator copies the outcome of function calls to variables.
+However, this grants access only to returned values and not intermediate ones.
+For example, below the input variable is not preserved in the output.
 </p>
 
 <pre><code class="language-smolambda">@include std
 
 smo Test(i64 x)
     incx = add(x,1)
-    -> x
+    -> incx
 
 smo main()
-    // p = Test(1) would not have p.incx but would have p.x
-    Point p(1)
-    print(p.xinc)
+    p = Test(1)
+    print(p.x) // CREATES AN ERROR
 </code></pre>
 
 
 <h3>Overloading</h3>
 
-<p>You can overload runtypes with that are structurally
+<p>Overload runtypes that are structurally
 different when converted to a flat representation of primitives.
 After overloading, types cannot be used in function signatures
 due to ambiguity but their usage is subsituted dynamically.
@@ -171,8 +170,7 @@ and is injected automatically by <i>smoλ</i>. However,
 See next on how to also make this safe.</p>
 
 <p>The front of buffers can be unpacked, which is equivalent to front-popping until no
-more entries are required. This can be performed only by unpacking to a desired type and
-prefixing the buffer to be popped with <code class="language-smolambda">@pop</code>.
+more entries are required. This can be performed only by unpacking to a desired type.
 Popping is memory safe in that it smoothly fails the service (e.g., <code class="language-smolambda">main</code>)
 with an appropriate error message
 </p>
@@ -184,32 +182,69 @@ smo Field(Point start, Point end) -> @new
 
 smo main()
     buffer buf(1,2,3,4,5)
-    f = Field(@pop buf)
+    Field f(buf)
     print(f.start.x) // 1
-    i = i64(@pop buf)
-    print(i) // 5
+    print(i64(buf)) // 5
 </code></pre>
 
 
 
-<p>Add more
-</p>
+<p>Normally, you can have a buffer as the large argument so that popping knows how many elements
+it needs to consume. However, you can have several buffer arguments if you are creating a new one.
+This operation moves all corresponding memory.
+An example follows.</p>
+
+
+<pre><code class="language-smolambda">@include std
+
+smo Point(i64 x, i64 y) -> @new
+
+smo main()
+    buffer buf1(1,2)
+    buffer buf2(3,4)
+    buffer buf(buf1, buf2)
+    // buf1 and buf2 are empty now
+    Point p1(buf)
+    Point p2(buf)
+    print(p1.x) // 1
+    print(p2.y) // 4
+</code></pre>
+
+<i>Buffers follow linear logic in that data stored in them cannot be copied or lost - only consumed.
+This prevents exploding memory usage, as dynamic memory can only be explicitly allocated.</i>
 
 
 <h1 id="std">Std</h1>
 
-<p>Conditionals are second-class citizens in <i>smoλ</i> and are manually implemented in the standard library.
-Here is example usage:</p>
+<p>Conditional <code class="language-smolambda">if</code> statements are second-class citizens in <i>smoλ</i>
+and are manually implemented in the standard library.
+They do no accept an alternative branch.
+Either run multiple of those, or enclose them in the <code class="language-smolambda">scope</code>
+runtype. The latter creates an independent scope from which you can return. An example follows.
+</p>
 
-<pre><code class="language-smolambda">smo div(i64 x, i64 y)
-    @head{#include &lt;stdio.h&gt;}
-    iszero = eq(y, 0)
-    if(iszero)
-        @fail{printf("Division by zero\n");}
-        --
-    @body{i64 z=x/y;}
-    -> z
+
+<pre><code class="language-smolambda">@include std
+smo sgn(i64 i)
+    scope()
+      if(gt(i,0)) ->> 1
+      if(lt(i,0)) ->> -1
+      -> 0
 </code></pre>
+
+<p>Like all runtypes, you can return values from conditional statements. If the condition
+does not run, variables obtain a default <code class="language-smolambda">0</code> value.
+The language offers <code class="language-smolambda">@else</code> followed by a primitive
+as a way to set default values for primitives. Below is an example:
+</p>
+
+<pre><code class="language-smolambda">@include std
+smo main()
+    i = 0
+    value = if(ge(i,0)) -> 1 else -1
+    print(value)
+</code></pre>
+
 
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -226,7 +261,7 @@ Prism.languages.smolambda = {
       greedy: true
     },
     {
-      pattern: /(?:->|--)/,
+      pattern: /(?:->>|->|--)/,
       greedy: true
     }
   ],

@@ -17,7 +17,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
         Type argType = types.vars.find(next)->second;
         if(argType->next_overload_to_try) imp->error(p-2, "Overloaded runtypes are ambiguous");
 
-        if(argType->args.size()) {
+        if(argType->not_primitive()) {
             internalTypes.vars[arg_name] = argType;
             for(const auto& it : argType->args) {
                 args.emplace_back(arg_name+"__"+it.name, it.type);

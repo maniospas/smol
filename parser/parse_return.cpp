@@ -5,32 +5,29 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
     if(next=="@") {
         next = imp->at(p++);
         if(next == "scope") packs.push_back("@scope");
-        else {if(next!="new") imp->error(--p, "Use `->@new` or `->@scope`"); for(const auto& arg : args) packs.push_back(arg.name);}
-    }
-    else if(next!="(") {
-        next = parse_expression(imp, p, next, types);
-        if(!is_primitive(next) && internalTypes.vars[next]->args.size()) {
-            if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during return)");
-            auto oneType = internalTypes.vars[next];
-            if(oneType->packs.size()!=1) imp->error(--p, "Can only convert a primitive result to a primitive");
-            next = next+"__"+oneType->packs[0];
+        else {
+            if(next!="new") imp->error(--p, "Use `->@new` or `->@scope`");
+            for (const auto& arg : args) packs.push_back(arg.name);
+            //unordered_set<string> packSet(packs.begin(), packs.end());
+            //for (const auto& arg : internalTypes.vars) if (packSet.insert(arg.first).second) packs.push_back(arg.first);
         }
-        packs.push_back(next);
     }
     else {
+        --p;
         // we are starting parenthesis
         while(true) {
             next = parse_expression(imp, p, imp->at(p++), types);
-            if(!is_primitive(next) && internalTypes.vars[next]->args.size()) {
-                if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared (error during return)");
-                auto oneType = internalTypes.vars[next];
-                if(oneType->packs.size()!=1) imp->error(--p, "Can only convert a primitive result to a primitive");
-                next = next+"__"+oneType->packs[0];
+
+            if(!internalTypes.vars[next]->not_primitive()) {
+                packs.push_back(next);
             }
-            packs.push_back(next);
+            else {
+                if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared");
+                for(const string& pack : internalTypes.vars.find(next)->second->packs) packs.push_back(next+"__"+pack);
+            }
             next = imp->at(p++);
-            if(next==")") break;
-            if(next!=",") imp->error(--p, "Missing comma (not implemented expression in return statements yet)");
+            //if(next==")") break;
+            if(next!=",") {--p;break;}//imp->error(--p, "Missing comma (not implemented expression in return statements yet)");
         }
     }
 }

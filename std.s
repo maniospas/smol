@@ -11,7 +11,11 @@ smo print(bool message)
     @body{message?printf("true\n"):printf("false\n");}
     --
 
-smo if(bool condition) @body{if(!condition)goto __finally;} -> @scope
+smo if(bool condition)
+    @body{if(!condition)goto __finally;}
+    -> @scope
+
+smo scope() -> @scope
 
 smo le(i64 x, i64 y)  @body{bool z=x<y;}    -> z
 smo ge(i64 x, i64 y)  @body{bool z=x>y;}    -> z
@@ -32,8 +36,7 @@ smo sub(i64 x, i64 y) @body{i64 z=x-y;} -> z
 smo mul(i64 x, i64 y) @body{i64 z=x*y;} -> z
 smo div(i64 x, i64 y)
     @head{#include <stdio.h>}
-    iszero = eq(y, 0)
-    if(iszero)
+    if(eq(y, 0))
         @fail{printf("Division by zero\n");}
         --
     @body{i64 z=x/y;}
@@ -44,8 +47,7 @@ smo sub(f64 x, f64 y) @body{f64 z=x-y;} -> z
 smo mul(f64 x, f64 y) @body{f64 z=x*y;} -> z
 smo div(f64 x, f64 y)
     @head{#include <stdio.h>}
-    iszero = eq(y, 0.0)
-    if(iszero)
+    if(eq(y, 0.0))
         @fail{printf("Division by zero\n");}
         --
     @body{f64 z=x/y;}

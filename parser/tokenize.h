@@ -66,12 +66,12 @@ public:
 
 string& Import::at(size_t pos) {
     if(pos<0) ERROR("Tried to read before the beginning of file: "+path);
-    if(pos>=tokens.size()) ERROR("Premature end of file: "+path);
+    if(pos>=tokens.size()) ERROR("Premature end of file: "+path+"\n"+tokens[pos-1].show());
     return tokens[pos].name;
 }
 void Import::error(size_t pos, const string& message) {
     if(pos<0) ERROR("Tried to read before the beginning of file: "+path);
-    if(pos>=tokens.size()) ERROR("Premature end of file: "+path);
+    if(pos>=tokens.size()) ERROR("Premature end of file: "+path+"\n"+tokens[pos-1].show());
     ERROR(message+"\n"+tokens[pos].show());
 }
 auto tokenize(const string& path) {

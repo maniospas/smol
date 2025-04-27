@@ -21,7 +21,11 @@ using namespace std;
 
 struct Def;
 typedef shared_ptr<Def> Type;
-class Memory {public:unordered_map<string, Type> vars;};
+class Memory {
+public:
+    unordered_map<string, Type> vars;
+    inline bool contains(const string& var) const {return vars.find(var)!=vars.end();}
+};
 class Arg {public:string name; Type type; Arg(const string& n, const Type& t):name(n),type(t){}};
 
 class Def {
@@ -32,7 +36,7 @@ class Def {
     #include "parser/parse_expression.cpp"
     #include "parser/parse_return.cpp"
     #include "parser/parse_signature.cpp"
-
+    bool _is_primitive;
 public:
     Type next_overload_to_try;
     vector<Arg> args;
@@ -43,13 +47,15 @@ public:
     string name, preample, vardecl, implementation, errors, finals;
     unordered_set<string> deactivated;
 
-    Def(const string& builtin): name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
-    Def(): name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
+    Def(const string& builtin): _is_primitive(true), name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
+    Def(): _is_primitive(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
+    vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types);
+    inline bool not_primitive() const {return !_is_primitive;}
     #include "parser/signature.cpp"
     #include "parser/rebase.cpp"
     #include "parser/parse.cpp"
-
 };
+#include "parser/gather_tuple.cpp"
 int Def::temp = 0;
 
 

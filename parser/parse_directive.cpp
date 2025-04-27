@@ -26,7 +26,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
             if(p<imp->size()-1 && imp->at(p+1)=="=" && (!is_symbol(imp->at(p+2)) || imp->at(p+2)=="(") && !is_symbol(next) && !is_symbol(nextnext)) {
                 string argname = nextnext;
                 string argtype = next;
-                if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->args.size()) {
+                if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->not_primitive()) {
                     internalTypes.vars[argname] = types.vars.find(argtype)->second;
                     vardecl += argtype+" "+argname+";\n";
                 }
@@ -54,7 +54,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
             if(p<imp->size()-1 && imp->at(p+1)=="=" && (!is_symbol(imp->at(p+2)) || imp->at(p+2)=="(") && !is_symbol(next) && !is_symbol(nextnext)) {
                 string argname = nextnext;
                 string argtype = next;
-                if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->args.size()) {
+                if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->not_primitive()) {
                     internalTypes.vars[argname] = types.vars.find(argtype)->second;
                     vardecl += argtype+" "+argname+";\n";
                 }
