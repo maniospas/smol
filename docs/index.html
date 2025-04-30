@@ -42,10 +42,10 @@
 <p><em>A safe & fast low-level language.</em></p>
 
 <p><i>Smoλ</i> creates zero-cost abstractions for managing data and functions.
-Its core is tiny — really tiny! So tiny, in fact, that print functions, conditions,
-and basic arithmetic operators are part of the standard library.
-But there's a direct-to-C++ interface for extensible functionality.
-The only built-in elements are a few basic keywords.</p></p>
+Its core is tiny — really tiny! So tiny, in fact, that functions like printing and basic
+arithmetic operators are part of the standard library.
+There's a direct-to-C++ interface for extensible functionality
+beyond few basic keywords.</p></p>
 
 <p><strong>Dependencies:</strong> GCC<br>
 <strong>Contact:</strong> Emmanouil (Manios) Krasanakis<br>
@@ -60,13 +60,14 @@ The only built-in elements are a few basic keywords.</p></p>
 smo Point(i64 x, i64 y) -> @new
 smo Field(Point start, Point end) -> @new
 
-smo main()
+service main()
     p = Point(3,4)
     f = Field(1,2,p)
     print(f.start.x)
     print(f.end.y)
     i = add(f.start.x, f.start.y)
     print(i)
+    --
 </code></pre>
 
 <p>The <code class="language-smolambda">@include</code> directive includes
@@ -89,12 +90,20 @@ For example, <code class="language-smolambda">p1 = Point(p)</code> is equivalent
 Unpacking creates a flat tuple (not a tuple of tuples) that can be reinterpreted in various ways
 as long as primitive types match.</p>
 
-<p>Put all main business logic inside a <code class="language-smolambda">main</code> definition.
+<p>Put all main business logic inside a <code class="language-smolambda">service main()</code> definition.
+Being a service means that
+errors occuring inside are "caught", perform safe allocation and deallocation, and do not
+escape to the any services calling it other than changing the result. More on this later.
+The main service is the entry point of all programs and returns no value, as indicated by
+the <code class="language-smolambda">--</code> at its end. More on accepting arguments
+later.</p>
 
 <h1 id="smo">Runtypes</h1>
 
 <p>Types and functions are the same thing in <i>smoλ</i>
-and marked as <code class="language-smolambda">smo</code>. We call the merged concept <i>runtypes</i>.
+and marked as <code class="language-smolambda">smo</code> followed by a name
+and a parenthesis with some arguments.
+We call the merged concept <i>runtypes</i>.
 Let's start with a definition from the standard library:</p>
 
 <pre><code class="language-smolambda">smo add(i64 x, i64 y)
@@ -103,23 +112,33 @@ Let's start with a definition from the standard library:</p>
 </code></pre>
 
 <p>This tells us that we are defining an integer addition runtype with the corresponding arguments.
-The definition is inlined when used, which is more optimization-friendly than simple C++ instructions because,
-despite the illusion of typing, everything is direct variable operations. For example
+The definition is inlined when used, which is more optimization-friendly than simple C++. This is achieved
+because, despite the illusion of typing, everything is direct variable operations. For example
 <code class="language-smolambda">f.start.x</code> is represented by <code class="language-smolambda">f__start__x</code>
-under the hood. As a result, much more aggressive optimizations than normal are applicable.</p>
+under the hood.</p>
 
 <p>Return a value or tuple of values with <code class="language-smolambda">-&gt;</code>,
 and use <code class="language-smolambda">@body</code> to write C++ code directly.
 If you don't want to return anything, use <code class="language-smolambda">--</code>.
 These symbols form visual barriers that are easy to spot while remaining, well, small.
 Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
-everything ends at return statements or at the end of file, or resides in a parenthesis.</p>
+everything ends at return statements, at the end of file, or resides in between
+parentheses and commas.</p>
 
 <h3>Locality</h3>
 
 <p>The assignment operator copies the outcome of function calls to variables.
-However, this grants access only to returned values and not intermediate ones.
-For example, below the input variable is not preserved in the output.
+However, if you want to treat the output as a type, only returned symbols can be accessed
+and not intermediate ones.
+For example, below the input variable <code class="language-smolambda">x</code>
+cannot be accessed after computations conclude. If you return the outcome of some
+computations, this is not exposed either. For example, you may use
+<code class="language-smolambda">@copy</code> to anomymize intermediate values.
+</p>
+
+<p>We already saw that it may be convenient to unpack all runtype inputs with
+<code class="language-smolambda">@new</code> to directly declare a structural type
+without internal implementation.
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -128,8 +147,9 @@ smo Test(i64 x)
     incx = add(x,1)
     -> incx
 
-smo main()
+service main()
     p = Test(1)
+    print(p.incx)
     print(p.x) // CREATES AN ERROR
 </code></pre>
 
@@ -138,8 +158,8 @@ smo main()
 
 <p>Overload runtypes that are structurally
 different when converted to a flat representation of primitives.
-After overloading, types cannot be used in function signatures
-due to ambiguity but their usage is subsituted dynamically.
+After overloading, runtypes cannot be used as part of
+function signatures due to ambiguity, but their usage is substituted dynamically.
 The following definitions come from the standard library.</p>
 
 <pre><code class="language-smolambda">smo print(f64 message)
@@ -153,7 +173,7 @@ smo print(i64 message)
 smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
 smo add(f64 x, f64 y) @body{f64 z=x+y;} -> z
 
-smo main()
+service main()
     print(add(1,1)) // 2
     print(add(0.2,0.3)) // 0.5
 </code></pre>
@@ -161,18 +181,23 @@ smo main()
 <h1 id="buffers">Buffers</h1>
 
 <p>Handle dynamic memory with the special <code class="language-smolambda">buffer</code> runtype.
-Think of this as a list where new data are pushed to the back and popped from the front. There is
-no equivalent definition, and it is part of the language.
-Buffers can be moved around normally, and stored in data types. Memory deallocation is safe, occurs
+Think of this as a list where new data are pushed to the back and popped from the front. The
+definition is part of the language and it is how one would handle functions with variadic inputs too.
+</p>
+
+<p>Buffers are unpacked into other runtypes per normal by consuming elements from their start.
+However, unpacking feasibility
+is (can) only be checked at runtime. Memory deallocation is safe, occurs
 always -even if runtime errors occur to terminate a service-
 and is injected automatically by <i>smoλ</i>. However,
-<i>data are stored in buffers without their type</i>.
-See next on how to also make this safe.</p>
+<i>data are stored in buffers without even primitive types</i>.
+See next on how to make this safe.</p>
 
 <p>The front of buffers can be unpacked, which is equivalent to front-popping until no
 more entries are required. This can be performed only by unpacking to a desired type.
-Popping is memory safe in that it smoothly fails the service (e.g., <code class="language-smolambda">main</code>)
-with an appropriate error message
+Popping is memory safe in that it smoothly fails the service
+(e.g., <code class="language-smolambda">main</code>)
+with an appropriate error message.
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -180,16 +205,14 @@ with an appropriate error message
 smo Point(i64 x, i64 y) -> @new
 smo Field(Point start, Point end) -> @new
 
-smo main()
-    buffer buf(1,2,3,4,5)
-    Field f(buf)
+service main()
+    buf = buffer(1,2,3,4,5)
+    f = Field(buf)
     print(f.start.x) // 1
     print(i64(buf)) // 5
 </code></pre>
 
-
-
-<p>Normally, you can have a buffer as the large argument so that popping knows how many elements
+<p>Normally, you can have a buffer as the last argument so that popping knows how many elements
 it needs to consume. However, you can have several buffer arguments if you are creating a new one.
 This operation moves all corresponding memory.
 An example follows.</p>
@@ -199,20 +222,16 @@ An example follows.</p>
 
 smo Point(i64 x, i64 y) -> @new
 
-smo main()
-    buffer buf1(1,2)
-    buffer buf2(3,4)
-    buffer buf(buf1, buf2)
+service main()
+    buf1 = buffer(1,2)
+    buf2 = buffer(3,4)
+    buf = buffer(buf1, buf2)
     // buf1 and buf2 are empty now
-    Point p1(buf)
-    Point p2(buf)
+    p1 = Point(buf)
+    p2 = Point(buf)
     print(p1.x) // 1
     print(p2.y) // 4
 </code></pre>
-
-<i>Buffers follow linear logic in that data stored in them cannot be copied or lost - only consumed.
-This prevents exploding memory usage, as dynamic memory can only be explicitly allocated.</i>
-
 
 <h1 id="std">Std</h1>
 
@@ -225,24 +244,36 @@ runtype. The latter creates an independent scope from which you can return. An e
 
 
 <pre><code class="language-smolambda">@include std
-smo sgn(i64 i)
-    scope()
-      if(gt(i,0)) ->> 1
-      if(lt(i,0)) ->> -1
+
+smo print_sign(i64 i)
+    sgn = do
+      if(gt(i,0)) -> 1
+      if(lt(i,0)) -> -1
       -> 0
+    print(sgn)
+    --
+
+service main()
+    print_sign(100)
+    print_sign(-42)
 </code></pre>
 
 <p>Like all runtypes, you can return values from conditional statements. If the condition
-does not run, variables obtain a default <code class="language-smolambda">0</code> value.
-The language offers <code class="language-smolambda">@else</code> followed by a primitive
-as a way to set default values for primitives. Below is an example:
+does not run, variables are zeroed out as default behavior.
 </p>
 
 <pre><code class="language-smolambda">@include std
-smo main()
-    i = 0
-    value = if(ge(i,0)) -> 1 else -1
-    print(value)
+
+service sign(i64 i)
+    if(gt(i,0)) --> 1
+    if(lt(i,0)) --> -1
+    -> 0
+
+service main()
+    x = sign(100)
+    y = sign(-42)
+    print(x)
+    print(y)
 </code></pre>
 
 
@@ -257,11 +288,11 @@ Prism.languages.smolambda = {
   },
   'keyword': [
     {
-      pattern: /\b(?:smo|service|if|else|include)\b/,
+      pattern: /\b(?:smo|service|if|else|include|do|while)\b/,
       greedy: true
     },
     {
-      pattern: /(?:->>|->|--)/,
+      pattern: /(?:-->|->|--)/,
       greedy: true
     }
   ],

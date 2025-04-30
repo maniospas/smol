@@ -36,8 +36,8 @@ class Def {
     #include "parser/parse_expression.cpp"
     #include "parser/parse_return.cpp"
     #include "parser/parse_signature.cpp"
-    bool _is_primitive;
 public:
+    bool _is_primitive;
     Type next_overload_to_try;
     vector<Arg> args;
     shared_ptr<Import> imp;
@@ -49,7 +49,7 @@ public:
 
     Def(const string& builtin): _is_primitive(true), name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
     Def(): _is_primitive(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
-    vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types);
+    vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer);
     inline bool not_primitive() const {return !_is_primitive;}
     #include "parser/signature.cpp"
     #include "parser/rebase.cpp"
@@ -74,9 +74,11 @@ int main() {
         types.vars["buffer"] = make_shared<Def>("buffer");
         types.vars["buffer"]->packs.push_back("contents");
         types.vars["buffer"]->packs.push_back("size");
+        types.vars["buffer"]->packs.push_back("offset");
         types.vars["buffer"]->internalTypes.vars["contents"] = types.vars["ptr"];
         types.vars["buffer"]->internalTypes.vars["size"] = types.vars["u64"];
-        types.vars["buffer"]->internalTypes.vars["offset"] = types.vars["offset"];
+        types.vars["buffer"]->internalTypes.vars["offset"] = types.vars["u64"];
+        types.vars["buffer"]->_is_primitive = false;
 
         stack<pair<string, int>> brackets;
         for(size_t p=0;p<imp->size();++p) {

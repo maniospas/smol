@@ -12,7 +12,14 @@ void assign_variable(const Type& type, const string& from, const string& to, con
     if(!type) {if(it==internalTypes.vars.end() || !it->second)imp->error(p, "No runtype for either "+pretty_var(from)+" or "+pretty_var(to));}
     else if(it==internalTypes.vars.end()) {
         internalTypes.vars[from] = type;
-        vardecl += type->name+" "+from+";\n";
+
+        // the following ensures that we safely update pointers when reallocating them
+        if(type->name!="ptr") vardecl += type->name+" "+from+";\n";
+        else vardecl += type->name+" &"+from+" = "+to+";\n";
+
+        // replace the above line to make the language impure
+        //if(internalTypes.vars.find(to)==internalTypes.vars.end()) vardecl += type->name+" "+from+";\n";
+        //else vardecl += type->name+" &"+from+" = "+to+";\n";
     }
     else if(it->second!=type) imp->error(p, "Cannot assign to "+it->second->name+" "+pretty_var(from)+" from "+type->name+" "+pretty_var(to));
     implementation += from+" = "+to+";\n";

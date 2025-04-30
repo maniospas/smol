@@ -1,10 +1,13 @@
 string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, bool test=true) {
+    size_t n = i->size();
+    if(p>=n) return first_token;
     string next = first_token;
     while(imp->at(p)==".") {
         //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
         next += "__";
         ++p;
         next += imp->at(p++);
+        if(p>=n) return first_token;
     }
     if(test && !internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next));
     return next;
@@ -28,17 +31,42 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
     }
 
     if(internalTypes.contains(first_token)) return next_var(imp, p, first_token);
+    if(first_token=="buffer") {
+        string var = create_temp();
+        preample += "#include<cstdlib>\n";
+        if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
+        string inherit_buffer("");
+        vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer);
+        if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
+        vardecl += "u64 "+var+"__size = 0;\n";
+        vardecl += "u64 "+var+"__offset = 0;\n";
+        vardecl += "ptr "+var+"__contents;\n";
+        implementation += var+"__size = "+to_string(unpacks.size())+(inherit_buffer.size()?(" + "+inherit_buffer+"__size"):"")+";\n";
+        implementation += var+"__offset = 0;\n";
+        implementation += "if("+var+"__size-"+var+"__offset) free("+var+"__contents);\n";
+        implementation += var + "__contents = malloc(sizeof(i64)*" + var + "__size);\n";
+        for(size_t i = 0; i < unpacks.size(); ++i) implementation += "std::memcpy((unsigned char*)" + var + "__contents + sizeof(i64) * " + to_string(i) + ", &" + unpacks[i] + ", sizeof(i64));\n";
+        internalTypes.vars[var] = types.vars.find(first_token)->second;
+        internalTypes.vars[var+"__size"] = types.vars["u64"];
+        internalTypes.vars[var+"__contents"] = types.vars["ptr"];
+        finals += var+"__size = 0;\nfree(" + var + "__contents);\n";
+        return next_var(imp, p, var);
+    }
     if(types.contains(first_token)) {
         auto type = types.vars.find(first_token)->second;
         if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
-        vector<string> unpacks = gather_tuple(imp, p, types);
+        string inherit_buffer("");
+        vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer);
         if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
 
         string overloading_errors = "";
         string var = create_temp();
         while(type) {
             try {
-                if(unpacks.size()!=type->args.size()) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found "+to_string(unpacks.size())+" arguments");
+                if(inherit_buffer.size()) {
+                    if(unpacks.size()>type->args.size()) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found > "+to_string(unpacks.size())+" arguments (buffers unpack at least one value)");
+                }
+                else if(unpacks.size()!=type->args.size()) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found "+to_string(unpacks.size())+" arguments");
                 for(size_t i=0;i<unpacks.size();++i) {
                     if(type->args[i].type->not_primitive()) throw runtime_error(type->signature()+": Failed to create builtin for " + type->args[i].type->name + " of "+type->args[i].name);
                     if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
@@ -55,6 +83,23 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         }
         if(!type) imp->error(p-1, "Implementation not found"+overloading_errors);
         internalTypes.vars[var] = type;
+        if(inherit_buffer.size()) { // unpack buffer
+            string arg = inherit_buffer;
+            int remaining = (int)(type->args.size()-unpacks.size());
+            string fail_var = create_temp();
+            implementation += "if("+arg+"__size-"+arg+"__offset<"+to_string(remaining)+") goto "+fail_var+";\n";
+            errors += fail_var+":\nprintf(\"Runtime error: buffer `"+arg+"` does not have enough remaining elements\\n\");\ngoto __return;\n";
+            preample += "#include <stdio.h>\n";
+            for(int i=0;i<remaining;++i) {
+                string cast = type->args[unpacks.size()].type->name; // don't add i because we push back the element
+                string element = "__"+arg+"__"+to_string(i);
+                if(internalTypes.vars.find(element)==internalTypes.vars.end()) vardecl += cast+" "+element+";\n";
+                implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "__contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"__offset), sizeof("+element+"));\n";
+                internalTypes.vars[element] = types.vars[cast];
+                unpacks.push_back(element);
+            }
+            implementation += arg+"__offset += "+to_string(remaining)+";\n";
+        }
         for(size_t i=0;i<unpacks.size();++i) assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
 
 
@@ -63,6 +108,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         preample += type->rebase(type->preample, var, internalTypes);
         finals = type->rebase(type->finals, var, internalTypes)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
         errors = errors+type->rebase(type->errors, var, internalTypes);
+
         string finally = "";
         if(type->packs.size()==1 && type->packs[0]=="@scope") {
             auto def = make_shared<Def>();
@@ -99,15 +145,15 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
                 type = internalTypes.vars[var]; // guaranteed to exist
                 if(type->packs.size()==1) return var+"__"+type->packs[0];
                 //for(const string& pack : type->packs) assign_variable(type->internalTypes.vars[pack], var+"__"+pack, pack, imp, p);
-                return var;
+                return next_var(imp, p, var);
             }
-            return var+"__"+type->packs[0];
+            return next_var(imp, p, var+"__"+type->packs[0]);
         }
-        return var;
+        return next_var(imp, p, var);
     }
 
     string var = next_var(imp, p, first_token);
     //if(types.vars.find(var)!=types.end() && (p>=imp->size()-1 || imp->at(p+1)=="(")
     if(internalTypes.contains(var)) return var;
-    return var;
+    return next_var(imp, p, var);
 }
