@@ -185,19 +185,17 @@ Think of this as a list where new data are pushed to the back and popped from th
 definition is part of the language and it is how one would handle functions with variadic inputs too.
 </p>
 
-<p>Buffers are unpacked into other runtypes per normal by consuming elements from their start.
-However, unpacking feasibility
-is (can) only be checked at runtime. Memory deallocation is safe, occurs
+<p>Buffers are unpacked into other runtypes by consuming elements from their start.
+However, unpacking feasibility is checked at runtime. Memory deallocation is safe, occurs
 always -even if runtime errors occur to terminate a service-
-and is injected automatically by <i>smoλ</i>. However,
-<i>data are stored in buffers without even primitive types</i>.
-See next on how to make this safe.</p>
+and is injected automatically by <i>smoλ</i>. That said, data are stored in buffers without
+even primitive types and unpacking relies solely on the programmer.</p>
 
-<p>The front of buffers can be unpacked, which is equivalent to front-popping until no
-more entries are required. This can be performed only by unpacking to a desired type.
-Popping is memory safe in that it smoothly fails the service
+<p>Buffer elements are unpacked from the front until no
+more entries are required for desired runtype calls.
+Popping is memory safe in that it smoothly fails any service
 (e.g., <code class="language-smolambda">main</code>)
-with an appropriate error message.
+with an appropriate error messages.
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -211,6 +209,31 @@ service main()
     print(f.start.x) // 1
     print(i64(buf)) // 5
 </code></pre>
+
+<h3>Slicing</h3>
+
+Buffers can be sliced to obtain a sub-view of elements. This happens irrespectively
+of other operations applied on the original. Slices use square brackets and either contain a
+<code class="language-smolambda">u64</code> number indicating a starting element to be followed
+to the end, or contain starting and non-inclusive end elements separated by a double colon.
+Below is an example that demonstrates element access.
+<i>All operations are near-zero-cost abstractions, with the exception that a slice with specified
+end checks for bounds.</i>
+
+
+<pre><code class="language-smolambda">@include std
+
+service main()
+    buf = buffer(0,1,2,3,4,5)
+    slice = buf[u64(1):u64(3)]
+    print(i64(slice))        // 1 (pops front from slice)
+    print(i64(buf[u64(0)]))  // 0 (buf[0] is also a slice)
+    print(i64(buf))          // 0
+    print(i64(slice))        // 2 (slice remains unaffected)
+    print(i64(slice))        // CREATES RUNTIME ERROR
+</code></pre>
+
+<h3>Concatenation</h3>
 
 <p>Normally, you can have a buffer as the last argument so that popping knows how many elements
 it needs to consume. However, you can have several buffer arguments if you are creating a new one.

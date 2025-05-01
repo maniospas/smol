@@ -51,11 +51,13 @@ public:
     Def(): _is_primitive(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
     vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer);
     inline bool not_primitive() const {return !_is_primitive;}
+    string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test=true);
     #include "parser/signature.cpp"
     #include "parser/rebase.cpp"
     #include "parser/parse.cpp"
 };
 #include "parser/gather_tuple.cpp"
+#include "parser/next_var.cpp"
 int Def::temp = 0;
 
 

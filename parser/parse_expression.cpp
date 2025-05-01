@@ -1,26 +1,3 @@
-string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, bool test=true) {
-    size_t n = i->size();
-    if(p>=n) return first_token;
-    string next = first_token;
-    while(true) {
-        if(imp->at(p)==".") {
-            //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
-            next += "__";
-            ++p;
-            next += imp->at(p++);
-            if(p>=n) return first_token;
-        }
-        else if(imp->at(p)=="[") {
-            if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next));
-            if(internalTypes.vars.find(next)->second->name!="buffer") imp->error(--p, "Expected buffer but found: "+internalTypes.vars.find(next)->second->name+" "+pretty_var(next));
-            break;
-        }
-        else break;
-    }
-    if(test && !internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next));
-    return next;
-}
-
 string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types) {
     if(is_primitive(first_token)) {
         string vartype = type_primitive(first_token);
@@ -38,7 +15,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         return var;
     }
 
-    if(internalTypes.contains(first_token)) return next_var(imp, p, first_token);
+    if(internalTypes.contains(first_token)) return next_var(imp, p, first_token, types);
     if(first_token=="buffer") {
         string var = create_temp();
         preample += "#include<cstdlib>\n";
@@ -57,10 +34,10 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         for(size_t i = 0; i < unpacks.size(); ++i) implementation += "std::memcpy((unsigned char*)" + var + "__contents + sizeof(u64) * " + to_string(i+1) + ", &" + unpacks[i] + ", sizeof(u64));\n";
         internalTypes.vars[var] = types.vars.find(first_token)->second;
         internalTypes.vars[var+"__size"] = types.vars["u64"];
-        internalTypes.vars[var+"_offset"] = types.vars["u64"];
+        internalTypes.vars[var+"__offset"] = types.vars["u64"];
         internalTypes.vars[var+"__contents"] = types.vars["ptr"];
         finals += var+"__size = 0;\nfree(" + var + "__contents);\n";
-        return next_var(imp, p, var);
+        return next_var(imp, p, var, types);
     }
     if(types.contains(first_token)) {
         auto type = types.vars.find(first_token)->second;
@@ -73,15 +50,17 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         string var = create_temp();
         while(type) {
             try {
+                size_t type_args = type->not_primitive()?type->args.size():1;
                 if(inherit_buffer.size()) {
-                    if(unpacks.size()>type->args.size()) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found > "+to_string(unpacks.size())+" arguments (buffers unpack at least one value)");
+                    if(unpacks.size()>type_args) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found > "+to_string(unpacks.size())+" arguments (buffers unpack at least one value)");
                 }
-                else if(unpacks.size()!=type->args.size()) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found "+to_string(unpacks.size())+" arguments");
+                else if(unpacks.size()!=type_args) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found "+to_string(unpacks.size())+" arguments");
                 for(size_t i=0;i<unpacks.size();++i) {
-                    if(type->args[i].type->not_primitive()) throw runtime_error(type->signature()+": Failed to create builtin for " + type->args[i].type->name + " of "+type->args[i].name);
+                    auto arg_type = type->_is_primitive?type:type->args[i].type;
+                    if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Failed to create builtin for " + arg_type->name + " of "+type->args[i].name);
                     if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
-                    if(type->args[i].type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
-                        throw std::runtime_error(type->signature()+": Needs " + pretty_var(type->args[i].type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but found "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                    if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
+                        throw std::runtime_error(type->signature()+": Needs " + pretty_var(arg_type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but found "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 }
                 break;
             }
@@ -159,16 +138,16 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             if(type->packs[0]=="@scope") {
                 //return ""; // TODO: improve to allow return from ifs
                 type = internalTypes.vars[var]; // guaranteed to exist
-                if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0]);
+                if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0], types);
                 //for(const string& pack : type->packs) assign_variable(type->internalTypes.vars[pack], var+"__"+pack, pack, imp, p);
-                return next_var(imp, p, var);
+                return next_var(imp, p, var, types);
             }
-            return next_var(imp, p, var+"__"+type->packs[0]);
+            return next_var(imp, p, var+"__"+type->packs[0], types);
         }
-        return next_var(imp, p, var);
+        return next_var(imp, p, var, types);
     }
 
-    string var = next_var(imp, p, first_token);
+    string var = next_var(imp, p, first_token, types);
     //if(types.vars.find(var)!=types.end() && (p>=imp->size()-1 || imp->at(p+1)=="(")
     if(internalTypes.contains(var)) return var;
     return var;

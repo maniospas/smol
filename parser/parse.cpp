@@ -9,7 +9,7 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
         if(next=="-") {parse_return(imp, p, next, types);end = p--; break;}
         string var = imp->at(p);
         if(var=="." || var=="=") {
-            var = next_var(imp, p, next, false);
+            var = next_var(imp, p, next, types, false);
             int assignment_start = p;
             if(imp->at(p++)!="=") imp->error(p, "Missing assignment");
             next = imp->at(p++);
