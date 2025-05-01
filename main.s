@@ -3,7 +3,5 @@
 smo Point(i64 x, i64 y) -> @new
 
 smo main()
-    p = Point(1,2)
-    buf = buffer(p)
-    z = Point(buf).x
-    print(z)
+    buf = buffer(1,2)
+    print(Point(buf).x)
