@@ -248,7 +248,9 @@ smo Point(i64 x, i64 y) -> @new
 service main()
     buf1 = buffer(1,2)
     buf2 = buffer(3,4)
-    buf = buffer(buf1, buf2)
+    buf = buf1
+          | copy()
+          | push(buf2)
     // buf1 and buf2 are empty now
     p1 = Point(buf)
     p2 = Point(buf)
@@ -270,8 +272,8 @@ runtype. The latter creates an independent scope from which you can return. An e
 
 smo print_sign(i64 i)
     sgn = do
-      if(gt(i,0)) -> 1
-      if(lt(i,0)) -> -1
+      if(i|gt(0)) -> 1
+      if(i|lt(0)) -> -1
       -> 0
     print(sgn)
     --
@@ -315,12 +317,12 @@ Prism.languages.smolambda = {
       greedy: true
     },
     {
-      pattern: /(?:-->|->|--)/,
+      pattern: /(?:-->|->|--|\#|\=)/,
       greedy: true
     }
   ],
-  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main)\b/,
-  'punctuation': /[{}();,]/,
+  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|push)\b/,
+  'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {
     pattern: /"(?:\\.|[^"\\])*"/,

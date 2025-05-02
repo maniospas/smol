@@ -3,7 +3,11 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
     if(p>=n) return first_token;
     string next = first_token;
     while(true) {
-        if(imp->at(p)==".") {
+        if(imp->at(p)=="|") {
+            ++p;
+            next = parse_expression(i, p, imp->at(p++), types, next);
+        }
+        else if(imp->at(p)==".") {
             //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
             next += "__";
             ++p;

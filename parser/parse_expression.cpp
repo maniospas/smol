@@ -1,4 +1,5 @@
-string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types) {
+string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
+    if(first_token=="." || first_token=="|" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
     if(is_primitive(first_token)) {
         string vartype = type_primitive(first_token);
         string defval = "0";
@@ -12,7 +13,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         internalTypes.vars[var] = types.vars.find(vartype)->second;
         vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
         implementation += var+" = "+first_token+";\n";
-        return var;
+        return next_var(imp, p, var, types);
     }
 
     if(internalTypes.contains(first_token)) return next_var(imp, p, first_token, types);
@@ -21,7 +22,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         preample += "#include<cstdlib>\n";
         if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
         string inherit_buffer("");
-        vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer);
+        vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer, curry);
         if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
         vardecl += "u64 "+var+"__size = 0;\n";
         vardecl += "u64 "+var+"__offset = 0;\n";
@@ -43,7 +44,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         auto type = types.vars.find(first_token)->second;
         if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
         string inherit_buffer("");
-        vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer);
+        vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer, curry);
         if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
 
         string overloading_errors = "";
@@ -93,7 +94,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         if(type->_is_primitive) {
             if(unpacks.size()!=1) imp->error(--p, "Primitive types only accept one argument");
             assign_variable(type, var, unpacks[0], imp, p);
-            return var;
+            return next_var(imp, p, var, types);
         }
         for(size_t i=0;i<unpacks.size();++i) assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
         internalTypes.vars[var] = type;
@@ -147,8 +148,5 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         return next_var(imp, p, var, types);
     }
 
-    string var = next_var(imp, p, first_token, types);
-    //if(types.vars.find(var)!=types.end() && (p>=imp->size()-1 || imp->at(p+1)=="(")
-    if(internalTypes.contains(var)) return var;
-    return var;
+    return next_var(imp, p, first_token, types);
 }

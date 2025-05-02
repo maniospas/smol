@@ -52,7 +52,7 @@ string type_primitive(const string& name) {
     return "CANNOT DETECT TYPE";
 }
 
-bool accepted_var_name(const string& name) {return !(name=="(" || name==")" || name=="{" || name=="}" || name == "|" || name=="&" || name=="=" || name=="-" || name=="," || name=="." || name=="smo" || name=="@");}
+bool accepted_var_name(const string& name) {return !(name=="(" || name==")" || name=="{" || name=="}" || name == "|" || name=="&" || name=="=" || name=="-" || name=="," || name=="." || name=="smo" || name=="@" || name=="|");}
 bool is_symbol(const std::string& s) {return s.size() == 1 && std::ispunct(static_cast<unsigned char>(s[0])) && s != "_";}
 
 #endif // COMMON_H

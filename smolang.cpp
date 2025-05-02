@@ -49,7 +49,7 @@ public:
 
     Def(const string& builtin): _is_primitive(true), name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
     Def(): _is_primitive(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
-    vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer);
+    vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer, const string& curry);
     inline bool not_primitive() const {return !_is_primitive;}
     string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test=true);
     #include "parser/signature.cpp"
