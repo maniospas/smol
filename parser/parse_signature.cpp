@@ -19,16 +19,18 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
         }
         if(arg_name=="&") {mut = true;arg_name = imp->at(p++);}
         if(!accepted_var_name(arg_name)) imp->error(--p, "Not a valid name");
-        if(types.vars.find(arg_name)!=types.vars.end()) imp->error(--p, "Invalid variable name\nA runtype already has this name (you could define that later)");
+        if(types.vars.find(arg_name)!=types.vars.end()) imp->error(--p, "Invalid variable name\nConflicts with a runtype or union");
         Type argType = types.vars.find(next)->second;
-        if(argType->next_overload_to_try) imp->error(p-2, "Overloaded runtypes are ambiguous");
-
-        if(argType->not_primitive()) {
+        if(argType->lazy_compile) {
+            args.emplace_back(arg_name, argType, mut);
+            internalTypes.vars[arg_name] = argType;
+            this->lazy_compile = true; // indicate that we want to compile lazily later again
+        }
+        else if(argType->not_primitive()) {
             internalTypes.vars[arg_name] = argType;
             for(const auto& it : argType->args) {
                 args.emplace_back(arg_name+"__"+it.name, it.type, mut);
                 internalTypes.vars[arg_name+"__"+it.name] = it.type;
-                if(mut) muts.insert(arg_name+"__"+it.name);
                 vardecl += it.type->rebase(it.type->vardecl, arg_name);
                 implementation += it.type->rebase(it.type->implementation, arg_name);
                 preample += it.type->rebase(it.type->preample, arg_name);
@@ -37,14 +39,12 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
                 for(const auto& it : it.type->internalTypes.vars) {
                     string arg = arg_name+"__"+it.first;
                     internalTypes.vars[arg] = it.second;
-                    if(mut) muts.insert(arg);
                 }
             }
         }
         else {
             args.emplace_back(arg_name, argType, mut);
             internalTypes.vars[arg_name] = argType;
-            if(mut) muts.insert(arg_name);
         }
         if(p>=imp->size()) imp->error(pos+2, "Missing matching right parenthesis");
     }

@@ -1,8 +1,8 @@
 void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_signature=true) {
-    pos = p;
     imp = i;
-    if(with_signature) parse_signature(imp, p, types);
+    if(with_signature) {pos = p;parse_signature(imp, p, types);}
     start = p;
+    if(lazy_compile && with_signature) return;
     while(p<imp->size()) {
         string next = imp->at(p++);
         if(next=="@") {parse_directive(imp, p, next, types);continue;}

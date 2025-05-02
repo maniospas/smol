@@ -1,3 +1,39 @@
+void signature_until_position(vector<unordered_map<string, Type>>& results, unordered_map<string, size_t>& positions, size_t i, Memory& types, const unordered_map<string, Type>& current) {
+    unordered_map<string, Type> next(current);
+    while(i<args.size() && (!args[i].type->lazy_compile || (positions.find(args[i].type->name)!=positions.end() && positions.find(args[i].type->name)->second<i))) ++i;
+    if(i>=args.size()) {results.push_back(next);return;}
+    // will always have a lazy compilation here
+    positions[args[i].type->name] = i;
+    for(const Type& option : args[i].type->options) {
+        next[args[i].type->name] = option;
+        signature_until_position(results, positions, i+1, types, next);
+    }
+}
+
+
+vector<Type> get_options(Memory& types) {
+    if(!lazy_compile) return options;
+    // store prev state
+    Memory prevTypes;
+    for(const auto& it : types.vars) prevTypes.vars[it.first] = it.second;
+    // gather variations
+    vector<unordered_map<string, Type>> argoptions;
+    unordered_map<string, size_t> positions; // avoids setting again the same parameter and thus creating too many varations
+    signature_until_position(argoptions, positions, 0, types, unordered_map<string, Type>());
+    // iterate throug variations
+    vector<Type> newOptions;
+    for(const auto& argoption : argoptions) {
+        for(const auto& it : argoption) {types.vars[it.first] = it.second;}
+        size_t p = pos;
+        auto def = make_shared<Def>();
+        def->parse(imp, p, types);
+        newOptions.push_back(def);
+    }
+    // restore proper type system
+    for(const auto& it : prevTypes.vars) types.vars[it.first] = it.second;
+    return newOptions;
+}
+
 string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
     if(first_token=="." || first_token=="|" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
     if(is_primitive(first_token)) {
@@ -42,14 +78,35 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
     }
     if(types.contains(first_token)) {
         auto type = types.vars.find(first_token)->second;
-        if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
         string inherit_buffer("");
-        vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer, curry);
-        if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
+        vector<string> unpacks;
+        if(imp->at(p)==")" || imp->at(p)=="," || imp->at(p)=="|") {
+            if(type->options.size()>1) imp->error(--p, "Overloaded or union runtype names are ambiguous");
+            if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
+                string var = create_temp();
+                assign_variable(type->args[i].type, var, "0", imp, p, true);
+                unpacks.push_back(var);
+            }
+            else {
+                string var = create_temp();
+                assign_variable(type, var, "0", imp, p, true);
+                unpacks.push_back(var);
+            }
+        }
+        else {
+            if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
+            unpacks = gather_tuple(imp, p, types, inherit_buffer, curry);
+            if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
+        }
 
-        string overloading_errors = "";
+        string overloading_errors("");
         string var = create_temp();
-        while(type) {
+        Type successfullType = nullptr;
+        string multipleFound("");
+        int numberOfFound = 0;
+        Type previousType = type;
+        for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overload
+            if(type->lazy_compile) imp->error(--p, "Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
             try {
                 size_t type_args = type->not_primitive()?type->args.size():1;
                 if(inherit_buffer.size()) {
@@ -63,15 +120,18 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
                     if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
                         throw std::runtime_error(type->signature()+": Needs " + pretty_var(arg_type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but found "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 }
-                break;
+                successfullType = type;
+                multipleFound += "\n"+type->signature();
+                numberOfFound++;
             }
             catch (const std::runtime_error& e) {
                 overloading_errors += "\n";
                 overloading_errors += e.what();
-                type = type->next_overload_to_try;
             }
         }
+        type = successfullType;
         if(!type) imp->error(p-1, "Implementation not found"+overloading_errors);
+        if(numberOfFound>1) imp->error(p-1, "Ambiguous runtype"+multipleFound);
 
         if(inherit_buffer.size()) { // unpack buffer
             string arg = inherit_buffer;
@@ -108,7 +168,6 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         preample += type->rebase(type->preample, var);
         finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
         errors = errors+type->rebase(type->errors, var);
-        for(const string& mut : type->muts) muts.insert(var+"__"+mut);
 
         if(type->packs.size()==1 && type->packs[0]=="@scope") {
             auto def = make_shared<Def>();
@@ -125,7 +184,6 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             finals = def->rebase(def->finals, var, internalTypes)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
             errors = errors+def->rebase(def->errors, var, internalTypes);
             for(const auto& it : def->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
-            for(const string& mut : def->muts) muts.insert(var+"__"+mut);
             internalTypes.vars[var+"____finally"] = types.vars.find("__label")->second;
             //internalTypes.vars[var+"__start"] = types.vars["__label"];
             implementation = var+"__start:\n"+implementation+var+"____finally:\n";

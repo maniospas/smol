@@ -33,6 +33,7 @@ smo neq(f64 x, f64 y) @body{bool z=(x!=y);} -> z
 
 smo eq(bool x, bool y)  @body{bool z=(x==y);} -> z
 smo neq(bool x, bool y) @body{bool z=(x!=y);} -> z
+smo not(bool x)         @body{bool z=(!x);} -> z
 
 smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
 smo sub(i64 x, i64 y) @body{i64 z=x-y;} -> z

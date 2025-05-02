@@ -26,6 +26,7 @@ class Memory {
 public:
     unordered_map<string, Type> vars;
     inline bool contains(const string& var) const {return vars.find(var)!=vars.end();}
+    Memory() = default;
 };
 
 class Arg {
@@ -46,17 +47,17 @@ class Def {
     #include "parser/parse_signature.cpp"
 public:
     bool _is_primitive;
-    Type next_overload_to_try;
+    bool lazy_compile;
+    vector<Type> options;
     vector<Arg> args;
     shared_ptr<Import> imp;
     Memory internalTypes;
     vector<string> packs;
     size_t pos, start, end;
     string name, preample, vardecl, implementation, errors, finals;
-    unordered_set<string> muts;
 
-    Def(const string& builtin): _is_primitive(true), name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
-    Def(): _is_primitive(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
+    Def(const string& builtin): _is_primitive(true), lazy_compile(false), name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
+    Def(): _is_primitive(false), lazy_compile(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
     vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer, const string& curry);
     inline bool not_primitive() const {return !_is_primitive;}
     string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test=true);
@@ -90,6 +91,8 @@ int main() {
         types.vars["buffer"]->internalTypes.vars["offset"] = types.vars["u64"];
         types.vars["buffer"]->_is_primitive = false;
 
+        for(const auto& it : types.vars) it.second->options.push_back(it.second);
+
         stack<pair<string, int>> brackets;
         for(size_t p=0;p<imp->size();++p) {
             string next = imp->at(p);
@@ -121,10 +124,12 @@ int main() {
                     new_tokens->tokens.clear();
                     continue;
                 }
-                else if(imp->at(p)=="smo") {
+                else if(imp->at(p)=="smo" || imp->at(p)=="service") {
                     auto def = make_shared<Def>();
                     def->parse(imp, p, types);
-                    if(types.vars.find(def->name)!=types.vars.end()) {
+                    if(!types.contains(def->name)) types.vars[def->name] = def;
+                    types.vars[def->name]->options.push_back(def);
+                    /*if(types.vars.find(def->name)!=types.vars.end()) {
                         auto prev_def = types.vars.find(def->name)->second;
                         def->next_overload_to_try = prev_def;
                         string new_name = def->canonic_name();
@@ -135,9 +140,45 @@ int main() {
                             prev_def = prev_def->next_overload_to_try;
                         }
                     }
-                    types.vars[def->name] = def;
+                    else types.vars[def->name] = def;*/
+                    if(def->lazy_compile) {
+                        p--;
+                        while(p<imp->size()-1) {
+                            p++;
+                            if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
+                            if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
+                        }
+                        --p;
+                    }
                 }
-                else imp->error(p, "Unexpected token\nOnly `smo` or `@include` allowed");
+                else if(imp->at(p)=="union") {
+                    auto def = make_shared<Def>();
+                    def->lazy_compile = true;
+                    ++p;
+                    def->name = imp->at(p++);
+                    if(types.contains(def->name)) imp->error(--p, "Union is already defined as a runtype or union");
+                    p++;
+                    while(true) {
+                        string next = imp->at(p++);
+                        const auto& found_type = types.vars.find(next);
+                        if(found_type!=types.vars.end()) for(const Type& option : found_type->second->options) def->options.push_back(option);
+                        else imp->error(--p, "Undefined runtype");
+                        next = imp->at(p++);
+                        if(next==")") {break;}
+                        if(next!=",") imp->error(--p, "Missing comma");
+                    }
+                    types.vars[def->name] = def;
+                    if(def->lazy_compile) {
+                        --p;
+                        while(p<imp->size()-1) {
+                            p++;
+                            if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
+                            if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
+                        }
+                        --p;
+                    }
+                }
+                else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union` or `@include` allowed");
                 p++;
             }
             catch (const std::runtime_error& e) {
@@ -149,7 +190,7 @@ int main() {
                 count_errors++;
                 while(p<imp->size()-1) {
                     p++;
-                    if(imp->at(p)=="smo") break;
+                    if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
                     if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
                 }
                 if(p>=imp->size()-1) break;
