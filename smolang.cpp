@@ -21,12 +21,20 @@ using namespace std;
 
 struct Def;
 typedef shared_ptr<Def> Type;
+
 class Memory {
 public:
     unordered_map<string, Type> vars;
     inline bool contains(const string& var) const {return vars.find(var)!=vars.end();}
 };
-class Arg {public:string name; Type type; Arg(const string& n, const Type& t):name(n),type(t){}};
+
+class Arg {
+public:
+    string name;
+    Type type;
+    bool mut;
+    Arg(const string& n, const Type& t, bool m):name(n),type(t),mut(m){}
+};
 
 class Def {
     static int temp;
@@ -45,7 +53,7 @@ public:
     vector<string> packs;
     size_t pos, start, end;
     string name, preample, vardecl, implementation, errors, finals;
-    unordered_set<string> deactivated;
+    unordered_set<string> muts;
 
     Def(const string& builtin): _is_primitive(true), name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
     Def(): _is_primitive(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}

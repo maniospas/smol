@@ -31,6 +31,9 @@ smo geq(f64 x, f64 y) @body{bool z=x>=y;}   -> z
 smo eq(f64 x, f64 y)  @body{bool z=(x==y);} -> z
 smo neq(f64 x, f64 y) @body{bool z=(x!=y);} -> z
 
+smo eq(bool x, bool y)  @body{bool z=(x==y);} -> z
+smo neq(bool x, bool y) @body{bool z=(x!=y);} -> z
+
 smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
 smo sub(i64 x, i64 y) @body{i64 z=x-y;} -> z
 smo mul(i64 x, i64 y) @body{i64 z=x*y;} -> z
@@ -52,3 +55,20 @@ smo div(f64 x, f64 y)
         --
     @body{f64 z=x/y;}
     -> z
+
+smo read(i64)
+    @head{#include <stdio.h>}
+    @body{i64 number = 0; bool success = scanf("%ld", &number);}
+    if(success|eq(false))
+        @fail{printf("Invalid integer\n");}
+        --
+    -> number
+
+smo read(f64)
+    @head{#include <stdio.h>}
+    @body{f64 number = 0; bool success = scanf("%lf", &number);}
+    if(success|eq(false))
+        @fail{printf("Invalid number\n");}
+        --
+    -> number
+

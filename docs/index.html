@@ -125,15 +125,56 @@ Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
 everything ends at return statements, at the end of file, or resides in between
 parentheses and commas.</p>
 
-<h3>Locality</h3>
+<h3>Mutability</h3>
+
+
+<p>Local variables are overwritten as code runs. However, runtypes are called by value,
+<!-- that is, without affecting their arguments. You can change this by prepending -->
+<code class="language-smolambda">&</code> to the variable name in the signature,
+in which case internal modifications are retained. Below is an example.</p>
+
+<pre><code class="language-smolambda">@include std
+
+smo inc(i64 &x)
+    x = add(x,1)
+    --
+
+service main()
+    x = 1
+    inc(x)
+    print(x) // 2
+</code></pre>
+
+
+<h3>Currying</h3>
+<p>Runtypes accept currying notation that transfers a computed value to the arguments of the next call.
+This can be chained. The curry operator is <code class="language-smolambda">|</code>.
+If you have multiple calls in the currying chain, preffer placing those at separate lines. This is only
+a stylistic choice, as currying maintains the language's deterministic understanding of where expressions end.
+</p>
+
+<p>This feature lets <i>smoλ</i> avoid having methods as fields, as the notation <code class="language-smolambda">obj|rt(args)</code>
+can do this. Recall that mutability should be explicitly declared if you want <i>rt</i> to have side-effects.
+</p>
+
+<pre><code class="language-smolambda">@include std
+
+service main()
+    1
+    | add(2)
+    | mul(3)
+    | print()
+    // equivalent to print(mul(add(1,2), 3))
+</code></pre>
+
+
+<h3>Fields</h3>
 
 <p>The assignment operator copies the outcome of function calls to variables.
-However, if you want to treat the output as a type, only returned symbols can be accessed
-and not intermediate ones.
+However, only returned symbols can be accessed as fields.
 For example, below the input variable <code class="language-smolambda">x</code>
 cannot be accessed after computations conclude. If you return the outcome of some
-computations, this is not exposed either. For example, you may use
-<code class="language-smolambda">@copy</code> to anomymize intermediate values.
+computations, this is not exposed either.
 </p>
 
 <p>We already saw that it may be convenient to unpack all runtype inputs with
@@ -317,7 +358,7 @@ Prism.languages.smolambda = {
       greedy: true
     },
     {
-      pattern: /(?:-->|->|--|\#|\=)/,
+      pattern: /(?:-->|->|--|\||\=)/,
       greedy: true
     }
   ],

@@ -1,5 +1,5 @@
 string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
-    if(first_token=="." || first_token=="|" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
+    if(first_token=="." || first_token=="|" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
     if(is_primitive(first_token)) {
         string vartype = type_primitive(first_token);
         string defval = "0";
@@ -96,16 +96,20 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             assign_variable(type, var, unpacks[0], imp, p);
             return next_var(imp, p, var, types);
         }
-        for(size_t i=0;i<unpacks.size();++i) assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
+        string finals("");
+        for(size_t i=0;i<unpacks.size();++i) {
+            assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
+            if(type->args[i].mut) finals += unpacks[i]+" = "+var+"__"+type->args[i].name+";\n";
+        }
         internalTypes.vars[var] = type;
 
-        vardecl += type->rebase(type->vardecl, var, internalTypes, false);
-        implementation += type->rebase(type->implementation, var, internalTypes);
-        preample += type->rebase(type->preample, var, internalTypes);
-        finals = type->rebase(type->finals, var, internalTypes)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
-        errors = errors+type->rebase(type->errors, var, internalTypes);
+        vardecl += type->rebase(type->vardecl, var);
+        implementation += type->rebase(type->implementation, var);
+        preample += type->rebase(type->preample, var);
+        finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
+        errors = errors+type->rebase(type->errors, var);
+        for(const string& mut : type->muts) muts.insert(var+"__"+mut);
 
-        string finally = "";
         if(type->packs.size()==1 && type->packs[0]=="@scope") {
             auto def = make_shared<Def>();
             def->name = "parsed expression";
@@ -121,6 +125,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             finals = def->rebase(def->finals, var, internalTypes)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
             errors = errors+def->rebase(def->errors, var, internalTypes);
             for(const auto& it : def->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
+            for(const string& mut : def->muts) muts.insert(var+"__"+mut);
             internalTypes.vars[var+"____finally"] = types.vars.find("__label")->second;
             //internalTypes.vars[var+"__start"] = types.vars["__label"];
             implementation = var+"__start:\n"+implementation+var+"____finally:\n";
@@ -135,6 +140,8 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         }
 
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
+        implementation += finals;
+
         if(type->packs.size()==1) {
             if(type->packs[0]=="@scope") {
                 //return ""; // TODO: improve to allow return from ifs

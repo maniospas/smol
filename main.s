@@ -1,12 +1,18 @@
 @include std
 
+smo Point(i64 x, i64 y) -> @new
+smo print(Point p)
+    print(p.x)
+    print(p.y)
+    --
+
+smo inc(Point &p)
+    p.x = p.x|add(1)
+    p.y = p.y|add(1)
+    --
+
 smo main()
-    buf = buffer(0,1,2,3,4,5)
-    slice = buf[u64(1):u64(3)]
-    slice
-        | i64()
-        | print()
-    print(i64(buf[u64(0)]))
-    print(i64(buf))
-    print(i64(slice))
-    print(i64(slice))
+    value = i64(0)|read()
+    p = Point(value,value)
+    p|inc()
+    p|print()
