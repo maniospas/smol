@@ -1,8 +1,9 @@
 string signature() {
+    //if(!args.size()) return name;
     string ret("");
     for(const auto& arg : args) {
         if(ret.size()) ret += ", ";
-        ret += ""+pretty_var(arg.type->canonic_name())+" "+(arg.mut?"&":"")+pretty_var(arg.name);
+        ret += ""+arg.type->name+" "+(arg.mut?"&":"")+pretty_var(arg.name);
     }
     return name+"("+ret+")";
 }

@@ -44,8 +44,7 @@
 <p><i>Smoλ</i> creates zero-cost abstractions for managing data and functions.
 Its core is tiny — really tiny! So tiny, in fact, that functions like printing and basic
 arithmetic operators are part of the standard library.
-There's a direct-to-C++ interface for extensible functionality
-beyond few basic keywords.</p></p>
+There's a direct-to-C++ interface for extensible functionality.</p></p>
 
 <p><strong>Dependencies:</strong> GCC<br>
 <strong>Contact:</strong> Emmanouil (Manios) Krasanakis<br>
@@ -70,33 +69,30 @@ service main()
     --
 </code></pre>
 
-<p>The <code class="language-smolambda">@include</code> directive includes
-files directly. For safety, this cannot occur within definitions.
-Circular dependencies or re-imports are not allowed either. We use the
+<p>First, <code class="language-smolambda">@include</code> brings code from
+other files with the <i>.s</i> extension. Paths are separated by dots.
+For safety, includes cannot occur within definitions.
+Circular dependencies or re-imports are not allowed either. Here we use the
 <a href="#std">standard library</a>, but you may create your own flavor.</p>
 
 <p>Next are some so-called <i>runtype</i> definitions, indicated by the <code class="language-smolambda">smo</code>
-keyword. These merge the concept of ypes of functions, where the keyword <code class="language-smolambda">-></code>
+keyword. These merge the concept of types and functions, where the keyword <code class="language-smolambda">-></code>
 returns a value or tuple. If variable names are part of the returned tuple, this can be accessed as fields
 from the result. <code class="language-smolambda">@new</code> is a shorthand for
 returning a tuple of all internal declarations.</p>
 
 <p>Once you write something like <code class="language-smolambda">p = Point(...)</code>,
-you can access all returned name values using
+you can access all returned named variables using notation like
 <code class="language-smolambda">p.x</code> and <code class="language-smolambda">p.y</code>.
-You can also unpack the result as part of a tuple.
-For example, <code class="language-smolambda">p1 = Point(p)</code> is equivalent to
-<code class="language-smolambda">Point p1(p.x, p.y)</code>.
-Unpacking creates a flat tuple (not a tuple of tuples) that can be reinterpreted in various ways
+You can also unpack the result as part of tuples; these are alwways flat
+(there is no tuple of tuples) and can be reinterpreted in various ways
 as long as primitive types match.</p>
 
 <p>Put all main business logic inside a <code class="language-smolambda">service main()</code> definition.
-Being a service means that
-errors occuring inside are "caught", perform safe allocation and deallocation, and do not
-escape to the any services calling it other than changing the result. More on this later.
-The main service is the entry point of all programs and returns no value, as indicated by
-the <code class="language-smolambda">--</code> at its end. More on accepting arguments
-later.</p>
+Being a service means that errors occuring inside are "caught", perform safe allocation and deallocation,
+and do not escape to the any code calling it. More on services later.
+For now, know that the main service is the entry point of programs and returns no value, as indicated by
+the <code class="language-smolambda">--</code> symbol at its end.</p>
 
 <h1 id="smo">Runtypes</h1>
 
@@ -104,7 +100,8 @@ later.</p>
 and marked as <code class="language-smolambda">smo</code> followed by a name
 and a parenthesis with some arguments.
 We call the merged concept <i>runtypes</i>.
-Let's start with a definition from the standard library:</p>
+As an example, look at a definition from the standard library,
+which also gives a taste of the C++ ABI:</p>
 
 <pre><code class="language-smolambda">smo add(i64 x, i64 y)
     @body{i64 z=x+y;}
@@ -112,26 +109,26 @@ Let's start with a definition from the standard library:</p>
 </code></pre>
 
 <p>This tells us that we are defining an integer addition runtype with the corresponding arguments.
-The definition is inlined when used, which is more optimization-friendly than simple C++. This is achieved
-because, despite the illusion of typing, everything is direct variable operations. For example
+When called from other code, the definition is inlined in an optimization-friendly. For example,
+despite the illusion of typing, everything consists of direct variable operations. For example
 <code class="language-smolambda">f.start.x</code> is represented by <code class="language-smolambda">f__start__x</code>
 under the hood.</p>
 
 <p>Return a value or tuple of values with <code class="language-smolambda">-&gt;</code>,
-and use <code class="language-smolambda">@body</code> to write C++ code directly.
+and use <code class="language-smolambda">@body</code> to write C++ code.
 If you don't want to return anything, use <code class="language-smolambda">--</code>.
-These symbols form visual barriers that are easy to spot while remaining, well, small.
+Return symbols form visual barriers that are easy to spot while remaining ... small.
 Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
-everything ends at return statements, at the end of file, or resides in between
+everything ends at return statements, at the end of file, or resides in-between
 parentheses and commas.</p>
 
 
 <h3>Mutability (call by reference)</h3>
 
 <p>Runtypes are called by value,
-that is, without affecting their arguments. You can change this by prepending
-<code class="language-smolambda">&</code> to the variable name in the signature to make
-calls occur by reference. In this case,
+that is, without internal computations affecting external arguments. You can make
+calls occur by reference by prepending
+<code class="language-smolambda">&</code> to variable names in the signature. In this case,
 internal modifications are retained. Below is an example.</p>
 
 <pre><code class="language-smolambda">@include std
@@ -149,13 +146,14 @@ service main()
 
 <h3>Currying</h3>
 <p>Runtypes accept currying notation that transfers a computed value to the arguments of the next call.
-This can be chained. The curry operator is <code class="language-smolambda">|</code>.
+The curry operator is <code class="language-smolambda">|</code> and can be chained.
 If you have multiple calls in the currying chain, preffer placing those at separate lines. This is only
-a stylistic choice, as currying maintains the language's deterministic understanding of where expressions end.
+a stylistic choice.
 </p>
 
-<p>This feature lets <i>smoλ</i> avoid having methods as fields, as the notation <code class="language-smolambda">obj|rt(args)</code>
-can do this. Recall that mutability should be explicitly declared if you want <i>rt</i> to have side-effects.
+<p>Currying feature lets <i>smoλ</i> avoid methods as fields, as the notation <code class="language-smolambda">obj|rt(args)</code>
+is conceptually similar. Note that mutability should be explicitly declared if you want <code class="language-smolambda">rt</code>
+to have side-effects.
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -175,7 +173,7 @@ service main()
 However, only returned symbols can be accessed as fields.
 For example, below the input variable <code class="language-smolambda">x</code>
 cannot be accessed after computations conclude. If you return the outcome of some
-computations, this is not exposed either.
+computations without packing it into a comma-separated tuple, this is not exposed either.
 </p>
 
 <p>We already saw that it may be convenient to unpack all runtype inputs with
@@ -200,9 +198,9 @@ service main()
 
 <p>Overload runtypes that are structurally
 different when converted to a flat representation of primitives.
-After overloading, runtypes cannot be used as part of
-function signatures due to ambiguity, but their usage is substituted dynamically.
-The following definitions come from the standard library.</p>
+Runtypes equivalent in terms of primitives cannot be used as part of
+function signatures due to ambiguity. More on circumventing this issue later.
+As an example, the following definitions come from the standard library.</p>
 
 <pre><code class="language-smolambda">smo print(f64 message)
     @head{#include &lt;stdio.h>}
@@ -223,24 +221,29 @@ service main()
 
 <h3>Call by type</h3>
 
-You might want to overload a runtype based on another without actually passing data. For example,
-a something different should be called based on an expected value. In those cases, you can avoid
-declaring the runtype as argument. Below is a segment of the standard library that shows how the correct version of
-an evoked method is applied. You can also provide a value to be ignored. Runtypes without
+<p>
+You might want to choose a runtype's version based on another without actually passing data. For example,
+something different should be called based on the expected outcome. In those cases, you can skip
+declaring variable names in signatures, and you can ommit parenthesis-based argumets that would create dummy data.
+</p>
+<p>
+Below is a segment of the standard library that shows how the correct version of
+an evoked method is applied. Runtypes without
 parentheses refer to zeroed out input data.
+You can also use a value as reference - that would be ignored.</p>
 
 <pre><code class="language-smolambda">smo not(bool x) @body{bool z=!x;} -> z
 smo print(f64 message)
-    @head{#include <stdio.h>}
+    @head{#include &lt;stdio.h>}
     @body{printf("%.6f\n", message);}
     --
 smo read(i64)
-    @head{#include <stdio.h>}
+    @head{#include &lt;stdio.h>}
     @body{i64 number = 0; bool success = scanf("%ld", &number);}
     if(success|not()) @fail{printf("Invalid integer\n");} --
     -> number
 smo read(f64)
-    @head{#include <stdio.h>}
+    @head{#include &lt;stdio.h>}
     @body{f64 number = 0; bool success = scanf("%lf", &number);}
     if(success|not()) @fail{printf("Invalid number\n");} --
     -> number
@@ -255,10 +258,9 @@ service main()
 <h3>Unions</h3>
 <p>Sometimes, you want to define code that is automatically adjusted to different runtypes.
 This can be achieved by declaring runtype unions, which are resolved to one of their
-options. The resolution persists to dependent calls, so you might consider unions
-over the same types but with different names for multi-parameterization. Unions
-are resolved during compilation and, like many features of <i>smoλ</i>, are zero-cost
-abstractions.</p>
+options. The resolution persists to dependent calls, so yo can create different ones for independence.
+Unions are resolved during compilation and, like many features of <i>smoλ</i>, are zero-cost
+abstractions. They can also unpack unions provided as arguments.</p>
 
 <p>
 For example, the <code class="language-smolambda">Type</code> union
@@ -304,7 +306,7 @@ even primitive types and unpacking relies solely on the programmer.</p>
 more entries are required for desired runtype calls.
 Popping is memory safe in that it smoothly fails any service
 (e.g., <code class="language-smolambda">main</code>)
-with an appropriate error messages.
+with an appropriate error message.
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -350,8 +352,8 @@ it needs to consume. The language offers three operations for buffers:
 (for optimization, otherwise size is doubled when needed),
 <code class="language-smolambda">push</code> adds data at the end,
 <code class="language-smolambda">copy</code> copies contents without
-altering the original, and a
-assigning to the buffer inserts data at the beginning as long as the size is compatible</p>
+altering the original, and
+assigning inserts data at the beginning as long as the size is compatible</p>
 
 
 <pre><code class="language-smolambda">@include std

@@ -48,6 +48,7 @@ class Def {
 public:
     bool _is_primitive;
     bool lazy_compile;
+    static bool debug;
     vector<Type> options;
     vector<Arg> args;
     shared_ptr<Import> imp;
@@ -55,6 +56,7 @@ public:
     vector<string> packs;
     size_t pos, start, end;
     string name, preample, vardecl, implementation, errors, finals;
+    unordered_map<string, Type> parametric_types;
 
     Def(const string& builtin): _is_primitive(true), lazy_compile(false), name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
     Def(): _is_primitive(false), lazy_compile(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
@@ -68,6 +70,7 @@ public:
 #include "parser/gather_tuple.cpp"
 #include "parser/next_var.cpp"
 int Def::temp = 0;
+bool Def::debug = false;
 
 
 int main() {

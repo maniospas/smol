@@ -1,39 +1,3 @@
-void signature_until_position(vector<unordered_map<string, Type>>& results, unordered_map<string, size_t>& positions, size_t i, Memory& types, const unordered_map<string, Type>& current) {
-    unordered_map<string, Type> next(current);
-    while(i<args.size() && (!args[i].type->lazy_compile || (positions.find(args[i].type->name)!=positions.end() && positions.find(args[i].type->name)->second<i))) ++i;
-    if(i>=args.size()) {results.push_back(next);return;}
-    // will always have a lazy compilation here
-    positions[args[i].type->name] = i;
-    for(const Type& option : args[i].type->options) {
-        next[args[i].type->name] = option;
-        signature_until_position(results, positions, i+1, types, next);
-    }
-}
-
-
-vector<Type> get_options(Memory& types) {
-    if(!lazy_compile) return options;
-    // store prev state
-    Memory prevTypes;
-    for(const auto& it : types.vars) prevTypes.vars[it.first] = it.second;
-    // gather variations
-    vector<unordered_map<string, Type>> argoptions;
-    unordered_map<string, size_t> positions; // avoids setting again the same parameter and thus creating too many varations
-    signature_until_position(argoptions, positions, 0, types, unordered_map<string, Type>());
-    // iterate throug variations
-    vector<Type> newOptions;
-    for(const auto& argoption : argoptions) {
-        for(const auto& it : argoption) {types.vars[it.first] = it.second;}
-        size_t p = pos;
-        auto def = make_shared<Def>();
-        def->parse(imp, p, types);
-        newOptions.push_back(def);
-    }
-    // restore proper type system
-    for(const auto& it : prevTypes.vars) types.vars[it.first] = it.second;
-    return newOptions;
-}
-
 string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
     if(first_token=="." || first_token=="|" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
     if(is_primitive(first_token)) {
@@ -105,20 +69,20 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         string multipleFound("");
         int numberOfFound = 0;
         Type previousType = type;
-        for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overload
-            if(type->lazy_compile) imp->error(--p, "Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
+        for(const Type& type : previousType->get_options(imp, types)) { // options encompases all overloads, in case of unions it may not have the base overload
             try {
+                //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
                 size_t type_args = type->not_primitive()?type->args.size():1;
                 if(inherit_buffer.size()) {
-                    if(unpacks.size()>type_args) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found > "+to_string(unpacks.size())+" arguments (buffers unpack at least one value)");
+                    if(unpacks.size()>type_args) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but passed > "+to_string(unpacks.size())+" arguments (buffers unpack at least one value)");
                 }
-                else if(unpacks.size()!=type_args) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but found "+to_string(unpacks.size())+" arguments");
+                else if(unpacks.size()!=type_args) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but passed "+to_string(unpacks.size())+" arguments");
                 for(size_t i=0;i<unpacks.size();++i) {
                     auto arg_type = type->_is_primitive?type:type->args[i].type;
-                    if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Failed to create builtin for " + arg_type->name + " of "+type->args[i].name);
+                    if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Cannot unpack abstract " + arg_type->signature() + " "+type->args[i].name);
                     if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
                     if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
-                        throw std::runtime_error(type->signature()+": Needs " + pretty_var(arg_type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but found "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                        throw std::runtime_error(type->signature()+": Definition has " + pretty_var(arg_type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but passed "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 }
                 successfullType = type;
                 multipleFound += "\n"+type->signature();

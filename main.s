@@ -1,14 +1,14 @@
 @include std
+union Type(i64, f64)
+smo Point(Type x, Type y) -> @new
 
-union Type(i64, f64, u64)
-
-smo Point(Type x, Type y) -> x,y
-smo print(Point p)
-    print(p.x)
+smo inc(Point &p)
+    p.x = add(p.x, Type(1))
+    p.y = add(p.y, Type(1))
     --
 
-
 smo main()
-    value = f64(1)
+    value = i64|read()
     p = Point(value, value)
-    print(p)
+    p|inc()
+    print(p.x)
