@@ -23,6 +23,7 @@
     pre code {background: none;font-family: 'Courier New', Courier, monospace;font-size: 90%;}
     p strong {color: #444;}
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
@@ -37,18 +38,18 @@
 
 <div class="container">
 
-<h1 id="home">smoλ</h1>
+<h1 id="home">smoλ <a href="https://github.com/maniospas/smol" target="_blank" title="GitHub">
+<i class="fab fa-github"></i>
+</a></h1>
 
-<p><em>A safe & fast low-level language.</em></p>
+<p><em>A safe & fast low-level language.</em>
+</p>
 
 <p><i>Smoλ</i> creates zero-cost abstractions for managing data and functions.
 Its core is tiny — really tiny! So tiny, in fact, that functions like printing and basic
 arithmetic operators are part of the standard library.
 There's a direct-to-C++ interface for extensible functionality.</p></p>
 
-<p><strong>Dependencies:</strong> GCC<br>
-<strong>Contact:</strong> Emmanouil (Manios) Krasanakis<br>
-<strong>License:</strong> Apache 2.0</p>
 
 <h1 id="quickstart">Quickstart</h1>
 
@@ -264,7 +265,8 @@ abstractions. They can also unpack unions provided as arguments.</p>
 
 <p>
 For example, the <code class="language-smolambda">Type</code> union
-below is determined when calling <code class="language-smolambda">inc</code> to match the <code class="language-smolambda">Point</code>
+below is determined to be <code class="language-smolambda">f64</code> while
+calling <code class="language-smolambda">inc</code> to match the <code class="language-smolambda">Point</code>
 argument and carries over to the internal
 implementation. Therefore, the <code class="language-smolambda">f64</code> primitive is used for reading, constructing
 a two-dimensional point, for casting the value of <i>1</i> to the appropriate type,
