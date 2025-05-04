@@ -46,6 +46,7 @@ class Def {
     #include "parser/parse_return.cpp"
     #include "parser/parse_signature.cpp"
 public:
+    bool is_service;
     bool _is_primitive;
     bool lazy_compile;
     static bool debug;
@@ -58,8 +59,8 @@ public:
     string name, preample, vardecl, implementation, errors, finals;
     unordered_map<string, Type> parametric_types;
 
-    Def(const string& builtin): _is_primitive(true), lazy_compile(false), name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
-    Def(): _is_primitive(false), lazy_compile(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
+    Def(const string& builtin): is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
+    Def(): is_service(false), _is_primitive(false), lazy_compile(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
     vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer, const string& curry);
     inline bool not_primitive() const {return !_is_primitive;}
     string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test=true);

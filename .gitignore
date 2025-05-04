@@ -2,3 +2,5 @@ smol
 smol.exe
 main.cpp
 main
+highlighter/node_modules
+highlighter/package-lock.json

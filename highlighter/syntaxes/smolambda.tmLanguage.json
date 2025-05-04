@@ -1,0 +1,49 @@
+{
+  "scopeName": "source.smolambda",
+  "name": "Smolambda",
+  "patterns": [
+    {
+      "name": "comment.line.double-slash",
+      "match": "//.*"
+    },
+    {
+      "name": "meta.preprocessor",
+      "match": "@\\w+"
+    },
+    {
+      "name": "keyword.control",
+      "match": "\\b(smo|service|if|else|include|do|while|union)\\b"
+    },
+    {
+      "name": "keyword.control",
+      "match": "-->|->|--"
+    },
+    {
+      "name": "keyword.operator",
+      "match": "\\||="
+    },
+    {
+      "name": "storage.type",
+      "match": "\\b(i64|u64|f64|ptr|str|buffer|main|copy|push)\\b"
+    },
+    {
+      "name": "constant.numeric",
+      "match": "\\b\\d+\\b"
+    },
+    {
+      "name": "string.quoted.double",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape"
+        }
+      ]
+    },
+    {
+      "name": "punctuation",
+      "match": "[{}();,\\[\\]]"
+    }
+  ]
+}

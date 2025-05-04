@@ -1,0 +1,46 @@
+{
+  "name": "smolambda",
+  "displayName": "Smoλ Language Support",
+  "description": "Language support for the smoλ language.",
+  "publisher": "Emmanouil (Manios) Krasanakis",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:smolambda",
+    "onCommand:extension.smolambda.start"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "smolambda",
+        "aliases": [
+          "smoλ",
+          "smol",
+          "smolambda"
+        ],
+        "extensions": [
+          ".s"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
+  },
+  "devDependencies": {
+    "vsce": "^2.15.0"
+  }
+}
