@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.cm": "rust",
+        "format": "cpp"
+    }
+}

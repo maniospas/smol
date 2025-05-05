@@ -120,7 +120,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             assign_variable(type, var, unpacks[0], imp, p);
             return next_var(imp, p, var, types);
         }
-        string finals("");
+        //string finals("");
         for(size_t i=0;i<unpacks.size();++i) {
             assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
             if(type->args[i].mut) finals += unpacks[i]+" = "+var+"__"+type->args[i].name+";\n";
@@ -162,7 +162,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         }
 
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
-        implementation += finals;
+        //implementation += finals; // TODO this should not occur here because it has deallocations and the like
 
         if(type->packs.size()==1) {
             if(type->packs[0]=="@scope") {

@@ -40,6 +40,32 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
         }
         implementation += "\n";
     }
+    else if(next=="finally") {
+        next = imp->at(p++);
+        if(next!="{") imp->error(--p, "Expected brackets");
+        int depth = 1;
+        while(true) {
+            next = imp->at(p++);
+            if(next=="{") depth++;
+            if(next=="}") {depth--;if(depth==0) break;}
+            string nextnext = imp->at(p);
+            if(p<imp->size()-1 && imp->at(p+1)=="=" && (!is_symbol(imp->at(p+2)) || imp->at(p+2)=="(") && !is_symbol(next) && !is_symbol(nextnext)) {
+                string argname = nextnext;
+                string argtype = next;
+                if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->not_primitive()) {
+                    internalTypes.vars[argname] = types.vars.find(argtype)->second;
+                    vardecl += argtype+" "+argname+";\n";
+                }
+                else imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
+            }
+            else {
+                if(next=="goto") internalTypes.vars[nextnext] = types.vars["__label"];
+                finals += next;
+                if(!is_symbol(next) && !is_symbol(nextnext)) finals += " ";
+            }
+        }
+        finals += "\n";
+    }
     else if(next=="fail") {
         string fail_label = create_temp();
         errors += fail_label+":\n";

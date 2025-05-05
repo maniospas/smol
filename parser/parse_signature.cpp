@@ -6,11 +6,16 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
     //cout << "parsing  "<<name<<"\n";
     if(imp->at(p++)!="(") imp->error(--p, "Missing left parenthesis");
     while(true) {
+        bool autoconstruct = false;
         bool mut = false;
         string next = imp->at(p++);
         if(next==")") break;
         if(args.size()) {
             if(next!=",")imp->error(--p, "Missing comma between arguments");
+            next = imp->at(p++);
+        }
+        if(next=="&") {
+            autoconstruct=true;
             next = imp->at(p++);
         }
         if(!accepted_var_name(next)) imp->error(--p, "Not a valid name");
@@ -44,7 +49,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
         else if(argType->not_primitive()) {
             //if(debug) cout << "parametric "<<arg_name<<" "<<argType->signature()<<"\n";
             internalTypes.vars[arg_name] = argType;
-            for(const auto& it : argType->args) {
+            if(autoconstruct) for(const auto& it : argType->args) {
                 //if(debug) cout << arg_name<<" "<<it.type->name<<"\n";
                 args.emplace_back(arg_name+"__"+it.name, it.type, mut);
                 internalTypes.vars[arg_name+"__"+it.name] = it.type;
@@ -57,6 +62,10 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
                     string arg = arg_name+"__"+it.first;
                     internalTypes.vars[arg] = it.second;
                 }
+            }
+            else for(const auto& itarg : argType->packs) {
+                args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut);
+                internalTypes.vars[arg_name+"__"+itarg] = argType->internalTypes.vars[itarg];
             }
         }
         else {
