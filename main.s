@@ -10,5 +10,5 @@ smo inc(Point &p)
 service main()
     value = i64|read()
     p = Point(value, value)
-    p|inc() p
+    p|inc() // this is a comment
     print(p.x)

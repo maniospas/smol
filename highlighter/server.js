@@ -175,25 +175,51 @@ connection.languages.semanticTokens.on((params) => {
   for (let line = 0; line < lines.length; line++) {
     const textLine = lines[line];
     let pos = 0;
-    while(pos < textLine.length) {
-      if(/\s/.test(textLine[pos])) {pos++;continue;}
-      if (/\s/.test(textLine[pos])) {
-        pos++;
+    while (pos < textLine.length) {
+      if (/\s/.test(textLine[pos])) { pos++; continue; }
+      if (textLine.startsWith("//", pos)) {
+        const length = textLine.length - pos;
+        builder.push(line, pos, length, 8, 0)
+        break;
+      }
+      if (textLine[pos] === '"') {
+        let end = pos + 1;
+        while (end < textLine.length && textLine[end] !== '"') {
+          if (textLine[end] === '\\' && end + 1 < textLine.length) end += 2; 
+          else end++;
+        }
+        end = Math.min(end + 1, textLine.length); // include closing quote
+        const length = end - pos;
+        builder.push(line, pos, length, 6, 0);
+        pos = end;
         continue;
       }
-      if (textLine.startsWith("->", pos) || textLine.startsWith("--", pos)) { builder.push(line, pos, 2, 3, 0);pos += 2; continue;}
-      if (textLine[pos] === '|') {builder.push(line, pos, 1, 3, 0);pos += 1;continue;}
+  
+      if (textLine.startsWith("->", pos) || textLine.startsWith("--", pos)) {
+        builder.push(line, pos, 2, 3, 0);
+        pos += 2;
+        continue;
+      }
+  
+      if (textLine[pos] === '|') {
+        builder.push(line, pos, 1, 3, 0);
+        pos += 1;
+        continue;
+      }
+  
       const match = textLine.slice(pos).match(/^@?[A-Za-z_][A-Za-z0-9_.]*/);
-      if(match) {
+      if (match) {
         const word = match[0];
-        if (word[0]=="@") builder.push(line, pos, word.length, 3, 0);
+        if (word[0] === "@") builder.push(line, pos, word.length, 3, 0);
         else if (keywords.includes(word)) builder.push(line, pos, word.length, 0, 0);
         else if (builtins.includes(word)) builder.push(line, pos, word.length, 1, 0);
         pos += word.length;
-      } 
-      else pos++;
+      } else {
+        pos++;
+      }
     }
   }
+  
   
   return builder.build();
 });

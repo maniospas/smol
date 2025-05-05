@@ -88,7 +88,7 @@ auto tokenize(const string& path) {
         while (i < line.size()) {
             while (i < line.size() && isspace(line[i])) {if (line[i] == '\t') col += 4; else col++;i++;}
             if (i >= line.size()) break;
-            if (line[i] == '\\' && i + 1 < line.size() && line[i + 1] == '\\') break;
+            if (line[i] == '/' && i + 1 < line.size() && line[i + 1] == '/') break;
             size_t start = i;
             size_t start_col = col;
             if (line[i] == '"') {
