@@ -82,6 +82,7 @@ int main() {
         types.vars["i64"] = make_shared<Def>("i64");
         types.vars["f64"] = make_shared<Def>("f64");
         types.vars["ptr"] = make_shared<Def>("ptr");
+        types.vars["errcode"] = make_shared<Def>("errcode");
         types.vars["cstr"] = make_shared<Def>("cstr");
         types.vars["bool"] = make_shared<Def>("bool");
         types.vars["char"] = make_shared<Def>("char");
@@ -205,33 +206,42 @@ int main() {
 
         imp->tokens.clear();
         if(count_errors) ERROR("Aborted due to the above "+to_string(count_errors)+" errors\n");
+        
 
-        string vardecl = types.vars["main"]->vardecl;
-        string implementation = types.vars["main"]->implementation;
-        string preample = types.vars["main"]->preample;
-        string finals = types.vars["main"]->finals;
-        string errors = types.vars["main"]->errors;
-        implementation =
-        "#include <cstring>\n"
-        "#define ptr void*\n"
-        "#define cstr const char*\n"
-        "#define u64 unsigned long\n"
-        "#define i64 long\n"
-        "#define f64 double\n\n"
-        +preample+
-        "int main() {\n" +
-        vardecl +
-        implementation +
-        "goto __return;\n" + // skip error handling block that resides at the end of the service
-        finals+
-        "__error:\n" +// error handling (each of those runs goto ____finally)
-        errors +
-        "__return:\n" + // resource deallocation
-        finals +
-        "return 0;\n" // actually return from the service
-        "}\n";
+        string globals = 
+            "#include <cstring>\n"
+            "#define __USER__ERROR 1\n"
+            "#define __BUFFER__ERROR 2\n"
+            "#define ptr void*\n"
+            "#define errcode int\n"
+            "#define cstr const char*\n"
+            "#define u64 unsigned long\n"
+            "#define i64 long\n"
+            "#define f64 double\n\n";
+        string impl = "";
+
+
+        for(const auto& it : types.vars) if(it.second->is_service) {
+            const auto& service = it.second;
+            globals += service->preample;
+            globals += "errcode "+service->raw_signature()+";\n";
+            impl += "\n";
+            impl += "errcode ";
+            impl += service->raw_signature()+"{\nerrcode __result__errocode = 0;\n";
+            impl += service->vardecl;
+            impl += service->implementation;
+            impl += "goto __return;\n"; // skip error handling block that resides at the end of the service
+            impl +="__error:\n"; // error handling (each of those runs goto ____finally)
+            impl += service->errors;
+            impl += "__return:\n"; // resource deallocation
+            impl += service->finals;
+            impl += "return __result__errocode;\n";
+            impl += "}\n\n";
+        }
+
         std::ofstream out("main.cpp");
-        out << implementation;
+        out << globals;
+        out << impl;
         out.close();
         int run_status = system("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections main.cpp -o main && ./main");
         if (run_status != 0) return run_status;

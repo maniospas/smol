@@ -96,14 +96,13 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         type = successfullType;
         if(!type) imp->error(p-1, "Implementation not found"+overloading_errors);
         if(numberOfFound>1) imp->error(p-1, "Ambiguous runtype"+multipleFound);
-
         if(inherit_buffer.size()) { // unpack buffer
             string arg = inherit_buffer;
             int remaining = (int)(type->args.size()-unpacks.size());
             if(type->_is_primitive) remaining++;
             string fail_var = create_temp();
             implementation += "if("+arg+"__size-"+arg+"__offset<"+to_string(remaining)+") goto "+fail_var+";\n";
-            errors += fail_var+":\nprintf(\"Runtime error: buffer `"+arg+"` does not have enough remaining elements\\n\");\ngoto __return;\n";
+            errors += fail_var+":\nprintf(\"Runtime error: buffer `"+arg+"` does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __return;\n";
             preample += "#include <stdio.h>\n";
             for(int i=0;i<remaining;++i) {
                 string cast = type->_is_primitive?type->name:type->args[unpacks.size()].type->name; // don't add i because we push back the element
@@ -114,6 +113,28 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
                 unpacks.push_back(element);
             }
             implementation += arg+"__offset += "+to_string(remaining)+";\n";
+        }
+        if(type->is_service) {
+            var = create_temp();
+            vardecl += "errcode "+var+"____errcode = 0;\n";
+            string impl = var+"____errcode = "+type->name+"(";
+            internalTypes.vars[var+"____errcod"] = types.vars["errcode"];
+            internalTypes.vars[var] = type;
+            bool toadd = false;
+            for(const string& ret : type->packs) {
+                assign_variable(type->internalTypes.vars[ret], var+"__"+ret, "0", imp, p);
+                if(toadd) impl += ",";
+                impl += var+"__"+ret;
+                toadd = true;
+            }
+            for(size_t i=0;i<unpacks.size();++i) {
+                if(toadd) impl += ",";
+                impl += unpacks[i];
+                toadd = true;
+            }
+            impl += ");\n";
+            implementation += impl;
+            return next_var(imp, p, var, types);
         }
         if(type->_is_primitive) {
             if(unpacks.size()!=1) imp->error(--p, "Primitive types only accept one argument");

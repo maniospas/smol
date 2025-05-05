@@ -91,7 +91,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
                 if(!is_symbol(next) && !is_symbol(nextnext)) errors += " ";
             }
         }
-        errors += "\ngoto __return;\n";
+        errors += "\n__result__errocode=__USER__ERROR;\ngoto __return;\n";
         implementation += "goto "+fail_label+";\n";
     }
     else imp->error(--p, "Invalid symbol after @");
