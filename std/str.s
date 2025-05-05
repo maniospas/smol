@@ -1,8 +1,10 @@
-smo string(str raw)
+smo string(ptr contents, u64 length, char first) -> @new
+smo tostring(str raw)
     @head{#include <string.h>}
     @body{u64 length=strlen(raw);}
     @body{ptr contents=(void*)raw;}
-    -> contents, length
+    @body{char first=raw[0];}
+    -> string(contents, length, first)
 
 smo print(str message)
     @head{#include <stdio.h>}
@@ -28,13 +30,11 @@ smo add(string x, string y)
     @body{
         u64 len_x = x__length;
         u64 len_y = y__length;
-        ptr z = malloc(len_x + len_y + 1);
-        if(z){strcpy((char*)z, (const char*)x__contents);strcat((char*)z, (const char*)y__contents);}
-        ptr contents = (void*)z;
+        ptr contents = malloc(len_x + len_y + 1);
+        if(contents){strcpy((char*)contents, (const char*)x__contents);strcat((char*)contents, (const char*)y__contents);char first=((char*)contents)[0];}
     }
     @finally{free(contents);}
-    length = add(x.length, y.length)
-    -> contents, length
+    -> string(contents, add(x.length, y.length), first)
 
 smo add(string x, str y)
     @head{#include <string.h>}
@@ -42,13 +42,11 @@ smo add(string x, str y)
     @body{
         u64 len_x = x__length;
         u64 len_y = strlen(y);
-        ptr z = malloc(len_x + len_y + 1);
-        if(z){strcpy((char*)z, (const char*)x__contents);strcat((char*)z, (const char*)y);}
-        ptr contents = (void*)z;
+        ptr contents = malloc(len_x + len_y + 1);
+        if(contents){strcpy((char*)contents, (const char*)x__contents);strcat((char*)contents, (const char*)y);char first=((char*)contents)[0];}
     }
-    @finally{free(contents);}
-    length = add(x.length, len_y)
-    -> contents, length
+    @finally{if(contents)free(contents);}
+    -> string(contents, add(x.length, len_y), first)
 
 
 smo add(str x, string y)
@@ -57,29 +55,30 @@ smo add(str x, string y)
     @body{
         u64 len_x = strlen(x);
         u64 len_y = y__length;
-        ptr z = malloc(len_x + len_y + 1);
-        if(z){strcpy((char*)z, (const char*)x);strcat((char*)z, (const char*)y__contents);}
-        ptr contents = (void*)z;
+        ptr contents = malloc(len_x + len_y + 1);
+        if(contents){strcpy((char*)contents, (const char*)x);strcat((char*)contents, (const char*)y__contents);char first=((char*)contents)[0];}
     }
     if(contents|exists()|not())
         @fail{printf("Failed to allocate string\n");}
         --
     @finally{if(contents)free(contents);}
-    length = add(len_x, y.length)
-    -> contents, length
+    -> string(contents, add(len_x, y.length), first)
 
-smo read(string)
+smo read(tostring)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @body{
         ptr contents = malloc(1024);
         if(contents && fgets((char*)contents, 1024, stdin)) {
             u64 length = strlen((char*)contents);
-            if(length > 0 && ((char*)contents)[length - 1] == '\n') ((char*)contents)[length - 1] = '\0';
+            if(length > 0 && ((char*)contents)[length - 1] == '\n') {
+                ((char*)contents)[length - 1] = '\0';
+                char first = ((char*)contents)[0];
+            }
         }
     }
     @finally{if(contents)free(contents);}
     if(contents|exists()|not())
         @fail{printf("Failed to read string of up to 1023 characters\n");}
         --
-    -> contents, length
+    -> string(contents, length, first)

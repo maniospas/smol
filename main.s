@@ -2,5 +2,6 @@
 
 service main()
     print("What's your name?")
-    name = string|read()
+    name = tostring|read()
     "Hi "|add(name)|add("!")|print()
+

@@ -84,6 +84,7 @@ int main() {
         types.vars["ptr"] = make_shared<Def>("ptr");
         types.vars["str"] = make_shared<Def>("str");
         types.vars["bool"] = make_shared<Def>("bool");
+        types.vars["char"] = make_shared<Def>("char");
         types.vars["__label"] = make_shared<Def>("__label");
 
 
