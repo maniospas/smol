@@ -16,6 +16,12 @@ smo print(string message)
     @body{printf("%s\n", (char*)message__contents);}
     --
 
+smo eq(char x, char y)  @body{bool z=(x==y);} -> z
+smo neq(char x, char y) @body{bool z=(x!=y);} -> z
+smo eq(string x, string y) @body{bool z=(x__length==y__length)&&(x__first==y__first)&&(strcmp((char*)x__contents,(char*)y__contents)==0);} -> z
+smo neq(string x, string y) @body{bool z=(x__length!=y__length)||(x__first!=y__first)||strcmp((char*)x__contents,(char*)y__contents);} -> z
+
+
 smo len(string x) -> x.length
 
 smo len(str x)
@@ -72,7 +78,8 @@ smo read(tostring)
         if(contents && fgets((char*)contents, 1024, stdin)) {
             u64 length = strlen((char*)contents);
             if(length > 0 && ((char*)contents)[length - 1] == '\n') {
-                ((char*)contents)[length - 1] = '\0';
+                length -= 1;
+                ((char*)contents)[length] = '\0';
                 char first = ((char*)contents)[0];
             }
         }
