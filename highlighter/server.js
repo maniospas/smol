@@ -59,7 +59,7 @@ connection.onInitialize(() => {
       },
       semanticTokensProvider: {
         legend: {
-          tokenTypes: ['keyword', 'function', 'variable', 'string', 'operator'],
+          tokenTypes: ['keyword', 'type', 'variable', 'macro', 'function', 'number', 'string', 'operator', 'comment'],
           tokenModifiers: []
         },
         full: true
@@ -181,12 +181,13 @@ connection.languages.semanticTokens.on((params) => {
         pos++;
         continue;
       }
-      if (textLine.startsWith("->", pos) || textLine.startsWith("--", pos)) { builder.push(line, pos, 2, 4, 0);pos += 2; continue;}
-      if (textLine[pos] === '|' || textLine[pos] === '=') {builder.push(line, pos, 1, 4, 0);pos += 1;continue;}
-      const match = textLine.slice(pos).match(/^@?[A-Za-z_][A-Za-z0-9_]*/);
+      if (textLine.startsWith("->", pos) || textLine.startsWith("--", pos)) { builder.push(line, pos, 2, 3, 0);pos += 2; continue;}
+      if (textLine[pos] === '|') {builder.push(line, pos, 1, 3, 0);pos += 1;continue;}
+      const match = textLine.slice(pos).match(/^@?[A-Za-z_][A-Za-z0-9_.]*/);
       if(match) {
         const word = match[0];
-        if (keywords.includes(word)) builder.push(line, pos, word.length, 0, 0);
+        if (word[0]=="@") builder.push(line, pos, word.length, 3, 0);
+        else if (keywords.includes(word)) builder.push(line, pos, word.length, 0, 0);
         else if (builtins.includes(word)) builder.push(line, pos, word.length, 1, 0);
         pos += word.length;
       } 
