@@ -19,6 +19,8 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
             next = parse_expression(imp, p, imp->at(p++), types);
             if(!internalTypes.vars[next]->not_primitive()) {
                 if(is_service) {
+                    packs.push_back("err");
+                    internalTypes.vars["err"] = types.vars["errcode"];
                     implementation += "__value = "+next+";\n";
                     if(internalTypes.contains("__value") && internalTypes.vars["__value"]!=internalTypes.vars[next]) imp->error(--p, "Returning single value of multple types "+internalTypes.vars["__value"]->name+" and "+internalTypes.vars[next]->name);
                     internalTypes.vars["__value"] = internalTypes.vars[next];
@@ -27,6 +29,11 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
                 else packs.push_back(next);
             }
             else {
+                if(is_service) {
+                    packs.push_back("__err");
+                    internalTypes.vars["err"] = types.vars["errcode"];
+                    imp->error(--p, "Service multivalue returns not implemented yet");
+                }
                 if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared");
                 for(const string& pack : internalTypes.vars.find(next)->second->packs) packs.push_back(next+"__"+pack);
             }

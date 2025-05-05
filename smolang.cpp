@@ -212,6 +212,7 @@ int main() {
             "#include <cstring>\n"
             "#define __USER__ERROR 1\n"
             "#define __BUFFER__ERROR 2\n"
+            "#define __UNHANDLED__ERROR 2\n"
             "#define ptr void*\n"
             "#define errcode int\n"
             "#define cstr const char*\n"
