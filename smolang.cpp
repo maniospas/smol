@@ -82,7 +82,7 @@ int main() {
         types.vars["i64"] = make_shared<Def>("i64");
         types.vars["f64"] = make_shared<Def>("f64");
         types.vars["ptr"] = make_shared<Def>("ptr");
-        types.vars["str"] = make_shared<Def>("str");
+        types.vars["cstr"] = make_shared<Def>("cstr");
         types.vars["bool"] = make_shared<Def>("bool");
         types.vars["char"] = make_shared<Def>("char");
         types.vars["__label"] = make_shared<Def>("__label");
@@ -214,7 +214,7 @@ int main() {
         implementation =
         "#include <cstring>\n"
         "#define ptr void*\n"
-        "#define str const char*\n"
+        "#define cstr const char*\n"
         "#define u64 unsigned long\n"
         "#define i64 long\n"
         "#define f64 double\n\n"

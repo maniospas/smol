@@ -1,36 +1,34 @@
-smo string(ptr contents, u64 length, char first) -> @new
-smo tostring(str raw)
+smo str(ptr contents, u64 length, char first) -> @new
+smo from(str, cstr raw)
     @head{#include <string.h>}
     @body{u64 length=strlen(raw);}
     @body{ptr contents=(void*)raw;}
     @body{char first=raw[0];}
-    -> string(contents, length, first)
+    -> str(contents, length, first)
 
-smo print(str message)
+smo print(cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", message);}
     --
 
-smo print(string message)
+smo print(str message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", (char*)message__contents);}
     --
 
 smo eq(char x, char y)  @body{bool z=(x==y);} -> z
 smo neq(char x, char y) @body{bool z=(x!=y);} -> z
-smo eq(string x, string y) @body{bool z=(x__length==y__length)&&(x__first==y__first)&&(strcmp((char*)x__contents,(char*)y__contents)==0);} -> z
-smo neq(string x, string y) @body{bool z=(x__length!=y__length)||(x__first!=y__first)||strcmp((char*)x__contents,(char*)y__contents);} -> z
+smo eq(str x, str y) @body{bool z=(x__length==y__length)&&(x__first==y__first)&&(strcmp((char*)x__contents,(char*)y__contents)==0);} -> z
+smo neq(str x, str y) @body{bool z=(x__length!=y__length)||(x__first!=y__first)||strcmp((char*)x__contents,(char*)y__contents);} -> z
+smo len(str x) -> x.length
 
-
-smo len(string x) -> x.length
-
-smo len(str x)
+smo len(cstr x)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{u64 z = strlen(x);}
     -> z
 
-smo add(string x, string y)
+smo add(str x, str y)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
@@ -40,9 +38,9 @@ smo add(string x, string y)
         if(contents){strcpy((char*)contents, (const char*)x__contents);strcat((char*)contents, (const char*)y__contents);char first=((char*)contents)[0];}
     }
     @finally{free(contents);}
-    -> string(contents, add(x.length, y.length), first)
+    -> str(contents, add(x.length, y.length), first)
 
-smo add(string x, str y)
+smo add(str x, cstr y)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
@@ -52,10 +50,10 @@ smo add(string x, str y)
         if(contents){strcpy((char*)contents, (const char*)x__contents);strcat((char*)contents, (const char*)y);char first=((char*)contents)[0];}
     }
     @finally{if(contents)free(contents);}
-    -> string(contents, add(x.length, len_y), first)
+    -> str(contents, add(x.length, len_y), first)
 
 
-smo add(str x, string y)
+smo add(cstr x, str y)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
@@ -65,12 +63,12 @@ smo add(str x, string y)
         if(contents){strcpy((char*)contents, (const char*)x);strcat((char*)contents, (const char*)y__contents);char first=((char*)contents)[0];}
     }
     if(contents|exists()|not())
-        @fail{printf("Failed to allocate string\n");}
+        @fail{printf("Failed to allocate str\n");}
         --
     @finally{if(contents)free(contents);}
-    -> string(contents, add(len_x, y.length), first)
+    -> str(contents, add(len_x, y.length), first)
 
-smo read(tostring)
+smo read(str)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @body{
@@ -86,6 +84,6 @@ smo read(tostring)
     }
     @finally{if(contents)free(contents);}
     if(contents|exists()|not())
-        @fail{printf("Failed to read string of up to 1023 characters\n");}
+        @fail{printf("Failed to read str of up to 1023 characters\n");}
         --
-    -> string(contents, length, first)
+    -> str(contents, length, first)

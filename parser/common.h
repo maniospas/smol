@@ -48,7 +48,7 @@ string type_primitive(const string& name) {
     if (end != str && *end == '\0') return "i64";
     std::strtod(str, &end);
     if (end != str && *end == '\0') return "f64";
-    if (name.size() >= 2 && name.front() == '"' && name.back() == '"') return "str";
+    if (name.size() >= 2 && name.front() == '"' && name.back() == '"') return "cstr";
     return "CANNOT DETECT TYPE";
 }
 

@@ -15,8 +15,10 @@ void assign_variable(const Type& type, const string& from, const string& to, con
 
         // the following ensures that we safely update pointers when reallocating them
         if(type->name!="ptr") vardecl += type->name+" "+from+";\n";
-        else vardecl += type->name+" &"+from+" = "+to+";\n";
-
+        else {
+            if(to=="0") vardecl += "void* "+from+"__NULL = nullptr;\n" + type->name+" &"+from+" = "+from+"__NULL;\n";
+            else vardecl += type->name+" &"+from+" = "+to+";\n";
+        }
         // replace the above line to make the language impure
         //if(internalTypes.vars.find(to)==internalTypes.vars.end()) vardecl += type->name+" "+from+";\n";
         //else vardecl += type->name+" &"+from+" = "+to+";\n";

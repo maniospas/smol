@@ -81,6 +81,7 @@ auto tokenize(const string& path) {
     size_t line_num = 0;
     auto main_file = make_shared<Import>(path);
     vector<Token>& tokens = main_file->tokens;
+    size_t in_brackets = 0;
     while (getline(file, line)) {
         line_num++;
         size_t i = 0;
@@ -106,7 +107,79 @@ auto tokenize(const string& path) {
                 }
                 tokens.emplace_back(line.substr(start, i - start), line_num, start_col, main_file);
             }
+            else if (!in_brackets && line[i]=='+') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("add", line_num, col, main_file);
+                i++;
+                col++;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='-' && i && line[i-1]!='-' && i<line.size()-1 && line[i+1]!='-' && line[i+1]!='>') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("sub", line_num, col, main_file);
+                i++;
+                col++;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='*') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("mul", line_num, col, main_file);
+                i++;
+                col++;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='/') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("div", line_num, col, main_file);
+                i++;
+                col++;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='<') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("lt", line_num, col, main_file);
+                i++;
+                col++;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='>' && i && line[i-1]!='-') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("gt", line_num, col, main_file);
+                i++;
+                col++;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='>' && i<line.size()-1 && line[i+1]=='=') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("geq", line_num, col, main_file);
+                i+=2;
+                col+=2;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='<' && i<line.size()-1 && line[i+1]=='=') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("leq", line_num, col, main_file);
+                i+=2;
+                col+=2;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='=' && i<line.size()-1 && line[i+1]=='=') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("eq", line_num, col, main_file);
+                i+=2;
+                col+=2;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='!' && i<line.size()-1 && line[i+1]=='=') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("neq", line_num, col, main_file);
+                i+=2;
+                col+=2;
+                continue;
+            }
             else if (is_symbol(line[i])) {
+                if (line[i]=='{') in_brackets++;
+                else if (line[i]=='}' && in_brackets) in_brackets--;
                 tokens.emplace_back(string(1, line[i]), line_num, col, main_file);
                 i++;
                 col++;
