@@ -1,13 +1,17 @@
 @include std
 
 service square(f64 x) 
-    fail("Don't wanna!")
+    if(x<=(0.0))
+        fail("Don't wanna!")
+        --
     -> mul(x,x)
+service zero() -> 0.0
+
 
 service main()
-    y = square(2.0)
+    x = f64|read()
+    y = square(x)
     if(y.err|bool())
-        print("error")
-        y = 0.0
+        y = zero()
         --
     print(y)

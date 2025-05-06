@@ -121,7 +121,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             internalTypes.vars[var+"__err"] = types.vars["errcode"];
             internalTypes.vars[var] = type;
             bool toadd = false;
-            for(size_t i=0;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
+            for(size_t i=1;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
                 const string& ret = type->packs[i];
                 assign_variable(type->internalTypes.vars[ret], var+"__"+ret, "0", imp, p);
                 if(toadd) impl += ",";

@@ -17,9 +17,9 @@ string canonic_name() {
 string raw_signature() {
     //if(!args.size()) return name;
     string ret("");
-    if(is_service) for(const string& unp : packs) {
-        if(ret.size()) ret += ", ";
-        ret += ""+internalTypes.vars[unp]->name+" &"+unp;
+    if(is_service) for(size_t i=1;i<packs.size();++i) {
+        if(i>=2) ret += ", ";
+        ret += ""+internalTypes.vars[packs[i]]->name+" &"+packs[i];
     }
     for(const auto& arg : args) {
         if(ret.size()) ret += ", ";

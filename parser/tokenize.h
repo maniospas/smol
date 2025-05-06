@@ -135,20 +135,6 @@ auto tokenize(const string& path) {
                 col++;
                 continue;
             }
-            else if (!in_brackets && line[i]=='<') {
-                tokens.emplace_back("|", line_num, col, main_file);
-                tokens.emplace_back("lt", line_num, col, main_file);
-                i++;
-                col++;
-                continue;
-            }
-            else if (!in_brackets && line[i]=='>' && i && line[i-1]!='-') {
-                tokens.emplace_back("|", line_num, col, main_file);
-                tokens.emplace_back("gt", line_num, col, main_file);
-                i++;
-                col++;
-                continue;
-            }
             else if (!in_brackets && line[i]=='>' && i<line.size()-1 && line[i+1]=='=') {
                 tokens.emplace_back("|", line_num, col, main_file);
                 tokens.emplace_back("geq", line_num, col, main_file);
@@ -161,6 +147,20 @@ auto tokenize(const string& path) {
                 tokens.emplace_back("leq", line_num, col, main_file);
                 i+=2;
                 col+=2;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='<') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("lt", line_num, col, main_file);
+                i++;
+                col++;
+                continue;
+            }
+            else if (!in_brackets && line[i]=='>' && i && line[i-1]!='-') {
+                tokens.emplace_back("|", line_num, col, main_file);
+                tokens.emplace_back("gt", line_num, col, main_file);
+                i++;
+                col++;
                 continue;
             }
             else if (!in_brackets && line[i]=='=' && i<line.size()-1 && line[i+1]=='=') {

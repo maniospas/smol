@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Smoλ is a low-level language with fast zero-cost abstractions that are organized into failsafe services.">
+  <meta name="keywords" content="smolambda, low-level language, smoλ, programming language, runtype, safe language, systems programming, DSL">
+  <meta name="author" content="Emmanouil (Manios) Krasanakis">
+  <meta name="robots" content="index, follow">
+
+
   <title>smoλ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
   <style>
@@ -12,7 +18,7 @@
     body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
     .navbar {background-color: #333;padding: 2px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
     .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
-    .navbar a:hover {background-color: #555;}//{text-decoration: underline;}
+    .navbar a:hover {background-color: #555;}
     .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
     h1, h2, h3 {color: #222;}
     table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
@@ -46,10 +52,10 @@
 <p><em>A safe & fast low-level language.</em>
 </p>
 
-<p><i>Smoλ</i> creates zero-cost abstractions for managing data and functions.
+<p><i>Smoλ</i>  is a low-level language with fast zero-cost abstractions that are organized into failsafe services.
 Its core is tiny — really tiny! So tiny, in fact, that functions like printing and basic
-arithmetic operators are part of the standard library.
-There's a direct-to-C++ interface for extensible functionality.</p></p>
+arithmetic operations are part of the standard library instead of being part of the language.
+There's a direct-to-C++ interface for extensible functionality.</p>
 
 
 <h1 id="quickstart">Quickstart</h1>
@@ -91,7 +97,7 @@ You can also unpack the result as part of arguments to other runtypes. Arguments
 as long as primitive types match. Safety options for this appear later.</p>
 
 <p>Put all main business logic inside a <code class="language-smolambda">service main()</code> definition.
-Being a service means that errors occuring inside are "caught", perform safe allocation and deallocation,
+Being a service means that errors occurring inside are "caught", perform safe allocation and deallocation,
 and do not escape to any code calling it. More on services also later.
 For now, know that the main service is the entry point of programs and returns no value, as indicated by
 the <code class="language-smolambda">--</code> symbol at its end.</p>
@@ -117,8 +123,7 @@ despite the illusion of typing, everything consists of direct variable operation
 
 <p>Return a value or tuple of values with <code class="language-smolambda">-&gt;</code>,
 and use <code class="language-smolambda">@body</code> to write C++ code. The ABI is described
-later, but for now notice that a perfunctory scan is also made in that code to expose primitive
-types.
+later, but for now notice that a basic scan is also made to expose primitive types from inside the ABI.
 </p>
 <p>
 If you don't want to return anything, use <code class="language-smolambda">--</code>.
@@ -263,7 +268,7 @@ service main()
 <h3>Unions</h3>
 <p>Sometimes, you want to define code that is automatically adjusted to different runtypes.
 This can be achieved by declaring runtype unions, which are resolved to one of their
-options. The resolution persists to dependent calls, so yo can create different ones for independence.
+options. The resolution persists to dependent calls, create different ones for independence.
 Unions are resolved during compilation and, like many features of <i>smoλ</i>, are zero-cost
 abstractions. They can also unpack unions provided as arguments.</p>
 
@@ -300,7 +305,7 @@ service main()
 
 <p>So far we have been writting <code class="language-smolambda">service main()</code> as the entrant
 point of programs. Armed with the basics, we can now look at what that <i>service</i> keyword is all about. 
-Functionally, services as runtypes with nameless returned values. That is, their returns are unpacked and 
+Functionally, services are runtypes with nameless returned values. That is, their returns are unpacked and 
 can be parts of arguments normally, but do not accept field access because it would be either unsafe or create
 too many hidden computational costs. More on why later</p>
 <p>
@@ -323,22 +328,22 @@ service main()
 From the viewpoint of merging types and functions, services are a step backwards in that they are basically 
 functions with multiple returns. They further incur a cost of a few operations per call, as well as pushing the
 call to the stack - if GCC determines they should not be inlined. So it is not advised
-to call them millions of time per per second.
+to call them millions of time per second.
 </p>
 <p>
 That said, they have three distinct advantages:
 a) they run independently and in parallel, b) they can call each other regardless of definitions order, 
 and even allow recursion (by comparison, simpler runtypes can only "see" previous runtype and service declarations), 
-and c) they provide a compartmenized execution environment that does not let internal errors escape.
+and c) they provide a compartmentalized execution environment that does not let internal errors escape.
 </p>
 
 <h3>Error handling</h3>
 
 <p>
 The last point means that, after calling a service within another one,
-you need to think of how to handle prospective errors. The pattern discussed 
+you need to consider how to handle prospective errors. The pattern discussed 
 so far is to blindly unpacking results into further service and runtime calls.
-This elegantly fails if an error was previously returned by cascading that error
+This elegantly fails if an error was previously returned: the error is cascaded
 through the call stack. All those services fail safely by deallocating resources. 
 </p>
 
@@ -365,7 +370,7 @@ usage in further code.
 </p>
 
 <pre><code class="language-smolambda">@include std
-    
+
 service square(f64 x) 
     fail("Don't wanna!") // manually fail
     -> mul(x,x)
@@ -472,7 +477,7 @@ service main()
 
 <p>Conditional <code class="language-smolambda">if</code> statements are second-class citizens in <i>smoλ</i>
 and are manually implemented in the standard library.
-They do no accept an alternative branch.
+They do not accept an alternative branch.
 Either run multiple of those, or enclose them in the <code class="language-smolambda">scope</code>
 runtype. The latter creates an independent scope from which you can return. An example follows.
 </p>
@@ -494,7 +499,7 @@ service main()
 </code></pre>
 
 <p>Like all runtypes, you can return values from conditional statements. If the condition
-does not run, variables are zeroed out as default behavior.
+does not run, variables are zero-initialized.
 </p>
 
 <pre><code class="language-smolambda">@include std
