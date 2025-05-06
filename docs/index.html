@@ -79,20 +79,20 @@ Circular dependencies or re-imports are not allowed either. Here we use the
 
 <p>Next are some so-called <i>runtype</i> definitions, indicated by the <code class="language-smolambda">smo</code>
 keyword. These merge the concept of types and functions, where the keyword <code class="language-smolambda">-></code>
-returns a value or tuple. If variable names are part of the returned tuple, this can be accessed as fields
+returns a value or tuple. If variable names are part of the returned tuple, they can be accessed as fields
 from the result. <code class="language-smolambda">@new</code> is a shorthand for
-returning a tuple of all internal declarations.</p>
+returning a tuple of all arguments, which is useful for declaring structural data without any functionality.</p>
 
 <p>Once you write something like <code class="language-smolambda">p = Point(...)</code>,
 you can access all returned named variables using notation like
 <code class="language-smolambda">p.x</code> and <code class="language-smolambda">p.y</code>.
-You can also unpack the result as part of tuples; these are alwways flat
+You can also unpack the result as part of arguments to other runtypes. Arguments are always flat
 (there is no tuple of tuples) and can be reinterpreted in various ways
-as long as primitive types match.</p>
+as long as primitive types match. Safety options for this appear later.</p>
 
 <p>Put all main business logic inside a <code class="language-smolambda">service main()</code> definition.
 Being a service means that errors occuring inside are "caught", perform safe allocation and deallocation,
-and do not escape to the any code calling it. More on services later.
+and do not escape to any code calling it. More on services also later.
 For now, know that the main service is the entry point of programs and returns no value, as indicated by
 the <code class="language-smolambda">--</code> symbol at its end.</p>
 
@@ -111,13 +111,16 @@ which also gives a taste of the C++ ABI:</p>
 </code></pre>
 
 <p>This tells us that we are defining an integer addition runtype with the corresponding arguments.
-When called from other code, the definition is inlined in an optimization-friendly. For example,
-despite the illusion of typing, everything consists of direct variable operations. For example
-<code class="language-smolambda">f.start.x</code> is represented by <code class="language-smolambda">f__start__x</code>
-under the hood.</p>
+When called from other code, the definition is inlined in an optimization-friendly way. For example,
+despite the illusion of typing, everything consists of direct variable operations; under the hood, field access like
+<code class="language-smolambda">f.start.x</code> is replaced with variables like <code class="language-smolambda">f__start__x</code>.</p>
 
 <p>Return a value or tuple of values with <code class="language-smolambda">-&gt;</code>,
-and use <code class="language-smolambda">@body</code> to write C++ code.
+and use <code class="language-smolambda">@body</code> to write C++ code. The ABI is described
+later, but for now notice that a perfunctory scan is also made in that code to expose primitive
+types.
+</p>
+<p>
 If you don't want to return anything, use <code class="language-smolambda">--</code>.
 Return symbols form visual barriers that are easy to spot while remaining ... small.
 Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
@@ -147,7 +150,7 @@ service main()
 
 
 <h3>Currying</h3>
-<p>Runtypes accept currying notation that transfers a computed value to the arguments of the next call.
+<p>Runtype calls accept currying notation that transfers a precomputed value to the first argument.
 The curry operator is <code class="language-smolambda">|</code> and can be chained.
 If you have multiple calls in the currying chain, preffer placing those at separate lines. This is only
 a stylistic choice.
@@ -296,13 +299,14 @@ service main()
 <h1 id="service">Services</h1>
 
 <p>So far we have been writting <code class="language-smolambda">service main()</code> as the entrant
-point of pograms. Armed with the basics, we can now look at what that <i>service</i> keyword is all about. 
+point of programs. Armed with the basics, we can now look at what that <i>service</i> keyword is all about. 
 Functionally, services as runtypes with nameless returned values. That is, their returns are unpacked and 
-can be contained in tuples per normal, but do not accept field access because it would be unsafe. More on why later</p>
+can be parts of arguments normally, but do not accept field access because it would be either unsafe or create
+too many hidden computational costs. More on why later</p>
 <p>
-Returned tuples can be passed into runtypes per normal, so you will often not notice anything strange in simple code containing service calls.
-Below is an example of declaring and calling a service. Syntactially, services this is near-identical to working
-with runtypes so that it's easy to change your mind as you write code.
+Below is an example of declaring and calling a service. Syntactially, this is near-identical to working
+with runtypes so that it's easy to change your mind as you write code. 
+You will often not notice anything different in most code containing service calls.
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -333,8 +337,9 @@ and c) they provide a compartmenized execution environment that does not let int
 <p>
 The last point means that, after calling a service within another one,
 you need to think of how to handle prospective errors. The pattern discussed 
-so far, that is, blindly unpacking results into further service and runtime calls, ignores errors. 
-But it does so safely by deallocating service resources and creating further errors. 
+so far is to blindly unpacking results into further service and runtime calls.
+This elegantly fails if an error was previously returned by cascading that error
+through the call stack. All those services fail safely by deallocating resources. 
 </p>
 
 
@@ -355,11 +360,12 @@ Runtime error: `square y` contains an error
 <p>
 You can check for the error code of errors by accessing them from the service's result per
 <code class="language-smolambda">result.err</code>. By convention, error codes are skipped
-when unpacking services, essentially reserving field access for error handling, and unpacking
-for propagating returned values to further code.
+when unpacking services, essentially reserving field access for error handling but retaining
+usage in further code.
 </p>
 
 <pre><code class="language-smolambda">@include std
+    
 service square(f64 x) 
     fail("Don't wanna!") // manually fail
     -> mul(x,x)

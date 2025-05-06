@@ -23,5 +23,3 @@ smo print(errcode error)
         else printf("No error");
     }
     --
-
-smo bool(errcode error) @body{bool iserror=(bool)error;} -> iserror

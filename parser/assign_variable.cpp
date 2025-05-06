@@ -23,6 +23,6 @@ void assign_variable(const Type& type, const string& from, const string& to, con
         //if(internalTypes.vars.find(to)==internalTypes.vars.end()) vardecl += type->name+" "+from+";\n";
         //else vardecl += type->name+" &"+from+" = "+to+";\n";
     }
-    else if(it->second!=type) imp->error(p, "Cannot assign to "+it->second->name+" "+pretty_var(from)+" from "+type->name+" "+pretty_var(to));
+    else if(it->second!=type) imp->error(--p, "Cannot assign to "+it->second->name+" "+pretty_var(from)+" from "+type->name+" "+pretty_var(to));
     implementation += from+" = "+to+";\n";
 }
