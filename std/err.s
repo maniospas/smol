@@ -5,6 +5,13 @@ smo ok(errcode error)
     if(isbuffer) @fail{printf("Buffer error\n");} --
     --
 
+smo fail(cstr error)
+    @fail {printf("%s", error);printf("\n");}
+    --
+
+smo fail(str error)
+    @fail {printf("%s", (char*)error__contents);printf("\n");}
+    --
 
 smo print(errcode error)
     @head{#include <stdio.h>}
@@ -16,3 +23,5 @@ smo print(errcode error)
         else printf("No error");
     }
     --
+
+smo bool(errcode error) @body{bool iserror=(bool)error;} -> iserror

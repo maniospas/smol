@@ -3,10 +3,18 @@ vector<string> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memor
     if(curry.size()) {
         string var = curry;
         if(!internalTypes.contains(var)) imp->error(p, "Failed to parse expression");
-        if(internalTypes.vars.find(var)->second->name=="buffer") inherit_buffer = var;
+        const auto& type = internalTypes.vars.find(var)->second;
+        if(type->name=="buffer") inherit_buffer = var;
         else {
-            if(!internalTypes.vars.find(var)->second->not_primitive()) ret.push_back(var);
-            else for(const string& pack : internalTypes.vars.find(var)->second->packs) ret.push_back(var+"__"+pack);
+            if(!type->not_primitive()) ret.push_back(var);
+            else if(type->is_service) {
+                string fail_var = create_temp();
+                implementation += "if("+var+"__err) goto "+fail_var+";\n";
+                errors += fail_var+":\nprintf(\"Runtime error: `"+type->name+" "+pretty_var(var)+"` has an attached error\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __return;\n";
+                preample += "#include <stdio.h>\n";
+                for(size_t i=1;i<type->packs.size();++i) ret.push_back(var+"__"+type->packs[i]);
+            }
+            else for(const string& pack : type->packs) ret.push_back(var+"__"+pack);
         }
         string next = imp->at(p);
         if(next==")") return ret;
@@ -18,10 +26,18 @@ vector<string> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memor
         if(next==")") {--p;break;}
         string var = parse_expression(imp, p, next, types);
         if(!internalTypes.contains(var)) imp->error(expression_start, "Failed to parse expression");
-        if(internalTypes.vars.find(var)->second->name=="buffer") inherit_buffer = var;
+        const auto& type = internalTypes.vars.find(var)->second;
+        if(type->name=="buffer") inherit_buffer = var;
         else {
-            if(!internalTypes.vars.find(var)->second->not_primitive()) ret.push_back(var);
-            for(const string& pack : internalTypes.vars.find(var)->second->packs) ret.push_back(var+"__"+pack);
+            if(!type->not_primitive()) ret.push_back(var);
+            else if(type->is_service) {
+                string fail_var = create_temp();
+                implementation += "if("+var+"__err) goto "+fail_var+";\n";
+                errors += fail_var+":\nprintf(\"Runtime error: `"+type->name+" "+pretty_var(var)+"` has an attached error\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __return;\n";
+                preample += "#include <stdio.h>\n";
+                for(size_t i=1;i<type->packs.size();++i) ret.push_back(var+"__"+type->packs[i]);
+            }
+            else for(const string& pack : type->packs) ret.push_back(var+"__"+pack);
         }
         next = imp->at(p++);
         if(next==")") {--p;break;}

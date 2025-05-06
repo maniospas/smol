@@ -15,6 +15,7 @@ inline void ERROR(const string& message) {
 
 
 string pretty_var(const string& name) {
+    if(name.size()>=2 && name[0]=='_' && name[1]=='_') return "...";
     string result;
     size_t i = 0;
     while (i < name.size()) {

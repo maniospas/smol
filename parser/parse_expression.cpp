@@ -74,15 +74,15 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
                 //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
                 size_t type_args = type->not_primitive()?type->args.size():1;
                 if(inherit_buffer.size()) {
-                    if(unpacks.size()>type_args) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but passed > "+to_string(unpacks.size())+" arguments (buffers unpack at least one value)");
+                    if(unpacks.size()>type_args) throw runtime_error(type->signature()+": Requires "+to_string(type_args)+" but got > "+to_string(unpacks.size())+" arguments (buffers unpack at least one value)");
                 }
-                else if(unpacks.size()!=type_args) throw runtime_error(type->signature()+": Requires "+to_string(type->args.size())+" but passed "+to_string(unpacks.size())+" arguments");
+                else if(unpacks.size()!=type_args) throw runtime_error(type->signature()+": Requires "+to_string(type_args)+" but got "+to_string(unpacks.size())+" arguments");
                 for(size_t i=0;i<unpacks.size();++i) {
                     auto arg_type = type->_is_primitive?type:type->args[i].type;
                     if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Cannot unpack abstract " + arg_type->signature() + " "+type->args[i].name);
                     if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
                     if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
-                        throw std::runtime_error(type->signature()+": Definition has " + pretty_var(arg_type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but passed "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                        throw std::runtime_error(type->signature()+": Definition has " + pretty_var(arg_type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 }
                 successfullType = type;
                 multipleFound += "\n"+type->signature();

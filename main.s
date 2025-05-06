@@ -1,11 +1,12 @@
 @include std
 
 service square(f64 x) 
-    @fail{printf("Don't wanna!\n");}
-    -> x*(x)
+    fail("Don't wanna!")
+    -> mul(x,x)
 
 service main()
-    y = square(2.0)|i64()
+    y = square(2.0)
+    print(y)
     print("What's your name?")
     name = str|read()
     "Hi "
