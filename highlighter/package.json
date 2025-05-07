@@ -1,8 +1,8 @@
 {
   "name": "smolambda",
-  "displayName": "Smoλ Language Support",
-  "description": "Language support for the smoλ language.",
-  "publisher": "Emmanouil (Manios) Krasanakis",
+  "displayName": "Smoλ (smolambda)",
+  "description": "Support for development in the smoλ language.",
+  "publisher": "maniospas",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.70.0"
