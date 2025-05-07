@@ -39,7 +39,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             else if(imp->at(p)=="lento") {
                 p++;
                 end = parse_expression(i, p, imp->at(p++), types);
-                if(!internalTypes.contains(end)) imp->error(--p, "No such runtype: "+end+recommend_runtypes(types, next));
+                if(!internalTypes.contains(end)) imp->error(--p, "Missing symbol: "+end+recommend_variable(types, next));
                 if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
                 end += " - "+next+"__offset";
             }

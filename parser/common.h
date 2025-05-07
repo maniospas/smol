@@ -29,7 +29,6 @@ string pretty_var(const string& name) {
     return result;
 }
 
-
 int sellersMinimumEditDistance(const string& pattern, const string& text) {
     int m = pattern.size();
     int n = text.size();

@@ -11,7 +11,7 @@ service main()
     x = f64:read
     y = square(x)
     if(y.err:bool:not)
-        print(y.err)
+        print(y.err) 
         print(y)
         --
  

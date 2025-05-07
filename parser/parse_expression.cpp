@@ -209,5 +209,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         return next_var(imp, p, var, types);
     }
 
+    if(curry.size()) imp->error(--p, "Missing runtype: "+first_token+recommend_runtype(types, first_token));
+
     return next_var(imp, p, first_token, types);
 }

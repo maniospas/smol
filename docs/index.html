@@ -258,12 +258,12 @@ smo print(f64 message)
 smo read(i64)
     @head{#include &lt;stdio.h>}
     @body{i64 number = 0; bool success = scanf("%ld", &number);}
-    if(success:not()) @fail{printf("Invalid integer\n");} --
+    if(success:not) @fail{printf("Invalid integer\n");} --
     -> number
 smo read(f64)
     @head{#include &lt;stdio.h>}
     @body{f64 number = 0; bool success = scanf("%lf", &number);}
-    if(success:not()) @fail{printf("Invalid number\n");} --
+    if(success:not) @fail{printf("Invalid number\n");} --
     -> number
 
 service main()
@@ -384,7 +384,7 @@ service square(f64 x)
     -> mul(x,x)
 service main()
     y = square(2.0)
-    if(y.err:bool():not())
+    if(y.err:bool:not)
         print(y)
         --
 </code></pre>
