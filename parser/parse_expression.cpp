@@ -77,6 +77,10 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         int numberOfFound = 0;
         int numberOfErrors = 0;
         Type previousType = type;
+        for(size_t i=0;i<unpacks.size();++i) 
+            if(!internalTypes.vars.contains(unpacks[i])) 
+                imp->error(p-3, "Missing symbol: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
+
         for(const Type& type : previousType->get_options(imp, types)) { // options encompases all overloads, in case of unions it may not have the base overload
             try {
                 //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
@@ -208,8 +212,6 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         }
         return next_var(imp, p, var, types);
     }
-
-    if(curry.size()) imp->error(--p, "Missing runtype: "+first_token+recommend_runtype(types, first_token));
-
+    if(curry.size() || (p<imp->size() && imp->at(p)=="(")) imp->error(--p, "Missing runtype: "+first_token+recommend_runtype(types, first_token));
     return next_var(imp, p, first_token, types);
 }

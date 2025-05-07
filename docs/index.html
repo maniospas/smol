@@ -335,8 +335,7 @@ service main()
 <p>
 From the viewpoint of merging types and functions, services are a step backwards in that they are basically 
 functions with multiple returns. They further incur a cost of a few operations per call, as well as pushing the
-call to the stack - if GCC determines they should not be inlined. So it is not advised
-to call them millions of time per second.
+call to the stack. So it is not advised to call them millions of times per second.
 </p>
 <p>
 That said, they have three distinct advantages:

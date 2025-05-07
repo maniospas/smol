@@ -9,9 +9,9 @@ service square(f64 x)
 service main()
     print("Give me a number to square")
     x = f64:read
-    y = square(x)
+    y = squar(x) 
     if(y.err:bool:not)
         print(y.err) 
         print(y)
-        --
+        -- 
  
