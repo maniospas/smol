@@ -1,6 +1,6 @@
 @include std
 
-service square(f64 x) 
+service square(f64 x)
     if(x:le(0.0))
         fail("Don't wanna!")
         --
