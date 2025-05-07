@@ -4,7 +4,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
     string next = first_token;
     while(true) {
         if(p>=n) break;
-        if(imp->at(p)=="|") {
+        if(imp->at(p)==":") {
             ++p;
             next = parse_expression(i, p, imp->at(p++), types, next);
         }

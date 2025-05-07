@@ -1,5 +1,5 @@
 string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
-    if(first_token=="." || first_token=="|" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
+    if(first_token=="." || first_token==":" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
     if(is_primitive(first_token)) {
         string vartype = type_primitive(first_token);
         string defval = "0";
@@ -44,7 +44,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         auto type = types.vars.find(first_token)->second;
         string inherit_buffer("");
         vector<string> unpacks;
-        if(imp->at(p)==")" || imp->at(p)=="," || imp->at(p)=="|") {
+        if(imp->at(p)==")" || imp->at(p)=="," || imp->at(p)==":") {
             if(type->options.size()>1) imp->error(--p, "Overloaded or union runtype names are ambiguous");
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
                 string var = create_temp();
@@ -82,7 +82,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
                     if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Cannot unpack abstract " + arg_type->signature() + " "+type->args[i].name);
                     if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
                     if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
-                        throw std::runtime_error(type->signature()+": Definition has " + pretty_var(arg_type->name) + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                        throw std::runtime_error(type->signature()+": Definition has " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 }
                 successfullType = type;
                 multipleFound += "\n"+type->signature();

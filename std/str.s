@@ -62,7 +62,7 @@ smo add(cstr x, str y)
         ptr contents = malloc(len_x + len_y + 1);
         if(contents){strcpy((char*)contents, (const char*)x);strcat((char*)contents, (const char*)y__contents);char first=((char*)contents)[0];}
     }
-    if(contents|exists()|not())
+    if(contents:exists():not())
         @fail{printf("Failed to allocate str\n");}
         --
     @finally{if(contents)free(contents);}
@@ -83,7 +83,7 @@ smo read(str)
         }
     }
     @finally{if(contents)free(contents);}
-    if(contents|exists()|not())
+    if(contents:exists():not())
         @fail{printf("Failed to read str of up to 1023 characters\n");}
         --
     -> str(contents, length, first)

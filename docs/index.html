@@ -60,7 +60,9 @@ There's a direct-to-C++ interface for extensible functionality.</p>
 
 <h1 id="quickstart">Quickstart</h1>
 
-<p>Look at an example program:</p>
+<p>Download or build the language, and ensure that GCC is in your system.
+The LSP server is found at <i>highlighter/smolambda-0.0.1.vslx</i>. 
+Look at an example program:</p>
 
 <pre><code class="language-smolambda">@include std
 
@@ -77,6 +79,7 @@ service main()
     --
 </code></pre>
 
+
 <p>First, <code class="language-smolambda">@include</code> brings code from
 other files with the <i>.s</i> extension. Paths are separated by dots.
 For safety, includes cannot occur within definitions.
@@ -87,7 +90,7 @@ Circular dependencies or re-imports are not allowed either. Here we use the
 keyword. These merge the concept of types and functions, where the keyword <code class="language-smolambda">-></code>
 returns a value or tuple. If variable names are part of the returned tuple, they can be accessed as fields
 from the result. <code class="language-smolambda">@new</code> is a shorthand for
-returning a tuple of all arguments, which is useful for declaring structural data without any functionality.</p>
+returning a tuple of all arguments. This is useful for declaring structural data without any functionality.</p>
 
 <p>Once you write something like <code class="language-smolambda">p = Point(...)</code>,
 you can access all returned named variables using notation like
@@ -156,12 +159,10 @@ service main()
 
 <h3>Currying</h3>
 <p>Runtype calls accept currying notation that transfers a precomputed value to the first argument.
-The curry operator is <code class="language-smolambda">|</code> and can be chained.
-If you have multiple calls in the currying chain, preffer placing those at separate lines. This is only
-a stylistic choice.
+The curry operator is <code class="language-smolambda">:</code> and can be chained.
 </p>
 
-<p>Currying feature lets <i>smoλ</i> avoid methods as fields, as the notation <code class="language-smolambda">obj|rt(args)</code>
+<p>Currying feature lets <i>smoλ</i> avoid methods as fields, as the notation <code class="language-smolambda">obj:rt(args)</code>
 is conceptually similar. Note that mutability should be explicitly declared if you want <code class="language-smolambda">rt</code>
 to have side-effects.
 </p>
@@ -169,10 +170,7 @@ to have side-effects.
 <pre><code class="language-smolambda">@include std
 
 service main()
-    1
-    | add(2)
-    | mul(3)
-    | print()
+    1:add(2):mul(3):print()
     // equivalent to print(mul(add(1,2), 3))
 </code></pre>
 
@@ -234,7 +232,7 @@ service main()
 <p>
 You might want to choose a runtype's version based on another without actually passing data. For example,
 something different should be called based on the expected outcome. In those cases, you can skip
-declaring variable names in signatures, and you can ommit parenthesis-based argumets that would create dummy data.
+declaring variable names in signatures, and you can omit parenthesis-based argumets that would create dummy data.
 </p>
 <p>
 Below is a segment of the standard library that shows how the correct version of
@@ -250,12 +248,12 @@ smo print(f64 message)
 smo read(i64)
     @head{#include &lt;stdio.h>}
     @body{i64 number = 0; bool success = scanf("%ld", &number);}
-    if(success|not()) @fail{printf("Invalid integer\n");} --
+    if(success:not()) @fail{printf("Invalid integer\n");} --
     -> number
 smo read(f64)
     @head{#include &lt;stdio.h>}
     @body{f64 number = 0; bool success = scanf("%lf", &number);}
-    if(success|not()) @fail{printf("Invalid number\n");} --
+    if(success:not()) @fail{printf("Invalid number\n");} --
     -> number
 
 service main()
@@ -293,9 +291,9 @@ smo inc(Point &p)
     --
 
 service main()
-    value = f64|read()
+    value = f64:read()
     p = Point(value, value)
-    p|inc()
+    p:inc()
     print(p.x)
 
 </code></pre>
@@ -303,11 +301,11 @@ service main()
 
 <h1 id="service">Services</h1>
 
-<p>So far we have been writting <code class="language-smolambda">service main()</code> as the entrant
+<p>So far we have been writing <code class="language-smolambda">service main()</code> as the entrant
 point of programs. Armed with the basics, we can now look at what that <i>service</i> keyword is all about. 
 Functionally, services are runtypes with nameless returned values. That is, their returns are unpacked and 
 can be parts of arguments normally, but do not accept field access because it would be either unsafe or create
-too many hidden computational costs. More on why later</p>
+hidden computational costs. More on why later</p>
 <p>
 Below is an example of declaring and calling a service. Syntactially, this is near-identical to working
 with runtypes so that it's easy to change your mind as you write code. 
@@ -376,11 +374,9 @@ service square(f64 x)
     -> mul(x,x)
 service main()
     y = square(2.0)
-    if(y.err|bool())
-        print("Something went wrong")
-        y = 0
+    if(y.err:bool():not())
+        print(y)
         --
-    print(y)
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 Don't wanna!
@@ -462,10 +458,10 @@ smo Point(i64 x, i64 y) -> @new
 
 service main()
     buf1 = buffer(1,2)
-    buf2 = buffer()|reserve(2)|push(3,4)
+    buf2 = buffer():reserve(2):push(3,4)
     buf = buf1
-          | copy()
-          | push(buf2.copy())
+          : copy()
+          : push(buf2.copy())
     // buf1 and buf2 are empty now
     p1 = Point(buf)
     p2 = Point(buf)
@@ -487,8 +483,8 @@ runtype. The latter creates an independent scope from which you can return. An e
 
 smo print_sign(i64 i)
     sgn = do
-      if(i|gt(0)) -> 1
-      if(i|lt(0)) -> -1
+      if(i:gt(0)) -> 1
+      if(i:lt(0)) -> -1
       -> 0
     print(sgn)
     --
@@ -532,7 +528,7 @@ Prism.languages.smolambda = {
       greedy: true
     },
     {
-      pattern: /(?:-->|->|--|\||\=)/,
+      pattern: /(?:-->|->|--|\:|\=)/,
       greedy: true
     }
   ],

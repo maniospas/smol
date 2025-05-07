@@ -55,7 +55,7 @@ connection.onInitialize(() => {
     capabilities: {
       textDocumentSync: documents.syncKind,
       completionProvider: {
-        triggerCharacters: [".", "|"]
+        triggerCharacters: [".", ":"]
       },
       semanticTokensProvider: {
         legend: {
@@ -201,7 +201,7 @@ connection.languages.semanticTokens.on((params) => {
         continue;
       }
   
-      if (textLine[pos] === '|') {
+      if (textLine[pos] === ':') {
         builder.push(line, pos, 1, 3, 0);
         pos += 1;
         continue;

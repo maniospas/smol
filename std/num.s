@@ -68,7 +68,7 @@ smo div(f64 x, f64 y)
 smo read(i64)
     @head{#include <stdio.h>}
     @body{i64 number = 0; bool success = scanf("%ld", &number);}
-    if(success|eq(false))
+    if(success:eq(false))
         @fail{printf("Invalid integer\n");}
         --
     -> number
@@ -76,7 +76,7 @@ smo read(i64)
 smo read(f64)
     @head{#include <stdio.h>}
     @body{f64 number = 0; bool success = scanf("%lf", &number);}
-    if(success|eq(false))
+    if(success:eq(false))
         @fail{printf("Invalid number\n");}
         --
     -> number
