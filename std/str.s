@@ -1,3 +1,5 @@
+// this file is realased under CC0 license
+
 smo str(ptr contents, u64 length, char first) -> @new
 smo from(str, cstr raw)
     @head{#include <string.h>}

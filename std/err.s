@@ -1,3 +1,5 @@
+// this file is realased under CC0 license
+
 smo ok(errcode error)
     @body{bool isuser = (error==__USER__ERROR);}
     @body{bool isbuffer = (error==__BUFFER__ERROR);}

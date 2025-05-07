@@ -1,3 +1,5 @@
+// this file is realased under CC0 license
+
 smo print(f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f\n", message);}
