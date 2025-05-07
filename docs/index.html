@@ -319,7 +319,7 @@ hidden computational costs. More on why later</p>
 <p>
 Below is an example of declaring and calling a service. Syntactially, this is near-identical to working
 with runtypes so that it's easy to change your mind as you write code. 
-You will often not notice anything different in most code containing service calls.
+You will often not notice anything different.
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -334,12 +334,13 @@ service main()
 
 <p>
 From the viewpoint of merging types and functions, services are a step backwards in that they are basically 
-functions with multiple returns. They further incur a cost of a few operations per call, as well as pushing the
+functions with multiple returns. They further incur a cost of a few operations per call and in cascading
+unhandled arrors, as well as pushing the
 call to the stack. So it is not advised to call them millions of times per second.
 </p>
 <p>
 That said, they have three distinct advantages:
-a) they run independently and in parallel, b) they can call each other regardless of definitions order, 
+a) they run independently and in parallel, b) they can call each other regardless of definition order, 
 and even allow recursion (by comparison, simpler runtypes can only "see" previous runtype and service declarations), 
 and c) they provide a compartmentalized execution environment that does not let internal errors escape.
 </p>
@@ -403,9 +404,10 @@ definition is part of the language and it is how one would handle functions with
 
 <p>Buffers are unpacked into other runtypes by consuming elements from their start.
 However, unpacking feasibility is checked at runtime. Memory deallocation is safe, occurs
-always -even if runtime errors occur to terminate a service-
-and is injected automatically by <i>smoλ</i>. That said, data are stored in buffers without
-even primitive types and unpacking relies solely on the programmer.</p>
+always -even if runtime errors terminate the service-
+and is injected automatically by <i>smoλ</i>. Data are stored in buffers without
+even primitive types and correct unpacking either relies solely on the programmer or on
+safe runtypes that will be discussed later.</p>
 
 <p>Buffer elements are unpacked from the front until no
 more entries are required for desired runtype calls.
