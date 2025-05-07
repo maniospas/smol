@@ -94,5 +94,5 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
         errors += "\n__result__errocode=__USER__ERROR;\ngoto __return;\n";
         implementation += "goto "+fail_label+";\n";
     }
-    else imp->error(--p, "Invalid symbol after @");
+    else imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally are allowed here for injecting C++ code.");
 }

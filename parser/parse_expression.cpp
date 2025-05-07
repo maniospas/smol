@@ -1,4 +1,5 @@
 string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
+    size_t first_token_pos = p-1;
     if(first_token=="." || first_token==":" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
     if(is_primitive(first_token)) {
         string vartype = type_primitive(first_token);
@@ -107,9 +108,9 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             }
         }
         type = successfullType;
-        if(!type && overloading_errors.size()) imp->error(p-1, "Implementation not found among "+to_string(numberOfErrors)+" candidates"+overloading_errors);
-        if(!type) imp->error(p-1, "Implementation not found");
-        if(numberOfFound>1) imp->error(p-1, "Ambiguous use of "+to_string(numberOfFound)+" structurally equivalent runtypes"+multipleFound);
+        if(!type && numberOfErrors) imp->error(first_token_pos, "Runtype not found among "+to_string(numberOfErrors)+" candidates"+overloading_errors);
+        if(!type) imp->error(first_token_pos, "Runtype not found: "+first_token+recommend_runtype(types, first_token));
+        if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of "+to_string(numberOfFound)+" structurally equivalent runtypes"+multipleFound);
         if(inherit_buffer.size()) { // unpack buffer
             string arg = inherit_buffer;
             int remaining = (int)(type->args.size()-unpacks.size());
