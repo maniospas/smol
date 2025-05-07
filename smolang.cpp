@@ -40,6 +40,7 @@ public:
 class Def {
     static int temp;
     static string create_temp() {return "__v"+to_string(++temp);}
+    #include "parser/recommendations.cpp"
     #include "parser/assign_variable.cpp"
     #include "parser/parse_directive.cpp"
     #include "parser/parse_expression.cpp"
@@ -132,10 +133,13 @@ int main(int argc, char* argv[]) {
             for(size_t p=0;p<imp->size();++p) {
                 string next = imp->at(p);
                 if(next=="(" || next=="{" || next=="[") brackets.push(make_pair(next, p));
-                if(next==")") {if(!brackets.size() || brackets.top().first!="(") imp->error(brackets.top().second, "Never closed");brackets.pop();continue;}
-                if(next=="}") {if(!brackets.size() || brackets.top().first!="{") imp->error(brackets.top().second, "Never closed");brackets.pop();continue;}
-                if(next=="]") {if(!brackets.size() || brackets.top().first!="[") imp->error(brackets.top().second, "Never closed");brackets.pop();continue;}
+                if(next==")") {if(!brackets.size() || brackets.top().first!="(") imp->error(brackets.top().second, "Never closed parenthesis");brackets.pop();continue;}
+                if(next=="}") {if(!brackets.size() || brackets.top().first!="{") imp->error(brackets.top().second, "Never closed bracket");brackets.pop();continue;}
+                if(next=="]") {if(!brackets.size() || brackets.top().first!="[") imp->error(brackets.top().second, "Never closed square bracket");brackets.pop();continue;}
             }
+            if(brackets.size() && brackets.top().first=="(") imp->error(brackets.top().second, "Never closed parenthesis");
+            if(brackets.size() && brackets.top().first=="{") imp->error(brackets.top().second, "Never closed bracket");
+            if(brackets.size() && brackets.top().first=="[") imp->error(brackets.top().second, "Never closed square bracket");
             if(brackets.size()) imp->error(brackets.top().second, "Never closed");
 
             unordered_set<string> imported;

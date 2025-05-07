@@ -21,7 +21,7 @@ smo print(errcode error)
         if(error==__USER__ERROR)printf("User error\n"); 
         else if(error==__BUFFER__ERROR)printf("Buffer error\n"); 
         else if(error==__UNHANDLED__ERROR)printf("Unhandled error\n"); 
-        else if(error)printf("Unknown error");
-        else printf("No error");
+        else if(error)printf("Unknown error\n");
+        else printf("No error\n");
     }
     --

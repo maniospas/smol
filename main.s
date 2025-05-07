@@ -7,8 +7,11 @@ service square(f64 x)
     -> mul(x,x)
 
 service main()
-    x = f64:read()
+    print("Give me a number to square")
+    x = f64:read
     y = square(x)
-    if(y.err:bool():not())
+    if(y.err:bool:not)
+        print(y.err)
         print(y)
         --
+ 

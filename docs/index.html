@@ -60,7 +60,7 @@ There's a direct-to-C++ interface for extensible functionality.</p>
 
 <h1 id="quickstart">Quickstart</h1>
 
-<p>Download or build the language, and ensure that GCC is available in your system.
+<p>Download or build the language, and ensure that both it and GCC are available in your system.
 An LSP server is provided as a VSCode extension named <i>smoλ (smolambda)</i>.
 Search for the segment in the parenthesis or get it from 
 <a href="https://marketplace.visualstudio.com/items?itemName=maniospas.smolambda">here</a>. 
@@ -161,29 +161,32 @@ service main()
 
 <h3>Currying</h3>
 <p>Runtype calls accept currying notation that transfers a precomputed value to the first argument.
-The curry operator is <code class="language-smolambda">:</code> and can be chained.
-</p>
-
-<p>Currying feature lets <i>smoλ</i> avoid methods as fields, as the notation <code class="language-smolambda">obj:rt(args)</code>
-is conceptually similar. Note that mutability should be explicitly declared if you want <code class="language-smolambda">rt</code>
-to have side-effects.
+In general, runtypes are all first-class citizens of the language in that they cannot be set as variables.
+The curry operator is <code class="language-smolambda">:</code> and can be chained. Furthermore, you can ommit
+parentheses if there is only one argument and you curry it. Below is an example, where this notation is used to
+have as little nesting as possible.
 </p>
 
 <pre><code class="language-smolambda">@include std
 
 service main()
-    1:add(2):mul(3):print()
+    1:add(2):mul(3):print
     // equivalent to print(mul(add(1,2), 3))
 </code></pre>
 
 
+<p>Currying lets <i>smoλ</i> avoid methods as fields, as the notation <code class="language-smolambda">obj:rt(args)</code>
+is conceptually similar. Note that mutability should be explicitly declared if you want <code class="language-smolambda">rt</code>
+to have side-effects.
+</p>
+
 <h3>Fields</h3>
 
 <p>The assignment operator copies the outcome of function calls to variables.
-However, only returned symbols can be accessed as fields.
+However, only returned symbols can be accessed as fields and only if there are 
+multiple of them packed into a comma-separated tuple.
 For example, below the input variable <code class="language-smolambda">x</code>
-cannot be accessed after computations conclude. If you return the outcome of some
-computations without packing it into a comma-separated tuple, this is not exposed either.
+cannot be accessed after computations conclude.
 </p>
 
 <p>We already saw that it may be convenient to unpack all runtype inputs with
@@ -192,15 +195,20 @@ without internal implementation.
 </p>
 
 <pre><code class="language-smolambda">@include std
-
-smo Test(i64 x)
-    incx = add(x,1)
-    -> incx
+smo multi_out(i64 x)
+    xinc = add(x,1)
+    -> xinc, x
+smo single_out(i64 x)
+    x = add(x,1)
+    -> x
 
 service main()
-    p = Test(1)
-    print(p.incx)
-    print(p.x) // CREATES AN ERROR
+    p1 = multi_out(1)
+    print(p1.x)        // 1
+    print(p2.incx)     // 2
+    p2 = single_out(1)
+    print(p2)          // 2
+    print(p2.x)        // CREATES AN ERROR
 </code></pre>
 
 
@@ -414,9 +422,9 @@ smo Field(Point start, Point end) -> @new
 
 service main()
     buf = buffer(1,2,3,4,5)
-    f = Field(buf)
+    f = Field(buf)   // pops front
     print(f.start.x) // 1
-    print(i64(buf)) // 5
+    print(i64(buf))  // 5
 </code></pre>
 
 <h3>Slicing</h3>
@@ -434,12 +442,12 @@ end checks for bounds.</i>
 
 service main()
     buf = buffer(0,1,2,3,4,5)
-    slice = buf[u64(1):u64(3)]
-    print(i64(slice))        // 1 (pops front from slice)
-    print(i64(buf[u64(0)]))  // 0 (buf[0] is also a slice)
-    print(i64(buf))          // 0
-    print(i64(slice))        // 2 (slice remains unaffected)
-    print(i64(slice))        // CREATES RUNTIME ERROR
+    slice = buf[1:u64 to 3:u64]
+    print(slice:i64)        // 1 (pops front from slice)
+    print(buf[0:u64]:i64)   // 0 (buf[0] is also a slice)
+    print(buf:i64)          // 0
+    print(slice:i64)        // 2 (slice remains unaffected)
+    print(slice:i64)        // CREATES RUNTIME ERROR
 </code></pre>
 
 <h3>Concatenation</h3>

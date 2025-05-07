@@ -1,6 +1,10 @@
 #ifndef COMMON_H
 #define COMMON_H
 #include <string>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <limits>
 
 using namespace std;
 
@@ -15,7 +19,7 @@ inline void ERROR(const string& message) {
 
 
 string pretty_var(const string& name) {
-    if(name.size()>=2 && name[0]=='_' && name[1]=='_') return "...";
+    if(name.size()>=2 && name[0]=='_' && name[1]=='_') return "[noname]";
     string result;
     size_t i = 0;
     while (i < name.size()) {
@@ -23,6 +27,22 @@ string pretty_var(const string& name) {
         else result += name[i++];
     }
     return result;
+}
+
+
+int sellersMinimumEditDistance(const string& pattern, const string& text) {
+    int m = pattern.size();
+    int n = text.size();
+    vector<vector<int>> E(m + 1, vector<int>(n + 1));
+    for (int j = 0; j <= n; ++j) E[0][j] = 0;
+    for (int i = 1; i <= m; ++i) E[i][0] = i;
+    for (int i = 1; i <= m; ++i) for (int j = 1; j <= n; ++j) {
+        int cost = (pattern[i - 1] == text[j - 1]) ? 0 : 1;
+        E[i][j] = min({E[i - 1][j] + 1, E[i][j - 1] + 1, E[i - 1][j - 1] + cost});
+    }
+    int minDist = numeric_limits<int>::max();
+    for (int j = 0; j <= n; ++j) minDist = std::min(minDist, E[m][j]);
+    return minDist;
 }
 
 bool is_primitive(const string& name) {

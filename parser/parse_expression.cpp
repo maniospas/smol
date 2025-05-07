@@ -16,7 +16,10 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         return next_var(imp, p, var, types);
     }
 
-    if(internalTypes.contains(first_token)) return next_var(imp, p, first_token, types);
+    if(internalTypes.contains(first_token)) {
+        if(curry.size()) imp->error(p, "Expecting runtype (not variable): "+first_token);
+        return next_var(imp, p, first_token, types); //ASSIGNMENT TO ALREADY EXISTING VARIABLE
+    }
     if(first_token=="buffer") {
         string var = create_temp();
         preample += "#include<cstdlib>\n";
@@ -44,7 +47,11 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         auto type = types.vars.find(first_token)->second;
         string inherit_buffer("");
         vector<string> unpacks;
-        if(imp->at(p)==")" || imp->at(p)=="," || imp->at(p)==":") {
+        if(imp->at(p)!="(" && curry.size()) {
+            if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second==types.vars["buffer"]) inherit_buffer = curry;
+            else unpacks.push_back(curry);
+        }
+        else if(imp->at(p)==")" || imp->at(p)=="]" || imp->at(p)=="," || imp->at(p)==":") {
             if(type->options.size()>1) imp->error(--p, "Overloaded or union runtype names are ambiguous");
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
                 string var = create_temp();
@@ -68,6 +75,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         Type successfullType = nullptr;
         string multipleFound("");
         int numberOfFound = 0;
+        int numberOfErrors = 0;
         Type previousType = type;
         for(const Type& type : previousType->get_options(imp, types)) { // options encompases all overloads, in case of unions it may not have the base overload
             try {
@@ -82,20 +90,22 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
                     if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Cannot unpack abstract " + arg_type->signature() + " "+type->args[i].name);
                     if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
                     if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
-                        throw std::runtime_error(type->signature()+": Definition has " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                        throw std::runtime_error(type->signature()+": Expecting " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 }
                 successfullType = type;
-                multipleFound += "\n"+type->signature();
+                multipleFound += "\n- "+type->signature();
                 numberOfFound++;
             }
             catch (const std::runtime_error& e) {
-                overloading_errors += "\n";
+                overloading_errors += "\n- ";
                 overloading_errors += e.what();
+                numberOfErrors++;
             }
         }
         type = successfullType;
-        if(!type) imp->error(p-1, "Implementation not found"+overloading_errors);
-        if(numberOfFound>1) imp->error(p-1, "Ambiguous runtype"+multipleFound);
+        if(!type && overloading_errors.size()) imp->error(p-1, "Implementation not found among "+to_string(numberOfErrors)+" candidates"+overloading_errors);
+        if(!type) imp->error(p-1, "Implementation not found");
+        if(numberOfFound>1) imp->error(p-1, "Ambiguous use of "+to_string(numberOfFound)+" structurally equivalent runtypes"+multipleFound);
         if(inherit_buffer.size()) { // unpack buffer
             string arg = inherit_buffer;
             int remaining = (int)(type->args.size()-unpacks.size());

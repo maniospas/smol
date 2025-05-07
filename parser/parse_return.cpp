@@ -34,7 +34,7 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
                     internalTypes.vars["err"] = types.vars["errcode"];
                     imp->error(--p, "Service multivalue returns not implemented yet");
                 }
-                if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared");
+                if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared: "+pretty_var(next)+recommend_variable(types, next));
                 for(const string& pack : internalTypes.vars.find(next)->second->packs) packs.push_back(next+"__"+pack);
             }
             next = imp->at(p++);

@@ -172,20 +172,20 @@ connection.languages.semanticTokens.on((params) => {
   const builder = new SemanticTokensBuilder();
   const text = document.getText();
   const lines = text.split(/\r?\n/);
-  for (let line = 0; line < lines.length; line++) {
+  for(let line = 0; line < lines.length; line++) {
     const textLine = lines[line];
     let pos = 0;
-    while (pos < textLine.length) {
-      if (/\s/.test(textLine[pos])) { pos++; continue; }
-      if (textLine.startsWith("//", pos)) {
+    while(pos < textLine.length) {
+      if(/\s/.test(textLine[pos])) { pos++; continue; }
+      if(textLine.startsWith("//", pos)) {
         const length = textLine.length - pos;
         builder.push(line, pos, length, 8, 0)
         break;
       }
-      if (textLine[pos] === '"') {
+      if(textLine[pos] === '"') {
         let end = pos + 1;
-        while (end < textLine.length && textLine[end] !== '"') {
-          if (textLine[end] === '\\' && end + 1 < textLine.length) end += 2; 
+        while(end < textLine.length && textLine[end] !== '"') {
+          if(textLine[end] === '\\' && end + 1 < textLine.length) end += 2; 
           else end++;
         }
         end = Math.min(end + 1, textLine.length); // include closing quote
@@ -195,28 +195,17 @@ connection.languages.semanticTokens.on((params) => {
         continue;
       }
   
-      if (textLine.startsWith("->", pos) || textLine.startsWith("--", pos)) {
-        builder.push(line, pos, 2, 3, 0);
-        pos += 2;
-        continue;
-      }
-  
-      if (textLine[pos] === ':') {
-        builder.push(line, pos, 1, 3, 0);
-        pos += 1;
-        continue;
-      }
-  
+      if(textLine.startsWith("->", pos) || textLine.startsWith("--", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
+      if(textLine[pos] === ':') {builder.push(line, pos, 1, 3, 0);pos += 1;continue;}
       const match = textLine.slice(pos).match(/^@?[A-Za-z_][A-Za-z0-9_.]*/);
-      if (match) {
+      if(match) {
         const word = match[0];
         if (word[0] === "@") builder.push(line, pos, word.length, 3, 0);
         else if (keywords.includes(word)) builder.push(line, pos, word.length, 0, 0);
         else if (builtins.includes(word)) builder.push(line, pos, word.length, 1, 0);
         pos += word.length;
-      } else {
-        pos++;
-      }
+      } 
+      else pos++;
     }
   }
   
@@ -224,6 +213,78 @@ connection.languages.semanticTokens.on((params) => {
   return builder.build();
 });
 
+const compileState = new Map();
+const os = require("os");
+const { spawn } = require("child_process");
+const { randomUUID } = require("crypto");
 
+function runCompilerAndSendDiagnostics(document) {
+  const uri = document.uri;
+  const text = document.getText();
+  if(!compileState.has(uri)) compileState.set(uri, { running: false, rerunRequested: false, debounceTimer: null });
+  const state = compileState.get(uri);
+  if(state.debounceTimer) clearTimeout(state.debounceTimer);
+  state.debounceTimer = setTimeout(() => {
+    if(state.running) {state.rerunRequested = true;return;}
+    state.running = true;
+    state.debounceTimer = null;
+    const tempFilePath = path.join(os.tmpdir(), `smol_${randomUUID()}.s`);
+    fs.writeFileSync(tempFilePath, text, "utf8");
+    const proc = spawn("./smol", [tempFilePath, "--task", "verify"]);
+    let stderr = "";
+    proc.stderr.on("data", chunk => {stderr += chunk.toString();});
+    proc.on("close", () => {
+      const lines = stderr.split(/\r?\n/);
+      const diagnostics = [];
+      let messageLines = [];
+      for(let i = 0; i < lines.length - 2; i++) {
+        const line = lines[i].trim();
+        if(line.startsWith("at")) {
+          const locMatch = line.match(/^at\s+(.*)\s+line\s+(\d+)\s+col\s+(\d+)/);
+          if (!locMatch) continue;
+          const [, , lineStr, colStr] = locMatch;
+          const lineNum = parseInt(lineStr, 10) - 1;
+          const colNum = parseInt(colStr, 10) - 1;
+          const caretLine = lines[i + 2] || "";
+          const caretMatch = caretLine.match(/\^+/);
+          const tokenLength = caretMatch ? caretMatch[0].length : 1;
+          const message = messageLines.map(stripAnsi).join("\n") || "Unknown error";
+          diagnostics.push({
+            severity: 1,
+            range: {
+              start: { line: lineNum, character: colNum },
+              end: { line: lineNum, character: colNum + tokenLength }
+            },
+            message,
+            source: "smol"
+          });
+          i += 2;
+          messageLines = [];
+        } 
+        else messageLines.push(lines[i]);
+      }
+      try {fs.unlinkSync(tempFilePath);} 
+      catch(e) {console.error("Failed to remove temp file:", tempFilePath);}
+      connection.sendDiagnostics({ uri, diagnostics });
+      if(state.rerunRequested) {
+        state.rerunRequested = false;
+        state.running = false;
+        runCompilerAndSendDiagnostics(document);
+      }
+      else state.running = false;
+    });
+  }, 300);
+  function stripAnsi(line) {
+    return line
+      .replace(/\x1b\[31m/g, "")
+      .replace(/\x1b\[33m/g, "")
+      .replace(/\x1b\[0m/g, "");
+  }
+}
+
+
+
+documents.onDidChangeContent(async (e) => {await runCompilerAndSendDiagnostics(e.document);});
+documents.onDidSave(async (e) => {await runCompilerAndSendDiagnostics(e.document);});
 documents.listen(connection);
 connection.listen();
