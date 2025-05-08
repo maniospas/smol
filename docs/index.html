@@ -399,7 +399,8 @@ Something went wrong
 
 <p>Handle dynamic memory with the special <code class="language-smolambda">buffer</code> runtype.
 Think of this as a list where new data are pushed to the back and popped from the front. The
-definition is part of the language and it is how one would handle functions with variadic inputs too.
+definition is part of the language and it is how one would handle functions with variadic inputs too. 
+    (<i>Variadic</i> is a just a fancy way of calling any number of inputs.)
 </p>
 
 <p>Buffers are unpacked into other runtypes by consuming elements from their start.
@@ -430,14 +431,20 @@ service main()
 
 <h3>Slicing</h3>
 
+<p>
 Buffers can be sliced to obtain a sub-view of elements. This happens irrespectively
-of other operations applied on the original. Slices use square brackets and either contain a
-<code class="language-smolambda">u64</code> number indicating a starting element to be followed
-to the end, or contain starting and non-inclusive end elements separated by a double colon.
-Below is an example that demonstrates element access.
-<i>All operations are near-zero-cost abstractions, with the exception that a slice with specified
-end checks for bounds.</i>
+of other operations applied on the original. Slices can be obtained from square brackets that either contain
+their starting element as 
+<code class="language-smolambda">u64</code> number,
+or contain starting and non-inclusive end elements separated by <code class="language-smolambda">to</code>.
+</p>
 
+<p>
+You can change the separing operator to <code class="language-smolambda">upto</code> to make the last element inclusive,
+or <code class="language-smolambda">lento</code> to specify the number of elements in the sluce.
+Below is an example of slicing. <i>All operations are near-zero-cost abstractions, 
+with the exception that specifying an end also checks for bounds compared to the enclosing slice.</i>
+</p>
 
 <pre><code class="language-smolambda">@include std
 
@@ -512,8 +519,8 @@ does not run, variables are zero-initialized.
 <pre><code class="language-smolambda">@include std
 
 service sign(i64 i)
-    if(gt(i,0)) --> 1
-    if(lt(i,0)) --> -1
+    if(i:gt(0)) --> 1
+    if(i:lt(0)) --> -1
     -> 0
 
 service main()
@@ -521,6 +528,17 @@ service main()
     y = sign(-42)
     print(x)
     print(y)
+</code></pre>
+
+
+
+<pre><code class="language-smolambda">@include std
+    
+service main()
+    i = 1
+    while(i:le(10))
+        print(i)
+        --
 </code></pre>
 
 
@@ -535,7 +553,7 @@ Prism.languages.smolambda = {
   },
   'keyword': [
     {
-      pattern: /\b(?:smo|service|if|else|include|do|while|union)\b/,
+      pattern: /\b(?:smo|service|if|else|include|do|while|union|to|upto|lento|len)\b/,
       greedy: true
     },
     {

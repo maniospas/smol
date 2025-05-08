@@ -17,21 +17,19 @@ smo print(bool message)
     @body{message?printf("true\n"):printf("false\n");}
     --
 
-smo if(bool condition)
-    @body{if(!condition)goto __finally;}
-    -> @scope
-
-smo scope() -> @scope
-
-smo le(i64 x, i64 y)  @body{bool z=x<y;}    -> z
-smo ge(i64 x, i64 y)  @body{bool z=x>y;}    -> z
+smo le(i64 x, i64 y)  @body{bool z=x<=y;}   -> z
+smo ge(i64 x, i64 y)  @body{bool z=x>=y;}   -> z
+smo lt(i64 x, i64 y)  @body{bool z=x<y;}    -> z
+smo gt(i64 x, i64 y)  @body{bool z=x>y;}    -> z
 smo leq(i64 x, i64 y) @body{bool z=x<=y;}   -> z
 smo geq(i64 x, i64 y) @body{bool z=x>=y;}   -> z
 smo eq(i64 x, i64 y)  @body{bool z=(x==y);} -> z
 smo neq(i64 x, i64 y) @body{bool z=(x!=y);} -> z
 
-smo le(f64 x, f64 y)  @body{bool z=x<y;}    -> z
-smo ge(f64 x, f64 y)  @body{bool z=x>y;}    -> z
+smo lt(f64 x, f64 y)  @body{bool z=x<y;}    -> z
+smo gt(f64 x, f64 y)  @body{bool z=x>y;}    -> z
+smo le(f64 x, f64 y)  @body{bool z=x<=y;}   -> z
+smo ge(f64 x, f64 y)  @body{bool z=x>=y;}   -> z
 smo leq(f64 x, f64 y) @body{bool z=x<=y;}   -> z
 smo geq(f64 x, f64 y) @body{bool z=x>=y;}   -> z
 smo eq(f64 x, f64 y)  @body{bool z=(x==y);} -> z
