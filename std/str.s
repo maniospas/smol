@@ -1,6 +1,33 @@
 // this file is realased under CC0 license
 
 smo str(ptr contents, u64 length, char first) -> @new
+
+smo from(str, i64 number)
+    @head{#include <stdio.h>}
+    @head{#include <stdlib.h>}
+    @head{#include <string.h>}
+    @body{
+        ptr readbuf = (ptr)malloc(32);
+        if(readbuf) {
+            u64 length = (u64)snprintf((char*)readbuf, sizeof((char*)readbuf), "%ld", number);
+            if (length < 32) {
+                ptr contents = malloc(length + 1);
+                if(contents) {
+                    memcpy(contents, (char*)readbuf, length);
+                    ((char*)contents)[length] = '\0';
+                    char first = ((char*)contents)[0];
+                }
+            }
+        }
+    }
+    if(contents:exists:not)
+        @fail{printf("Failed to allocate str from number\n");}
+        --
+    @finally{if(contents)free(contents);}
+    @finally{if(readbuf)free(readbuf);}
+    -> str(contents, length, first)
+
+
 smo from(str, cstr raw)
     @head{#include <string.h>}
     @body{u64 length=strlen(raw);}
@@ -85,7 +112,7 @@ smo read(str)
         }
     }
     @finally{if(contents)free(contents);}
-    if(contents:exists():not())
+    if(contents:exists:not)
         @fail{printf("Failed to read str of up to 1023 characters\n");}
         --
     -> str(contents, length, first)

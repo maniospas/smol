@@ -68,6 +68,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
     }
     else if(next=="fail") {
         string fail_label = create_temp();
+        internalTypes.vars[fail_label] = types.vars["__label"];
         errors += fail_label+":\n";
         next = imp->at(p++);
         if(next!="{") imp->error(--p, "Expected brackets");
