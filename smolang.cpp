@@ -91,7 +91,6 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
     auto imp = tokenize(file);
     Memory& types = files[file];
     for(const auto& it : builtins.vars) types.vars[it.first] = it.second;
-    for(const auto& it : types.vars) it.second->options.push_back(it.second);
 
     stack<pair<string, int>> brackets;
     for(size_t p=0;p<imp->size();++p) {
@@ -120,6 +119,7 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
                 for(const auto& it : files[path].vars) {
                     const string& name = it.first;
                     Type impl = it.second;
+                    if(impl->_is_primitive) continue;
                     if(!types.contains(name)) types.vars[name] = impl;
                     else {
                         bool found = false;
@@ -226,6 +226,7 @@ int main(int argc, char* argv[]) {
     builtins.vars["buffer"]->internalTypes.vars["size"] = builtins.vars["u64"];
     builtins.vars["buffer"]->internalTypes.vars["offset"] = builtins.vars["u64"];
     builtins.vars["buffer"]->_is_primitive = false;
+    for(const auto& it : builtins.vars) it.second->options.push_back(it.second);
 
 
     for (int i = 1; i < argc; ++i) {

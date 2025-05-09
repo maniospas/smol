@@ -52,22 +52,23 @@
 <p><em>A safe & fast low-level language.</em>
 </p>
 
-<p><i>Smoλ</i>  is a low-level language with fast zero-cost abstractions that are organized into failsafe services.
+<p><i>Smoλ</i>  is a low-level language with fast zero-cost abstractions that are organized into fail-safe services.
 Its core is tiny — really tiny! So tiny, in fact, that functions like printing and basic
-arithmetic operations are only implemented in the standard library with a direct-to-C++ interface.</p>
+arithmetic operations are externally implemented in the standard library with a direct-to-C++ interface.</p>
 
 
 <h1 id="quickstart">Quickstart</h1>
 
 <h3>Setup</h3>
 
-<p>Download or build <i>smoλ</i>, and ensure that both it and GCC are available in your system.
-An language server is provided as a VSCode extension named <i>smoλ (smolambda)</i>;
+<p>Download <i>smoλ</i> from its [latest release](https://github.com/maniospas/smol/releases/latest), 
+or build it from source. Also ensure that both the <i>smol</i> executable and GCC are available in your system's path.
+A language server is provided as a VSCode extension named <i>smoλ (smolambda)</i>;
 Search for the segment in the parenthesis in the extensions, or get it from 
 <a href="https://marketplace.visualstudio.com/items?itemName=maniospas.smolambda">here</a>.</p>
 
 <h3>What's interesting?</h3>
-<p>Look at an example program:</p>
+<p>Look at an example of how <i>smoλ</i> manages data structures:</p>
 
 <pre><code class="language-smolambda">@include std
 
@@ -75,21 +76,17 @@ smo Point(i64 x, i64 y) -> @new
 smo Field(Point start, Point end) -> @new
 
 service main()
-    p = Point(3,4)
+    p = Point(3,5)
     f = Field(1,2,p)
-    print(f.start.x)
-    print(f.end.y)
-    i = add(f.start.x, f.start.y)
-    print(i)
+    print(f.start.x, f.start.y) // 6
     --
 </code></pre>
 
 
 <p>First, <code class="language-smolambda">@include</code> brings code from
 other files with the <i>.s</i> extension. Paths are separated by dots.
-For safety, includes cannot occur within definitions.
-Circular dependencies or re-imports are not allowed either. Here we use the
-<a href="#std">standard library</a>, but you may create your own flavor. Nothing exciting yet.</p>
+For safety, includes cannot occur within definitions and make code directly accessible. Here we include the
+<a href="#std">standard library</a>, mainly to help with printing. Nothing exciting yet.</p>
 
 <p>Next are some so-called <i>runtypes</i>, declared by the <code class="language-smolambda">smo</code>
 keyword. These merge the concept of types and functions, where <code class="language-smolambda">-></code>
@@ -105,16 +102,16 @@ Unpack the result as part of arguments to other runtypes. Arguments are always f
 as long as primitive types match. Safety options for this are presented later.</p>
 
 <p>Put all main business logic inside a <code class="language-smolambda">service main()</code> definition.
-Being a service means that errors occurring inside are "caught" so that calling services can handle them, 
-and perform safe allocation and deallocation. Services are also intrinsically parallel, but more on this later.
-For now, know that the main service is program and returns no value, as indicated by
-the <code class="language-smolambda">--</code> symbol at its end.</p>
+Being a service means that errors occurring inside are "caught" while performing safe allocation and deallocation. 
+Services are also intrinsically parallel, can call each other, and handle returned errors. But more on them later.
+For now, the main service is the program and the <code class="language-smolambda">--</code> symbol at its end indicates no returns.</p>
 
 <h3>Control flow</h3>
 
 <p>
-Control flow is very basic in <i>smoλ</i> in that it only offers conditions and loops.
-Below is an example of those, where arguments to be checked must always evaluate to booleans.
+Control flow in <i>smoλ</i> offers conditions and loops. These return values -or no values- to
+designate an end. Below is an example of those, where arguments to conditions and loops must always evaluate to booleans.
+The <code class="language-smolambda">else</code> branch of conditions is optional.  
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -129,10 +126,13 @@ service main()
 </code></pre>
 
 <p>
-There are no break and continue statements for loops, but there is the option to return multiple
-steps back by injecting an equal number of  <code class="language-smolambda">^</code> in the middle of returns. 
-This operation is called <i>uplifting</i> and here is an example that prints even numbers until
-a multiple of seven is encountered.
+There are no break and continue statements for loops because these can be emulated with other notation.
+First, as a styling choice, do not indent conditions that run from a position until the end of the loop's
+body but instead place. An example is shown below. This also shows how to break loops by returning multiple
+steps back - an operating we call <i>uplifting</i> of return values. 
+The syntax for uplifting is to prepend
+<code class="language-smolambda">^</code> in the middle of returns. 
+This operation is called <i>uplifting</i>. 
 </p>
 
 
@@ -142,7 +142,7 @@ service main()
     i = 511
     while(i&lt;10)
         i = i+1
-        if(i%7==0) ^-- // break
+        if(i%7==0) ^- // break
         if(i%2==0)
             print(i)
     ------ // ends `if`, then ends `while`, then `main`
@@ -205,7 +205,7 @@ service main()
 <h3>Currying</h3>
 <p>Runtype calls accept currying notation that transfers a precomputed value to the first argument.
 In general, runtypes are all first-class citizens of the language in that they cannot be set as variables.
-The curry operator is <code class="language-smolambda">:</code> and can be chained. Furthermore, you can ommit
+The curry operator is <code class="language-smolambda">:</code> and can be chained. Furthermore, you can omit
 parentheses if there is only one argument and you curry it. Below is an example, where this notation is used to
 have as little nesting as possible.
 </p>
@@ -248,7 +248,7 @@ smo single_out(i64 x)
 service main()
     p1 = multi_out(1)
     print(p1.x)        // 1
-    print(p2.incx)     // 2
+    print(p1.incx)     // 2
     p2 = single_out(1)
     print(p2)          // 2
     print(p2.x)        // CREATES AN ERROR
@@ -360,7 +360,7 @@ Functionally, services are runtypes with nameless returned values. That is, thei
 can be parts of arguments normally, but do not accept field access because it would be either unsafe or create
 hidden computational costs. More on why later</p>
 <p>
-Below is an example of declaring and calling a service. Syntactially, this is near-identical to working
+Below is an example of declaring and calling a service. Syntactically, this is near-identical to working
 with runtypes so that it's easy to change your mind as you write code. 
 You will often not notice anything different.
 </p>
@@ -377,9 +377,9 @@ service main()
 
 <p>
 From the viewpoint of merging types and functions, services are a step backwards in that they are basically 
-functions with multiple returns. They further incur a cost of a few operations per call and in cascading
-unhandled arrors, as well as pushing the
-call to the stack. So it is not advised to call them millions of times per second.
+functions with multiple returns. They further incur a cost of a few operations per call, as they need to actually
+push the call to the stack and cascade
+unhandled errors. So they are less efficient if you, say, call them millions of times per second.
 </p>
 <p>
 That said, they have three distinct advantages:
@@ -443,7 +443,7 @@ Something went wrong
 <p>Handle dynamic memory with the special <code class="language-smolambda">buffer</code> runtype.
 Think of this as a list where new data are pushed to the back and popped from the front. The
 definition is part of the language and it is how one would handle functions with variadic inputs too. 
-    (<i>Variadic</i> is a just a fancy way of calling any number of inputs.)
+(<i>Variadic</i> is a fancy way of calling an arbitrary number of inputs.)
 </p>
 
 <p>Buffers are unpacked into other runtypes by consuming elements from their start.
@@ -504,13 +504,14 @@ service main()
 <h3>Concatenation</h3>
 
 <p>Normally, you can have a buffer as the last argument so that popping knows how many elements
-it needs to consume. The language offers three operations for buffers:
+it needs to consume. The language offers four operations for buffers:
 <code class="language-smolambda">reserve</code> preallocates memory
 (for optimization, otherwise size is doubled when needed),
 <code class="language-smolambda">push</code> adds data at the end,
 <code class="language-smolambda">copy</code> copies contents without
-altering the original, and
-assigning inserts data at the beginning as long as the size is compatible</p>
+altering the original. Finally, <code class="language-smolambda">put</code> 
+assigns runtype values to buffers.
+i</p>
 
 
 <pre><code class="language-smolambda">@include std
@@ -532,56 +533,45 @@ service main()
 
 <h1 id="std">Std</h1>
 
-<p>Conditional <code class="language-smolambda">if</code> statements are second-class citizens in <i>smoλ</i>
-and are manually implemented in the standard library.
-They do not accept an alternative branch.
-Either run multiple of those, or enclose them in the <code class="language-smolambda">scope</code>
-runtype. The latter creates an independent scope from which you can return. An example follows.
+<p>The standard library contains implementations for common programming needs.
+Besides overloading pairswise numerical and comparison operators for basic arithmetic types and booleans, 
+it also supports string handling.
 </p>
 
-
-<pre><code class="language-smolambda">@include std
-
-smo print_sign(i64 i)
-    sgn = do
-      if(i:gt(0)) -> 1
-      if(i:lt(0)) -> -1
-      -> 0
-    print(sgn)
-    --
-
-service main()
-    print_sign(100)
-    print_sign(-42)
-</code></pre>
-
-<p>Like all runtypes, you can return values from conditional statements. If the condition
-does not run, variables are zero-initialized.
+<h3>Console</h3>
+<p>Basic functionalies are introduced for the console, namely reading and printing. These support all escape characters
+C++ can support, including ANSI codes for colorization. They have also been overloaded for integers, floats, and -as seen in the next
+segment- strings. Reading failure fails the current service under <i>smoλ</i>'s guidelines that services should fail completely and rerun
+instead of trying to recover from ivnalid states. Here's an example:
 </p>
 
 <pre><code class="language-smolambda">@include std
 
-service sign(i64 i)
-    if(i:gt(0)) --> 1
-    if(i:lt(0)) --> -1
-    -> 0
-
 service main()
-    x = sign(100)
-    y = sign(-42)
+    success = false
+    x = f64:read()
     print(x)
-    print(y)
 </code></pre>
 
+<h3>Strings</h3>
 
+<p>Below is an example that demonstrates conversion from
+basic builtin types to strings. Similarly overload <code class="language-smolambda">from(str, Type obj)</code> 
+for custom types. Strings admit the following two optimizations under the hood to enable
+very fast handling without creating excessive bloat when passed around:
+a) they retain c-style strings for constant expreeions, and b) they keep track of the first character
+to enable fast comparison without looking through heap data.
+</p>
 
 <pre><code class="language-smolambda">@include std
-    
+
 service main()
-    i = 1
-    while(i:le(10))
-        print(i)
-        --
+    i = 0
+    while(i&lt;=10) 
+        if(0==i%2) print("Even "+str:from(i)) --
+        else print("Odd  "+str:from(i)) --
+        i = i+1
+    ---- // end while and main with no return
 </code></pre>
 
 
