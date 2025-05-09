@@ -111,7 +111,7 @@ For now, the main service is the program and the <code class="language-smolambda
 <p>
 Control flow in <i>smoλ</i> offers conditions and loops. These return values -or no values- to
 designate an end. Below is an example of those, where arguments to conditions and loops must always evaluate to booleans.
-The <code class="language-smolambda">else</code> branch of conditions is optional.  
+The <code class="language-smolambda">else</code> branch of conditions is optional. 
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -122,7 +122,7 @@ service main()
         if(i%2) print("Even "+str:from(i)) --
         else print("Odd "+str:from(i)) --
         i = i+1
-        -- 
+    ---- // ends `while` then `main` 
 </code></pre>
 
 <p>
@@ -145,7 +145,7 @@ service main()
         if(i%7==0) ^- // break
         if(i%2==0)
             print(i)
-    ------ // ends `if`, then ends `while`, then `main`
+    ------ // ends `if`, then `while`, then `main`
 </code></pre>
     
 
@@ -199,6 +199,7 @@ service main()
     x = 1
     inc(x)
     print(x) // 2
+    --
 </code></pre>
 
 
@@ -215,6 +216,7 @@ have as little nesting as possible.
 service main()
     1:add(2):mul(3):print
     // equivalent to print(mul(add(1,2), 3))
+    --
 </code></pre>
 
 
@@ -252,6 +254,7 @@ service main()
     p2 = single_out(1)
     print(p2)          // 2
     print(p2.x)        // CREATES AN ERROR
+    --
 </code></pre>
 
 
@@ -277,6 +280,7 @@ smo add(f64 x, f64 y) @body{f64 z=x+y;} -> z
 service main()
     print(add(1,1)) // 2
     print(add(0.2,0.3)) // 0.5
+    --
 </code></pre>
 
 
@@ -312,6 +316,7 @@ smo read(f64)
 service main()
     x = read(f64)
     print(x)
+    --
 </code></pre>
 
 
@@ -348,7 +353,7 @@ service main()
     p = Point(value, value)
     p:inc()
     print(p.x)
-
+    --
 </code></pre>
 
 
@@ -371,6 +376,7 @@ service square(f64 x) -> mul(x,x)
 service main()
     y = square(2.0)
     print(y)
+    --
 </code></pre>
 
 <h3>Why services?</h3>
@@ -404,9 +410,11 @@ through the call stack. All those services fail safely by deallocating resources
 service square(f64 x) 
     fail("Don't wanna!") // manually fail
     -> mul(x,x)
+
 service main()
     y = square(2.0)
     print(y)
+    --
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 Don't wanna!
@@ -429,7 +437,7 @@ service main()
     y = square(2.0)
     if(y.err:bool:not)
         print(y)
-        --
+    ---- // ends `if`, then `main`
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 Don't wanna!
@@ -470,6 +478,7 @@ service main()
     f = Field(buf)   // pops front
     print(f.start.x) // 1
     print(i64(buf))  // 5
+    --
 </code></pre>
 
 <h3>Slicing</h3>
@@ -499,6 +508,7 @@ service main()
     print(buf:i64)          // 0
     print(slice:i64)        // 2 (slice remains unaffected)
     print(slice:i64)        // CREATES RUNTIME ERROR
+    --
 </code></pre>
 
 <h3>Concatenation</h3>
@@ -529,6 +539,7 @@ service main()
     p2 = Point(buf)
     print(p1.x) // 1
     print(p2.y) // 4
+    --
 </code></pre>
 
 <h1 id="std">Std</h1>
@@ -551,6 +562,7 @@ service main()
     success = false
     x = f64:read()
     print(x)
+    --
 </code></pre>
 
 <h3>Strings</h3>
