@@ -11,6 +11,13 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
+        
+      - name: Install GCC 13
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt update
+          sudo apt install -y g++-13
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
 
       - name: Build executable (Linux)
         run: |
