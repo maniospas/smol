@@ -44,7 +44,7 @@ smo eq(u64 x, u64 y)  @body{bool z=(x==y);} -> z
 smo exists(ptr x)     @body{bool z=(x);}    -> z
 
 smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
-smo mod(i64 x, i64 y) @body{bool z=x%y;} -> z
+smo mod(i64 x, i64 y) @body{i64 z=x%y;} -> z
 smo sub(i64 x, i64 y) @body{i64 z=x-y;} -> z
 smo mul(i64 x, i64 y) @body{i64 z=x*y;} -> z
 smo div(i64 x, i64 y)
