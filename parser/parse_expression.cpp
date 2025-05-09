@@ -48,7 +48,27 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         auto type = types.vars.find(first_token)->second;
         string inherit_buffer("");
         vector<string> unpacks;
-        if(imp->at(p)!="(" && curry.size()) {
+        if(imp->at(p)=="__consume") {
+            if(!curry.size()) imp->error(p-2, "Unexpected usage of operator\nThere is no left-hand-side");
+            if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second==types.vars["buffer"]) imp->error(p-2, "Operator does not accept buffer as the first input");
+            else unpacks.push_back(curry);
+            p++;
+            string next = imp->at(p++);
+            string rhs = parse_expression(imp, p, next, types);
+            if(!internalTypes.contains(rhs)) imp->error(--p, "Failed to parse the right-hand-side of "+first_token);
+            const auto& rhsType = internalTypes.vars.find(rhs)->second;
+            if(rhsType->name=="buffer") imp->error(--p, "Cannot involve a buffer in operation"+first_token);
+            if(rhsType->_is_primitive) unpacks.push_back(rhs);
+            else if(type->is_service) {
+                string fail_var = create_temp();
+                implementation += "if("+rhs+"__err) goto "+fail_var+";\n";
+                errors += fail_var+":\nprintf(\"Runtime error: `"+rhsType->name+" "+pretty_var(rhs)+"` has an attached error\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __return;\n";
+                preample += "#include <stdio.h>\n";
+                for(size_t i=1;i<rhsType->packs.size();++i) unpacks.push_back(rhs+"__"+rhsType->packs[i]);
+            }
+            else for(const string& pack : rhsType->packs) unpacks.push_back(rhs+"__"+pack);
+        }
+        else if(imp->at(p)!="(" && curry.size()) {
             if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second==types.vars["buffer"]) inherit_buffer = curry;
             else unpacks.push_back(curry);
         }
@@ -213,6 +233,6 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         }
         return next_var(imp, p, var, types);
     }
-    if(curry.size() || (p<imp->size() && imp->at(p)=="(")) imp->error(--p, "Missing runtype: "+first_token+recommend_runtype(types, first_token));
+    if(curry.size() || (p<imp->size() && (imp->at(p)=="(" || imp->at(p)=="__consume"))) imp->error(--p, "Missing runtype: "+first_token+recommend_runtype(types, first_token));
     return next_var(imp, p, first_token, types);
 }
