@@ -1,0 +1,90 @@
+name: Build and Release Smolang
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers only on version tags like v1.0
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Build executable (Linux)
+        run: |
+          g++ smolang.cpp -o smol -O2 -std=c++23 -Wall
+
+      - name: Prepare release artifacts
+        run: |
+          mkdir release-linux
+          cp smol release-linux/
+          cp -r std release-linux/
+          cp std.s release-linux/
+
+      - name: Upload artifacts (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: smol-linux
+          path: release-linux/
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          install: mingw-w64-x86_64-gcc
+          update: true
+
+      - name: Build executable (Windows)
+        shell: msys2 {0}
+        run: |
+          g++ smolang.cpp -o smol.exe -O2 -std=c++23 -Wall
+
+      - name: Prepare release artifacts
+        run: |
+          mkdir release-windows
+          copy smol.exe release-windows\
+          xcopy std release-windows\std\ /E /I
+          copy std.s release-windows\
+
+      - name: Upload artifacts (Windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: smol-windows
+          path: release-windows/
+
+  release:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: smol-linux
+          path: smol-linux
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: smol-windows
+          path: smol-windows
+
+      - name: Create release archive
+        run: |
+          zip -r smol-linux.zip smol-linux
+          zip -r smol-windows.zip smol-windows
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            smol-linux.zip
+            smol-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
