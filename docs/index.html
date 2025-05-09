@@ -435,14 +435,13 @@ service square(f64 x)
     -> mul(x,x)
 service main()
     y = square(2.0)
-    if(y.err:bool:not)
-        print(y)
-    ---- // ends `if`, then `main`
+    if(y.err:bool) print("Something went wrong") --
+    else print(y) --
+    --
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 Don't wanna!
 Something went wrong
-0
 </pre>
 
 
