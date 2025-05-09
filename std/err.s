@@ -1,4 +1,5 @@
 // this file is realased under CC0 license
+@include std.str
 
 smo ok(errcode error)
     @body{bool isuser = (error==__USER__ERROR);}

@@ -1,7 +1,7 @@
 // this file is realased under CC0 license
+@include std.num
 
 smo str(ptr contents, u64 length, char first) -> @new
-
 smo from(str, i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
@@ -91,7 +91,7 @@ smo add(cstr x, str y)
         ptr contents = malloc(len_x + len_y + 1);
         if(contents){strcpy((char*)contents, (const char*)x);strcat((char*)contents, (const char*)y__contents);char first=((char*)contents)[0];}
     }
-    if(contents:exists():not())
+    if(contents:exists:not())
         @fail{printf("Failed to allocate str\n");}
         --
     @finally{if(contents)free(contents);}

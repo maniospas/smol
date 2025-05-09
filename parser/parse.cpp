@@ -20,7 +20,7 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             implementation += "if(!"+var+") goto "+finally_var+";\n";
             parse(i, p, types, false);
             p++; // offset p-- after parse_return above
-            if(p<i->size() && i->at(p)=="else") {
+            if(p<i->size()-1 && i->at(p)=="else") {
                 p++;
                 string else_var = temp+"__else";
                 internalTypes.vars[else_var] = types.vars["__label"];

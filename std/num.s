@@ -49,9 +49,7 @@ smo sub(i64 x, i64 y) @body{i64 z=x-y;} -> z
 smo mul(i64 x, i64 y) @body{i64 z=x*y;} -> z
 smo div(i64 x, i64 y)
     @head{#include <stdio.h>}
-    if(eq(y, 0))
-        @fail{printf("Division by zero\n");}
-        --
+    if(y==0) @fail{printf("Division by zero\n");} --
     @body{i64 z=x/y;}
     -> z
 
@@ -60,25 +58,18 @@ smo sub(f64 x, f64 y) @body{f64 z=x-y;} -> z
 smo mul(f64 x, f64 y) @body{f64 z=x*y;} -> z
 smo div(f64 x, f64 y)
     @head{#include <stdio.h>}
-    if(eq(y, 0.0))
-        @fail{printf("Division by zero\n");}
-        --
+    if(y==0.0) @fail{printf("Division by zero\n");}--
     @body{f64 z=x/y;}
     -> z
 
 smo read(i64)
     @head{#include <stdio.h>}
     @body{i64 number = 0; bool success = scanf("%ld", &number);}
-    if(success:eq(false))
-        @fail{printf("Invalid integer\n");}
-        --
+    if(success:not) @fail{printf("Invalid integer\n");} --
     -> number
 
 smo read(f64)
     @head{#include <stdio.h>}
     @body{f64 number = 0; bool success = scanf("%lf", &number);}
-    if(success:eq(false))
-        @fail{printf("Invalid number\n");}
-        --
+    if(success:not) @fail{printf("Invalid number\n");} --
     -> number
-

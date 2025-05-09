@@ -37,6 +37,7 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
                 if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared: "+pretty_var(next)+recommend_variable(types, next));
                 for(const string& pack : internalTypes.vars.find(next)->second->packs) packs.push_back(next+"__"+pack);
             }
+            if(p>=imp->size()){break;}
             next = imp->at(p++);
             //if(next==")") break;
             if(next!=",") {--p;break;}//imp->error(--p, "Missing comma (not implemented expression in return statements yet)");
