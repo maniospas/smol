@@ -57,7 +57,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             string rhs = parse_expression(imp, p, next, types);
             if(!internalTypes.contains(rhs)) imp->error(--p, "Failed to parse the right-hand-side of "+first_token);
             const auto& rhsType = internalTypes.vars.find(rhs)->second;
-            if(rhsType->name=="buffer") imp->error(--p, "Cannot involve a buffer in operation"+first_token);
+            if(rhsType->name=="buffer") imp->error(--p, "Cannot involve a buffer in operation "+first_token);
             if(rhsType->_is_primitive) unpacks.push_back(rhs);
             else if(type->is_service) {
                 string fail_var = create_temp();

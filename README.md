@@ -11,21 +11,21 @@ Under the hood, it transpiles to C++.
 
 ## [Docs](https://maniospas.github.io/smol/)
 
-## Peek
+## Quickstart
 
-```java
+Here's a quickstart that showcases several core features. 
+Visit the docs above for a comprehensive breakdown.
+
+```cpp
 @include std
 
-smo Point(i64 x, i64 y) => @new
-smo Field(Point start, Point end) => @new
+smo Point(i64 x, i64 y) -> @new
+smo Field(Point start, Point end) -> @new
 
-smo main()
-    Point p(3,4)
-    Field f(1,2,p)
-    print(f.start.x)
-    print(f.end.y)
-    add i(f.start.x, f.start.y)
-    print(i)
+service main()
+    p = Point(3,5)
+    f = Field(1,2,p)
+    print(f.start.x+f.end.y) // 6
 ```
 
 
