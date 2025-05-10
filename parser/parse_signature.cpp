@@ -14,7 +14,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
             if(next!=",")imp->error(--p, "Missing comma between arguments");
             next = imp->at(p++);
         }
-        if(next=="&") {
+        if(next==":") {
             autoconstruct=true;
             next = imp->at(p++);
         }

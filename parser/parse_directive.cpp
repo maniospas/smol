@@ -28,7 +28,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
                 string argtype = next;
                 if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->not_primitive()) {
                     internalTypes.vars[argname] = types.vars.find(argtype)->second;
-                    vardecl += argtype+" "+argname+";\n";
+                    vardecl += argtype+" "+argname+" = 0;\n";
                 }
                 else imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
             }
@@ -54,7 +54,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
                 string argtype = next;
                 if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->not_primitive()) {
                     internalTypes.vars[argname] = types.vars.find(argtype)->second;
-                    vardecl += argtype+" "+argname+";\n";
+                    vardecl += argtype+" "+argname+" = 0;\n";
                 }
                 else imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
             }
@@ -83,7 +83,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
                 string argtype = next;
                 if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->not_primitive()) {
                     internalTypes.vars[argname] = types.vars.find(argtype)->second;
-                    vardecl += argtype+" "+argname+";\n";
+                    vardecl += argtype+" "+argname+" = 0;\n";
                 }
                 else imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
             }

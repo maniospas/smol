@@ -2,14 +2,14 @@
 @include std.num
 
 smo str(ptr contents, u64 length, char first) -> @new
-smo from(str, i64 number)
+smo str(i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
     @body{
         ptr readbuf = (ptr)malloc(32);
         if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof((char*)readbuf), "%ld", number);
+            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%ld", number);
             if (length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
@@ -28,7 +28,33 @@ smo from(str, i64 number)
     -> str(contents, length, first)
 
 
-smo from(str, cstr raw)
+smo str(f64 number)
+    @head{#include <stdio.h>}
+    @head{#include <stdlib.h>}
+    @head{#include <string.h>}
+    @body{
+        ptr readbuf = (ptr)malloc(32);
+        if(readbuf) {
+            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%f.6", number);
+            if (length < 32) {
+                ptr contents = malloc(length + 1);
+                if(contents) {
+                    memcpy(contents, (char*)readbuf, length);
+                    ((char*)contents)[length] = '\0';
+                    char first = ((char*)contents)[0];
+                }
+            }
+        }
+    }
+    if(contents:exists:not)
+        @fail{printf("Failed to allocate str from number\n");}
+        --
+    @finally{if(contents)free(contents);}
+    @finally{if(readbuf)free(readbuf);}
+    -> str(contents, length, first)
+
+
+smo str(cstr raw)
     @head{#include <string.h>}
     @body{u64 length=strlen(raw);}
     @body{ptr contents=(void*)raw;}
@@ -66,18 +92,19 @@ smo add(str x, str y)
         ptr contents = malloc(len_x + len_y + 1);
         if(contents){strcpy((char*)contents, (const char*)x__contents);strcat((char*)contents, (const char*)y__contents);char first=((char*)contents)[0];}
     }
-    @finally{free(contents);}
+    @finally{if(contents)free(contents);}
     -> str(contents, add(x.length, y.length), first)
 
 smo add(str x, cstr y)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
-    @body{
+    @body(){
         u64 len_x = x__length;
         u64 len_y = strlen(y);
         ptr contents = malloc(len_x + len_y + 1);
         if(contents){strcpy((char*)contents, (const char*)x__contents);strcat((char*)contents, (const char*)y);char first=((char*)contents)[0];}
     }
+    // @release(contents){free(contents);}
     @finally{if(contents)free(contents);}
     -> str(contents, add(x.length, len_y), first)
 

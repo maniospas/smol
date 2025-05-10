@@ -251,6 +251,7 @@ int main(int argc, char* argv[]) {
             if(selected_task==Task::Verify) {cout << "\033[30;42m OK \033[0m " + file + "\n"; continue;}
             string globals = 
                 "#include <cstring>\n"
+                "#define __NULL void*\n"
                 "#define __USER__ERROR 1\n"
                 "#define __BUFFER__ERROR 2\n"
                 "#define __UNHANDLED__ERROR 2\n"

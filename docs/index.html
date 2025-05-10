@@ -52,7 +52,7 @@
 <p><em>A safe & fast low-level language.</em>
 </p>
 
-<p><i>Smoλ</i>  is a low-level language with fast zero-cost abstractions that are organized into fail-safe services.
+<p><i>Smoλ</i>  (pronounced like "small" but with "o" instead of "a") is a low-level language with fast zero-cost abstractions that are organized into fail-safe services.
 Its core is tiny — really tiny! So tiny, in fact, that functions like printing and basic
 arithmetic operations are externally implemented in the standard library with a direct-to-C++ interface.</p>
 
@@ -61,10 +61,10 @@ arithmetic operations are externally implemented in the standard library with a 
 
 <h3>Setup</h3>
 
-<p>Download <i>smoλ</i> from its [latest release](https://github.com/maniospas/smol/releases/latest), 
-or build it from source. Also ensure that both the <i>smol</i> executable and GCC are available in your system's path.
+<p>Download <i>smoλ</i> from its <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>
+or build it from source. Also ensure that both the <i>smol</i> executable and GCC are available in your system path.
 A language server is provided as a VSCode extension named <i>smoλ (smolambda)</i>;
-Search for the segment in the parenthesis in the extensions, or get it from 
+search for the symbolic transcription in the parenthesis, or get it from 
 <a href="https://marketplace.visualstudio.com/items?itemName=maniospas.smolambda">here</a>.</p>
 
 <h3>What's interesting?</h3>
@@ -78,7 +78,7 @@ smo Field(Point start, Point end) -> @new
 service main()
     p = Point(3,5)
     f = Field(1,2,p)
-    print(f.start.x, f.start.y) // 6
+    print(f.start.x + f.end.y) // 6
     --
 </code></pre>
 
@@ -109,7 +109,7 @@ For now, the main service is the program and the <code class="language-smolambda
 <h3>Control flow</h3>
 
 <p>
-Control flow in <i>smoλ</i> offers conditions and loops. These return values -or no values- to
+<i>smoλ</i> offers conditions and loops. These return values -or no values- to
 designate an end. Below is an example of those, where arguments to conditions and loops must always evaluate to booleans.
 The <code class="language-smolambda">else</code> branch of conditions is optional. 
 </p>
@@ -119,8 +119,8 @@ The <code class="language-smolambda">else</code> branch of conditions is optiona
 service main()
     i = 0
     while(i&lt;10) 
-        if(i%2) print("Even "+str:from(i)) --
-        else print("Odd "+str:from(i)) --
+        if(i%2) print("Even "+str(i)) --
+        else print("Odd "+str(i)) --
         i = i+1
     ---- // ends `while` then `main` 
 </code></pre>
@@ -262,8 +262,8 @@ service main()
 
 <p>Overload runtypes that are structurally
 different when converted to a flat representation of primitives.
-Runtypes equivalent in terms of primitives cannot be used as part of
-function signatures due to ambiguity. More on circumventing this issue later.
+Runtypes that are equivalent in their expansion into rimitives cannot be used 
+as part of function signatures due to ambiguity. More on circumventing this issue later.
 As an example, the following definitions come from the standard library.</p>
 
 <pre><code class="language-smolambda">smo print(f64 message)
@@ -355,6 +355,38 @@ service main()
     print(p.x)
     --
 </code></pre>
+
+
+<h3>Labels</h3>
+
+<p>
+The so-called <i>labels</i> are special builtins that 
+you define as structurally equivalent to
+only themselves. Adding labels to rutype arguments or
+returns adds safety in interpreting results.
+</p>
+<p>Defining
+a label is as simple as prepending any valid runtype name 
+with <code class="language-smolambda">&</code>.
+This includes prepending runtypes. Labels are zero-cost
+abstractions in that most usage is optimized away by the
+compiler but
+</p>
+
+<pre><code class="language-smolambda">@include std
+
+smo Point(&Field, i64 x, i64 y) -> @new
+smo Field(Point start, Point end) -> @new
+
+service main()
+    p = Point(2,3)
+    f = Field(1,p,5)
+    print(f.start.x + f.start.y) // 6
+    --
+</code></pre>
+
+
+
 
 
 <h1 id="service">Services</h1>
@@ -567,11 +599,11 @@ service main()
 <h3>Strings</h3>
 
 <p>Below is an example that demonstrates conversion from
-basic builtin types to strings. Similarly overload <code class="language-smolambda">from(str, Type obj)</code> 
+basic builtin types to strings. Similarly overload <code class="language-smolambda">str(Type obj)</code> 
 for custom types. Strings admit the following two optimizations under the hood to enable
 very fast handling without creating excessive bloat when passed around:
-a) they retain c-style strings for constant expreeions, and b) they keep track of the first character
-to enable fast comparison without looking through heap data.
+a) they retain c-style strings for quoted characters, and b) they keep track of the first character
+to enable fast comparison without going through heap data.
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -579,8 +611,8 @@ to enable fast comparison without looking through heap data.
 service main()
     i = 0
     while(i&lt;=10) 
-        if(0==i%2) print("Even "+str:from(i)) --
-        else print("Odd  "+str:from(i)) --
+        if(0==i%2) print("Even "+str(i)) --
+        else print("Odd  "+str(i)) --
         i = i+1
     ---- // end while and main with no return
 </code></pre>
