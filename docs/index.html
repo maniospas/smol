@@ -10,7 +10,7 @@
 
 
   <title>smoλ</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+  <link href="vendor/prism/prism.min.css" rel="stylesheet" />
   <style>
     html {scroll-behavior: smooth;}
     h1 {scroll-margin-top: 60px;}
@@ -29,7 +29,6 @@
     pre code {background: none;font-family: 'Courier New', Courier, monospace;font-size: 90%;}
     p strong {color: #444;}
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
@@ -45,16 +44,14 @@
 
 <div class="container">
 
-<h1 id="home">smoλ <a href="https://github.com/maniospas/smol" target="_blank" title="GitHub">
-<i class="fab fa-github"></i>
-</a></h1>
+<h1 id="home">smoλ</h1>
 
-<p><em>A safe & fast low-level language.</em>
-</p>
+<p><em>A safe & fast low-level language.</em></p>
 
 <p><i>Smoλ</i>  (pronounced like "small" but with "o" instead of "a") is a low-level language with fast zero-cost abstractions that are organized into fail-safe services.
 Its core is tiny — really tiny! So tiny, in fact, that functions like printing and basic
-arithmetic operations are externally implemented in the standard library with a direct-to-C++ interface.</p>
+arithmetic operations are externally implemented in the standard library with a direct-to-C++ interface.
+Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="repository">GitHub</a> to keep track of progress.</p>
 
 
 <h1 id="quickstart">Quickstart</h1>
@@ -62,7 +59,12 @@ arithmetic operations are externally implemented in the standard library with a 
 <h3>Setup</h3>
 
 <p>Download <i>smoλ</i> from its <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>
-or build it from source. Also ensure that both the <i>smol</i> executable and GCC are available in your system path.
+or build it from source by cloning the repository and running <code class="bash">g++ smolang.cpp -o smol -O2 -std=c++23</code>.
+As you can see, the language is so lightweight that there is no need for a build system and its main executable consumes less than 300kB
+... plus GCC or Clang. Ensure that both the <i>smol</i> executable and GCC are available in your system path.
+</p>
+
+<p>
 A language server is provided as a VSCode extension named <i>smoλ (smolambda)</i>;
 search for the symbolic transcription in the parenthesis, or get it from 
 <a href="https://marketplace.visualstudio.com/items?itemName=maniospas.smolambda">here</a>.</p>
@@ -413,10 +415,10 @@ service main()
 
 <h3>Why services?</h3>
 
-<p>
-From the viewpoint of merging types and functions, services are a step backwards in that they are basically 
-functions with multiple returns. They further incur a cost of a few operations per call, as they need to actually
-push the call to the stack and cascade
+<p>Services are basically functions with multiple returns but no field access. 
+So from the viewpoint of merging types and functions, they are a step backwards.
+What's more, they cost a few additional operations per call, as they need to actually push the call 
+to the stack and cascade
 unhandled errors. So they are less efficient if you, say, call them millions of times per second.
 </p>
 <p>
@@ -619,7 +621,7 @@ service main()
 
 
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="vendor/prism/prism.min.js"></script>
 <script>
 Prism.languages.smolambda = {
   'comment': /\/\/.*/,

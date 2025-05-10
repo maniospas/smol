@@ -29,3 +29,11 @@ service main()
 ```
 
 
+## Licenses
+
+Different parts of this codebase are governed by different licenses:
+
+- std.s: CC0
+- std/: CC0
+- Prism.js: MIT License (see `vendor/prism/LICENSE`)
+- Everything else: Apache2.0

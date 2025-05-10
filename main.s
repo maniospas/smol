@@ -17,8 +17,11 @@ smo print(PlanePoint a)
     --
 
 service stradd(str s1, str s2)
-    -> add(s1,s2).contents
+    -> s1:add(s2)
 
 service main()
-    x = stradd("test1":str, "test2":str)
+    p = PlanePoint(1.0, 2.0)
+    print(p)
+    p2 = PlanePoint(p)
+    print(p)
     --

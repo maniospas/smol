@@ -98,13 +98,12 @@ smo add(str x, str y)
 smo add(str x, cstr y)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
-    @body(){
+    @body{
         u64 len_x = x__length;
         u64 len_y = strlen(y);
         ptr contents = malloc(len_x + len_y + 1);
         if(contents){strcpy((char*)contents, (const char*)x__contents);strcat((char*)contents, (const char*)y);char first=((char*)contents)[0];}
     }
-    // @release(contents){free(contents);}
     @finally{if(contents)free(contents);}
     -> str(contents, add(x.length, len_y), first)
 
