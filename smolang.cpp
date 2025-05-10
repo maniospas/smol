@@ -285,9 +285,14 @@ int main(int argc, char* argv[]) {
                 out << "}\n\n";
             }
             out.close();
+            for(const auto& it : included[file].vars) {
+                for(const auto& opt : it.second->options) opt->internalTypes.vars.clear();
+                it.second->internalTypes.vars.clear();
+                it.second->options.clear();
+            }
             if(selected_task==Task::Run) {int run_status = system("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections main.cpp -o main && ./main"); if (run_status != 0) return run_status;}
             else {
-                int run_status = system("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections main.cpp -o main");
+                int run_status = system("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections main.cpp -o main -nodefaultlibs -lc");
                 if (run_status != 0) return run_status;
                 cout << "\033[30;42m ./ \033[0m " + file.substr(0, file.size()-2) + "\n";
             }
@@ -296,6 +301,7 @@ int main(int argc, char* argv[]) {
             if(selected_task!=Task::Run) cout << "\033[30;41m ERROR \033[0m " << file << "\n";
             cerr << e.what() << std::endl;
         }
+        included.clear();
     }
     return 0;
 }
