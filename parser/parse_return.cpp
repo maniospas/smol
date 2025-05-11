@@ -6,7 +6,9 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
         next = imp->at(p++);
         /*if(next == "scope") packs.push_back("@scope");
         else*/ {
-            if(next!="new") imp->error(--p, "Use `->@new` or `->@scope`");
+            if(next!="new") imp->error(--p, "Use `->@new`");
+            if(is_service)  packs.push_back("err");
+            internalTypes.vars["err"] = types.vars["errcode"];
             for (const auto& arg : args) packs.push_back(arg.name);
             //unordered_set<string> packSet(packs.begin(), packs.end());
             //for (const auto& arg : internalTypes.vars) if (packSet.insert(arg.first).second) packs.push_back(arg.first);
@@ -35,7 +37,15 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
                     imp->error(--p, "Service multivalue returns not implemented yet");
                 }
                 if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared: "+pretty_var(next)+recommend_variable(types, next));
-                for(const string& pack : internalTypes.vars.find(next)->second->packs) packs.push_back(next+"__"+pack);
+                if(p && imp->at(p-1)==")") {
+                    // if we are directly returning a proxy, unpack that proxy here
+                    for(const string& pack : internalTypes.vars[next]->packs) {
+                        implementation += pack+" = "+next+"__"+pack+";\n";
+                        internalTypes.vars[pack] = internalTypes.vars[next]->internalTypes.vars[pack];
+                        packs.push_back(pack);
+                    }
+                }
+                else for(const string& pack : internalTypes.vars.find(next)->second->packs) packs.push_back(next+"__"+pack);
             }
             if(p>=imp->size()){break;}
             next = imp->at(p++);

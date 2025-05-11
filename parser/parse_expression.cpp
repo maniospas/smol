@@ -180,29 +180,18 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         string immediate_finals("");
         for(size_t i=0;i<unpacks.size();++i) {
             assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
-            if(type->args[i].mut) immediate_finals += unpacks[i]+" = "+var+"__"+type->args[i].name+";\n";
+            if(type->args[i].mut) immediate_finals += unpacks[i]+ " = "+var+"__"+type->args[i].name+";\n";
         }
         internalTypes.vars[var] = type;
-
-        // vardecl += type->rebase(type->vardecl, var);
         implementation += type->rebase(type->implementation, var);
         preample += type->rebase(type->preample, var);
         finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
         errors = errors+type->rebase(type->errors, var);
 
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
-        implementation += immediate_finals; // TODO this should not occur here because it has deallocations and the like
+        implementation += immediate_finals; // TODO maybe it's a good idea to have deallocations here too
 
-        if(type->packs.size()==1) {
-            if(type->packs[0]=="@scope") {
-                //return ""; // TODO: improve to allow return from ifs
-                type = internalTypes.vars[var]; // guaranteed to exist
-                if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0], types);
-                //for(const string& pack : type->packs) assign_variable(type->internalTypes.vars[pack], var+"__"+pack, pack, imp, p);
-                return next_var(imp, p, var, types);
-            }
-            return next_var(imp, p, var+"__"+type->packs[0], types);
-        }
+        if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0], types);
         return next_var(imp, p, var, types);
     }
     if(curry.size() || (p<imp->size() && (imp->at(p)=="(" || imp->at(p)=="__consume"))) imp->error(--p, "Missing runtype: "+first_token+recommend_runtype(types, first_token));

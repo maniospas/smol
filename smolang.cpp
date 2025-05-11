@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
                 "#define __NULL void*\n"
                 "#define __USER__ERROR 1\n"
                 "#define __BUFFER__ERROR 2\n"
-                "#define __UNHANDLED__ERROR 2\n"
+                "#define __UNHANDLED__ERROR 3\n"
                 "#define ptr void*\n"
                 "#define errcode int\n"
                 "#define cstr const char*\n"

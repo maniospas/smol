@@ -1,4 +1,4 @@
-string rebase(string& impl, const string& var) {
+string rebase(const string& impl, const string& var) {
     stringstream input(impl);
     string line, output;
     while(getline(input, line)) {
