@@ -278,6 +278,7 @@ int main(int argc, char* argv[]) {
                 out << service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
                 //out << service->vardecl;
                 for(const auto& var : service->packs) service->internalTypes.vars[var] = nullptr;// hack to prevent redeclaration of arguments in the next line
+                for(const auto& arg : service->args) service->internalTypes.vars[arg.name] = nullptr;
                 for(const auto& var : service->internalTypes.vars) if(var.second && var.second->_is_primitive && var.second->name!="buffer" && var.second->name!="__label") out << var.second->name << " " << var.first << "=0;\n";
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;

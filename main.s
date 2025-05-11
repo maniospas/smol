@@ -1,6 +1,6 @@
 @include std
 
-smo addmut(i64 &v1, i64 &v2)
+service addmut(i64 &v1, i64 &v2)
     v1 = v1:add(v2)
     --
 
