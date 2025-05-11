@@ -1,11 +1,12 @@
 @include std
 
-smo add2(str v1, str v2)
-    v1 = v1:add(v2)
-    -> v1
+smo Point(f64 x, f64 y) -> @new
+smo Point() 
+    start = Point(0.0, 0.0)
+    -> start // as a single argument it is directly unpacked
+
 
 service main()
-    r1 = "aa":str
-    r2 = "bb":str
-    r1 = add2(r1,r2)
-    print(r1)
+    s = Point()
+    print(s.x) // not s.start.x
+    --

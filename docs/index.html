@@ -48,7 +48,8 @@
 
 <p><em>A safe & fast low-level language.</em></p>
 
-<p><i>Smoλ</i>  (pronounced like "small" but with "o" instead of "a") is a low-level language with fast zero-cost abstractions that are organized into fail-safe services.
+<p><i>Smoλ</i>  (pronounced like "small" but with "o" instead of "a") is a low-level language with fast zero-cost abstractions that are organized 
+into safe services.
 Its core is tiny — really tiny! So tiny, in fact, that functions like printing and basic
 arithmetic operations are externally implemented in the standard library with a direct-to-C++ interface.
 Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="repository">GitHub</a> to keep track of progress.</p>
@@ -61,12 +62,12 @@ Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="rep
 <p>Download <i>smoλ</i> from its <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>
 or build it from source by cloning the repository and running <code class="bash">g++ smolang.cpp -o smol -O2 -std=c++23</code>.
 As you can see, the language is so lightweight that there is no need for a build system and its main executable consumes less than 300kB
-... plus GCC or Clang. Ensure that both the <i>smol</i> executable and GCC are available in your system path.
+... plus a GCC distribution. Ensure that both the <i>smol</i> executable and GCC are in your system path.
 </p>
 
 <p>
 A language server is provided as a VSCode extension named <i>smoλ (smolambda)</i>;
-search for the symbolic transcription in the parenthesis, or get it from 
+search for the symbolic transcription in the parenthesis in the extensions tab, or get it from 
 <a href="https://marketplace.visualstudio.com/items?itemName=maniospas.smolambda">here</a>.</p>
 
 <h3>What's interesting?</h3>
@@ -206,6 +207,36 @@ which are the C equivalents. If these are stored in buffers, they still use a fo
 runtypes, like strings, hand-craft more efficient computations through the C++ interface. Similarly, you can find the
 <code class="language-smolambda">errcode</code> builtin
 as a means of handling failing services. This has an unknown number of bits because it is implemented as a C++ int.</p> 
+
+<h3>Fields and tail move</h3>
+<p>Values returned from runtypes are always organized into a tuple. However, you can access named fields of that
+tuple, given that internal variables are returned. In previous examples, this means that we could access fields like
+<i>x,y,start,end</i> given that they have been internally assigned to variables.
+</p>
+
+<p>Field access works a little differently when there is only one value returned: in this case
+the return is treated as if returning that value directly. That is, you access that value's fields.
+An example of this concept is presented below, where the overloaded <i>Point</i>
+runtype with no arguments directly returns a version constructed with two arguments. This mechanism
+allows for wrapper runtypes that perform concise substitution of original functionality. For example,
+you can overload multiple versions of the same runtype that yield the same result from different argumets, 
+like in the example.
+</p>
+
+<pre><code class="language-smolambda">@include std
+
+smo Point(f64 x, f64 y) -> @new
+smo Point() 
+    start = Point(0.0, 0.0)
+    -> start // as a single argument it is directly unpacked
+
+
+service main()
+    s = Point()
+    print(s.x) // not s.start.x
+    --
+</code></pre>
+
 
 <h3>Mutability (call by reference)</h3>
 
