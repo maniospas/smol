@@ -12,7 +12,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         string var = create_temp();
         if(types.vars.find(vartype)==types.vars.end()) return first_token;// fallback
         internalTypes.vars[var] = types.vars.find(vartype)->second;
-        vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
+        // vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
         implementation += var+" = "+first_token+";\n";
         return next_var(imp, p, var, types);
     }
@@ -28,9 +28,9 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         string inherit_buffer("");
         vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer, curry);
         if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
-        vardecl += "u64 "+var+"__size = 0;\n";
-        vardecl += "u64 "+var+"__offset = 0;\n";
-        vardecl += "ptr "+var+"__contents;\n";
+        // vardecl += "u64 "+var+"__size = 0;\n";
+        // vardecl += "u64 "+var+"__offset = 0;\n";
+        // vardecl += "ptr "+var+"__contents;\n";
         implementation += "if("+var+"__size-"+var+"__offset) free("+var+"__contents);\n";
         implementation += var+"__size = "+to_string(unpacks.size())+(inherit_buffer.size()?(" + "+inherit_buffer+"__size"):"")+" + 1;\n";
         implementation += var+"__offset = 1;\n";
@@ -142,7 +142,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             for(int i=0;i<remaining;++i) {
                 string cast = type->_is_primitive?type->name:type->args[unpacks.size()].type->name; // don't add i because we push back the element
                 string element = "__"+arg+"__"+to_string(i);
-                if(internalTypes.vars.find(element)==internalTypes.vars.end()) vardecl += cast+" "+element+";\n";
+                if(internalTypes.vars.find(element)==internalTypes.vars.end()) // vardecl += cast+" "+element+";\n";
                 implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "__contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"__offset), sizeof("+element+"));\n";
                 internalTypes.vars[element] = types.vars[cast];
                 unpacks.push_back(element);
@@ -151,7 +151,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         }
         if(type->is_service) {
             var = create_temp();
-            vardecl += "errcode "+var+"__err = 0;\n";
+            // vardecl += "errcode "+var+"__err = 0;\n";
             string impl = var+"__err = "+type->name+"(";
             internalTypes.vars[var+"__err"] = types.vars["errcode"];
             internalTypes.vars[var] = type;
@@ -184,13 +184,13 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         }
         internalTypes.vars[var] = type;
 
-        vardecl += type->rebase(type->vardecl, var);
+        // vardecl += type->rebase(type->vardecl, var);
         implementation += type->rebase(type->implementation, var);
         preample += type->rebase(type->preample, var);
         finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
         errors = errors+type->rebase(type->errors, var);
 
-        if(type->packs.size()==1 && type->packs[0]=="@scope") {
+        /*if(type->packs.size()==1 && type->packs[0]=="@scope") {
             auto def = make_shared<Def>();
             def->name = "parsed expression";
             def->internalTypes.vars["__finally"] = types.vars["__label"];
@@ -199,7 +199,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             def->parse(imp, p, types, false); // this consumes until return
             p++;
 
-            vardecl += def->rebase(def->vardecl, var, internalTypes, false);
+            // vardecl += def->rebase(def->vardecl, var, internalTypes, false);
             implementation += def->rebase(def->implementation, var, internalTypes);
             preample += def->rebase(def->preample, var, internalTypes);
             finals = def->rebase(def->finals, var, internalTypes)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
@@ -216,7 +216,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             def->errors = "";
             def ->vardecl = "";
             internalTypes.vars[var] = def;
-        }
+        }*/
 
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
         //implementation += finals; // TODO this should not occur here because it has deallocations and the like

@@ -4,8 +4,8 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
     next = imp->at(p++);
     if(next=="@") {
         next = imp->at(p++);
-        if(next == "scope") packs.push_back("@scope");
-        else {
+        /*if(next == "scope") packs.push_back("@scope");
+        else*/ {
             if(next!="new") imp->error(--p, "Use `->@new` or `->@scope`");
             for (const auto& arg : args) packs.push_back(arg.name);
             //unordered_set<string> packSet(packs.begin(), packs.end());

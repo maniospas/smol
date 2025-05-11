@@ -58,7 +58,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
 
                 assign_variable(types.vars["u64"], next+"__size", prev+"__offset + "+end, imp, p, false);
                 // copy the actual size from the first position of the pointer
-                //vardecl += "u64 "+actual_size+";\n";
+                //// vardecl += "u64 "+actual_size+";\n";
                 //implementation += "std::memcpy(&" + actual_size + ", (unsigned char*)" + prev + "__contents, sizeof(u64));\n";
                 // check if we do not get over actual size (size is the end basically, so practical size is size-start)
                 implementation += "if("+next+"__size>"+prev+"__size) goto "+fail_var+";\n";

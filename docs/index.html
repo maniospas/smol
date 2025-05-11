@@ -182,6 +182,34 @@ Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
 everything ends at return statements, at the end of file, or resides in-between
 parentheses and commas.</p>
 
+<h3>Primitives</h3>
+<p>
+<i>smoλ</i> has several primitive types that are the building blocks for creating more complicated runtypes. 
+The standard library implements several operations for primitives. The ones built in the language are 
+64-bit integers, their unsigned version, and floats. These are respectively denoted by
+<code class="language-smolambda">i64</code>, <code class="language-smolambda">u64</code>, and <code class="language-smolambda">f64</code>.
+The last one is equivalent to C++'s <code class="language-smolambda">double</code> numbers.</p>
+
+<p>In addition, <code class="language-smolambda">buffer</code> is a special primitive that safely interfaces with heap memory while remaining
+performant. It is the preferred way for moving large chunks of data around and, in general, has enough bells and wistles that a separate
+section is dedicate to describing it later. These previous types are curated to use
+the same number of 64 bits so as not to create alignment issues when stored and retrieved from buffers.</p>
+
+<p>The language also offers a <code class="language-smolambda">ptr</code> as a means to represent 64-bit address. 
+In most situations you will not use addresses, but they are useful for interweaving more complicated C++ code in ways
+that the compiler can understand (this requires <i>a lot</i> of casts, though you can pack complicated bits in <i>.cpp</i>
+files if you want).
+</p>
+
+<p>For convenience, you can find the <code class="language-smolambda">char</code> and <code class="language-smolambda">bool</code> primitives, 
+which are the C equivalents. If these are stored in buffers, they still use a forcefully imposed 64-bit alignment, unless special
+runtypes, like strings, hand-craft more efficient computations through the C++ interface. Similarly, you can find the
+<code class="language-smolambda">errcode</code> builtin
+as a means of handling failing services. This has an unknown number of bits because it is implemented as a C++ int.</p> 
+
+<p>Finally, <i>smoλ</i> allows declaration of what it calls <i>labels</i>. 
+These are special builtins that are generated on-demand but, as builtins, can only be matched to themselves.
+This way, they are used for alignment.</p>
 
 <h3>Mutability (call by reference)</h3>
 
@@ -207,7 +235,6 @@ service main()
 
 <h3>Currying</h3>
 <p>Runtype calls accept currying notation that transfers a precomputed value to the first argument.
-In general, runtypes are all first-class citizens of the language in that they cannot be set as variables.
 The curry operator is <code class="language-smolambda">:</code> and can be chained. Furthermore, you can omit
 parentheses if there is only one argument and you curry it. Below is an example, where this notation is used to
 have as little nesting as possible.
@@ -220,6 +247,10 @@ service main()
     // equivalent to print(mul(add(1,2), 3))
     --
 </code></pre>
+
+<p>In general, runtypes are all first-class citizens of the language in that they cannot be set as variables.
+However, you can pass a known or type as an argument to denote dummy empty objects.
+</p>
 
 
 <p>Currying lets <i>smoλ</i> avoid methods as fields, as the notation <code class="language-smolambda">obj:rt(args)</code>
@@ -263,8 +294,9 @@ service main()
 <h3>Overloading</h3>
 
 <p>Overload runtypes that are structurally
-different when converted to a flat representation of primitives.
-Runtypes that are equivalent in their expansion into rimitives cannot be used 
+different when converted to a flat representation of primitives 
+(<code class="language-smolambda">i64</code>, <code class="language-smolambda">f64</code>, etc).
+Runtypes that are equivalent in their expansion into primitives cannot be used 
 as part of function signatures due to ambiguity. More on circumventing this issue later.
 As an example, the following definitions come from the standard library.</p>
 
@@ -433,9 +465,10 @@ and c) they provide a compartmentalized execution environment that does not let 
 <p>
 The last point means that, after calling a service within another one,
 you need to consider how to handle prospective errors. The pattern discussed 
-so far is to blindly unpacking results into further service and runtime calls.
-This elegantly fails if an error was previously returned: the error is cascaded
-through the call stack. All those services fail safely by deallocating resources. 
+so far blindly unpacks results into further service and runtime calls.
+This elegantly fails if an error is returned: the latter is cascaded
+through the service call stack until it is handled or it terminates the 
+main service. 
 </p>
 
 
@@ -478,6 +511,45 @@ Don't wanna!
 Something went wrong
 </pre>
 
+<p>
+Services fail safely by deallocating resources, and in fact
+<i>smoλ</i> encourages letting services fail and retrying instead of 
+creating hard-to-implement recovery. Below is an example, where a 
+service is created to handle bug-prone inputs in an isolated environement.
+You could also implement it as a runtype and then have the whole main
+service fail too.
+</p>
+
+
+<pre><code class="language-smolambda">@include std
+
+service get_age() 
+    print("What's your age?")
+    age = i64:read()
+    if(age&lt;=1) fail("Too young for this stuff") --
+    if(age>=140) fail("Too old for this stuff") --
+    -> age
+
+service main()
+    age = get_age()
+    while(age.err:bool) age = get_age() --
+    print("You've seen at least "
+            :add(age:sub(1):str)
+            :add(" years gone by."))
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+What's your age?
+1000
+Too old for this stuff
+What's your age?
+-10
+Too young for this stuff
+What's your age?
+10
+You've seen at least 9 years gone by.
+</pre>
+
 
 <h1 id="buffers">Buffers</h1>
 
@@ -496,8 +568,8 @@ safe runtypes that will be discussed later.</p>
 
 <p>Buffer elements are unpacked from the front until no
 more entries are required for desired runtype calls.
-Popping is memory safe in that it smoothly fails any service
-(e.g., <code class="language-smolambda">main</code>)
+Popping is memory safe in that buffer overflows smoothly fail any service
+(such as <code class="language-smolambda">main</code>)
 with an appropriate error message.
 </p>
 
@@ -508,9 +580,9 @@ smo Field(Point start, Point end) -> @new
 
 service main()
     buf = buffer(1,2,3,4,5)
-    f = Field(buf)   // pops front
-    print(f.start.x) // 1
-    print(i64(buf))  // 5
+    f = Field&(buf)   // pops front
+    print(f.start.x)  // 1
+    print(buf:i64)    // 5
     --
 </code></pre>
 
@@ -538,8 +610,8 @@ service main()
     slice = buf[1:u64 to 3:u64]
     print(slice:i64)        // 1 (pops front from slice)
     print(buf[0:u64]:i64)   // 0 (buf[0] is also a slice)
-    print(buf:i64)          // 0
-    print(slice:i64)        // 2 (slice remains unaffected)
+    print(buf:i64)          // 0 (slice remains unaffected)
+    print(slice:i64)        // 2 (continuing from where we left)
     print(slice:i64)        // CREATES RUNTIME ERROR
     --
 </code></pre>

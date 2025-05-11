@@ -10,6 +10,7 @@
 #include <cctype>
 #include "parser/tokenize.h"
 #include "parser/common.h"
+#include "parser/base64.cpp"
 #include <cctype>
 #include <cstdlib>
 #include <unordered_set>
@@ -40,7 +41,7 @@ public:
 
 class Def {
     static int temp;
-    static string create_temp() {return "__v"+to_string(++temp);}
+    static string create_temp() {return "__"+numberToVar(++temp);}
     #include "parser/recommendations.cpp"
     #include "parser/assign_variable.cpp"
     #include "parser/parse_directive.cpp"
@@ -274,12 +275,17 @@ int main(int argc, char* argv[]) {
                 const auto& service = it.second;
                 out << "\n";
                 out << "errcode ";
-                out << service->raw_signature()+"{\nerrcode __result__errocode = 0;\n";
-                out << service->vardecl;
+                out << service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
+                //out << service->vardecl;
+                for(const auto& var : service->packs) service->internalTypes.vars[var] = nullptr;// hack to prevent redeclaration of arguments in the next line
+                for(const auto& var : service->internalTypes.vars) if(var.second && var.second->_is_primitive && var.second->name!="buffer" && var.second->name!="__label") out << var.second->name << " " << var.first << "=0;\n";
+                out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
+                out << "\n// ERROR HANDLING\n";
                 out << "goto __return;\n"; // skip error handling block that resides at the end of the service
                 out <<"__error:\n"; // error handling (each of those runs goto ____finally)
                 out << service->errors;
+                out << "\n// DEALLOCATE RESOURCES\n";
                 out << "__return:\n"; // resource deallocation
                 out << service->finals;
                 out << "return __result__errocode;\n";

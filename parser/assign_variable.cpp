@@ -14,17 +14,14 @@ void assign_variable(const Type& type, const string& from, const string& to, con
         internalTypes.vars[from] = type;
 
         // the following ensures that we safely update pointers when reallocating them
-        if(type->name!="ptr") vardecl += type->name+" "+from+";\n";
+        /*if(type->name!="ptr") // vardecl += type->name+" "+from+";\n";
         else {
-            if(to=="0") {
-                internalTypes.vars[from+"__NULL"] = type;
-                vardecl += "void* "+from+"__NULL = nullptr;\n" + type->name+" &"+from+" = "+from+"__NULL;\n";
-            }
-            else vardecl += type->name+" &"+from+" = "+to+";\n";
-        }
+            if(to=="0") // vardecl += type->name+" "+from+" = nullptr;\n";
+            else // vardecl += type->name+" "+from+" = "+to+";\n";
+        }*/
         // replace the above line to make the language impure
-        //if(internalTypes.vars.find(to)==internalTypes.vars.end()) vardecl += type->name+" "+from+";\n";
-        //else vardecl += type->name+" &"+from+" = "+to+";\n";
+        //if(internalTypes.vars.find(to)==internalTypes.vars.end()) // vardecl += type->name+" "+from+";\n";
+        //else // vardecl += type->name+" &"+from+" = "+to+";\n";
     }
     else if(it->second!=type) imp->error(--p, "Cannot assign to "+it->second->name+" "+pretty_var(from)+" from "+type->name+" "+pretty_var(to));
     implementation += from+" = "+to+";\n";

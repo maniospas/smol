@@ -13,13 +13,14 @@ string rebase(string& impl, const string& var) {
             while (i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) i++;
             string token = line.substr(start, i - start);
             string prev_token = token;
-            output += internalTypes.vars.find(prev_token)!=internalTypes.vars.end() ? var + "__" + token : token;
+            bool found = internalTypes.contains(prev_token);
+            output += found ? var + "__" + token : token;
         }
         output += '\n';
     }
     return output;
 }
-
+/*
 string rebase(string& impl, const string& var, const Memory& keep_parent, bool noskip=true) {
     stringstream input(impl);
     string line, output;
@@ -47,3 +48,4 @@ string rebase(string& impl, const string& var, const Memory& keep_parent, bool n
     }
     return output;
 }
+*/

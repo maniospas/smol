@@ -89,11 +89,11 @@ smo add(str x, str y)
     @body{
         u64 len_x = x__length;
         u64 len_y = y__length;
-        ptr contents = malloc(len_x + len_y + 1);
-        if(contents){strcpy((char*)contents, (const char*)x__contents);strcat((char*)contents, (const char*)y__contents);char first=((char*)contents)[0];}
+        ptr _contents = malloc(len_x + len_y + 1);
+        if(_contents){strcpy((char*)_contents, (const char*)x__contents);strcat((char*)_contents, (const char*)y__contents);}
     }
-    @finally{if(contents)free(contents);}
-    -> str(contents, add(x.length, y.length), first)
+    @finally{if(_contents)free(_contents);}
+    -> str(_contents, add(x.length, y.length), x.first)
 
 smo add(str x, cstr y)
     @head{#include <string.h>}
@@ -101,11 +101,11 @@ smo add(str x, cstr y)
     @body{
         u64 len_x = x__length;
         u64 len_y = strlen(y);
-        ptr contents = malloc(len_x + len_y + 1);
-        if(contents){strcpy((char*)contents, (const char*)x__contents);strcat((char*)contents, (const char*)y);char first=((char*)contents)[0];}
+        ptr _contents = malloc(len_x + len_y + 1);
+        if(_contents){strcpy((char*)_contents, (const char*)x__contents);strcat((char*)_contents, (const char*)y);char first=((char*)_contents)[0];}
     }
-    @finally{if(contents)free(contents);}
-    -> str(contents, add(x.length, len_y), first)
+    @finally{if(_contents)free(_contents);}
+    -> str(_contents, add(x.length, len_y), x.first)
 
 
 smo add(cstr x, str y)
@@ -114,16 +114,16 @@ smo add(cstr x, str y)
     @body{
         u64 len_x = strlen(x);
         u64 len_y = y__length;
-        ptr contents = malloc(len_x + len_y + 1);
-        if(contents){strcpy((char*)contents, (const char*)x);strcat((char*)contents, (const char*)y__contents);char first=((char*)contents)[0];}
+        ptr _contents = malloc(len_x + len_y + 1);
+        if(_contents){strcpy((char*)_contents, (const char*)x);strcat((char*)_contents, (const char*)y__contents);char first=((char*)_contents)[0];}
     }
-    if(contents:exists:not())
+    if(_contents:exists:not())
         @fail{printf("Failed to allocate str\n");}
         --
-    @finally{if(contents)free(contents);}
-    -> str(contents, add(len_x, y.length), first)
+    @finally{if(_contents)free(_contents);}
+    -> str(_contents, add(len_x, y.length), first)
 
-smo read(str)
+smo read(cstr)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @body{

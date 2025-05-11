@@ -67,8 +67,8 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
         }
         else parse_expression(imp, p, next, types);
     }
-    if(with_signature) {
+    /*if(with_signature) {
         internalTypes.vars["__end"] = types.vars["__label"];
         implementation += "__end:\n";
-    }
+    }*/
 }

@@ -21,11 +21,11 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
         if(!accepted_var_name(next)) imp->error(--p, "Not a valid name");
         if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Missing runtype");
         string arg_name = imp->at(p++);
+        if(arg_name=="&") {mut = true;arg_name = imp->at(p++);}
         if(arg_name=="," || arg_name==")") {
             arg_name = create_temp();
             --p;
         }
-        if(arg_name=="&") {mut = true;arg_name = imp->at(p++);}
         if(!accepted_var_name(arg_name)) imp->error(--p, "Not a valid name");
         if(types.vars.find(arg_name)!=types.vars.end()) imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
         Type argType = types.vars.find(next)->second;
@@ -53,7 +53,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
                 //if(debug) cout << arg_name<<" "<<it.type->name<<"\n";
                 args.emplace_back(arg_name+"__"+it.name, it.type, mut);
                 internalTypes.vars[arg_name+"__"+it.name] = it.type;
-                vardecl += it.type->rebase(it.type->vardecl, arg_name);
+                // vardecl += it.type->rebase(it.type->vardecl, arg_name);
                 implementation += it.type->rebase(it.type->implementation, arg_name);
                 preample += it.type->rebase(it.type->preample, arg_name);
                 finals = it.type->rebase(it.type->finals, arg_name)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
