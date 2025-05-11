@@ -40,8 +40,7 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
                 if(p && imp->at(p-1)==")") {
                     // if we are directly returning a proxy, unpack that proxy here
                     for(const string& pack : internalTypes.vars[next]->packs) {
-                        implementation += pack+" = "+next+"__"+pack+";\n";
-                        internalTypes.vars[pack] = internalTypes.vars[next]->internalTypes.vars[pack];
+                        assign_variable(internalTypes.vars[next]->internalTypes.vars[pack], pack, next+"__"+pack, imp, p);
                         packs.push_back(pack);
                     }
                 }

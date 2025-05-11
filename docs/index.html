@@ -99,13 +99,13 @@ returning a tuple of all arguments. This is useful for declaring structural data
 <p>Write something like <code class="language-smolambda">p = Point(...)</code> 
 to access all returned named variables using notation like
 <code class="language-smolambda">p.x</code> and <code class="language-smolambda">p.y</code>.
-Unpack the result as part of arguments to other runtypes. Arguments are always flat
-(there is no tuple of tuples) and can be reinterpreted in various ways
+Unpack the result directly in other runtype calls, provided that primitive types match. All arguments are flat
+-tuples are unwrapped to more lements- and can be reinterpreted in various ways
 as long as primitive types match. Safety options for this are presented later.</p>
 
 <p>Put all main business logic inside a <code class="language-smolambda">service main()</code> definition.
-Being a service means that errors occurring inside are "caught" while performing safe allocation and deallocation. 
-Services are also intrinsically parallel, can call each other, and handle returned errors. But more on them later.
+Services "catch" internal errors, safely handling allocation and deallocation.
+They are also intrinsically parallel, can call each other, and handle returned errors. But more on them later.
 For now, the main service is the program and the <code class="language-smolambda">--</code> symbol at its end indicates no returns.</p>
 
 <h3>Control flow</h3>
@@ -130,11 +130,11 @@ service main()
 <p>
 There are no break and continue statements for loops because these can be emulated with other notation.
 First, as a styling choice, do not indent conditions that run from a position until the end of the loop's
-body but instead place. An example is shown below. This also shows how to break loops by returning multiple
-steps back - an operating we call <i>uplifting</i> of return values. 
+body but instead put the end condition's and loop's ending together. An example is shown below. 
+This also shows how to break loops by returning multiple
+steps back - an operation we call <i>uplifting</i> of return values. 
 The syntax for uplifting is to prepend
-<code class="language-smolambda">^</code> in the middle of returns. 
-This operation is called <i>uplifting</i>. 
+<code class="language-smolambda">^</code> in the middle of returns.
 </p>
 
 
@@ -177,7 +177,7 @@ later, but for now notice that a basic scan is also made to expose primitive typ
 </p>
 <p>
 If you don't want to return anything, use <code class="language-smolambda">--</code>.
-Return symbols form visual barriers that are easy to spot while remaining ... small.
+Return symbols act as visual barriers that are easy to spot while remaining ... small.
 Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
 everything ends at return statements, at the end of file, or resides in-between
 parentheses and commas.</p>
@@ -191,7 +191,7 @@ The standard library implements several operations for primitives. The ones buil
 The last one is equivalent to C++'s <code class="language-smolambda">double</code> numbers.</p>
 
 <p>In addition, <code class="language-smolambda">buffer</code> is a special primitive that safely interfaces with heap memory while remaining
-performant. It is the preferred way for moving large chunks of data around and, in general, has enough bells and wistles that a separate
+performant. It is the preferred way for moving large chunks of data around and, in general, has enough bells and whistles that a separate
 section is dedicate to describing it later. These previous types are curated to use
 the same number of 64 bits so as not to create alignment issues when stored and retrieved from buffers.</p>
 
@@ -206,10 +206,6 @@ which are the C equivalents. If these are stored in buffers, they still use a fo
 runtypes, like strings, hand-craft more efficient computations through the C++ interface. Similarly, you can find the
 <code class="language-smolambda">errcode</code> builtin
 as a means of handling failing services. This has an unknown number of bits because it is implemented as a C++ int.</p> 
-
-<p>Finally, <i>smoλ</i> allows declaration of what it calls <i>labels</i>. 
-These are special builtins that are generated on-demand but, as builtins, can only be matched to themselves.
-This way, they are used for alignment.</p>
 
 <h3>Mutability (call by reference)</h3>
 
@@ -391,38 +387,6 @@ service main()
 </code></pre>
 
 
-<h3>Labels</h3>
-
-<p>
-The so-called <i>labels</i> are special builtins that 
-you define as structurally equivalent to
-only themselves. Adding labels to rutype arguments or
-returns adds safety in interpreting results.
-</p>
-<p>Defining
-a label is as simple as prepending any valid runtype name 
-with <code class="language-smolambda">&</code>.
-This includes prepending runtypes. Labels are zero-cost
-abstractions in that most usage is optimized away by the
-compiler but
-</p>
-
-<pre><code class="language-smolambda">@include std
-
-smo Point(&Field, i64 x, i64 y) -> @new
-smo Field(Point start, Point end) -> @new
-
-service main()
-    p = Point(2,3)
-    f = Field(1,p,5)
-    print(f.start.x + f.start.y) // 6
-    --
-</code></pre>
-
-
-
-
-
 <h1 id="service">Services</h1>
 
 <p>So far we have been writing <code class="language-smolambda">service main()</code> as the entrant
@@ -447,7 +411,7 @@ service main()
 
 <h3>Why services?</h3>
 
-<p>Services are basically functions with multiple returns but no field access. 
+<p>Semantically, services are functions with multiple returns but no field access. 
 So from the viewpoint of merging types and functions, they are a step backwards.
 What's more, they cost a few additional operations per call, as they need to actually push the call 
 to the stack and cascade
@@ -515,7 +479,7 @@ Something went wrong
 Services fail safely by deallocating resources, and in fact
 <i>smoλ</i> encourages letting services fail and retrying instead of 
 creating hard-to-implement recovery. Below is an example, where a 
-service is created to handle bug-prone inputs in an isolated environement.
+service is created to handle bug-prone inputs in an isolated environment.
 You could also implement it as a runtype and then have the whole main
 service fail too.
 </p>
@@ -597,8 +561,8 @@ or contain starting and non-inclusive end elements separated by <code class="lan
 </p>
 
 <p>
-You can change the separing operator to <code class="language-smolambda">upto</code> to make the last element inclusive,
-or <code class="language-smolambda">lento</code> to specify the number of elements in the sluce.
+You can change the separating operator to <code class="language-smolambda">upto</code> to make the last element inclusive,
+or <code class="language-smolambda">lento</code> to specify the number of elements in the slice.
 Below is an example of slicing. <i>All operations are near-zero-cost abstractions, 
 with the exception that specifying an end also checks for bounds compared to the enclosing slice.</i>
 </p>
@@ -658,7 +622,7 @@ it also supports string handling.
 <p>Basic functionalies are introduced for the console, namely reading and printing. These support all escape characters
 C++ can support, including ANSI codes for colorization. They have also been overloaded for integers, floats, and -as seen in the next
 segment- strings. Reading failure fails the current service under <i>smoλ</i>'s guidelines that services should fail completely and rerun
-instead of trying to recover from ivnalid states. Here's an example:
+instead of trying to recover from invalid states. Here's an example:
 </p>
 
 <pre><code class="language-smolambda">@include std
