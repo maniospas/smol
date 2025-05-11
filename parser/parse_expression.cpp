@@ -177,10 +177,10 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             assign_variable(type, var, unpacks[0], imp, p);
             return next_var(imp, p, var, types);
         }
-        //string finals("");
+        string immediate_finals("");
         for(size_t i=0;i<unpacks.size();++i) {
             assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
-            if(type->args[i].mut) finals += unpacks[i]+" = "+var+"__"+type->args[i].name+";\n";
+            if(type->args[i].mut) immediate_finals += unpacks[i]+" = "+var+"__"+type->args[i].name+";\n";
         }
         internalTypes.vars[var] = type;
 
@@ -190,36 +190,8 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
         errors = errors+type->rebase(type->errors, var);
 
-        /*if(type->packs.size()==1 && type->packs[0]=="@scope") {
-            auto def = make_shared<Def>();
-            def->name = "parsed expression";
-            def->internalTypes.vars["__finally"] = types.vars["__label"];
-            //def->internalTypes.vars["start"] = types.vars["__label"];
-            for(const auto& it : internalTypes.vars) def->internalTypes.vars[it.first] = it.second;
-            def->parse(imp, p, types, false); // this consumes until return
-            p++;
-
-            // vardecl += def->rebase(def->vardecl, var, internalTypes, false);
-            implementation += def->rebase(def->implementation, var, internalTypes);
-            preample += def->rebase(def->preample, var, internalTypes);
-            finals = def->rebase(def->finals, var, internalTypes)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
-            errors = errors+def->rebase(def->errors, var, internalTypes);
-            for(const auto& it : def->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
-            internalTypes.vars[var+"____finally"] = types.vars.find("__label")->second;
-            //internalTypes.vars[var+"__start"] = types.vars["__label"];
-            implementation = var+"__start:\n"+implementation+var+"____finally:\n";
-
-            // we can now discard implementations for efficiency because we will never use them again
-            def->implementation = "";
-            def->preample = "";
-            def->finals = "";
-            def->errors = "";
-            def ->vardecl = "";
-            internalTypes.vars[var] = def;
-        }*/
-
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
-        //implementation += finals; // TODO this should not occur here because it has deallocations and the like
+        implementation += immediate_finals; // TODO this should not occur here because it has deallocations and the like
 
         if(type->packs.size()==1) {
             if(type->packs[0]=="@scope") {

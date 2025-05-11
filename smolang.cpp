@@ -281,10 +281,12 @@ int main(int argc, char* argv[]) {
                 for(const auto& var : service->internalTypes.vars) if(var.second && var.second->_is_primitive && var.second->name!="buffer" && var.second->name!="__label") out << var.second->name << " " << var.first << "=0;\n";
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
-                out << "\n// ERROR HANDLING\n";
-                out << "goto __return;\n"; // skip error handling block that resides at the end of the service
-                out <<"__error:\n"; // error handling (each of those runs goto ____finally)
-                out << service->errors;
+                if(service->errors.size()) {
+                    out << "\n// ERROR HANDLING\n";
+                    out << "goto __return;\n"; // skip error handling block that resides at the end of the service
+                    //out <<"__error:\n"; // error handling (each of those runs goto ____finally)
+                    out << service->errors;
+                }
                 out << "\n// DEALLOCATE RESOURCES\n";
                 out << "__return:\n"; // resource deallocation
                 out << service->finals;
