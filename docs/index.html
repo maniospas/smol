@@ -36,6 +36,7 @@
 <div class="navbar">
   <a href="#home">Home</a>
   <a href="#quickstart">Quickstart</a>
+  <a href="#flow">Flow</a>
   <a href="#smo">Runtypes</a>
   <a href="#service">Services</a>
   <a href="#buffers">Buffers</a>
@@ -109,48 +110,121 @@ Services "catch" internal errors, safely handling allocation and deallocation.
 They are also intrinsically parallel, can call each other, and handle returned errors. But more on them later.
 For now, the main service is the program and the <code class="language-smolambda">--</code> symbol at its end indicates no returns.</p>
 
-<h3>Control flow</h3>
+<h1 id="flow">Flow</h1>
 
 <p>
-<i>smoλ</i> offers conditions and loops. These return values -or no values- to
-designate an end. Below is an example of those, where arguments to conditions and loops must always evaluate to booleans.
+<i>smoλ</i> offers conditions and loops to control the flow of a program. 
+These return values -or no values- to
+designate an end of the loop body or block. Below is an example of those, 
+where arguments to conditions and loops must always evaluate to booleans.
 The <code class="language-smolambda">else</code> branch of conditions is optional. 
+You can also optionally add parentheses for clarity in conditions, but this is not 
+needed because the end of expressions is always unique.
 </p>
 
 <pre><code class="language-smolambda">@include std
 
 service main()
     i = 0
-    while(i&lt;10) 
+    while i&lt;10
         if(i%2) print("Even "+str(i)) --
         else print("Odd "+str(i)) --
         i = i+1
     ---- // ends `while` then `main` 
 </code></pre>
 
+
+<h3>@next</h3>
+
 <p>
-There are no break and continue statements for loops because these can be emulated with other notation.
-First, as a styling choice, do not indent conditions that run from a position until the end of the loop's
-body but instead put the end condition's and loop's ending together. An example is shown below. 
-This also shows how to break loops by returning multiple
-steps back - an operation we call <i>uplifting</i> of return values. 
-The syntax for uplifting is to prepend
-<code class="language-smolambda">^</code> in the middle of returns.
+It is often convenient to compute a value but assign it at the variable at the
+end of the current control flow's body, for example to denote the next value
+in a loop while retaining the current value until that point. 
+This is achieved with the <code class="language-smolambda">@next</code> 
+instruction. Note the <i>@</i> prefix to remind that it might affect
+your code later.
 </p>
 
 
 <pre><code class="language-smolambda">@include std
 
 service main()
-    i = 511
-    while(i&lt;10)
-        i = i+1
-        if(i%7==0) ^- // break
-        if(i%2==0)
+    i=0 while i&lt;10 @next i = i+1
+    j=0 while j&lt;10 @next j = j+1
+        i:str:add(" "):add(j:str):print()
+    ------
+</code></pre>
+
+
+<p>Aside from loops, the same mechanism is useful for scrambling values.
+This is shown below, where <code class="language-smolambda">if(true)</code> 
+is used to isolate the next values and intercept the internal return.
+Thus, the always true condition is actually useful similarly how an always 
+true loop condition is also useful.
+</p>
+
+<pre><code class="language-smolambda">@include std
+
+service main()
+    i = 1
+    j = 2
+    if(true) 
+        @next i = j
+        @next j = i
+        --
+    print(j) // 1
+    --
+</code></pre>
+    
+
+
+
+<h3>Uplifting (breaking with a return)</h3>
+
+
+<p>
+There are no break and continue statements for loops because these can be emulated with other notation.
+First, as a styling choice, do not indent conditions that run from a position until the end of the loop's
+body but instead put the end condition's and loop's ending together. An example is shown below. 
+</p>
+<p>
+The example also demonstrates how to break loops by returning multiple
+steps back. This operation is called <i>uplifting</i> of return values. 
+The syntax for uplifting is to insert
+<code class="language-smolambda">></code> in the middle of returns.
+You can uplift several times to escape from nested control flow.
+For example, <code class="language-smolambda">->-</code> breaks
+from a condition within a loop and <code class="language-smolambda">->>></code>
+to return a runtype result from a condition within a loop.
+</p>
+
+
+<pre><code class="language-smolambda">@include std
+
+service main()
+    i = 511 while i&lt;10 @next i = i+1
+        if i%7==0 ->- // break
+        if i%2==0
             print(i)
     ------ // ends `if`, then `while`, then `main`
 </code></pre>
-    
+
+<p>
+Below is an even more complicated example.
+</p>
+
+
+<pre><code class="language-smolambda">@include std
+
+service main()
+    i=0 while i&lt;10 @next i = i+1
+    j=0 while j&lt;10 @next j = j+1
+        i:str:add(" "):add(j:str):print()
+        if 5==i+j
+            print("done") 
+            ->>>-
+    ------
+</code></pre>
 
 
 <h1 id="smo">Runtypes</h1>
@@ -185,7 +259,7 @@ parentheses and commas.</p>
 
 <h3>Primitives</h3>
 <p>
-<i>smoλ</i> has several primitive types that are the building blocks for creating more complicated runtypes. 
+<i>smoλ</i> has several primitive types for building more complicated runtypes. 
 The standard library implements several operations for primitives. The ones built in the language are 
 64-bit integers, their unsigned version, and floats. These are respectively denoted by
 <code class="language-smolambda">i64</code>, <code class="language-smolambda">u64</code>, and <code class="language-smolambda">f64</code>.
@@ -442,10 +516,9 @@ service main()
 
 <h3>Why services?</h3>
 
-<p>Semantically, services are functions with multiple returns but no field access. 
-So from the viewpoint of merging types and functions, they are a step backwards.
-What's more, they cost a few additional operations per call, as they need to actually push the call 
-to the stack and cascade
+<p>Semantically, services are equivalent to runtypes with error handling and the implementation restriction that they
+do not accept arguments by reference. However, they costs a some additional operations per call, 
+as they need to actually push the call to the stack and cascade
 unhandled errors. So they are less efficient if you, say, call them millions of times per second.
 </p>
 <p>
@@ -461,8 +534,8 @@ and c) they provide a compartmentalized execution environment that does not let 
 The last point means that, after calling a service within another one,
 you need to consider how to handle prospective errors. The pattern discussed 
 so far blindly unpacks results into further service and runtime calls.
-This elegantly fails if an error is returned: the latter is cascaded
-through the service call stack until it is handled or it terminates the 
+This elegantly fails if an error is returned: it is cascaded
+through the service call stack until handled. Or it eventually terminates the 
 main service. 
 </p>
 
@@ -484,9 +557,9 @@ Runtime error: `square y` contains an error
 </pre>
 
 <p>
-You can check for the error code of errors by accessing them from the service's result per
+You can check for the error code of services by accessing it from the result per
 <code class="language-smolambda">result.err</code>. By convention, error codes are skipped
-when unpacking services, essentially reserving field access for error handling but retaining
+when unpacking values, essentially reserving field access for error handling but retaining
 usage in further code.
 </p>
 
@@ -687,6 +760,32 @@ service main()
 </code></pre>
 
 
+<p>Buffers and standard library implementations, like strings, are
+safe to return from services. In that case, deallocation instructions
+are transferred upwards, but still performed 
+on failure. Note that the C++ interface is generally unsafe
+and requires extensive tests to demonsrate correctness. However, once
+safe implementations are provided, you can reuse those.
+</p>
+
+<pre><code class="language-smolambda">@include std
+
+service add_service(str v1, str v2) 
+    i = 0
+    while(i&lt;10)
+        v2 = v2:add("c")
+        i = i+1
+        --
+    -> v1:add(v2)
+
+service main()
+    r1 = "aa":str
+    r2 = "bb":str
+    r1 = add_service(r1,r2)
+    print(r1)
+</code></pre>
+    
+
 </div>
 <script src="vendor/prism/prism.min.js"></script>
 <script>
@@ -702,7 +801,7 @@ Prism.languages.smolambda = {
       greedy: true
     },
     {
-      pattern: /(?:-->|->|--|\:|\=)/,
+      pattern: /(?:-->|->-|->>>|->>-|->>|->|--|\:|\=)/,
       greedy: true
     }
   ],

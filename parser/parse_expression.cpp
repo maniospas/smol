@@ -1,4 +1,13 @@
 string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
+    if(first_token=="(") {
+        string ret = parse_expression(imp, p, imp->at(p++), types, curry);
+        if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
+        return ret;
+    }
+    return parse_expression_no_par(imp, p, first_token, types, curry);
+}
+
+string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
     size_t first_token_pos = p-1;
     if(first_token=="." || first_token==":" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
     if(is_primitive(first_token)) {

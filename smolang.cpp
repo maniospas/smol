@@ -63,6 +63,7 @@ public:
     string name, preample, vardecl, implementation, errors;
     unordered_map<string, string> finals;
     unordered_map<string, Type> parametric_types;
+    vector<string> uplifting_targets;
     void coallesce_finals(const string& original) {
         // TODO: optimize this
         unordered_set<string> previous;

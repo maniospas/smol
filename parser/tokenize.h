@@ -171,7 +171,7 @@ auto tokenize(const string& path) {
                 col++;
                 continue;
             }
-            else if (!in_brackets && line[i]=='>' && i && line[i-1]!='-') {
+            else if (!in_brackets && line[i]=='>' && i && line[i-1]!='-' && line[i-1]!='>') {
                 tokens.emplace_back(":", line_num, col, main_file);
                 tokens.emplace_back("gt", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
