@@ -50,6 +50,7 @@ class Def {
     #include "parser/parse_return.cpp"
     #include "parser/parse_signature.cpp"
 public:
+    int choice_power;
     bool is_service;
     bool _is_primitive;
     bool lazy_compile;
@@ -78,8 +79,8 @@ public:
         }
     }
 
-    Def(const string& builtin): is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), preample(""), vardecl(""), implementation(""), errors("") {}
-    Def(): is_service(false), _is_primitive(false), lazy_compile(false), name(""), preample(""), vardecl(""), implementation(""), errors("") {}
+    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), preample(""), vardecl(""), implementation(""), errors("") {}
+    Def(): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), name(""), preample(""), vardecl(""), implementation(""), errors("") {}
     vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer, const string& curry);
     inline bool not_primitive() const {return !_is_primitive;}
     string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test=true);
@@ -146,14 +147,6 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
                 }
                 if(files[path].all_errors.size()) imp->error(p, "Errors in included file: "+path);
                 p++;
-                /*if(imported.find(path)!=imported.end()) imp->error(p, "Already included: "+path);
-                imported.insert(path);
-                auto new_tokens = tokenize(path);
-                p += 1;
-                imp->tokens.reserve(imp->tokens.size() + new_tokens->tokens.size());
-                imp->tokens.insert(imp->tokens.begin() + p,new_tokens->tokens.size(),Token());
-                std::move(new_tokens->tokens.begin(), new_tokens->tokens.end(),imp->tokens.begin() + p);
-                new_tokens->tokens.clear();*/
                 continue;
             }
             else if(imp->at(p)=="smo" || imp->at(p)=="service") {

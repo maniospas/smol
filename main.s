@@ -1,10 +1,9 @@
 @include std
 
-smo popstr(str value) -> value
-
 service main()
+    name = str:read
     buf = buffer(str("hi"))
-    s = buf:popstr
+    s = buf:str
     print(s)
     print(s:len)
     --

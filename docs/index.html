@@ -492,6 +492,30 @@ service main()
 </code></pre>
 
 
+<h3>@new</h3>
+
+<p>Till now we used <code class="language-smolambda">->@new</code> returns as a shorthand for returning
+input values. However, this statement type of return helps disambiguate sitatuons where overloading and
+unions may not be able to reach a clear resolution. In particular, if exactly one of the competing runtypes
+has this kind of return declaration, that is used as the choice that breaks the stalemate.
+</p>
+
+<p>For example, consider the following very simple program that reads from the console and manipulates strings
+with a standard library implementation. The <code class="language-smolambda">str</code> runtype is overloaded
+to allow various conversions to other primitives. However, we are still able to identify a specific variation, 
+which in turn is used to identify and call <code class="language-smolambda">str:read</code>.</p>
+
+<pre><code class="language-smolambda">@include std
+
+service main()
+    print("What's your name?")
+    name = str:read
+    print("Hi "+name+"!")
+    --
+</code></pre>
+
+
+
 <h1 id="service">Services</h1>
 
 <p>So far we have been writing <code class="language-smolambda">service main()</code> as the entrant

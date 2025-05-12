@@ -95,7 +95,22 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             else unpacks.push_back(curry);
         }
         else if(imp->at(p)==")" || imp->at(p)=="]" || imp->at(p)=="," || imp->at(p)==":") {
-            if(type->options.size()>1) imp->error(--p, "Overloaded or union runtype names are ambiguous");
+            int num_choices = 0;
+            int highest_choice_power = 0;
+            string candidates("");
+            if(type->options.size()==1) {type = type->options[0];num_choices=1;}
+            else for(const auto& option : type->options) {
+                if(option->choice_power>highest_choice_power) {
+                    highest_choice_power = option->choice_power;
+                    num_choices = 0;
+                    candidates = "";
+                }
+                if(option->choice_power<highest_choice_power) continue;
+                num_choices ++;
+                type = option;
+                candidates += "\n"+option->signature();
+            }
+            if(num_choices!=1) imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@new return\nto break the priority stalemate.\nCandidates:"+candidates);
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
                 string var = create_temp();
                 assign_variable(type->args[i].type, var, "0", imp, p, true);
@@ -120,6 +135,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         int numberOfFound = 0;
         int numberOfErrors = 0;
         Type previousType = type;
+        int highest_choice_power = 0;
         for(size_t i=0;i<unpacks.size();++i) 
             if(!internalTypes.vars.contains(unpacks[i])) 
                 imp->error(p-3, "Missing symbol: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
@@ -139,6 +155,12 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                     if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
                         throw std::runtime_error(type->signature()+": Expecting " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 }
+                if(type->choice_power>highest_choice_power) {
+                    highest_choice_power = type->choice_power;
+                    numberOfFound = 0;
+                    multipleFound = "";
+                }
+                if(type->choice_power<highest_choice_power) continue;
                 successfullType = type;
                 multipleFound += "\n- "+type->signature();
                 numberOfFound++;

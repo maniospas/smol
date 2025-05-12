@@ -23,6 +23,7 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
     if(next=="@") {
         next = imp->at(p++);
         if(next!="new") imp->error(--p, "Use `->@new`");
+        choice_power++;
         if(is_service)  {
             packs.push_back("err");
             internalTypes.vars["err"] = types.vars["errcode"];

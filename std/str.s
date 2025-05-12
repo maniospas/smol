@@ -129,14 +129,14 @@ smo add(cstr x, str y)
     @finally _contents {if(_contents)free(_contents);}
     -> str(_contents, add(len_x, y.length), first)
 
-smo read(cstr)
+smo read(str)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @body{
         ptr _contents = malloc(1024);
         if(_contents && fgets((char*)_contents, 1024, stdin)) {
             u64 length = strlen((char*)_contents);
-            if(length > 0 && ((char*)contents)[length - 1] == '\n') {
+            if(length > 0 && ((char*)_contents)[length - 1] == '\n') {
                 length -= 1;
                 ((char*)_contents)[length] = '\0';
                 char first = ((char*)_contents)[0];
