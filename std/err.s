@@ -13,7 +13,7 @@ smo fail(cstr error)
     --
 
 smo fail(str error)
-    @fail {printf("%s", (char*)error__contents);printf("\n");}
+    @fail {printf("%s", (char*)error____contents);printf("\n");}
     --
 
 smo print(errcode error)

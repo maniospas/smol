@@ -236,12 +236,12 @@ int main(int argc, char* argv[]) {
     builtins.vars["__label"] = make_shared<Def>("__label");
 
     builtins.vars["buffer"] = make_shared<Def>("buffer");
-    builtins.vars["buffer"]->packs.push_back("contents");
-    builtins.vars["buffer"]->packs.push_back("size");
-    builtins.vars["buffer"]->packs.push_back("offset");
-    builtins.vars["buffer"]->internalTypes.vars["contents"] = builtins.vars["ptr"];
-    builtins.vars["buffer"]->internalTypes.vars["size"] = builtins.vars["u64"];
-    builtins.vars["buffer"]->internalTypes.vars["offset"] = builtins.vars["u64"];
+    builtins.vars["buffer"]->packs.push_back("__contents");
+    builtins.vars["buffer"]->packs.push_back("__size");
+    builtins.vars["buffer"]->packs.push_back("__offset");
+    builtins.vars["buffer"]->internalTypes.vars["__contents"] = builtins.vars["ptr"];
+    builtins.vars["buffer"]->internalTypes.vars["__size"] = builtins.vars["u64"];
+    builtins.vars["buffer"]->internalTypes.vars["__offset"] = builtins.vars["u64"];
     builtins.vars["buffer"]->_is_primitive = false;
     for(const auto& it : builtins.vars) it.second->options.push_back(it.second);
 

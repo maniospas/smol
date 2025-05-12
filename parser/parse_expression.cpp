@@ -25,7 +25,12 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         implementation += var+" = "+first_token+";\n";
         return next_var(imp, p, var, types);
     }
-
+    if(first_token == "len" && curry.size() && internalTypes.contains(curry) && internalTypes.vars[curry]->name=="buffer") {
+        string var = create_temp();
+        implementation += var + " = " + curry+"____size-"+curry+"____offset;\n"; 
+        internalTypes.vars[var] = types.vars["u64"];
+        return next_var(imp, p, var, types);
+    }
     if(internalTypes.contains(first_token)) {
         if(curry.size()) imp->error(p, "Expecting runtype (not variable): "+first_token);
         return next_var(imp, p, first_token, types); //ASSIGNMENT TO ALREADY EXISTING VARIABLE
@@ -37,20 +42,20 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         string inherit_buffer("");
         vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer, curry);
         if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
-        // vardecl += "u64 "+var+"__size = 0;\n";
-        // vardecl += "u64 "+var+"__offset = 0;\n";
-        // vardecl += "ptr "+var+"__contents;\n";
-        implementation += "if("+var+"__size-"+var+"__offset) free("+var+"__contents);\n";
-        implementation += var+"__size = "+to_string(unpacks.size())+(inherit_buffer.size()?(" + "+inherit_buffer+"__size"):"")+" + 1;\n";
-        implementation += var+"__offset = 1;\n";
-        implementation += var + "__contents = malloc(sizeof(i64)*" + var + "__size);\n";
-        implementation += "std::memcpy((unsigned char*)" + var + "__contents, &" + var + "__size, sizeof(u64));\n";
-        for(size_t i = 0; i < unpacks.size(); ++i) implementation += "std::memcpy((unsigned char*)" + var + "__contents + sizeof(u64) * " + to_string(i+1) + ", &" + unpacks[i] + ", sizeof(u64));\n";
+        // vardecl += "u64 "+var+"____size = 0;\n";
+        // vardecl += "u64 "+var+"____offset = 0;\n";
+        // vardecl += "ptr "+var+"____contents;\n";
+        implementation += "if("+var+"____size-"+var+"____offset) free("+var+"____contents);\n";
+        implementation += var+"____size = "+to_string(unpacks.size())+(inherit_buffer.size()?(" + "+inherit_buffer+"____size"):"")+" + 1;\n";
+        implementation += var+"____offset = 1;\n";
+        implementation += var + "____contents = malloc(sizeof(i64)*" + var + "____size);\n";
+        implementation += "std::memcpy((unsigned char*)" + var + "____contents, &" + var + "____size, sizeof(u64));\n";
+        for(size_t i = 0; i < unpacks.size(); ++i) implementation += "std::memcpy((unsigned char*)" + var + "____contents + sizeof(u64) * " + to_string(i+1) + ", &" + unpacks[i] + ", sizeof("+unpacks[i]+"));\n";
         internalTypes.vars[var] = types.vars.find(first_token)->second;
-        internalTypes.vars[var+"__size"] = types.vars["u64"];
-        internalTypes.vars[var+"__offset"] = types.vars["u64"];
-        internalTypes.vars[var+"__contents"] = types.vars["ptr"];
-        finals[var+"__contents"] += "if("+var+"__contents)\nfree(" + var + "__contents);\n";
+        internalTypes.vars[var+"____size"] = types.vars["u64"];
+        internalTypes.vars[var+"____offset"] = types.vars["u64"];
+        internalTypes.vars[var+"____contents"] = types.vars["ptr"];
+        finals[var+"____contents"] += "if("+var+"____contents)\nfree(" + var + "____contents);\n";
         return next_var(imp, p, var, types);
     }
     if(types.contains(first_token)) {
@@ -60,7 +65,12 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         if(imp->at(p)=="__consume") {
             if(!curry.size()) imp->error(p-2, "Unexpected usage of operator\nThere is no left-hand-side");
             if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second==types.vars["buffer"]) imp->error(p-2, "Operator does not accept buffer as the first input");
-            else unpacks.push_back(curry);
+            else {
+                if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second->not_primitive()) {
+                    for(const string& pack : internalTypes.vars.find(curry)->second->packs)  unpacks.push_back(curry+"__"+pack);
+                }
+                else unpacks.push_back(curry);
+            }
             p++;
             string next = imp->at(p++);
             string rhs = parse_expression(imp, p, next, types);
@@ -79,6 +89,9 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         }
         else if(imp->at(p)!="(" && curry.size()) {
             if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second==types.vars["buffer"]) inherit_buffer = curry;
+            else if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second->not_primitive()) {
+                for(const string& pack : internalTypes.vars.find(curry)->second->packs)  unpacks.push_back(curry+"__"+pack);
+            }
             else unpacks.push_back(curry);
         }
         else if(imp->at(p)==")" || imp->at(p)=="]" || imp->at(p)=="," || imp->at(p)==":") {
@@ -139,24 +152,26 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         type = successfullType;
         if(!type && numberOfErrors) imp->error(first_token_pos, "Runtype not found among "+to_string(numberOfErrors)+" candidates"+overloading_errors);
         if(!type) imp->error(first_token_pos, "Runtype not found: "+first_token+recommend_runtype(types, first_token));
-        if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of "+to_string(numberOfFound)+" structurally equivalent runtypes"+multipleFound);
+        if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of "+to_string(numberOfFound)+" acceptable runtypes"+multipleFound);
         if(inherit_buffer.size()) { // unpack buffer
             string arg = inherit_buffer;
             int remaining = (int)(type->args.size()-unpacks.size());
             if(type->_is_primitive) remaining++;
             string fail_var = create_temp();
-            implementation += "if("+arg+"__size-"+arg+"__offset<"+to_string(remaining)+") goto "+fail_var+";\n";
-            errors += fail_var+":\nprintf(\"Runtime error: buffer `"+arg+"` does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+            if(remaining==1) implementation += "if("+arg+"____size<="+arg+"____offset) goto "+fail_var+";\n";
+            else implementation += "if("+arg+"____size<"+arg+"____offset+"+to_string(remaining)+") goto "+fail_var+";\n";
+            errors += fail_var+":\nprintf(\"Runtime error: buffer "+pretty_var(arg)+" does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
             preample += "#include <stdio.h>\n";
+            string tmp = create_temp();
             for(int i=0;i<remaining;++i) {
                 string cast = type->_is_primitive?type->name:type->args[unpacks.size()].type->name; // don't add i because we push back the element
-                string element = "__"+arg+"__"+to_string(i);
+                string element = "__"+tmp+"__"+to_string(i);
                 if(internalTypes.vars.find(element)==internalTypes.vars.end()) // vardecl += cast+" "+element+";\n";
-                implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "__contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"__offset), sizeof("+element+"));\n";
+                implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset), sizeof("+element+"));\n";
                 internalTypes.vars[element] = types.vars[cast];
                 unpacks.push_back(element);
             }
-            implementation += arg+"__offset += "+to_string(remaining)+";\n";
+            implementation += arg+"____offset += "+to_string(remaining)+";\n";
         }
         if(type->is_service) {
             var = create_temp();

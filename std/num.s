@@ -16,6 +16,10 @@ smo print(bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true\n"):printf("false\n");}
     --
+smo print(char message)
+    @head{#include <stdio.h>}
+    @body{printf("%c\n", message);}
+    --
 
 smo le(i64 x, i64 y)  @body{bool z=x<=y;}   -> z
 smo ge(i64 x, i64 y)  @body{bool z=x>=y;}   -> z
@@ -35,13 +39,26 @@ smo geq(f64 x, f64 y) @body{bool z=x>=y;}   -> z
 smo eq(f64 x, f64 y)  @body{bool z=(x==y);} -> z
 smo neq(f64 x, f64 y) @body{bool z=(x!=y);} -> z
 
+smo le(u64 x, u64 y)  @body{bool z=x<=y;}   -> z
+smo ge(u64 x, u64 y)  @body{bool z=x>=y;}   -> z
+smo lt(u64 x, u64 y)  @body{bool z=x<y;}    -> z
+smo gt(u64 x, u64 y)  @body{bool z=x>y;}    -> z
+smo leq(u64 x, u64 y) @body{bool z=x<=y;}   -> z
+smo geq(u64 x, u64 y) @body{bool z=x>=y;}   -> z
+smo eq(u64 x, u64 y)  @body{bool z=(x==y);} -> z
+smo neq(u64 x, u64 y) @body{bool z=(x!=y);} -> z
+
 smo eq(bool x, bool y)  @body{bool z=(x==y);} -> z
 smo neq(bool x, bool y) @body{bool z=(x!=y);} -> z
 smo not(bool x)         @body{bool z=(!x);} -> z
 
-smo add(u64 x, u64 y) @body{u64 z=x+y;}     -> z
-smo eq(u64 x, u64 y)  @body{bool z=(x==y);} -> z
 smo exists(ptr x)     @body{bool z=(x);}    -> z
+
+smo add(u64 x, u64 y) @body{u64 z=x+y;}     -> z
+smo sub(u64 x, u64 y)
+    if y>x  @fail{printf("Unsigned substraction would yield a negative\n");} --
+     @body{u64 z=x-y;}
+     -> z
 
 smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
 smo mod(i64 x, i64 y) @body{i64 z=x%y;} -> z
@@ -49,7 +66,7 @@ smo sub(i64 x, i64 y) @body{i64 z=x-y;} -> z
 smo mul(i64 x, i64 y) @body{i64 z=x*y;} -> z
 smo div(i64 x, i64 y)
     @head{#include <stdio.h>}
-    if(y==0) @fail{printf("Division by zero\n");} --
+    if y==0 @fail{printf("Division by zero\n");} --
     @body{i64 z=x/y;}
     -> z
 

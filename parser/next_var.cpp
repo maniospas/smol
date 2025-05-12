@@ -41,7 +41,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 end = parse_expression(i, p, imp->at(p++), types);
                 if(!internalTypes.contains(end)) imp->error(--p, "Missing symbol: "+end+recommend_variable(types, next));
                 if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
-                end += " - "+next+"__offset";
+                end += " - "+next+"____offset";
             }
             if(imp->at(p++)!="]") imp->error(--p, "Expecting | or closing square bracket");
             string prev = next;
@@ -56,16 +56,16 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 errors += fail_var+":\nprintf(\"Runtime error: buffer `"+arg+"` does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
                 preample += "#include <stdio.h>\n";
 
-                assign_variable(types.vars["u64"], next+"__size", prev+"__offset + "+end, imp, p, false);
+                assign_variable(types.vars["u64"], next+"____size", prev+"____offset + "+end, imp, p, false);
                 // copy the actual size from the first position of the pointer
                 //// vardecl += "u64 "+actual_size+";\n";
-                //implementation += "std::memcpy(&" + actual_size + ", (unsigned char*)" + prev + "__contents, sizeof(u64));\n";
+                //implementation += "std::memcpy(&" + actual_size + ", (unsigned char*)" + prev + "____contents, sizeof(u64));\n";
                 // check if we do not get over actual size (size is the end basically, so practical size is size-start)
-                implementation += "if("+next+"__size>"+prev+"__size) goto "+fail_var+";\n";
+                implementation += "if("+next+"____size>"+prev+"____size) goto "+fail_var+";\n";
             }
-            else assign_variable(types.vars["u64"], next+"__size", prev+"__size", imp, p, false);
-            assign_variable(types.vars["u64"], next+"__offset", prev+"__offset + "+arg, imp, p, false); // no need for bounds checking here because we are going to later check if non-empty anyway when we pop elements in parse_expression
-            assign_variable(types.vars["ptr"], next+"__contents", prev+"__contents", imp, p, false);
+            else assign_variable(types.vars["u64"], next+"____size", prev+"____size", imp, p, false);
+            assign_variable(types.vars["u64"], next+"____offset", prev+"____offset + "+arg, imp, p, false); // no need for bounds checking here because we are going to later check if non-empty anyway when we pop elements in parse_expression
+            assign_variable(types.vars["ptr"], next+"____contents", prev+"____contents", imp, p, false);
 
 
         }
