@@ -42,6 +42,7 @@ public:
 class Def {
     static int temp;
     static string create_temp() {return "__"+numberToVar(++temp);}
+    unordered_map<string, string> current_renaming;
     #include "parser/recommendations.cpp"
     #include "parser/assign_variable.cpp"
     #include "parser/parse_directive.cpp"
@@ -59,11 +60,25 @@ public:
     Memory internalTypes;
     vector<string> packs;
     size_t pos, start, end;
-    string name, preample, vardecl, implementation, errors, finals;
+    string name, preample, vardecl, implementation, errors;
+    unordered_map<string, string> finals;
     unordered_map<string, Type> parametric_types;
+    void coallesce_finals(const string& original) {
+        // TODO: optimize this
+        unordered_set<string> previous;
+        string current = original;
+        previous.insert(current);
+        while(current_renaming.find(current)!=current_renaming.end()) {
+            current = current_renaming[current];
+            if(previous.find(current)!=previous.end()) break;
+            previous.insert(current);
+            if(current==original) break;
+            if(finals.find(current)!=finals.end()) {finals[original] += rename_var(finals[current], current, original);finals[current] = "";}
+        }
+    }
 
-    Def(const string& builtin): is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
-    Def(): is_service(false), _is_primitive(false), lazy_compile(false), name(""), preample(""), vardecl(""), implementation(""), errors(""), finals("") {}
+    Def(const string& builtin): is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), preample(""), vardecl(""), implementation(""), errors("") {}
+    Def(): is_service(false), _is_primitive(false), lazy_compile(false), name(""), preample(""), vardecl(""), implementation(""), errors("") {}
     vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer, const string& curry);
     inline bool not_primitive() const {return !_is_primitive;}
     string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test=true);
@@ -233,11 +248,11 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if (arg == "--task") {
-            if (i + 1 >= argc) {cerr << "Error: --task requires an argument (compile, verify, run)" << endl;return 1;}
-            try {selected_task = parse_task(argv[++i]);
-            } catch (const invalid_argument& e) {cerr << "Error: " << e.what() << endl; return 1;}
+            if(i + 1 >= argc) {cerr << "Error: --task requires an argument (compile, verify, run)" << endl;return 1;}
+            try {selected_task = parse_task(argv[++i]); } 
+            catch (const invalid_argument& e) {cerr << "Error: " << e.what() << endl; return 1;}
         } 
-        else if (arg.rfind("--", 0) == 0) {cerr << "Unknown option: " << arg << endl; return 1;}
+        else if(arg.rfind("--", 0) == 0) {cerr << "Unknown option: " << arg << endl; return 1;}
         else files.push_back(arg);
     }
     if(files.size()==0) files.push_back("main.s");
@@ -277,20 +292,42 @@ int main(int argc, char* argv[]) {
                 out << "errcode ";
                 out << service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
                 //out << service->vardecl;
-                for(const auto& var : service->packs) service->internalTypes.vars[var] = nullptr;// hack to prevent redeclaration of arguments in the next line
-                for(const auto& arg : service->args) service->internalTypes.vars[arg.name] = nullptr;
+                string finals_on_error = "";
+                for(const auto& var : service->packs) {
+                    service->coallesce_finals(var); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
+                    if(service->finals[var].size()) {
+                        finals_on_error += service->finals[var];
+                        finals_on_error += var+"=0;\n";
+                        service->finals[var] = "";
+                    }
+                    service->internalTypes.vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through internalTypes
+                }
+                for(const auto& arg : service->args) {
+                    if(arg.mut) {
+                        service->coallesce_finals(arg.name); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
+                        if(service->finals[arg.name].size()) {
+                            finals_on_error += service->finals[arg.name];
+                            finals_on_error += arg.name+"=0;\n";
+                            service->finals[arg.name] = "";
+                        }
+                    }
+                    service->internalTypes.vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
+                }
                 for(const auto& var : service->internalTypes.vars) if(var.second && var.second->_is_primitive && var.second->name!="buffer" && var.second->name!="__label") out << var.second->name << " " << var.first << "=0;\n";
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
+                out << "goto __return;\n"; // skip error handling block that resides at the end of the service
                 if(service->errors.size()) {
                     out << "\n// ERROR HANDLING\n";
-                    out << "goto __return;\n"; // skip error handling block that resides at the end of the service
                     //out <<"__error:\n"; // error handling (each of those runs goto ____finally)
                     out << service->errors;
                 }
-                out << "\n// DEALLOCATE RESOURCES\n";
+                out << "\n// DEALLOCATE RESOURCES BY ERRORS\n";
+                out << "__failsafe:\n";
+                out << finals_on_error;
+                out << "\n// HOTPATH SKIPS TO HERE\n";
                 out << "__return:\n"; // resource deallocation
-                out << service->finals;
+                for(const auto& final : service->finals) if(final.second.size()) out << final.second;
                 out << "return __result__errocode;\n";
                 out << "}\n\n";
             }

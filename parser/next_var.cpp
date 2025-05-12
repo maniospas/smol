@@ -53,7 +53,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             if(end.size()) {
                 // prepare error position
                 string fail_var = create_temp();
-                errors += fail_var+":\nprintf(\"Runtime error: buffer `"+arg+"` does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __return;\n";
+                errors += fail_var+":\nprintf(\"Runtime error: buffer `"+arg+"` does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
                 preample += "#include <stdio.h>\n";
 
                 assign_variable(types.vars["u64"], next+"__size", prev+"__offset + "+end, imp, p, false);

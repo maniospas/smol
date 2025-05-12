@@ -1,6 +1,7 @@
 void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory& types) {
     if(imp->at(p)=="-") {++p;return;}
-    if(imp->at(p++)!=">") imp->error(p-2, "Use `->` to return a value or `--` to return without a value for expressions starting with `-`");
+    if(name=="main") imp->error(p-1, "The main service cannot return a value.\nIt must end at end of file `--`.");
+    if(imp->at(p++)!=">") imp->error(p-2, "Expecting return.\nUse `->` to return a value or `--` (or end of file) to return without a value for expressions starting with `-`");
     next = imp->at(p++);
     bool hasComma = false;
     if(is_service) {

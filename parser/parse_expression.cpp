@@ -41,7 +41,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         internalTypes.vars[var+"__size"] = types.vars["u64"];
         internalTypes.vars[var+"__offset"] = types.vars["u64"];
         internalTypes.vars[var+"__contents"] = types.vars["ptr"];
-        finals += var+"__size = 0;\nfree(" + var + "__contents);\n";
+        finals[var+"__contents"] += "if("+var+"__contents)\nfree(" + var + "__contents);\n";
         return next_var(imp, p, var, types);
     }
     if(types.contains(first_token)) {
@@ -62,7 +62,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             else if(type->is_service) {
                 string fail_var = create_temp();
                 implementation += "if("+rhs+"__err) goto "+fail_var+";\n";
-                errors += fail_var+":\nprintf(\"Runtime error: `"+rhsType->name+" "+pretty_var(rhs)+"` has an attached error\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __return;\n";
+                errors += fail_var+":\nprintf(\"Runtime error from "+rhsType->name+" "+pretty_var(rhs)+"\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n";
                 preample += "#include <stdio.h>\n";
                 for(size_t i=1;i<rhsType->packs.size();++i) unpacks.push_back(rhs+"__"+rhsType->packs[i]);
             }
@@ -137,7 +137,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
             if(type->_is_primitive) remaining++;
             string fail_var = create_temp();
             implementation += "if("+arg+"__size-"+arg+"__offset<"+to_string(remaining)+") goto "+fail_var+";\n";
-            errors += fail_var+":\nprintf(\"Runtime error: buffer `"+arg+"` does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __return;\n";
+            errors += fail_var+":\nprintf(\"Runtime error: buffer `"+arg+"` does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
             preample += "#include <stdio.h>\n";
             for(int i=0;i<remaining;++i) {
                 string cast = type->_is_primitive?type->name:type->args[unpacks.size()].type->name; // don't add i because we push back the element
@@ -162,11 +162,18 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
                 if(toadd) impl += ",";
                 impl += var+"__"+ret;
                 toadd = true;
+                type->coallesce_finals(ret);
+                finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
             }
             for(size_t i=0;i<unpacks.size();++i) {
                 if(toadd) impl += ",";
                 impl += unpacks[i];
                 toadd = true;
+                if(type->args[i].mut) {
+                    string ret = unpacks[i];
+                    type->coallesce_finals(type->args[i].name);
+                    finals[unpacks[i]] += type->rename_var(type->finals[type->args[i].name], type->args[i].name, unpacks[i]);
+                }
             }
             impl += ");\n";
             implementation += impl;
@@ -180,16 +187,17 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
         string immediate_finals("");
         for(size_t i=0;i<unpacks.size();++i) {
             assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
-            if(type->args[i].mut) immediate_finals += unpacks[i]+ " = "+var+"__"+type->args[i].name+";\n";
+            if(type->args[i].mut) {immediate_finals += unpacks[i]+ " = "+var+"__"+type->args[i].name+";\n";current_renaming[unpacks[i]] = var+"__"+type->args[i].name;}
         }
         internalTypes.vars[var] = type;
         implementation += type->rebase(type->implementation, var);
         preample += type->rebase(type->preample, var);
-        finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
+        for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); 
+        //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
         errors = errors+type->rebase(type->errors, var);
-
+        for(const auto& it : type->current_renaming) current_renaming[var+"__"+it.first] = var+"__"+it.second; 
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
-        implementation += immediate_finals; // TODO maybe it's a good idea to have deallocations here too
+        finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
 
         if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0], types);
         return next_var(imp, p, var, types);

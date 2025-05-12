@@ -1,12 +1,16 @@
 @include std
 
-smo Point(f64 x, f64 y) -> @new
-smo Point() 
-    start = Point(0.0, 0.0)
-    -> start // as a single argument it is directly unpacked
-
+smo add_service(str v1, str v2) 
+    i = 0
+    while(i<10)
+        v2 = v2:add("c")
+        i = i+1
+        --
+    -> v1:add(v2)
 
 service main()
-    s = Point()
-    print(s.x) // not s.start.x
-    --
+    r1 = "aa":str
+    r2 = "bb":str
+    r1 = add_service(r1,r2)
+    print(r1)
+    

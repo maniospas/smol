@@ -13,4 +13,5 @@ void assign_variable(const Type& type, const string& from, const string& to, con
     else if(it==internalTypes.vars.end()) internalTypes.vars[from] = type;
     else if(it->second!=type) imp->error(--p, "Cannot assign to "+it->second->name+" "+pretty_var(from)+" from "+type->name+" "+pretty_var(to));
     implementation += from+" = "+to+";\n";
+    current_renaming[from] = to;
 }

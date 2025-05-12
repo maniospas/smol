@@ -41,8 +41,13 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
         implementation += "\n";
     }
     else if(next=="finally") {
+        string finals("");
+        string conditioned("");
         next = imp->at(p++);
-        if(next!="{") imp->error(--p, "Expected brackets");
+        if(next!="{") {conditioned = next; next = imp->at(p++);}
+        if(conditioned.size() && !internalTypes.contains(conditioned)) imp->error(p-2, "Expected brackets or conditioning variable but this has not been declared: "+pretty_var(conditioned));
+        if(conditioned.size() && internalTypes.vars[conditioned]->not_primitive()) imp->error(p-2, "finally can only be conditioned on a primitive but got "+internalTypes.vars[conditioned]->name+" "+pretty_var(conditioned));
+        if(next!="{") imp->error(p-1, "Expected brackets");
         int depth = 1;
         while(true) {
             next = imp->at(p++);
@@ -65,6 +70,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
             }
         }
         finals += "\n";
+        this->finals[conditioned] += finals;
     }
     else if(next=="fail") {
         string fail_label = create_temp();
@@ -92,7 +98,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
                 if(!is_symbol(next) && !is_symbol(nextnext)) errors += " ";
             }
         }
-        errors += "\n__result__errocode=__USER__ERROR;\ngoto __return;\n";
+        errors += "\n__result__errocode=__USER__ERROR;\ngoto __failsafe;\n";
         implementation += "goto "+fail_label+";\n";
     }
     else imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally are allowed here for injecting C++ code.");

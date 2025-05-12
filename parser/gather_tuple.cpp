@@ -10,7 +10,7 @@ vector<string> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memor
             else if(type->is_service) {
                 string fail_var = create_temp();
                 implementation += "if("+var+"__err) goto "+fail_var+";\n";
-                errors += fail_var+":\nprintf(\"Runtime error: `"+type->name+" "+pretty_var(var)+"` has an attached error\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __return;\n";
+                errors += fail_var+":\nprintf(\"Runtime error from "+type->name+" "+pretty_var(var)+"\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n";
                 preample += "#include <stdio.h>\n";
                 for(size_t i=1;i<type->packs.size();++i) ret.push_back(var+"__"+type->packs[i]);
             }
@@ -33,7 +33,7 @@ vector<string> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memor
             else if(type->is_service) {
                 string fail_var = create_temp();
                 implementation += "if("+var+"__err) goto "+fail_var+";\n";
-                errors += fail_var+":\nprintf(\"Runtime error: `"+type->name+" "+pretty_var(var)+"` has an attached error\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __return;\n";
+                errors += fail_var+":\nprintf(\"Runtime error from "+type->name+" "+pretty_var(var)+"\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n";
                 preample += "#include <stdio.h>\n";
                 for(size_t i=1;i<type->packs.size();++i) ret.push_back(var+"__"+type->packs[i]);
             }

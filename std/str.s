@@ -89,10 +89,12 @@ smo add(str x, str y)
     @body{
         u64 len_x = x__length;
         u64 len_y = y__length;
+        ptr dealloc = _contents;
         ptr _contents = malloc(len_x + len_y + 1);
         if(_contents){strcpy((char*)_contents, (const char*)x__contents);strcat((char*)_contents, (const char*)y__contents);}
+        if(dealloc) free(dealloc);
     }
-    @finally{if(_contents)free(_contents);}
+    @finally _contents {if(_contents)free(_contents);}
     -> str(_contents, add(x.length, y.length), x.first)
 
 smo add(str x, cstr y)
@@ -101,10 +103,12 @@ smo add(str x, cstr y)
     @body{
         u64 len_x = x__length;
         u64 len_y = strlen(y);
+        ptr dealloc = _contents;
         ptr _contents = malloc(len_x + len_y + 1);
-        if(_contents){strcpy((char*)_contents, (const char*)x__contents);strcat((char*)_contents, (const char*)y);char first=((char*)_contents)[0];}
+        if(_contents){strcpy((char*)_contents, (const char*)x__contents);strcat((char*)_contents, (const char*)y);}
+        if(dealloc) free(dealloc);
     }
-    @finally{if(_contents)free(_contents);}
+    @finally _contents {if(_contents)free(_contents);}
     -> str(_contents, add(x.length, len_y), x.first)
 
 
@@ -114,31 +118,33 @@ smo add(cstr x, str y)
     @body{
         u64 len_x = strlen(x);
         u64 len_y = y__length;
+        ptr dealloc = _contents;
         ptr _contents = malloc(len_x + len_y + 1);
         if(_contents){strcpy((char*)_contents, (const char*)x);strcat((char*)_contents, (const char*)y__contents);char first=((char*)_contents)[0];}
+        if(dealloc) free(dealloc);
     }
     if(_contents:exists:not())
         @fail{printf("Failed to allocate str\n");}
         --
-    @finally{if(_contents)free(_contents);}
+    @finally _contents {if(_contents)free(_contents);}
     -> str(_contents, add(len_x, y.length), first)
 
 smo read(cstr)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @body{
-        ptr contents = malloc(1024);
-        if(contents && fgets((char*)contents, 1024, stdin)) {
-            u64 length = strlen((char*)contents);
+        ptr _contents = malloc(1024);
+        if(_contents && fgets((char*)_contents, 1024, stdin)) {
+            u64 length = strlen((char*)_contents);
             if(length > 0 && ((char*)contents)[length - 1] == '\n') {
                 length -= 1;
-                ((char*)contents)[length] = '\0';
-                char first = ((char*)contents)[0];
+                ((char*)_contents)[length] = '\0';
+                char first = ((char*)_contents)[0];
             }
         }
     }
-    @finally{if(contents)free(contents);}
-    if(contents:exists:not)
+    @finally _contents {if(_contents)free(_contents);}
+    if(_contents:exists:not)
         @fail{printf("Failed to read str of up to 1023 characters\n");}
         --
-    -> str(contents, length, first)
+    -> str(_contents, length, first)

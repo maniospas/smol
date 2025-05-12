@@ -22,6 +22,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
         if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Missing runtype");
         string arg_name = imp->at(p++);
         if(arg_name=="&") {mut = true;arg_name = imp->at(p++);}
+        if(mut && is_service) imp->error(p-2, "Services do not accept values by reference\nThis ensures failsafe-compliant extensibility.\nDid you mean to declare a runtype instead?");
         if(arg_name=="," || arg_name==")") {
             arg_name = create_temp();
             --p;
@@ -56,7 +57,9 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
                 // vardecl += it.type->rebase(it.type->vardecl, arg_name);
                 implementation += it.type->rebase(it.type->implementation, arg_name);
                 preample += it.type->rebase(it.type->preample, arg_name);
-                finals = it.type->rebase(it.type->finals, arg_name)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
+                for(const auto& final : it.type->finals) finals[arg_name+"__"+final.first] += it.type->rebase(final.second, arg_name); 
+                //finals = it.type->rebase(it.type->finals, arg_name)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
+                for(const auto& it : it.type->current_renaming) current_renaming[arg_name+"__"+it.first] = arg_name+"__"+it.second;
                 errors = errors+it.type->rebase(it.type->errors, arg_name);
                 for(const auto& it : it.type->internalTypes.vars) {
                     string arg = arg_name+"__"+it.first;
