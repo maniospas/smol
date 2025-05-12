@@ -13,19 +13,42 @@ Under the hood, it transpiles to C++.
 
 ## Quickstart
 
-Here's a quickstart that showcases several core features. 
+Here's two snippets that showcase several features on 
+data structures and control flow  respectively.
 Visit the docs above for a comprehensive breakdown.
 
 ```cpp
 @include std
 
-smo Point(i64 x, i64 y) -> @new
+smo Point(i64 x, i64 y) -> @new // return x,y
 smo Field(Point start, Point end) -> @new
+smo operation(Field f) 
+    value = f.start.x + f.end.y
+    -> value
 
 service main()
     p = Point(3,5)
     f = Field(1,2,p)
-    print(f.start.x+f.end.y) // 6
+    print(f:operation()) // prints 6
+    -- // return nothing
+```
+
+
+```cpp
+@include std
+
+service main()
+    print("Printing squares of 0,1,..,9")
+    // @next computes the value but assigns it later
+    i=0 while i<10 @next i = i+1 
+        if i>=2 
+            squared = i*i
+            print(squared) 
+            --
+        else 
+            print(i) 
+            --
+    ---- // end `while` then `main` in one line
 ```
 
 
