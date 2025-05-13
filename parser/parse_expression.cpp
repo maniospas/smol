@@ -46,15 +46,22 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         // vardecl += "u64 "+var+"____offset = 0;\n";
         // vardecl += "ptr "+var+"____contents;\n";
         implementation += "if("+var+"____size-"+var+"____offset) free("+var+"____contents);\n";
-        implementation += var+"____size = "+to_string(unpacks.size())+(inherit_buffer.size()?(" + "+inherit_buffer+"____size"):"")+" + 1;\n";
-        implementation += var+"____offset = 1;\n";
+        implementation += var+"____size = "+to_string(unpacks.size())+(inherit_buffer.size()?(" + "+inherit_buffer+"____size"):"")+";\n";
+        implementation += var+"____offset = 0;\n";
         implementation += var + "____contents = malloc(sizeof(i64)*" + var + "____size);\n";
+        implementation += var + "____typetag = calloc(" + var + "____size/16+1, sizeof(i64));\n";
         implementation += "std::memcpy((unsigned char*)" + var + "____contents, &" + var + "____size, sizeof(u64));\n";
-        for(size_t i = 0; i < unpacks.size(); ++i) implementation += "std::memcpy((unsigned char*)" + var + "____contents + sizeof(u64) * " + to_string(i+1) + ", &" + unpacks[i] + ", sizeof("+unpacks[i]+"));\n";
+        if(unpacks.size()) buffer_primitive_associations[var] = internalTypes.vars[unpacks[0]];
+        else buffer_primitive_associations[var] = types.vars["u64"];
+        for(size_t i = 0; i < unpacks.size(); ++i) {
+            if(buffer_primitive_associations[var]!=internalTypes.vars[unpacks[i]]) implementation += "((u64*)" + var + "____typetag)["+to_string(i/16)+"] |= ((u64)__IS_"+internalTypes.vars[unpacks[i]]->name+")<<"+to_string((i%16)*4)+";\n";
+            implementation += "std::memcpy((unsigned char*)" + var + "____contents + sizeof(u64) * " + to_string(i) + ", &" + unpacks[i] + ", sizeof("+unpacks[i]+"));\n";
+        }
         internalTypes.vars[var] = types.vars.find(first_token)->second;
         internalTypes.vars[var+"____size"] = types.vars["u64"];
         internalTypes.vars[var+"____offset"] = types.vars["u64"];
         internalTypes.vars[var+"____contents"] = types.vars["ptr"];
+        internalTypes.vars[var+"____typetag"] = types.vars["ptr"];
         finals[var+"____contents"] += "if("+var+"____contents)\nfree(" + var + "____contents);\n";
         return next_var(imp, p, var, types);
     }
@@ -90,7 +97,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         else if(imp->at(p)!="(" && curry.size()) {
             if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second==types.vars["buffer"]) inherit_buffer = curry;
             else if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second->not_primitive()) {
-                for(const string& pack : internalTypes.vars.find(curry)->second->packs)  unpacks.push_back(curry+"__"+pack);
+                for(const string& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry+"__"+pack);
             }
             else unpacks.push_back(curry);
         }
@@ -182,15 +189,22 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             string fail_var = create_temp();
             if(remaining==1) implementation += "if("+arg+"____size<="+arg+"____offset) goto "+fail_var+";\n";
             else implementation += "if("+arg+"____size<"+arg+"____offset+"+to_string(remaining)+") goto "+fail_var+";\n";
-            errors += fail_var+":\nprintf(\"Runtime error: buffer "+pretty_var(arg)+" does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+            errors += fail_var+":\nprintf(\"Runtime error: buffer "+pretty_var(arg)+" empty or has different element primitive type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
             preample += "#include <stdio.h>\n";
             string tmp = create_temp();
             for(int i=0;i<remaining;++i) {
-                string cast = type->_is_primitive?type->name:type->args[unpacks.size()].type->name; // don't add i because we push back the element
+                Type desiredType = type->_is_primitive?type:type->args[unpacks.size()].type;// don't add i because we push back the element
+                bool typecheck = desiredType!=buffer_primitive_associations[inherit_buffer];
                 string element = "__"+tmp+"__"+to_string(i);
+                if(typecheck) {
+                    internalTypes.vars[element+"t"] = types.vars["u64"];
+                    implementation += "std::memcpy(&" + element+"t, ((unsigned char*)"+arg+"____typetag+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset)/16), sizeof(u64));\n";
+                    string pos = "((("+ to_string(i)+"+"+arg+"____offset)%16)*4)";
+                    implementation += "if((("+element+"t>>"+pos+")& 0xF)!=__IS_"+desiredType->name+") goto "+fail_var+";\n";
+                }
                 if(internalTypes.vars.find(element)==internalTypes.vars.end()) // vardecl += cast+" "+element+";\n";
                 implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset), sizeof("+element+"));\n";
-                internalTypes.vars[element] = types.vars[cast];
+                internalTypes.vars[element] = desiredType;
                 unpacks.push_back(element);
             }
             implementation += arg+"____offset += "+to_string(remaining)+";\n";
@@ -210,6 +224,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                 toadd = true;
                 type->coallesce_finals(ret);
                 finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
+                if(type->internalTypes.vars[ret]->name=="buffer") buffer_primitive_associations[var+"__"+ret] = type->buffer_primitive_associations[ret];
             }
             for(size_t i=0;i<unpacks.size();++i) {
                 if(toadd) impl += ",";
@@ -219,6 +234,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                     string ret = unpacks[i];
                     type->coallesce_finals(type->args[i].name);
                     finals[unpacks[i]] += type->rename_var(type->finals[type->args[i].name], type->args[i].name, unpacks[i]);
+                    if(type->internalTypes.vars[ret]->name=="buffer") buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[type->args[i].name];
                 }
             }
             impl += ");\n";
@@ -233,7 +249,11 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         string immediate_finals("");
         for(size_t i=0;i<unpacks.size();++i) {
             assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
-            if(type->args[i].mut) {immediate_finals += unpacks[i]+ " = "+var+"__"+type->args[i].name+";\n";current_renaming[unpacks[i]] = var+"__"+type->args[i].name;}
+            if(type->args[i].mut) {
+                immediate_finals += unpacks[i]+ " = "+var+"__"+type->args[i].name+";\n";
+                current_renaming[unpacks[i]] = var+"__"+type->args[i].name;
+                buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[var+"__"+type->args[i].name];
+            }
         }
         internalTypes.vars[var] = type;
         implementation += type->rebase(type->implementation, var);
@@ -242,7 +262,10 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
         errors = errors+type->rebase(type->errors, var);
         for(const auto& it : type->current_renaming) current_renaming[var+"__"+it.first] = var+"__"+it.second; 
-        for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
+        for(const auto& it : type->internalTypes.vars) {
+            internalTypes.vars[var+"__"+it.first] = it.second;
+            if(it.second->name=="buffer") buffer_primitive_associations[var+"__"+it.first] = type->buffer_primitive_associations[it.first];
+        }
         finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
 
         if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0], types);

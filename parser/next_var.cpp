@@ -48,6 +48,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             next = create_temp();
             internalTypes.vars[next] = types.vars["buffer"]; // field runtypes should not be set here because they are automated and would mess with assign_variable
             string actual_size = next+"__hidden_size";
+            buffer_primitive_associations[next] = buffer_primitive_associations[prev];
 
             // new size
             if(end.size()) {

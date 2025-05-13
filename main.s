@@ -1,9 +1,11 @@
 @include std
 
+smo test()
+    buf = buffer(1,2,3)
+    print(buf:i64)
+    print(buf:f64)
+    --
+
 service main()
-    name = str:read
-    buf = buffer(str("hi"))
-    s = buf:str
-    print(s)
-    print(s:len)
+    buf = test()
     --

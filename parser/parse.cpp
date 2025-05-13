@@ -75,6 +75,7 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
                 next_assignments.insert(var);
                 var = "__next__"+var;
             }
+            if(it->second->name=="buffer") buffer_primitive_associations[var] = buffer_primitive_associations[expression_outcome];
             assign_variable(it->second, var, expression_outcome, i, p);
         }
         else {

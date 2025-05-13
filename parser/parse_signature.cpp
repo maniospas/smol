@@ -61,9 +61,10 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
                 //finals = it.type->rebase(it.type->finals, arg_name)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
                 for(const auto& it : it.type->current_renaming) current_renaming[arg_name+"__"+it.first] = arg_name+"__"+it.second;
                 errors = errors+it.type->rebase(it.type->errors, arg_name);
-                for(const auto& it : it.type->internalTypes.vars) {
-                    string arg = arg_name+"__"+it.first;
-                    internalTypes.vars[arg] = it.second;
+                for(const auto& it2 : it.type->internalTypes.vars) {
+                    string arg = arg_name+"__"+it2.first;
+                    internalTypes.vars[arg] = it2.second;
+                    if(it2.second->name=="buffer") buffer_primitive_associations[arg] = it.type->buffer_primitive_associations[it2.first];
                 }
             }
             else for(const auto& itarg : argType->packs) {

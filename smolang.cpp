@@ -64,6 +64,7 @@ public:
     string name, preample, vardecl, implementation, errors;
     unordered_map<string, string> finals;
     unordered_map<string, Type> parametric_types;
+    unordered_map<string, Type> buffer_primitive_associations;
     vector<string> uplifting_targets;
     void coallesce_finals(const string& original) {
         // TODO: optimize this
@@ -226,13 +227,16 @@ int main(int argc, char* argv[]) {
     builtins.vars["cstr"] = make_shared<Def>("cstr");
     builtins.vars["bool"] = make_shared<Def>("bool");
     builtins.vars["char"] = make_shared<Def>("char");
+
     builtins.vars["__label"] = make_shared<Def>("__label");
 
     builtins.vars["buffer"] = make_shared<Def>("buffer");
     builtins.vars["buffer"]->packs.push_back("__contents");
+    builtins.vars["buffer"]->packs.push_back("__typetag");
     builtins.vars["buffer"]->packs.push_back("__size");
     builtins.vars["buffer"]->packs.push_back("__offset");
     builtins.vars["buffer"]->internalTypes.vars["__contents"] = builtins.vars["ptr"];
+    builtins.vars["buffer"]->internalTypes.vars["__typetag"] = builtins.vars["ptr"];
     builtins.vars["buffer"]->internalTypes.vars["__size"] = builtins.vars["u64"];
     builtins.vars["buffer"]->internalTypes.vars["__offset"] = builtins.vars["u64"];
     builtins.vars["buffer"]->_is_primitive = false;
@@ -261,6 +265,14 @@ int main(int argc, char* argv[]) {
             if(selected_task==Task::Verify) {cout << "\033[30;42m OK \033[0m " + file + "\n"; continue;}
             string globals = 
                 "#include <cstring>\n"
+                "#define __IS_i64 1\n"
+                "#define __IS_f64 2\n"
+                "#define __IS_u64 3\n"
+                "#define __IS_ptr 4\n"
+                "#define __IS_char 5\n"
+                "#define __IS_errcode 6\n"
+                "#define __IS_cstr 7\n"
+                "#define __IS_bool 8\n"
                 "#define __NULL void*\n"
                 "#define __USER__ERROR 1\n"
                 "#define __BUFFER__ERROR 2\n"
