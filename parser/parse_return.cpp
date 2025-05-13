@@ -23,7 +23,7 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
     if(next=="@") {
         next = imp->at(p++);
         if(next!="new") imp->error(--p, "Use `->@new`");
-        choice_power++;
+        choice_power++; 
         if(is_service)  {
             packs.push_back("err");
             internalTypes.vars["err"] = types.vars["errcode"];
@@ -47,13 +47,22 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
             else {
                 if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared: "+pretty_var(next)+recommend_variable(types, next));
                 if(!hasComma && p<imp->size() && imp->at(p)!=",") {
+                    alias_for = next;
+                    /*coallesce_finals(next);
+                    if(finals[next].size()) {
+                        finals_when_used += finals[next];
+                        finals[next] = "";
+                    }*/
                     // if we are directly returning a proxy, unpack that proxy here
                     for(const string& pack : internalTypes.vars[next]->packs) {
                         assign_variable(internalTypes.vars[next]->internalTypes.vars[pack], pack, next+"__"+pack, imp, p);
                         packs.push_back(pack);
                     }
                 }
-                else for(const string& pack : internalTypes.vars[next]->packs) packs.push_back(next+"__"+pack);
+                else {
+                    if(internalTypes.vars[next]->name=="buffer") imp->error(--p, "Cannot return a buffer alongside other values");
+                    for(const string& pack : internalTypes.vars[next]->packs) packs.push_back(next+"__"+pack);
+                }
             }
             if(p>=imp->size()){break;}
             next = imp->at(p++);

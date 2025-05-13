@@ -60,6 +60,9 @@ public:
     shared_ptr<Import> imp;
     Memory internalTypes;
     vector<string> packs;
+    vector<string> ghost_packs;
+    string finals_when_used;
+    string alias_for;
     size_t pos, start, end;
     string name, preample, vardecl, implementation, errors;
     unordered_map<string, string> finals;

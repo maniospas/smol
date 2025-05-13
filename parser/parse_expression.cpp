@@ -62,7 +62,8 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         internalTypes.vars[var+"____offset"] = types.vars["u64"];
         internalTypes.vars[var+"____contents"] = types.vars["ptr"];
         internalTypes.vars[var+"____typetag"] = types.vars["ptr"];
-        finals[var+"____contents"] += "if("+var+"____contents)\nfree(" + var + "____contents);\n";
+        finals[var+"____contents"] += "if("+var+"____contents) free(" + var + "____contents);\n"+var+"____contents = 0;\n";
+        finals[var+"____typetag"] += "if("+var+"____typetag) free(" + var + "____typetag);\n"+var+"____typetag = 0;\n";
         return next_var(imp, p, var, types);
     }
     if(types.contains(first_token)) {
@@ -187,9 +188,11 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             int remaining = (int)(type->args.size()-unpacks.size());
             if(type->_is_primitive) remaining++;
             string fail_var = create_temp();
+            string fail_var_type = create_temp();
             if(remaining==1) implementation += "if("+arg+"____size<="+arg+"____offset) goto "+fail_var+";\n";
             else implementation += "if("+arg+"____size<"+arg+"____offset+"+to_string(remaining)+") goto "+fail_var+";\n";
-            errors += fail_var+":\nprintf(\"Runtime error: buffer "+pretty_var(arg)+" empty or has different element primitive type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+            errors += fail_var+":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+            errors += fail_var_type+":\nprintf(\"Runtime error: buffer has different element primitive type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
             preample += "#include <stdio.h>\n";
             string tmp = create_temp();
             for(int i=0;i<remaining;++i) {
@@ -200,7 +203,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                     internalTypes.vars[element+"t"] = types.vars["u64"];
                     implementation += element+"t = ((u64*)"+arg+"____typetag)[("+ to_string(i)+"+"+arg+"____offset)/16];\n";
                     string pos = "((("+ to_string(i)+"+"+arg+"____offset)%16)*4)";
-                    implementation += "if((("+element+"t>>"+pos+")& 0xF)!=__IS_"+desiredType->name+") goto "+fail_var+";\n";
+                    implementation += "if((("+element+"t>>"+pos+")& 0xF)!=__IS_"+desiredType->name+") goto "+fail_var_type+";\n";
                 }
                 if(internalTypes.vars.find(element)==internalTypes.vars.end()) // vardecl += cast+" "+element+";\n";
                 implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset), sizeof("+element+"));\n";
@@ -239,6 +242,9 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             }
             impl += ");\n";
             implementation += impl;
+            finals[var] = type->rebase(type->finals_when_used, var);
+            internalTypes.vars[var] = type->alias_for.size()?type->internalTypes.vars[type->alias_for]:type;
+            if(internalTypes.vars[var]->name=="buffer") buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
             return next_var(imp, p, var, types);
         }
         if(type->_is_primitive) {
@@ -255,7 +261,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                 buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[var+"__"+type->args[i].name];
             }
         }
-        internalTypes.vars[var] = type;
+        internalTypes.vars[var] = type->alias_for.size()?type->internalTypes.vars[type->alias_for]:type;
         implementation += type->rebase(type->implementation, var);
         preample += type->rebase(type->preample, var);
         for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); 
@@ -267,7 +273,8 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             if(it.second->name=="buffer") buffer_primitive_associations[var+"__"+it.first] = type->buffer_primitive_associations[it.first];
         }
         finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
-
+        finals[var] = type->rebase(type->finals_when_used, var);
+        if(internalTypes.vars[var]->name=="buffer") buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
         if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0], types);
         return next_var(imp, p, var, types);
     }
