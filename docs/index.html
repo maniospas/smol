@@ -647,22 +647,25 @@ You've seen at least 9 years gone by.
 
 <p>Handle dynamic memory with the special <code class="language-smolambda">buffer</code> runtype.
 Think of this as a list where new data are pushed to the back and popped from the front. The
-definition is part of the language and it is how one would handle functions with variadic inputs too. 
-(<i>Variadic</i> is a fancy way of calling an arbitrary number of inputs.)
+definition is part of the language and it is how one would handle functions with variadic inputs or outputs too. 
+(<i>Variadic</i> is a fancy way of calling an arbitrary number of inputs or outputs.)
 </p>
 
 <p>Buffers are unpacked into other runtypes by consuming elements from their start.
 However, unpacking feasibility is checked at runtime. Memory deallocation is safe, occurs
-always -even if runtime errors terminate the service-
+always -even if runtime errors terminate services-
 and is injected automatically by <i>smoλ</i>. Data are stored in buffers without
 even primitive types and correct unpacking either relies solely on the programmer or on
 safe runtypes that will be discussed later.</p>
+
+<h3>Local buffers</h3>
 
 <p>Buffer elements are unpacked from the front until no
 more entries are required for desired runtype calls.
 Popping is memory safe in that buffer overflows smoothly fail any service
 (such as <code class="language-smolambda">main</code>)
-with an appropriate error message.
+with an appropriate error message. You can check the number of remaining
+elements with the <code class="language-smolambda">len</code> runtype.
 </p>
 
 <pre><code class="language-smolambda">@include std
@@ -672,11 +675,44 @@ smo Field(Point start, Point end) -> @new
 
 service main()
     buf = buffer(1,2,3,4,5)
-    f = Field&(buf)   // pops front
+    print(buf:len)    // 5
+    f = buf:Field     // pops front
     print(f.start.x)  // 1
     print(buf:i64)    // 5
     --
 </code></pre>
+
+<h3>Returning buffers</h3>
+
+<p>Runtypes and services can return buffers, but only if this is the only thing returned.
+The result is forcefully interpeted as a buffer again to maintain its spectial operations.
+For example, services that return buffers do not return have an error field
+<code class="language-smolambda">.err</code>  that you can check. Instead, identify failure 
+by checking that the returned buffer has non-zero length. Below is an example.
+</p>
+
+<pre><code class="language-smolambda">@include std
+
+service test()
+    buf = buffer(0,1,2.0,3,4) // accidentally has an f64
+    iterator = buf
+    while iterator:len:bool
+        print(iterator:i64)
+        --
+    return buf
+
+service main()
+    buf = test()
+    if buf:len:bool:not print("failed to generate buffer")
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+0
+1
+Runtime error: buffer element has different primitive type
+failed to generate buffer
+</pre>
+
 
 <h3>Slicing</h3>
 

@@ -82,6 +82,10 @@ connection.onCompletion((params) => {
   }
   collect(uri);
   return [
+    ...builtins.map(k => ({
+      label: k,
+      kind: CompletionItemKind.Keyword
+    })),
     ...keywords.map(k => ({
       label: k,
       kind: CompletionItemKind.Keyword
@@ -195,7 +199,7 @@ connection.languages.semanticTokens.on((params) => {
         continue;
       }
   
-      if(textLine.startsWith("->", pos) || textLine.startsWith("--", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
+      if(textLine.startsWith("->", pos) || textLine.startsWith("--", pos) || textLine.startsWith("-->", pos) || textLine.startsWith("->>", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
       if(textLine[pos] === ':') {builder.push(line, pos, 1, 3, 0);pos += 1;continue;}
       const match = textLine.slice(pos).match(/^@?[A-Za-z_][A-Za-z0-9_.]*/);
       if(match) {

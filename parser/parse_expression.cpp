@@ -31,6 +31,40 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         internalTypes.vars[var] = types.vars["u64"];
         return next_var(imp, p, var, types);
     }
+    if(first_token == "put" && curry.size() && internalTypes.contains(curry) && internalTypes.vars[curry]->name=="buffer") {
+        string arg = curry;
+        if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
+        string inherit_buffer("");
+        vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer, "");
+        if(inherit_buffer.size()) imp->error(--p, "Cannot unpack from a buffer to put elements in a buffer");
+        int remaining = unpacks.size();
+        if(!remaining) imp->error(--p, "Need to set at least one element to the buffer");
+        if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
+        string fail_var = create_temp();
+        string fail_var_type = create_temp();
+        if(remaining==1) implementation += "if("+arg+"____size<="+arg+"____offset) goto "+fail_var+";\n";
+        else implementation += "if("+arg+"____size<"+arg+"____offset+"+to_string(remaining)+") goto "+fail_var+";\n";
+        errors += fail_var+":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+        errors += fail_var_type+":\nprintf(\"Runtime error: buffer element would replace a different type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+        preample += "#include <stdio.h>\n";
+        string tmp = create_temp();
+        for(int i=0;i<remaining;++i) {
+            Type desiredType = internalTypes.vars[unpacks[i]];
+            bool typecheck = !buffer_primitive_associations[arg];
+            if(!typecheck && desiredType!=buffer_primitive_associations[arg]) imp->error(p-2, "Buffer contains only "+buffer_primitive_associations[arg]->name+" primitives but tried to replace one with "+desiredType->name);
+            string element = "__"+tmp+"__"+to_string(i);
+            if(typecheck) {
+                internalTypes.vars[element+"t"] = types.vars["u64"];
+                implementation += element+"t = ((u64*)"+arg+"____typetag)[("+ to_string(i)+"+"+arg+"____offset)/16];\n";
+                string pos = "((("+ to_string(i)+"+"+arg+"____offset)%16)*4)";
+                implementation += "if((("+element+"t>>"+pos+")& 0xF)!=__IS_"+desiredType->name+") goto "+fail_var_type+";\n";
+            }
+            //if(desiredType->name=="i64" || desiredType->name=="f64" || desiredType->name=="ptr" || desiredType->name=="cstr") implementation += "((u64*)" + arg + "____contents)["+ to_string(i)+"+"+arg+"____offset] = std::bit_cast<u64>("+unpacks[i]+");\n";
+            implementation += "std::memcpy((unsigned char*)" + arg + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset), &"+unpacks[i]+", sizeof("+unpacks[i]+"));\n";
+        }
+        implementation += arg+"____offset += "+to_string(remaining)+";\n";
+        return arg;
+    }
     if(internalTypes.contains(first_token)) {
         if(curry.size()) imp->error(p, "Expecting runtype (not variable): "+first_token);
         return next_var(imp, p, first_token, types); //ASSIGNMENT TO ALREADY EXISTING VARIABLE
@@ -52,9 +86,11 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         implementation += var + "____typetag = calloc(" + var + "____size/16+1, sizeof(u64));\n";
         //implementation += "std::memcpy((unsigned char*)" + var + "____contents, &" + var + "____size, sizeof(u64));\n";
         if(unpacks.size()) buffer_primitive_associations[var] = internalTypes.vars[unpacks[0]];
-        else buffer_primitive_associations[var] = types.vars["u64"];
         for(size_t i = 0; i < unpacks.size(); ++i) {
-            if(buffer_primitive_associations[var]!=internalTypes.vars[unpacks[i]]) implementation += "((u64*)" + var + "____typetag)["+to_string(i/16)+"] |= ((u64)__IS_"+internalTypes.vars[unpacks[i]]->name+")<<"+to_string((i%16)*4)+";\n";
+            if(buffer_primitive_associations[var]!=internalTypes.vars[unpacks[i]]) buffer_primitive_associations[var] = nullptr;
+            //if(buffer_primitive_associations[var]) 
+            // for now it's mandatory to set the type because we might lose the primitive association in the future - the optimizer may just remove if if unused though
+            implementation += "((u64*)" + var + "____typetag)["+to_string(i/16)+"] |= ((u64)__IS_"+internalTypes.vars[unpacks[i]]->name+")<<"+to_string((i%16)*4)+";\n";
             implementation += "std::memcpy((unsigned char*)" + var + "____contents + sizeof(u64) * " + to_string(i) + ", &" + unpacks[i] + ", sizeof("+unpacks[i]+"));\n";
         }
         internalTypes.vars[var] = types.vars.find(first_token)->second;
@@ -192,12 +228,13 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             if(remaining==1) implementation += "if("+arg+"____size<="+arg+"____offset) goto "+fail_var+";\n";
             else implementation += "if("+arg+"____size<"+arg+"____offset+"+to_string(remaining)+") goto "+fail_var+";\n";
             errors += fail_var+":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
-            errors += fail_var_type+":\nprintf(\"Runtime error: buffer has different element primitive type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+            errors += fail_var_type+":\nprintf(\"Runtime error: buffer element has the wrong type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
             preample += "#include <stdio.h>\n";
             string tmp = create_temp();
             for(int i=0;i<remaining;++i) {
                 Type desiredType = type->_is_primitive?type:type->args[unpacks.size()].type;// don't add i because we push back the element
-                bool typecheck = desiredType!=buffer_primitive_associations[inherit_buffer];
+                bool typecheck = !buffer_primitive_associations[inherit_buffer];//desiredType!=buffer_primitive_associations[inherit_buffer];
+                if(!typecheck && desiredType!=buffer_primitive_associations[inherit_buffer]) imp->error(--p, "Buffer contains only "+buffer_primitive_associations[inherit_buffer]->name+" primitives but tried to extract "+desiredType->name);
                 string element = "__"+tmp+"__"+to_string(i);
                 if(typecheck) {
                     internalTypes.vars[element+"t"] = types.vars["u64"];
@@ -205,7 +242,6 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                     string pos = "((("+ to_string(i)+"+"+arg+"____offset)%16)*4)";
                     implementation += "if((("+element+"t>>"+pos+")& 0xF)!=__IS_"+desiredType->name+") goto "+fail_var_type+";\n";
                 }
-                if(internalTypes.vars.find(element)==internalTypes.vars.end()) // vardecl += cast+" "+element+";\n";
                 implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset), sizeof("+element+"));\n";
                 internalTypes.vars[element] = desiredType;
                 unpacks.push_back(element);

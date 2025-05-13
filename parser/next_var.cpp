@@ -67,7 +67,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             else assign_variable(types.vars["u64"], next+"____size", prev+"____size", imp, p, false);
             assign_variable(types.vars["u64"], next+"____offset", prev+"____offset + "+arg, imp, p, false); // no need for bounds checking here because we are going to later check if non-empty anyway when we pop elements in parse_expression
             assign_variable(types.vars["ptr"], next+"____contents", prev+"____contents", imp, p, false);
-
+            assign_variable(types.vars["ptr"], next+"____typetag", prev+"____typetag", imp, p, false);
 
         }
         else break;

@@ -1,14 +1,12 @@
 @include std
 
 service test()
-    buf = buffer(1,2,3)
-    print(buf:i64)
-    fail("test")
+    buf = buffer(0,1,2,3,4)
+    buf[0:u64]:put(200)
     -> buf
 
-service main()
-    buf2 = test()
-    if buf2:len:bool
-        print(buf2:i64)
-        print(buf2:f64)
+service main()    
+    iterator = test()
+    sum = 0 while iterator:len:bool sum = iterator:i64:add(sum) --
+    print(sum)
     --
