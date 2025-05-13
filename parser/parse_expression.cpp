@@ -49,8 +49,8 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         implementation += var+"____size = "+to_string(unpacks.size())+(inherit_buffer.size()?(" + "+inherit_buffer+"____size"):"")+";\n";
         implementation += var+"____offset = 0;\n";
         implementation += var + "____contents = malloc(sizeof(i64)*" + var + "____size);\n";
-        implementation += var + "____typetag = calloc(" + var + "____size/16+1, sizeof(i64));\n";
-        implementation += "std::memcpy((unsigned char*)" + var + "____contents, &" + var + "____size, sizeof(u64));\n";
+        implementation += var + "____typetag = calloc(" + var + "____size/16+1, sizeof(u64));\n";
+        //implementation += "std::memcpy((unsigned char*)" + var + "____contents, &" + var + "____size, sizeof(u64));\n";
         if(unpacks.size()) buffer_primitive_associations[var] = internalTypes.vars[unpacks[0]];
         else buffer_primitive_associations[var] = types.vars["u64"];
         for(size_t i = 0; i < unpacks.size(); ++i) {
@@ -198,7 +198,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                 string element = "__"+tmp+"__"+to_string(i);
                 if(typecheck) {
                     internalTypes.vars[element+"t"] = types.vars["u64"];
-                    implementation += "std::memcpy(&" + element+"t, ((unsigned char*)"+arg+"____typetag+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset)/16), sizeof(u64));\n";
+                    implementation += element+"t = ((u64*)"+arg+"____typetag)[("+ to_string(i)+"+"+arg+"____offset)/16];\n";
                     string pos = "((("+ to_string(i)+"+"+arg+"____offset)%16)*4)";
                     implementation += "if((("+element+"t>>"+pos+")& 0xF)!=__IS_"+desiredType->name+") goto "+fail_var+";\n";
                 }
