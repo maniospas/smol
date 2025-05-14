@@ -56,7 +56,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
                 internalTypes.vars[arg_name+"__"+it.name] = it.type;
                 // vardecl += it.type->rebase(it.type->vardecl, arg_name);
                 implementation += it.type->rebase(it.type->implementation, arg_name);
-                preample += it.type->rebase(it.type->preample, arg_name);
+                for(const string& pre : it.type->preample) add_preample(it.type->rebase(pre, arg_name));
                 for(const auto& final : it.type->finals) finals[arg_name+"__"+final.first] += it.type->rebase(final.second, arg_name); 
                 //finals = it.type->rebase(it.type->finals, arg_name)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
                 for(const auto& it : it.type->current_renaming) current_renaming[arg_name+"__"+it.first] = arg_name+"__"+it.second;

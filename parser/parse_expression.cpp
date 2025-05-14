@@ -46,7 +46,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         else implementation += "if("+arg+"____size<"+arg+"____offset+"+to_string(remaining)+") goto "+fail_var+";\n";
         errors += fail_var+":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
         errors += fail_var_type+":\nprintf(\"Runtime error: buffer element would replace a different type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
-        preample += "#include <stdio.h>\n";
+        add_preample("#include <stdio.h>");
         string tmp = create_temp();
         for(int i=0;i<remaining;++i) {
             Type desiredType = internalTypes.vars[unpacks[i]];
@@ -71,7 +71,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
     }
     if(first_token=="buffer") {
         string var = create_temp();
-        preample += "#include<cstdlib>\n";
+        add_preample("#include<cstdlib>");
         if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
         string inherit_buffer("");
         vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer, curry);
@@ -126,7 +126,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                 string fail_var = create_temp();
                 implementation += "if("+rhs+"__err) goto "+fail_var+";\n";
                 errors += fail_var+":\nprintf(\"Runtime error from "+rhsType->name+" "+pretty_var(rhs)+"\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n";
-                preample += "#include <stdio.h>\n";
+                add_preample("#include <stdio.h>");
                 for(size_t i=1;i<rhsType->packs.size();++i) unpacks.push_back(rhs+"__"+rhsType->packs[i]);
             }
             else for(const string& pack : rhsType->packs) unpacks.push_back(rhs+"__"+pack);
@@ -229,7 +229,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             else implementation += "if("+arg+"____size<"+arg+"____offset+"+to_string(remaining)+") goto "+fail_var+";\n";
             errors += fail_var+":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
             errors += fail_var_type+":\nprintf(\"Runtime error: buffer element has the wrong type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
-            preample += "#include <stdio.h>\n";
+            add_preample("#include <stdio.h>");
             string tmp = create_temp();
             for(int i=0;i<remaining;++i) {
                 Type desiredType = type->_is_primitive?type:type->args[unpacks.size()].type;// don't add i because we push back the element
@@ -299,7 +299,8 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         }
         internalTypes.vars[var] = type->alias_for.size()?type->internalTypes.vars[type->alias_for]:type;
         implementation += type->rebase(type->implementation, var);
-        preample += type->rebase(type->preample, var);
+        for(const string& pre : type->preample) add_preample(type->rebase(pre, var));
+
         for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); 
         //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
         errors = errors+type->rebase(type->errors, var);

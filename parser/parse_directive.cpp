@@ -4,6 +4,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
         next = imp->at(p++);
         if(next!="{") imp->error(--p, "Expected brackets");
         int depth = 1;
+        string preample("");
         while(true) {
             next = imp->at(p++);
             if(next=="{") depth++;
@@ -13,6 +14,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
             if(!is_symbol(next) && !is_symbol(nextnext)) preample += " ";
         }
         preample += "\n";
+        add_preample(preample);
     }
     else if(next=="body") {
         next = imp->at(p++);
