@@ -2,7 +2,7 @@
 @include std.err
 
 smo vec(u64 size)
-    @body{ptr contents = new f64[size];}
+    @body{ptr previous = contents; ptr contents = new f64[size]; if(previous)delete (f64*)previous; }
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
     -> contents, size
 
@@ -17,10 +17,45 @@ smo put(vec v, u64 pos, f64 value)
 
 smo dot(vec x1, vec x2)
     if x1.size!=x2.size fail("Incompatible vec sizes") --
+    x2.size = x1.size // this helps the optimizer
     sum = 0.0
     i=0:u64 while i<x1.size @next i = i+1:u64
         sum = x1:at(i)
                 :mul(x2:at(i))
                 :add(sum)
         --
+    //@body{for(u64 i=0;i<x1__size;++i) sum += ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
     -> sum
+
+smo add(vec x1, vec x2)
+    if x1.size!=x2.size fail("Incompatible vec sizes") --
+    x2.size = x1.size // this helps the optimizer
+    size = x1.size
+    @body{ptr previous = contents;}
+    @body{ptr contents = new f64[size];}
+    @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];}
+    @body{if(previous)delete (f64*)previous;}
+    @finally contents {if(contents)delete (f64*)contents; contents=0;}
+    -> contents, size
+
+smo sub(vec x1, vec x2)
+    if x1.size!=x2.size fail("Incompatible vec sizes") --
+    x2.size = x1.size // this helps the optimizer
+    size = x1.size
+    @body{ptr previous = contents;}
+    @body{ptr contents = new f64[size];}
+    @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];}
+    @body{if(previous)delete (f64*)previous;}
+    @finally contents {if(contents)delete (f64*)contents; contents=0;}
+    -> contents, size
+
+smo mul(vec x1, vec x2)
+    if x1.size!=x2.size fail("Incompatible vec sizes") --
+    x2.size = x1.size // this helps the optimizer
+    size = x1.size
+    @body{ptr previous = contents;}
+    @body{ptr contents = new f64[size];}
+    @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
+    @body{if(previous)delete (f64*)previous;}
+    @finally contents {if(contents)delete (f64*)contents; contents=0;}
+    -> contents, size

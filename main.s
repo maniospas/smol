@@ -9,7 +9,7 @@ service main()
     x1:put(0:u64, 1.0)
     x2:put(0:u64, 1.0)
     tic = time()
-    z = dot(x1, x2)
+    z = dot(x1,x2)
     print(time()-tic)
     print(z)
     --
