@@ -38,17 +38,11 @@ smo at(vec v, u64 pos)
     if pos>=v.size fail("Vec out of bounds") --
     @body{f64 value = ((f64*)v__contents)[pos];} 
     -> value
-smo at(vec v, i64 pos) 
-    if pos<0 fail("Vec out of bounds") --
-    -> at(v, pos:u64)
 
 smo put(vec v, u64 pos, f64 value)
     if pos>=v.size fail("Vec out of bounds") --
     @body{((f64*)v__contents)[pos] = value;}
     -> v
-smo put(vec v, i64 pos, f64 value) 
-    if pos<0 fail("Vec out of bounds") --
-    -> put(v, pos:u64, value)
 
 smo dot(vec x1, vec x2)
     if x1.size!=x2.size fail("Incompatible vec sizes") --

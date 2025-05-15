@@ -82,30 +82,58 @@ auto tokenize(const string& path) {
     auto main_file = make_shared<Import>(path);
     vector<Token>& tokens = main_file->tokens;
     size_t in_brackets = 0;
+    size_t in_interpolation = 0;
     while(getline(file, line)) {
         line_num++;
         size_t i = 0;
         size_t col = 1;
         while(i < line.size()) {
             while (i < line.size() && isspace(line[i])) {if (line[i] == '\t') col += 4; else col++;i++;}
-            if (i >= line.size()) break;
-            if (line[i] == '/' && i + 1 < line.size() && line[i + 1] == '/') break;
+            if(i >= line.size()) break;
+            if(line[i] == '/' && i + 1 < line.size() && line[i + 1] == '/') break;
             size_t start = i;
             size_t start_col = col;
-            if (line[i] == '"') {
-                // String literal
+            if(line[i]=='"' && in_interpolation) ERROR("Cannot start a string within string interpolation\n"+tokens[tokens.size()-1].show());
+            string prefix("");
+            if (line[i] == '"' || (line[i]=='}' && in_interpolation)) {
+                if(line[i]=='}') {
+                    tokens.emplace_back(")", line_num, col, main_file);
+                    tokens.emplace_back(":", line_num, col, main_file);
+                    tokens.emplace_back("add", line_num, col, main_file);
+                    tokens.emplace_back("__consume", line_num, col, main_file);
+                    prefix = "\"";
+                    --in_interpolation;
+                    i++;
+                    col++;
+                    start++;
+                }
                 i++;
                 col++;
+                bool to_eplace = true;
                 while(i < line.size() && line[i] != '"') {
+                    if(line[i]=='\\' && i<line.size()-1 && line[i+1]=='{') {
+                        in_interpolation++;
+                        to_eplace = false;
+                        tokens.emplace_back(prefix+line.substr(start, i - start)+'"', line_num, col, main_file);
+                        tokens.emplace_back(":", line_num, col, main_file);
+                        tokens.emplace_back("add", line_num, col, main_file);
+                        tokens.emplace_back("__consume", line_num, col, main_file);
+                        tokens.emplace_back("str", line_num, col, main_file);
+                        tokens.emplace_back("(", line_num, col, main_file);
+                        i+=2;
+                        col+=2;
+                        break;
+                    }
                     if (line[i] == '\t') col += 4;
                     else col++;
                     i++;
                 }
+                if(i>=line.size() && !in_interpolation) ERROR("Strings segments can only span one line\n"+tokens[tokens.size()-1].show());
                 if(i < line.size() && line[i] == '"' && line[i-1]!='\\') {
                     i++;
                     col++;
                 }
-                tokens.emplace_back(line.substr(start, i - start), line_num, start_col, main_file);
+                if(to_eplace)tokens.emplace_back(prefix+line.substr(start, i - start), line_num, start_col, main_file);
             }
             else if(!in_brackets && line[i]=='+') {
                 tokens.emplace_back(":", line_num, col, main_file);

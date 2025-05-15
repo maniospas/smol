@@ -51,7 +51,7 @@ smo str(f64 number)
     @body{
         ptr readbuf = (ptr)malloc(32);
         if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%f.6", number);
+            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%.6f", number);
             if (length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
