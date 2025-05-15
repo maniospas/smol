@@ -1,19 +1,54 @@
+// Written in 2025 by Emmanouil Krasanakis (maniospas@hotmail.com)
+//
+// To the extent possible under law, the author has dedicated all copyright
+// and related and neighboring rights to this software to the public domain
+// worldwide.
+// 
+// Permission to use, copy, modify, and/or distribute this software for any
+// purpose with or without fee is hereby granted.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+// WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+// ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+// ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+// IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+
 @include std.num
 @include std.err
+@include std.rand
 
+smo vec(ptr contents, u64 size) -> @new
 smo vec(u64 size)
+    @body{ptr previous = contents; ptr contents = new f64[size](); if(previous)delete (f64*)previous; }
+    @finally contents {if(contents)delete (f64*)contents; contents=0;}
+    -> vec(contents, size)
+
+smo rand(vec, u64 size)
     @body{ptr previous = contents; ptr contents = new f64[size]; if(previous)delete (f64*)previous; }
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
-    -> contents, size
+    i=0:u64 while i<size @next i = i+1:u64 
+        value = rand()
+        @body{((f64*)contents)[i] = value;}
+        --
+    -> vec(contents, size)
 
 smo at(vec v, u64 pos) 
     if pos>=v.size fail("Vec out of bounds") --
     @body{f64 value = ((f64*)v__contents)[pos];} 
     -> value
+smo at(vec v, i64 pos) 
+    if pos<0 fail("Vec out of bounds") --
+    -> at(v, pos:u64)
 
 smo put(vec v, u64 pos, f64 value)
+    if pos>=v.size fail("Vec out of bounds") --
     @body{((f64*)v__contents)[pos] = value;}
     -> v
+smo put(vec v, i64 pos, f64 value) 
+    if pos<0 fail("Vec out of bounds") --
+    -> put(v, pos:u64, value)
 
 smo dot(vec x1, vec x2)
     if x1.size!=x2.size fail("Incompatible vec sizes") --
@@ -36,7 +71,7 @@ smo add(vec x1, vec x2)
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];}
     @body{if(previous)delete (f64*)previous;}
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
-    -> contents, size
+    -> vec(contents, size)
 
 smo sub(vec x1, vec x2)
     if x1.size!=x2.size fail("Incompatible vec sizes") --
@@ -47,7 +82,7 @@ smo sub(vec x1, vec x2)
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];}
     @body{if(previous)delete (f64*)previous;}
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
-    -> contents, size
+    -> vec(contents, size)
 
 smo mul(vec x1, vec x2)
     if x1.size!=x2.size fail("Incompatible vec sizes") --
@@ -58,4 +93,4 @@ smo mul(vec x1, vec x2)
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
     @body{if(previous)delete (f64*)previous;}
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
-    -> contents, size
+    -> vec(contents, size)

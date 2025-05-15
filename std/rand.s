@@ -15,8 +15,11 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-smo time()
+smo rand() 
+    // https://prng.di.unimi.it/
+    // the version used here is only suitable for floating point generation
+    @head{#include "std/xoshiro256plus.cpp"}
     @head{#include <chrono>}
-    @head{auto start = std::chrono::high_resolution_clock::now();}
-    @body{f64 elapsed = std::chrono::duration<double> (std::chrono::high_resolution_clock::now() - start).count();}
-    -> elapsed
+    @head{struct __Xoshiro256plusInitializer {__Xoshiro256plusInitializer(){xoshiro256plus::seed((uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count());}}; __Xoshiro256plusInitializer __xoshiro256plusInitializer;}
+    @body{f64 value = static_cast<f64>(xoshiro256plus::next() >> 11) / static_cast<f64>(static_cast<unsigned long long>(1) << 53);}
+    -> value
