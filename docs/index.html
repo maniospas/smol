@@ -51,10 +51,13 @@
 
 <p><i>Smoλ</i>  (pronounced like "small" but with "o" instead of "a") is a low-level language with fast zero-cost abstractions that are organized 
 into failsafe services.
-Its core is tiny — really tiny! So tiny, in fact, that functions like printing and basic
-arithmetic operations are externally implemented in the standard library with a direct-to-C++ interface.
-Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="repository">GitHub</a> to keep track of progress.</p>
+Its core is tiny — really tiny! So tiny, in fact, that printing and basic
+arithmetics are externally implemented in the standard library with a direct-to-C++ interface.
+Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="repository">GitHub</a> to track progress.</p>
 
+
+<p>As an overview, there are two main constructs: a) runtypes denoted by <code class="language-smolambda">smo</code>
+and which behave like both structs and functions, and b) services that functions executed in parallel and handle internal failures gracefully.</p>
 
 <h1 id="quickstart">Quickstart</h1>
 
@@ -541,7 +544,7 @@ service main()
 <h3>Why services?</h3>
 
 <p>Semantically, services are equivalent to runtypes with error handling and the implementation restriction that they
-do not accept arguments by reference. However, they costs a some additional operations per call, 
+do not accept arguments by reference. However, they cost some additional operations per call, 
 as they need to actually push the call to the stack and cascade
 unhandled errors. So they are less efficient if you, say, call them millions of times per second.
 </p>
