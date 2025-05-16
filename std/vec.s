@@ -15,8 +15,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@include std.num
-@include std.err
+@include std.builtins
 @include std.rand
 
 smo vec(ptr contents, u64 size) -> @new

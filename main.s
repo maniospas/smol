@@ -1,4 +1,4 @@
-@include std
+@include std.builtins
 @include std.vec
 @include std.time
 

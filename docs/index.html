@@ -77,7 +77,7 @@ search for the symbolic transcription in the parenthesis in the extensions tab, 
 <h3>What's interesting?</h3>
 <p>Look at an example of how <i>smoλ</i> manages data structures:</p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 smo Point(i64 x, i64 y) -> @new
 smo Field(Point start, Point end) -> @new
@@ -92,8 +92,9 @@ service main()
 
 <p>First, <code class="language-smolambda">@include</code> brings code from
 other files with the <i>.s</i> extension. Paths are separated by dots.
-For safety, includes cannot occur within definitions and make code directly accessible. Here we include the
-<a href="#std">standard library</a>, mainly to help with printing. Nothing exciting yet.</p>
+For safety, includes cannot occur within definitions and make code directly accessible. Here we include 
+builtins from the <a href="#std">standard library</a>, mainly arithmetic operations and printing. 
+Nothing exciting yet.</p>
 
 <p>Next are some so-called <i>runtypes</i>, declared by the <code class="language-smolambda">smo</code>
 keyword. These merge the concept of types and functions, where <code class="language-smolambda">-></code>
@@ -125,7 +126,7 @@ You can also optionally add parentheses for clarity in conditions, but this is n
 needed because the end of expressions is always unique.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     i = 0
@@ -149,7 +150,7 @@ your code later.
 </p>
 
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     i=0 while i&lt;10 @next i = i+1
@@ -166,7 +167,7 @@ Thus, the always true condition is actually useful similarly how an always
 true loop condition is also useful.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     i = 1
@@ -202,7 +203,7 @@ to return a runtype result from a condition within a loop.
 </p>
 
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     i = 511 while i&lt;10 @next i = i+1
@@ -217,7 +218,7 @@ Below is an even more complicated example.
 </p>
 
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     i=0 while i&lt;10 @next i = i+1
@@ -300,7 +301,7 @@ you can overload multiple versions of the same runtype that yield the same resul
 like in the example.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 smo Point(f64 x, f64 y) -> @new
 smo Point() 
@@ -323,7 +324,7 @@ calls occur by reference by prepending
 <code class="language-smolambda">&</code> to variable names in the signature. In this case,
 internal modifications are retained. Below is an example.</p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 smo inc(i64 &x)
     x = add(x,1)
@@ -344,7 +345,7 @@ parentheses if there is only one argument and you curry it. Below is an example,
 have as little nesting as possible.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     1:add(2):mul(3):print
@@ -376,7 +377,7 @@ cannot be accessed after computations conclude.
 without internal implementation.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 smo multi_out(i64 x)
     xinc = add(x,1)
     -> xinc, x
@@ -477,7 +478,7 @@ and calling the corresponding overloaded addition.
 Unions account for overloads of their options up to the point
 where they are defined.</p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 union Type(i64, f64, u64)
 smo Point(Type x, Type y) -> @new
@@ -508,7 +509,7 @@ with a standard library implementation. The <code class="language-smolambda">str
 to allow various conversions to other primitives. However, we are still able to identify a specific variation, 
 which in turn is used to identify and call <code class="language-smolambda">str:read</code>.</p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     print("What's your name?")
@@ -532,7 +533,7 @@ with runtypes so that it's easy to change your mind as you write code.
 You will often not notice anything different.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service square(f64 x) -> mul(x,x)
 service main()
@@ -567,7 +568,7 @@ main service.
 </p>
 
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service square(f64 x) 
     fail("Don't wanna!") // manually fail
@@ -590,7 +591,7 @@ when unpacking values, essentially reserving field access for error handling but
 usage in further code.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service square(f64 x) 
     fail("Don't wanna!") // manually fail
@@ -616,7 +617,7 @@ service fail too.
 </p>
 
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service get_age() 
     print("What's your age?")
@@ -671,7 +672,7 @@ with an appropriate error message. You can check the number of remaining
 elements with the <code class="language-smolambda">len</code> runtype.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 smo Point(i64 x, i64 y) -> @new
 smo Field(Point start, Point end) -> @new
@@ -694,7 +695,7 @@ For example, services that return buffers do not return have an error field
 by checking that the returned buffer has non-zero length. Below is an example.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service test()
     buf = buffer(0,1,2.0,3,4) // accidentally has an f64
@@ -734,7 +735,7 @@ Below is an example of slicing. <i>All operations are near-zero-cost abstraction
 with the exception that specifying an end also checks for bounds compared to the enclosing slice.</i>
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     buf = buffer(0,1,2,3,4,5)
@@ -760,7 +761,7 @@ assigns runtype values to buffers.
 i</p>
 
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 smo Point(i64 x, i64 y) -> @new
 
@@ -792,7 +793,7 @@ segment- strings. Reading failure fails the current service under <i>smoλ</i>'s
 instead of trying to recover from invalid states. Here's an example:
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     success = false
@@ -811,7 +812,7 @@ a) they retain c-style strings for quoted characters, and b) they keep track of 
 to enable fast comparison without going through heap data.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     i = 0
@@ -831,7 +832,7 @@ and requires extensive tests to demonsrate correctness. However, once
 safe implementations are provided, you can reuse those.
 </p>
 
-<pre><code class="language-smolambda">@include std
+<pre><code class="language-smolambda">@include std.builtins
 
 service add_service(str v1, str v2) 
     i = 0
@@ -847,6 +848,34 @@ service main()
     r1 = add_service(r1,r2)
     print(r1)
 </code></pre>
+
+
+<h3>Vectors</h3>
+<b>Under construction.</b>
+
+<h3>Vectors</h3>
+
+<p>Below is an example that demonstrates 
+vector computations. Thse include the generation
+of vectors with uniformly random elements.
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+@include std.vec
+@include std.time
+
+service main()
+    n = 100000:u64
+    x1 = vec(n)
+    x2 = vec(n)
+    tic = time()
+    z = dot(x1,x2)
+    print("Elapsed \{time()-tic} sec")
+    print(z)
+    --
+</code></pre>
+
+
     
 
 </div>

@@ -24,7 +24,6 @@ jobs:
           mkdir release-linux
           cp smol release-linux/
           cp -r std release-linux/
-          cp std.s release-linux/
 
       - name: Upload artifacts (Linux)
         uses: actions/upload-artifact@v4
@@ -54,7 +53,6 @@ jobs:
           mkdir release-windows
           copy smol.exe release-windows\
           xcopy std release-windows\std\ /E /I
-          copy std.s release-windows\
 
       - name: Upload artifacts (Windows)
         uses: actions/upload-artifact@v4

@@ -15,7 +15,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@include std.num
+@include std.builtins.num
 
 smo str(ptr contents, u64 length, char first) -> @new
 smo str(i64 number)
@@ -36,9 +36,7 @@ smo str(i64 number)
             }
         }
     }
-    if(contents:exists:not)
-        @fail{printf("Failed to allocate str from number\n");}
-        --
+    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
     @finally{if(contents)free(contents);}
     @finally{if(readbuf)free(readbuf);}
     -> str(contents, length, first)
@@ -62,9 +60,7 @@ smo str(f64 number)
             }
         }
     }
-    if(contents:exists:not)
-        @fail{printf("Failed to allocate str from number\n");}
-        --
+    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
     @finally{if(contents)free(contents);}
     @finally{if(readbuf)free(readbuf);}
     -> str(contents, length, first)
@@ -139,9 +135,7 @@ smo add(cstr x, str y)
         if(_contents){strcpy((char*)_contents, (const char*)x);strcat((char*)_contents, (const char*)y__contents);char first=((char*)_contents)[0];}
         if(dealloc) free(dealloc);
     }
-    if(_contents:exists:not())
-        @fail{printf("Failed to allocate str\n");}
-        --
+    if(_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
     @finally _contents {if(_contents)free(_contents);}
     -> str(_contents, add(len_x, y.length), first)
 
@@ -160,7 +154,5 @@ smo read(str)
         }
     }
     @finally _contents {if(_contents)free(_contents);}
-    if(_contents:exists:not)
-        @fail{printf("Failed to read str of up to 1023 characters\n");}
-        --
+    if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
     -> str(_contents, length, first)
