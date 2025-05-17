@@ -52,12 +52,12 @@
 <p><i>Smoλ</i>  (pronounced like "small" but with "o" instead of "a") is a low-level language with fast zero-cost abstractions that are organized 
 into failsafe services.
 Its core is tiny — really tiny! So tiny, in fact, that printing and basic
-arithmetics are externally implemented in the standard library with a direct-to-C++ interface.
+arithmetics are externally implemented in the standard library with a C++ interface.
 Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="repository">GitHub</a> to track progress.</p>
 
 
-<p>As an overview, there are two main constructs: a) runtypes denoted by <code class="language-smolambda">smo</code>
-and which behave like both structs and functions, and b) services that functions executed in parallel and handle internal failures gracefully.</p>
+<p>Overall, there are two main constructs: a) runtypes denoted by <code class="language-smolambda">smo</code>
+that declare short inlined operations, and b) services that are executed in parallel and handle internal failures gracefully.</p>
 
 <h1 id="quickstart">Quickstart</h1>
 
@@ -65,7 +65,7 @@ and which behave like both structs and functions, and b) services that functions
 
 <p>Download <i>smoλ</i> from its <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>
 or build it from source by cloning the repository and running <code class="bash">g++ smolang.cpp -o smol -O2 -std=c++23</code>.
-As you can see, the language is so lightweight that there is no need for a build system and its main executable consumes less than 300kB
+The language is so lightweight that there is no need for a build system and its main executable consumes less than 300kB
 ... plus a GCC distribution. Ensure that both the <i>smol</i> executable and GCC are in your system path.
 </p>
 
@@ -92,8 +92,8 @@ service main()
 
 <p>First, <code class="language-smolambda">@include</code> brings code from
 other files with the <i>.s</i> extension. Paths are separated by dots.
-For safety, includes cannot occur within definitions and make code directly accessible. Here we include 
-builtins from the <a href="#std">standard library</a>, mainly arithmetic operations and printing. 
+Here we include builtins from the <a href="#std">standard library</a> that we
+are going to use, mainly arithmetic operations and printing. 
 Nothing exciting yet.</p>
 
 <p>Next are some so-called <i>runtypes</i>, declared by the <code class="language-smolambda">smo</code>
@@ -117,13 +117,12 @@ For now, the main service is the program and the <code class="language-smolambda
 <h1 id="flow">Flow</h1>
 
 <p>
-<i>smoλ</i> offers conditions and loops to control the flow of a program. 
-These return values -or no values- to
-designate an end of the loop body or block. Below is an example of those, 
-where arguments to conditions and loops must always evaluate to booleans.
-The <code class="language-smolambda">else</code> branch of conditions is optional. 
-You can also optionally add parentheses for clarity in conditions, but this is not 
-needed because the end of expressions is always unique.
+<i>smoλ</i> offers if-statements and loops. These return values -or no values- to
+designate the end of code blocks. Below is an example 
+where conditions must always evaluate to booleans.
+The <code class="language-smolambda">else</code> branch of ifs is optional. 
+You can optionally add parentheses for clarity, but this is not 
+required because the end of expressions is always unique.
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -141,11 +140,10 @@ service main()
 <h3>@next</h3>
 
 <p>
-It is often convenient to compute a value but assign it at the variable at the
+You may want to compute a value but assign it at the variable at the
 end of the current control flow's body, for example to denote the next value
-in a loop while retaining the current value until that point. 
-This is achieved with the <code class="language-smolambda">@next</code> 
-instruction. Note the <i>@</i> prefix to remind that it might affect
+in a loop. This is achieved with the <code class="language-smolambda">@next</code> 
+instruction. Note the <i>@</i> prefix to indicate that it might affect
 your code later.
 </p>
 
@@ -160,11 +158,9 @@ service main()
 </code></pre>
 
 
-<p>Aside from loops, the same mechanism is useful for scrambling values.
-This is shown below, where <code class="language-smolambda">if(true)</code> 
+<p>Aside from loops, the same mechanism is useful for scrambling values;
+below  <code class="language-smolambda">if(true)</code> 
 is used to isolate the next values and intercept the internal return.
-Thus, the always true condition is actually useful similarly how an always 
-true loop condition is also useful.
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -187,15 +183,14 @@ service main()
 
 
 <p>
-There are no break and continue statements for loops because these can be emulated with other notation.
+There are no break and continue statements for loops because these can be emulated.
 First, as a styling choice, do not indent conditions that run from a position until the end of the loop's
 body but instead put the end condition's and loop's ending together. An example is shown below. 
 </p>
 <p>
 The example also demonstrates how to break loops by returning multiple
-steps back. This operation is called <i>uplifting</i> of return values. 
-The syntax for uplifting is to insert
-<code class="language-smolambda">></code> in the middle of returns.
+steps back. This operation is called <i>uplifting</i> and its syntax 
+is to insert <code class="language-smolambda">></code> in the middle of returns.
 You can uplift several times to escape from nested control flow.
 For example, <code class="language-smolambda">->-</code> breaks
 from a condition within a loop and <code class="language-smolambda">->>></code>
@@ -214,7 +209,7 @@ service main()
 </code></pre>
 
 <p>
-Below is an even more complicated example.
+Below is an example where uplifting returns even more steps back.
 </p>
 
 
@@ -274,7 +269,7 @@ performant. It is the preferred way for moving large chunks of data around and, 
 section is dedicate to describing it later. These previous types are curated to use
 the same number of 64 bits so as not to create alignment issues when stored and retrieved from buffers.</p>
 
-<p>The language also offers a <code class="language-smolambda">ptr</code> as a means to represent 64-bit address. 
+<p>The language also offers a <code class="language-smolambda">ptr</code> type as a means to represent 64-bit address. 
 In most situations you will not use addresses, but they are useful for interweaving more complicated C++ code in ways
 that the compiler can understand (this requires <i>a lot</i> of casts, though you can pack complicated bits in <i>.cpp</i>
 files if you want).

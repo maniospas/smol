@@ -18,11 +18,11 @@
 @include std.builtins
 @include std.rand
 
-smo vec(ptr contents, u64 size) -> @new
+smo vec(align, ptr contents, u64 size) -> @new
 smo vec(u64 size)
     @body{ptr previous = contents; ptr contents = new f64[size](); if(previous)delete (f64*)previous; }
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
-    -> vec(contents, size)
+    -> align:vec(contents, size)
 
 smo rand(vec, u64 size)
     @body{ptr previous = contents; ptr contents = new f64[size]; if(previous)delete (f64*)previous; }
@@ -31,7 +31,7 @@ smo rand(vec, u64 size)
         value = rand()
         @body{((f64*)contents)[i] = value;}
         --
-    -> vec(contents, size)
+    -> align:vec(contents, size)
 
 smo at(vec v, u64 pos) 
     if pos>=v.size fail("Vec out of bounds") --
@@ -64,7 +64,7 @@ smo add(vec x1, vec x2)
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];}
     @body{if(previous)delete (f64*)previous;}
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
-    -> vec(contents, size)
+    -> align:vec(contents, size)
 
 smo sub(vec x1, vec x2)
     if x1.size!=x2.size fail("Incompatible vec sizes") --
@@ -75,7 +75,7 @@ smo sub(vec x1, vec x2)
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];}
     @body{if(previous)delete (f64*)previous;}
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
-    -> vec(contents, size)
+    -> align:vec(contents, size)
 
 smo mul(vec x1, vec x2)
     if x1.size!=x2.size fail("Incompatible vec sizes") --
@@ -86,4 +86,4 @@ smo mul(vec x1, vec x2)
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
     @body{if(previous)delete (f64*)previous;}
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
-    -> vec(contents, size)
+    -> align:vec(contents, size)

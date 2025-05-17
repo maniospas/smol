@@ -2,6 +2,7 @@
 @include std.vec
 @include std.time
 
+
 service main()
     n = 100000:u64
     x1 = vec:rand(n)
