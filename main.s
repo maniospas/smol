@@ -17,6 +17,7 @@ service main()
     tic = time()
     z = dot(x1,x2)
     print("Elapsed \{time()-tic} sec")
+    print(x1:first)
     print(z:first)
     print(point(1.0,2.0):first)
     --

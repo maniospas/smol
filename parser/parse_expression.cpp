@@ -205,9 +205,16 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                     multipleFound = "";
                 }
                 if(type->choice_power<highest_choice_power) continue;
-                successfullType = type;
-                multipleFound += "\n- "+type->signature();
-                numberOfFound++;
+                bool equivalentTypes = true;
+                if(!successfullType) equivalentTypes = false;
+                else if(successfullType->packs.size()!=type->packs.size()) equivalentTypes = false;
+                else for(size_t i=0;i<type->packs.size();++i) if(type->packs[i]!=successfullType->packs[i] || type->internalTypes.vars[type->packs[i]]!=successfullType->internalTypes.vars[successfullType->packs[i]]) {equivalentTypes=false;break;}
+
+                if(!equivalentTypes) {
+                    successfullType = type;
+                    multipleFound += "\n- "+type->signature();
+                    numberOfFound++;
+                }
             }
             catch (const std::runtime_error& e) {
                 overloading_errors += "\n- ";
