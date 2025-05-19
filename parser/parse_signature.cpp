@@ -1,8 +1,10 @@
 void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
-    if(imp->at(p)=="service") is_service = true;
+    bool is_as = false;
+    if(imp->at(p)=="as") is_as = true;
+    else if(imp->at(p)=="service") is_service = true;
     else if(imp->at(p)!="smo") imp->error(--p, "Missing `service` or `smo` to declare runtype");
     p++;
-    name = imp->at(p++);
+    if(!is_as) name = imp->at(p++); else name = create_temp();
     //cout << "parsing  "<<name<<"\n";
     if(imp->at(p++)!="(") imp->error(--p, "Missing left parenthesis");
     while(true) {

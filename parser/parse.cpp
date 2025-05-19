@@ -1,3 +1,19 @@
+void end_block(const shared_ptr<Import>& i, size_t& p) {
+    size_t depth = 0;
+    while(p<i->size()) {
+        string next = i->at(p);
+        if(next=="if" || next=="else" || next=="while") ++depth;
+        if(next=="smo" || next=="service") i->error(p, "Unexpected end of definition");
+        if(next=="-" && p<i->size()-1) {
+            ++p;
+            next = i->at(p);
+            if(next=="-") {if(depth==0){++p;break;} --depth;}
+            if(next==">") i->error(p, "Currently unimplemented nesting that ends in symbol other than -");
+        }
+        ++p;
+    }
+} 
+
 void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_signature=true) {
     imp = i;
     if(with_signature) {pos = p;parse_signature(imp, p, types);}
@@ -61,6 +77,54 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             uplifting_targets.pop_back();
             continue;
         }
+        if(next=="with") { // TODO: this implementation does not account for nesting
+            string temp = create_temp();
+            string finally_var = temp+"__with";
+            size_t numberOfCandidates = 0;
+            string overloading_errors = "";
+            int with_start = p-1;
+            uplifting_targets.push_back(finally_var);
+            internalTypes.vars[finally_var] = types.vars["__label"];
+            
+            try {
+                parse(imp, p, types, false);
+                p++;
+                next = imp->at(p++);
+                numberOfCandidates++;
+            }
+            catch (const std::runtime_error& e) {
+                string what = e.what();
+                if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
+                overloading_errors += "\n- ";
+                overloading_errors += what;
+                end_block(imp, p);
+                next = imp->at(p++);
+            }
+            if(next!="else") imp->error(--p, "An else statement is required for with attempts");
+            if(numberOfCandidates==0) {
+                try {
+                    parse(imp, p, types, false);
+                    numberOfCandidates++;
+                    ++p;
+                }
+                catch (const std::runtime_error& e) {
+                    string what = e.what();
+                    if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
+                    overloading_errors += "\n- ";
+                    overloading_errors += what;
+                    end_block(imp, p);
+                }
+            }
+            else end_block(imp, p);
+            if(numberOfCandidates>1) imp->error(with_start, "With is not mutually exclusive to else");
+            if(numberOfCandidates==0) imp->error(with_start, "No valid branch of with:"+overloading_errors);
+
+            implementation += finally_var+":\n";
+            uplifting_targets.pop_back();
+            continue;
+        }
+
+        
         string var = imp->at(p);
         if(var=="." || var=="=") {
             var = next_var(imp, p, next, types, false);
