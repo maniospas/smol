@@ -82,6 +82,7 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             string finally_var = temp+"__with";
             size_t numberOfCandidates = 0;
             string overloading_errors = "";
+            string competing = "";
             int with_start = p-1;
             uplifting_targets.push_back(finally_var);
             internalTypes.vars[finally_var] = types.vars["__label"];
@@ -91,6 +92,8 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
                 p++;
                 next = imp->at(p++);
                 numberOfCandidates++;
+                implementation += "goto "+finally_var+";\n";
+                if(numberOfCandidates) competing = "\n"+imp->tokens[with_start].show();
             }
             catch (const std::runtime_error& e) {
                 string what = e.what();
@@ -100,24 +103,32 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
                 end_block(imp, p);
                 next = imp->at(p++);
             }
-            if(next!="else") imp->error(with_start, "Missing matching else statement");
-            if(numberOfCandidates==0) {
-                try {
-                    parse(imp, p, types, false);
-                    numberOfCandidates++;
-                    ++p;
+            if(next!="else") imp->error(with_start, "Need at least one `else` statement");
+            while(next=="else") {
+                if(!numberOfCandidates) {
+                    try {
+                        size_t else_start = p-1;
+                        parse(imp, p, types, false);
+                        numberOfCandidates++;
+                        implementation += "goto "+finally_var+";\n";
+                        ++p;
+                        if(numberOfCandidates) competing = "\n"+imp->tokens[else_start].show();
+                    }
+                    catch (const std::runtime_error& e) {
+                        string what = e.what();
+                        if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
+                        overloading_errors += "\n- ";
+                        overloading_errors += what;
+                        end_block(imp, p);
+                    }
                 }
-                catch (const std::runtime_error& e) {
-                    string what = e.what();
-                    if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
-                    overloading_errors += "\n- ";
-                    overloading_errors += what;
-                    end_block(imp, p);
-                }
+                else end_block(imp, p);
+                next = p<imp->size()?imp->at(p):"";
+                p++;
             }
-            else end_block(imp, p);
-            if(numberOfCandidates>1) imp->error(with_start, "With is not mutually exclusive to else");
-            if(numberOfCandidates==0) imp->error(with_start, "No valid branch of with:"+overloading_errors);
+            p--;
+            if(numberOfCandidates>1) ERROR("Competes with previous branch of `with`"+competing);
+            if(numberOfCandidates==0) imp->error(with_start, "No valid branch of `with`"+overloading_errors);
 
             implementation += finally_var+":\n";
             uplifting_targets.pop_back();

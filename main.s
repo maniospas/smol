@@ -2,27 +2,21 @@
 @include std.vec
 @include std.time
 
-
-union Elements (vec, f64)
+smo point(f64 x, f64 y) -> @new
+union Elements (vec, point, f64, i64)
 smo first(Elements elements)
-    with 
-        // currying notation calls `vec(element)`
-        // `with` guards against missing types 
-        // moves to the mandatory else if missing type
-        // if there are missing types there too, an error is created
-        elements:vec // "proves" that elements.size and elements:at can run
-        if elements.size:bool:not fail("No first element") --
-        value = elements:at(0:u64) 
-        --
-    else value = elements --
-    -> value // imperative way to declare the return value for simplicity
+    with value = elements:vec:at(0:u64) --
+    else value = elements:point.x --
+    else value = elements:f64 --
+    -> value
 
 service main()
-    n = 100000:u64
+    n = 1000000:u64
     x1 = vec:rand(n)
     x2 = vec:rand(n)
     tic = time()
     z = dot(x1,x2)
     print("Elapsed \{time()-tic} sec")
-    print(first(z))
+    print(z:first)
+    print(point(1.0,2.0):first)
     --
