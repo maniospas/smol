@@ -2,7 +2,7 @@ void end_block(const shared_ptr<Import>& i, size_t& p) {
     size_t depth = 0;
     while(p<i->size()) {
         string next = i->at(p);
-        if(next=="if" || next=="else" || next=="while") ++depth;
+        if(next=="if" || next=="else" || next=="while" || next=="with") ++depth;
         if(next=="smo" || next=="service") i->error(p, "Unexpected end of definition");
         if(next=="-" && p<i->size()-1) {
             ++p;
@@ -100,7 +100,7 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
                 end_block(imp, p);
                 next = imp->at(p++);
             }
-            if(next!="else") imp->error(--p, "An else statement is required for with attempts");
+            if(next!="else") imp->error(with_start, "Missing matching else statement");
             if(numberOfCandidates==0) {
                 try {
                     parse(imp, p, types, false);

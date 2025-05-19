@@ -11,7 +11,7 @@ smo first(Elements elements)
         // moves to the mandatory else if missing type
         // if there are missing types there too, an error is created
         elements:vec // "proves" that elements.size and elements:at can run
-        if elements.size==0:u64 fail("No first element") --
+        if elements.size:bool:not fail("No first element") --
         value = elements:at(0:u64) 
         --
     else value = elements --
