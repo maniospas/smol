@@ -118,14 +118,17 @@ vector<Type> get_lazy_options(const shared_ptr<Import>& imp, Memory& types) {
     debug = true;
     vector<Type> newOptions;
     for(const auto& argoption : argoptions) {
+        int power = 0;
         for(const auto& it : argoption) {
             types.vars[it.first] = it.second;
+            power += (it.second->choice_power+1)/2;
             //cout<<it.first<<" "<<it.second->signature()<<" "<<it.second.get()<<"\n";
         }
         //cout << "---------\n";
         size_t p = pos;
         auto def = make_shared<Def>();
         def->parse(imp, p, types);
+        def->choice_power += power;
         newOptions.push_back(def);
         //cout << def->signature() <<"\n";
         //cout << "---------------------------\n";

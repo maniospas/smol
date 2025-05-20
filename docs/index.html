@@ -15,6 +15,13 @@
     html {scroll-behavior: smooth;}
     h1 {scroll-margin-top: 60px;}
     h2 {scroll-margin-top: 60px;}
+    h3 {scroll-margin-top: 60px;}
+    h1[id], h2[id], h3[id] { position: relative; }
+    .anchor-link {text-decoration: none;font-size: 0.9em;margin-left: 8px;opacity: 0;transition: opacity 0.2s;}
+    h1:hover .anchor-link,
+    h2:hover .anchor-link,
+    h3:hover .anchor-link { opacity: 1; }
+
     body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
     .navbar {background-color: #333;padding: 2px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
     .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
@@ -28,6 +35,7 @@
     pre {background: #272822;padding: 15px;border-radius: 8px;overflow-x: auto;font-size: 90%;margin-bottom: 2em;}
     pre code {background: none;font-family: 'Courier New', Courier, monospace;font-size: 90%;}
     p strong {color: #444;}
+    .section-header {background-color: #eeb;font-weight: bold;color: #000;}
   </style>
 </head>
 <body>
@@ -45,7 +53,7 @@
 
 <div class="container">
 
-<h1 id="home">smoλ</h1>
+<h1 id="home">smoλ <a href="#home" class="anchor-link">🔗</a></h1>
 
 <p><em>A safe & fast low-level language.</em></p>
 
@@ -57,11 +65,14 @@ Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="rep
 
 
 <p>Overall, there are two main constructs: a) runtypes denoted by <code class="language-smolambda">smo</code>
-that declare short inlined operations, and b) services that are executed in parallel and handle internal failures gracefully.</p>
+that declare short inlined operations, and b) services that are executed in parallel and handle internal failures gracefully.
+Use the former for speedy intermediate operations and the latter for error handling over large chunks of business logic.
+The type system is algebraic, with runtype overloads and unions, as well as realization mechanisms. All code is fastly
+executed on the stack, but there are heap buffers to handle variadic data.</p>
 
-<h1 id="quickstart">Quickstart</h1>
+<h1 id="quickstart">Quickstart <a href="#quickstart" class="anchor-link">🔗</a></h1>
 
-<h3>Setup</h3>
+<h3>Setup <a href="#setup" class="anchor-link">🔗</a></h3>
 
 <p>Download <i>smoλ</i> from its <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>
 or build it from source by cloning the repository and running <code class="bash">g++ smolang.cpp -o smol -O2 -std=c++23</code>.
@@ -72,9 +83,10 @@ The language is so lightweight that there is no need for a build system and its 
 <p>
 A language server is provided as a VSCode extension named <i>smoλ (smolambda)</i>;
 search for the symbolic transcription in the parenthesis in the extensions tab, or get it from 
-<a href="https://marketplace.visualstudio.com/items?itemName=maniospas.smolambda">here</a>.</p>
+<a href="https://marketplace.visualstudio.com/items?itemName=maniospas.smolambda">here</a>.
+The language server offers tooltips, error traces, and jumping to definitions.</p>
 
-<h3>What's interesting?</h3>
+<h3 id="interesting">What's interesting? <a href="#interesting" class="anchor-link">🔗</a></h3>
 <p>Look at an example of how <i>smoλ</i> manages data structures:</p>
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -106,7 +118,7 @@ returning a tuple of all arguments. This is useful for declaring structural data
 to access all returned named variables using notation like
 <code class="language-smolambda">p.x</code> and <code class="language-smolambda">p.y</code>.
 Unpack the result directly in other runtype calls, provided that primitive types match. All arguments are flat
--tuples are unwrapped to more lements- and can be reinterpreted in various ways
+-tuples are unwrapped to more elements- and can be reinterpreted in various ways
 as long as primitive types match. Safety options for this are presented later.</p>
 
 <p>Put all main business logic inside a <code class="language-smolambda">service main()</code> definition.
@@ -114,11 +126,195 @@ Services "catch" internal errors, safely handling allocation and deallocation.
 They are also intrinsically parallel, can call each other, and handle returned errors. But more on them later.
 For now, the main service is the program and the <code class="language-smolambda">--</code> symbol at its end indicates no returns.</p>
 
-<h1 id="flow">Flow</h1>
+
+<h3 id="cheatsheet">Cheatsheet <a href="#cheatsheet" class="anchor-link">🔗</a></h3>
+
+<p>Here is a summary of the language's core. More operations are
+available in the standard library.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Description</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="section-header"><td colspan="3"><u>Declarations</u></td></tr>
+    <tr>
+      <td><code class="language-smolambda">smo</code></td>
+      <td>Runtype definition</td>
+      <td>Defines an inlined type-function hybrid</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">service</code></td>
+      <td>Service definition</td>
+      <td>Parallel, safe, error-capturing function</td>
+    </tr>
+    <tr>
+        <td><code class="language-smolambda">union</code></td>
+        <td>Alternatives</td>
+        <td>Used to enable compile-time type matching</td>
+    </tr>
+    <tr>
+        <td><code class="language-smolambda">Type(values)</code></td>
+        <td>Call/cast</td>
+        <td>Values expand into primitives</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@include</code></td>
+      <td>Import external file</td>
+      <td>Dot-path notation used for `.s` files</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">.</code></td>
+      <td>Field access</td>
+      <td>For named returns of runtypes</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">:</code></td>
+      <td>Currying operator</td>
+      <td>Passes value as first argument</td>
+    </tr>
+    <tr class="section-header"><td colspan="3"><u>Returns</u></td></tr>
+    <tr>
+      <td><code class="language-smolambda">-></code></td>
+      <td>Return value(s)</td>
+      <td>Used to return from runtype or service</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">--</code></td>
+      <td>Return with no value</td>
+      <td>No return value, is an explicit terminator</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">->-</code></td>
+      <td>Uplift one level</td>
+      <td>Break from a loop or if-block</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">->></code></td>
+      <td>Uplift two levels</td>
+      <td>Break from nested blocks</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">->>></code></td>
+      <td>Uplift three levels</td>
+      <td>E.g., escape from loops inside conditions</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@new</code></td>
+      <td>Return all inputs</td>
+      <td>Prioritized on runtype conflicts</td>
+    </tr>
+    <tr>
+        <td><code class="language-smolambda">value.err</code></td>
+        <td>Check if service failed</td>
+        <td>Omitted in tuple unpack</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">&amp;</code></td>
+      <td>Call by reference</td>
+      <td>Before name in signature, mutates values</td>
+    </tr>
+    <tr class="section-header"><td colspan="3"><u>Control flow</u></td></tr>
+    <tr>
+      <td><code class="language-smolambda">if</code></td>
+      <td>Condition</td>
+      <td>Can be used with <code class="language-smolambda">else</code>, can yield value</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">while</code></td>
+      <td>Loop</td>
+      <td>Can yield a buffer of internal returns</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">with</code></td>
+      <td>Type conditioning</td>
+      <td>Needs <code class="language-smolambda">else</code>, runs first compilable branch</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">fail(str message)</code></td>
+      <td>Manual error trigger</td>
+      <td>Causes service to fail and propagate error</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@next</code></td>
+      <td>Deferred assignment</td>
+      <td>Evaluated now, assigned at end of block</td>
+    </tr>
+    <tr class="section-header"><td colspan="3"><u>Builtins</u></td></tr>
+    <tr>
+      <td><code class="language-smolambda">i64, u64, f64, ...</code></td>
+      <td>Builtin runtypes</td>
+      <td>Can be called to convert to each other</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">buffer(...)</code></td>
+      <td>Dynamic heap list</td>
+      <td>Variadic input/output</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">[start to end]</code></td>
+      <td>Slicing (exclusive end)</td>
+      <td>Returns a view of buffer contents</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">[start upto end]</code></td>
+      <td>Slicing with inclusive end</td>
+      <td>Variant of range slicing</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">[start lento count]</code></td>
+      <td>Slicing by length</td>
+      <td>Number of elements instead of end</td>
+    </tr>
+    <tr class="section-header"><td colspan="3"><u>C++ ABI</u></td></tr>
+    <tr>
+      <td><code class="language-smolambda">@body{...}</code></td>
+      <td>Inline C++ code</td>
+      <td>ABI-level logic inside runtypes</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@head{...}</code></td>
+      <td>Include C++ headers</td>
+      <td>Prepended once per program</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@fail{...}</code></td>
+      <td>Inline C++ error handling</td>
+      <td>Prefer <code class="language-smolambda">fail(str message)</code></td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+<h1 id="flow">Flow <a href="#flow" class="anchor-link">🔗</a></h1>
 
 <p>
 <i>smoλ</i> offers if-statements and loops. These return values -or no values- to
-designate the end of code blocks. Below is an example 
+designate the end of code blocks and are used to execute code blocks conditionally
+and repeatedly. In addition to those base structures, there is also the option
+to defer assignments for later to have more elegant loops, as well as a structure for
+compile-time typechecking to perform conditional execution. One of the language's
+goals is to give the illusion of developing on a higher-level counterpart despite
+providing fast zero cost abstractions over machine code.</p>
+
+<p><strong>Jump to:</strong>
+  <a href="#conditions">Conditions &amp; loops</a> ·
+  <a href="#next">@next</a> ·
+  <a href="#uplifting">Uplifting</a> ·
+  <a href="#typechecking">Conditional typechecking</a>
+</p>
+<br>
+
+<h3 id="conditions">Conditions &amp; loops <a href="#conditions" class="anchor-link">🔗</a></h3>
+
+<p>Since these concepts are widely known, below is an example 
 where conditions must always evaluate to booleans.
 The <code class="language-smolambda">else</code> branch of ifs is optional. 
 You can optionally add parentheses for clarity, but this is not 
@@ -137,7 +333,7 @@ service main()
 </code></pre>
 
 
-<h3>@next</h3>
+<h3 id="next">@next <a href="#next" class="anchor-link">🔗</a></h3>
 
 <p>
 You may want to compute a value but assign it at the variable at the
@@ -179,7 +375,7 @@ service main()
 
 
 
-<h3>Uplifting (breaking with a return)</h3>
+<h3 id="uplifting">Uplifting (breaking with a return) <a href="#uplifting" class="anchor-link">🔗</a></h3>
 
 
 <p>
@@ -225,8 +421,49 @@ service main()
     ------
 </code></pre>
 
+<h3 id="typechecking">Conditional typechecking <a href="#typechecking" class="anchor-link">🔗</a></h3>
 
-<h1 id="smo">Runtypes</h1>
+<p>Before closing this secion on control flow, we will take quick peek
+at a feature that also gives the illusion of altering control flow, 
+namely compile-time typechecking. This effectively tries to execute
+an alternative across several code blocks.
+</p>
+<p>The syntax designates the
+start of a code block with  <code class="language-smolambda">with</code>
+and has at least one follow-up code blocks designated by <code class="language-smolambda">else</code>.
+The first block that compiles without creating an error about invalid runtypes
+is the one selected each time.
+</p>
+
+<p>This feature is particularly useful with <code class="language-smolambda">union</code> types
+that let you write the same generic code once and call it with various kinds of data. In those
+cases, you might want to have code behave differently depending on the obtained data. Below
+is a first glimpse on this dynamism, where <i>first</i> employs a different pattern. In this
+case, the implementation could also be overloaded, but this provides a shorthand to change
+only how part of the code behaves. More on overloading later.</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+@include std.vec
+
+smo point(f64 x, f64 y) -> @new
+union Elements (vec, point, f64, i64)
+smo first(Elements elements)
+    with value = elements:vec:at(0:u64) --
+    else value = elements:point.x --
+    else value = elements:f64 --
+    -> value
+
+service main()
+    x1 = vec:rand(10)
+    print(x1:first)
+    print(z:first)
+    print(point(1.0,2.0):first)
+    --
+</code></pre>
+
+
+
+<h1 id="smo">Runtypes <a href="#smo" class="anchor-link">🔗</a></h1>
 
 <p>Types and functions are the same thing in <i>smoλ</i>
 and marked as <code class="language-smolambda">smo</code> followed by a name
@@ -256,7 +493,20 @@ Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
 everything ends at return statements, at the end of file, or resides in-between
 parentheses and commas.</p>
 
-<h3>Primitives</h3>
+
+<p><strong>Jump to:</strong>
+  <a href="#primitives">Primitives</a> ·
+  <a href="#fields">Fields</a> ·
+  <a href="#mutability">Mutability</a> ·
+  <a href="#currying">Currying</a> ·
+  <a href="#overloading">Overloading</a> ·
+  <a href="#callbytype">Call by type</a> ·
+  <a href="#unions">Unions</a> ·
+  <a href="#new">@new</a>
+</p>
+<br>
+
+<h3 id="primitives">Primitives <a href="#primitives" class="anchor-link">🔗</a></h3>
 <p>
 <i>smoλ</i> has several primitive types for building more complicated runtypes. 
 The standard library implements several operations for primitives. The ones built in the language are 
@@ -281,7 +531,8 @@ runtypes, like strings, hand-craft more efficient computations through the C++ i
 <code class="language-smolambda">errcode</code> builtin
 as a means of handling failing services. This has an unknown number of bits because it is implemented as a C++ int.</p> 
 
-<h3>Fields and tail move</h3>
+<h3 id="fields">Fields and tail move <a href="#fields" class="anchor-link">🔗</a></h3>
+
 <p>Values returned from runtypes are always organized into a tuple. However, you can access named fields of that
 tuple, given that internal variables are returned. In previous examples, this means that we could access fields like
 <i>x,y,start,end</i> given that they have been internally assigned to variables.
@@ -311,7 +562,7 @@ service main()
 </code></pre>
 
 
-<h3>Mutability (call by reference)</h3>
+<h3 id="mutability">Mutability (call by reference) <a href="#mutability" class="anchor-link">🔗</a></h3>
 
 <p>Runtypes are called by value,
 that is, without internal computations affecting external arguments. You can make
@@ -333,7 +584,7 @@ service main()
 </code></pre>
 
 
-<h3>Currying</h3>
+<h3 id="currying">Currying <a href="#currying" class="anchor-link">🔗</a></h3>
 <p>Runtype calls accept currying notation that transfers a precomputed value to the first argument.
 The curry operator is <code class="language-smolambda">:</code> and can be chained. Furthermore, you can omit
 parentheses if there is only one argument and you curry it. Below is an example, where this notation is used to
@@ -358,7 +609,7 @@ is conceptually similar. Note that mutability should be explicitly declared if y
 to have side-effects.
 </p>
 
-<h3>Fields</h3>
+<h3 id="fields">Fields <a href="#fields" class="anchor-link">🔗</a></h3>
 
 <p>The assignment operator copies the outcome of function calls to variables.
 However, only returned symbols can be accessed as fields and only if there are 
@@ -391,7 +642,7 @@ service main()
 </code></pre>
 
 
-<h3>Overloading</h3>
+<h3 id="overloading">Overloading <a href="#overloading" class="anchor-link">🔗</a></h3>
 
 <p>Overload runtypes that are structurally
 different when converted to a flat representation of primitives 
@@ -418,7 +669,7 @@ service main()
 </code></pre>
 
 
-<h3>Call by type</h3>
+<h3 id="callbytype">Call by type <a href="#callbytype" class="anchor-link">🔗</a></h3>
 
 <p>
 You might want to choose a runtype's version based on another without actually passing data. For example,
@@ -455,10 +706,10 @@ service main()
 
 
 
-<h3>Unions</h3>
+<h3 id="unions">Unions <a href="#unions" class="anchor-link">🔗</a></h3>
 <p>Sometimes, you want to define code that is automatically adjusted to different runtypes.
 This can be achieved by declaring runtype unions, which are resolved to one of their
-options. The resolution persists to dependent calls, create different ones for independence.
+options. The resolution persists to dependent calls, create separate unions for independent resolution.
 Unions are resolved during compilation and, like many features of <i>smoλ</i>, are zero-cost
 abstractions. They can also unpack unions provided as arguments.</p>
 
@@ -491,10 +742,10 @@ service main()
 </code></pre>
 
 
-<h3>@new</h3>
+<h3 id="new">@new <a href="#new" class="anchor-link">🔗</a></h3>
 
 <p>Till now we used <code class="language-smolambda">->@new</code> returns as a shorthand for returning
-input values. However, this statement type of return helps disambiguate sitatuons where overloading and
+input values. However, this statement type of return helps disambiguate situations where overloading and
 unions may not be able to reach a clear resolution. In particular, if exactly one of the competing runtypes
 has this kind of return declaration, that is used as the choice that breaks the stalemate.
 </p>
@@ -515,7 +766,7 @@ service main()
 
 
 
-<h1 id="service">Services</h1>
+<h1 id="service">Services <a href="#service" class="anchor-link">🔗</a></h1>
 
 <p>So far we have been writing <code class="language-smolambda">service main()</code> as the entrant
 point of programs. Armed with the basics, we can now look at what that <i>service</i> keyword is all about. 
@@ -537,7 +788,14 @@ service main()
     --
 </code></pre>
 
-<h3>Why services?</h3>
+<p><strong>Jump to:</strong>
+  <a href="#whysvc">Why services?</a> ·
+  <a href="#errors">Error handling</a>
+</p>
+<br>
+
+
+<h3 id="whysvc">Why services? <a href="#whysvc" class="anchor-link">🔗</a></h3>
 
 <p>Semantically, services are equivalent to runtypes with error handling and the implementation restriction that they
 do not accept arguments by reference. However, they cost some additional operations per call, 
@@ -551,7 +809,7 @@ and even allow recursion (by comparison, simpler runtypes can only "see" previou
 and c) they provide a compartmentalized execution environment that does not let internal errors escape.
 </p>
 
-<h3>Error handling</h3>
+<h3 id="errors">Error handling <a href="#errors" class="anchor-link">🔗</a></h3>
 
 <p>
 The last point means that, after calling a service within another one,
@@ -582,8 +840,8 @@ Runtime error: `square y` contains an error
 <p>
 You can check for the error code of services by accessing it from the result per
 <code class="language-smolambda">result.err</code>. By convention, error codes are skipped
-when unpacking values, essentially reserving field access for error handling but retaining
-usage in further code.
+when unpacking values to let service returns be used interchangeably to runtypes in 
+the hotpath.
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -642,7 +900,7 @@ You've seen at least 9 years gone by.
 </pre>
 
 
-<h1 id="buffers">Buffers</h1>
+<h1 id="buffers">Buffers <a href="#buffers" class="anchor-link">🔗</a></h1>
 
 <p>Handle dynamic memory with the special <code class="language-smolambda">buffer</code> runtype.
 Think of this as a list where new data are pushed to the back and popped from the front. The
@@ -657,7 +915,15 @@ and is injected automatically by <i>smoλ</i>. Data are stored in buffers withou
 even primitive types and correct unpacking either relies solely on the programmer or on
 safe runtypes that will be discussed later.</p>
 
-<h3>Local buffers</h3>
+<p><strong>Jump to:</strong>
+  <a href="#localbuffers">Local buffers</a> ·
+  <a href="#returnbuffers">Returning buffers</a> ·
+  <a href="#slicing">Slicing</a> ·
+  <a href="#concat">Concatenation</a>
+</p>
+<br>
+
+<h3 id="localbuffers">Local buffers <a href="#localbuffers" class="anchor-link">🔗</a></h3>
 
 <p>Buffer elements are unpacked from the front until no
 more entries are required for desired runtype calls.
@@ -681,11 +947,11 @@ service main()
     --
 </code></pre>
 
-<h3>Returning buffers</h3>
+<h3 id="returnbuffers">Returning buffers <a href="#returnbuffers" class="anchor-link">🔗</a></h3>
 
 <p>Runtypes and services can return buffers, but only if this is the only thing returned.
-The result is forcefully interpeted as a buffer again to maintain its spectial operations.
-For example, services that return buffers do not return have an error field
+The result is interpreted as a buffer again to maintain its special operations.
+For example, services that return buffers do not have an error field
 <code class="language-smolambda">.err</code>  that you can check. Instead, identify failure 
 by checking that the returned buffer has non-zero length. Below is an example.
 </p>
@@ -713,7 +979,7 @@ failed to generate buffer
 </pre>
 
 
-<h3>Slicing</h3>
+<h3 id="slicing">Slicing <a href="#slicing" class="anchor-link">🔗</a></h3>
 
 <p>
 Buffers can be sliced to obtain a sub-view of elements. This happens irrespectively
@@ -743,7 +1009,7 @@ service main()
     --
 </code></pre>
 
-<h3>Concatenation</h3>
+<h3 id="concat">Concatenation <a href="#concat" class="anchor-link">🔗</a></h3>
 
 <p>Normally, you can have a buffer as the last argument so that popping knows how many elements
 it needs to consume. The language offers four operations for buffers:
@@ -752,8 +1018,7 @@ it needs to consume. The language offers four operations for buffers:
 <code class="language-smolambda">push</code> adds data at the end,
 <code class="language-smolambda">copy</code> copies contents without
 altering the original. Finally, <code class="language-smolambda">put</code> 
-assigns runtype values to buffers.
-i</p>
+assigns runtype values to buffers.</p>
 
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -774,15 +1039,22 @@ service main()
     --
 </code></pre>
 
-<h1 id="std">Std</h1>
+<h1 id="std">Std <a href="#std" class="anchor-link">🔗</a></h1>
 
 <p>The standard library contains implementations for common programming needs.
 Besides overloading pairswise numerical and comparison operators for basic arithmetic types and booleans, 
 it also supports string handling.
 </p>
 
-<h3>Console</h3>
-<p>Basic functionalies are introduced for the console, namely reading and printing. These support all escape characters
+<p><strong>Jump to:</strong>
+  <a href="#console">Console</a> ·
+  <a href="#strings">Strings</a> ·
+  <a href="#vectors">Vectors</a>
+</p>
+<br>
+
+<h3 id="console">Console <a href="#console" class="anchor-link">🔗</a></h3>
+<p>Basic functionalities are introduced for the console, namely reading and printing. These support all escape characters
 C++ can support, including ANSI codes for colorization. They have also been overloaded for integers, floats, and -as seen in the next
 segment- strings. Reading failure fails the current service under <i>smoλ</i>'s guidelines that services should fail completely and rerun
 instead of trying to recover from invalid states. Here's an example:
@@ -797,7 +1069,7 @@ service main()
     --
 </code></pre>
 
-<h3>Strings</h3>
+<h3 id="strings">Strings <a href="#strings" class="anchor-link">🔗</a></h3>
 
 <p>Below is an example that demonstrates conversion from
 basic builtin types to strings. Similarly overload <code class="language-smolambda">str(Type obj)</code> 
@@ -823,7 +1095,7 @@ service main()
 safe to return from services. In that case, deallocation instructions
 are transferred upwards, but still performed 
 on failure. Note that the C++ interface is generally unsafe
-and requires extensive tests to demonsrate correctness. However, once
+and requires extensive tests to demonstrate correctness. However, once
 safe implementations are provided, you can reuse those.
 </p>
 
@@ -845,13 +1117,11 @@ service main()
 </code></pre>
 
 
-<h3>Vectors</h3>
+<h3 id="vectors">Vectors <a href="#vectors" class="anchor-link">🔗</a></h3>
 <b>Under construction.</b>
 
-<h3>Vectors</h3>
-
 <p>Below is an example that demonstrates 
-vector computations. Thse include the generation
+vector computations. These include the generation
 of vectors with uniformly random elements.
 </p>
 
@@ -900,6 +1170,13 @@ Prism.languages.smolambda = {
     greedy: true
   }
 };
+</script>
+<script>
+  document.querySelectorAll('a.anchor-link').forEach(a =>
+    a.addEventListener('click', e => {
+      if (location.hash === a.getAttribute('href')) e.preventDefault()
+    })
+  )
 </script>
 
 
