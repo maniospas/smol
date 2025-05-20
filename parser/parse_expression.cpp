@@ -109,6 +109,15 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             implementation += "std::memcpy((unsigned char*)"+var+"____contents,  (unsigned char*)"+prototype_buffer+"____contents, sizeof(u64)*"+prototype_buffer+"____size);\n";
             implementation += "for(u64 i = 0; i < "+prototype_buffer+"____size; ++i) ((u64*)"+var+"____typetag)[i/16] |=((u64*)"+prototype_buffer+"____typetag)[i/16] << ((i%16)*4);\n";
             offset += "+"+prototype_buffer+"____size";
+
+
+            for(size_t i = 0; i < unpacks.size(); ++i) {
+            if(buffer_primitive_associations[var]!=internalTypes.vars[unpacks[i]]) buffer_primitive_associations[var] = nullptr;
+            //if(buffer_primitive_associations[var]) 
+            // for now it's mandatory to set the type because we might lose the primitive association in the future - the optimizer may just remove if if unused though
+            implementation += "((u64*)" + var + "____typetag)[("+to_string(i)+"+"+prototype_buffer+"__size)/16] |= ((u64)__IS_"+internalTypes.vars[unpacks[i]]->name+")<<("+to_string(i)+"+"+prototype_buffer+"__size)%16)*4;\n";
+            implementation += "std::memcpy((unsigned char*)" + var + "____contents + sizeof(u64) * (" + to_string(i)+"+"+prototype_buffer+ "__size), &" + unpacks[i] + ", sizeof("+unpacks[i]+"));\n";
+        }
         }
         else for(size_t i = 0; i < unpacks.size(); ++i) {
             if(buffer_primitive_associations[var]!=internalTypes.vars[unpacks[i]]) buffer_primitive_associations[var] = nullptr;

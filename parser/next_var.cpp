@@ -43,7 +43,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
                 end += " - "+next+"____offset";
             }
-            if(imp->at(p++)!="]") imp->error(--p, "Expecting | or closing square bracket");
+            if(imp->at(p++)!="]") imp->error(--p, "Expecting : or closing square bracket");
             string prev = next;
             next = create_temp();
             internalTypes.vars[next] = types.vars["buffer"]; // field runtypes should not be set here because they are automated and would mess with assign_variable
