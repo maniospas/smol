@@ -19,8 +19,8 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             if(type_primitive(defval)!=vartype) imp->error(p-1, "Required "+vartype+" primitive");
         }
         string var = create_temp();
-        if(types.vars.find(vartype)==types.vars.end()) return first_token;// fallback
-        internalTypes.vars[var] = types.vars.find(vartype)->second;
+        if(!types.contains(vartype)) return first_token;// fallback
+        internalTypes.vars[var] = types.vars[vartype];
         // vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
         implementation += var+" = "+first_token+";\n";
         return next_var(imp, p, var, types);
@@ -49,6 +49,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         add_preample("#include <stdio.h>");
         string tmp = create_temp();
         for(int i=0;i<remaining;++i) {
+            if(!internalTypes.contains(unpacks[i])) imp->error(p-2, "Non-existing variable: "+pretty_var(unpacks[i]));
             Type desiredType = internalTypes.vars[unpacks[i]];
             bool typecheck = !buffer_primitive_associations[arg];
             if(!typecheck && desiredType!=buffer_primitive_associations[arg]) imp->error(p-2, "Buffer contains only "+buffer_primitive_associations[arg]->name+" primitives but tried to replace one with "+desiredType->name);
@@ -75,29 +76,34 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         string inherit_buffer("");
         string prototype_buffer("");
         vector<string> unpacks;
-
         if(imp->at(p)=="(") {
             if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
+            if(curry.size() && !internalTypes.contains(curry)) imp->error(--p, "Non-existing curry: "+pretty_var(curry));
             if(curry.size() && internalTypes.vars[curry]==types.vars["buffer"]) {prototype_buffer = curry;curry="";}
             unpacks = gather_tuple(imp, p, types, inherit_buffer, curry);
             if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
         }
         else {
-            if(!curry.size()) imp->error(--p, "Expecting opening parenthesis when there is no curry");
+            if(!curry.size()) imp->error(p, "Expecting opening parenthesis when there is no curry");
+            if(!internalTypes.contains(curry)) imp->error(--p, "Non-existing curry: "+pretty_var(curry));
             if(internalTypes.vars[curry]==types.vars["buffer"]) {prototype_buffer=curry;curry="";}
-            else if(internalTypes.vars[curry]->_is_primitive) packs.push_back(curry);
-            else for(const string& pack : internalTypes.vars[curry]->packs) packs.push_back(curry+"__"+pack);
+            else if(internalTypes.vars[curry]->_is_primitive) unpacks.push_back(curry);
+            else if(internalTypes.vars[curry]->is_service) {
+                string fail_var = create_temp();
+                implementation += "if("+var+"__err) goto "+fail_var+";\n";
+                errors += fail_var+":\nprintf(\"Runtime error from "+internalTypes.vars[curry]->name+" "+pretty_var(curry)+"\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n";
+                add_preample("#include <stdio.h>");
+                for(size_t i=1;i<internalTypes.vars[curry]->packs.size();++i) unpacks.push_back(curry+"__"+internalTypes.vars[curry]->packs[i]);
+            }
+            else for(const string& pack : internalTypes.vars[curry]->packs) unpacks.push_back(curry+"__"+pack);
         }
-        // vardecl += "u64 "+var+"____size = 0;\n";
-        // vardecl += "u64 "+var+"____offset = 0;\n";
-        // vardecl += "ptr "+var+"____contents;\n";
         implementation += "if("+var+"____size-"+var+"____offset) free("+var+"____contents);\n";
         implementation += var+"____size = "+to_string(unpacks.size())+(inherit_buffer.size()?(" + "+inherit_buffer+"____size"):"")+(prototype_buffer.size()?(" + "+prototype_buffer+"____size"):"")+";\n";
         implementation += var+"____offset = 0;\n";
         implementation += var + "____contents = malloc(sizeof(i64)*" + var + "____size);\n";
         implementation += var + "____typetag = calloc(" + var + "____size/16+1, sizeof(u64));\n";
         //implementation += "std::memcpy((unsigned char*)" + var + "____contents, &" + var + "____size, sizeof(u64));\n";
-        if(unpacks.size()) buffer_primitive_associations[var] = internalTypes.vars[unpacks[0]];
+        if(unpacks.size() && internalTypes.contains(unpacks[0])) buffer_primitive_associations[var] = internalTypes.vars[unpacks[0]];
         else if(prototype_buffer.size()) buffer_primitive_associations[var] = buffer_primitive_associations[prototype_buffer];
         else if(inherit_buffer.size()) buffer_primitive_associations[var] = buffer_primitive_associations[inherit_buffer];
 
@@ -107,7 +113,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         string offset = to_string(unpacks.size());
         if (prototype_buffer.size()) {
             implementation += "std::memcpy((unsigned char*)"+var+"____contents,  (unsigned char*)"+prototype_buffer+"____contents, sizeof(u64)*"+prototype_buffer+"____size);\n";
-            implementation += "for(u64 i = 0; i < "+prototype_buffer+"____size; ++i) ((u64*)"+var+"____typetag)[i/16] |=((u64*)"+prototype_buffer+"____typetag)[i/16] << ((i%16)*4);\n";
+            implementation += "memcpy((unsigned char*)"+var+"____typetag, (unsigned char*)"+prototype_buffer+"____typetag, sizeof(u64) * ("+prototype_buffer+"____size / 16+1));\n";
             offset += "+"+prototype_buffer+"____size";
 
 
@@ -290,7 +296,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                     implementation += "if((("+element+"t>>"+pos+")& 0xF)!=__IS_"+desiredType->name+") goto "+fail_var_type+";\n";
                 }
                 implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset), sizeof("+element+"));\n";
-                internalTypes.vars[element] = desiredType;
+                if(desiredType) internalTypes.vars[element] = desiredType;
                 unpacks.push_back(element);
             }
             implementation += arg+"____offset += "+to_string(remaining)+";\n";
@@ -358,7 +364,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         }
         finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
         finals[var] = type->rebase(type->finals_when_used, var);
-        if(internalTypes.vars[var]->name=="buffer") buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
+        if(internalTypes.contains(var) && internalTypes.vars[var]->name=="buffer") buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
         if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0], types);
         return next_var(imp, p, var, types);
     }
