@@ -155,8 +155,8 @@ available in the standard library.
     </tr>
     <tr>
         <td><code class="language-smolambda">union</code></td>
-        <td>Alternatives</td>
-        <td>Used to enable compile-time type matching</td>
+        <td>Type alternatives</td>
+        <td>Enables compile-time type matching</td>
     </tr>
     <tr>
         <td><code class="language-smolambda">Type(values)</code></td>
@@ -284,8 +284,13 @@ available in the standard library.
     </tr>
     <tr>
       <td><code class="language-smolambda">@fail{...}</code></td>
-      <td>Inline C++ error handling</td>
+      <td>C++ for error handling</td>
       <td>Prefer <code class="language-smolambda">fail(str message)</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@finally{...}</code></td>
+      <td>C++ for releasing resources</td>
+      <td>Can also tie the resources to a variable</td>
     </tr>
   </tbody>
 </table>
@@ -541,7 +546,9 @@ tuple, given that internal variables are returned. In previous examples, this me
 <p>Field access works a little differently when there is only one value returned: in this case
 the return is treated as if returning that value directly. That is, you access that value's fields.
 An example of this concept is presented below, where the overloaded <i>Point</i>
-runtype with no arguments directly returns a version constructed with two arguments. This mechanism
+runtype with no arguments directly returns a version constructed with two arguments.</p>
+<p>
+This mechanism
 allows for wrapper runtypes that perform concise substitution of original functionality. For example,
 you can overload multiple versions of the same runtype that yield the same result from different argumets, 
 like in the example.
@@ -745,9 +752,9 @@ service main()
 <h3 id="new">@new <a href="#new" class="anchor-link">🔗</a></h3>
 
 <p>Till now we used <code class="language-smolambda">->@new</code> returns as a shorthand for returning
-input values. However, this statement type of return helps disambiguate situations where overloading and
-unions may not be able to reach a clear resolution. In particular, if exactly one of the competing runtypes
-has this kind of return declaration, that is used as the choice that breaks the stalemate.
+input values. However, this type of return also helps disambiguate overloading when there is no clear resolution. 
+In particular, if exactly one of the competing runtypes
+has this kind of return declaration or argument, that is used as the choice that breaks the stalemate.
 </p>
 
 <p>For example, consider the following very simple program that reads from the console and manipulates strings
@@ -803,10 +810,9 @@ as they need to actually push the call to the stack and cascade
 unhandled errors. So they are less efficient if you, say, call them millions of times per second.
 </p>
 <p>
-That said, they have three distinct advantages:
-a) they run independently and in parallel, b) they can call each other regardless of definition order, 
-and even allow recursion (by comparison, simpler runtypes can only "see" previous runtype and service declarations), 
-and c) they provide a compartmentalized execution environment that does not let internal errors escape.
+That said, they have three distinct advantages. First, they run independently and in parallel. Second, they can call each other regardless of definition order, 
+and even allow recursion (by comparison, simpler runtypes can only "see" previous runtype and service declarations).
+And, third, they provide a compartmentalized execution environment that does not let internal errors escape.
 </p>
 
 <h3 id="errors">Error handling <a href="#errors" class="anchor-link">🔗</a></h3>
@@ -1012,13 +1018,13 @@ service main()
 <h3 id="concat">Concatenation <a href="#concat" class="anchor-link">🔗</a></h3>
 
 <p>Normally, you can have a buffer as the last argument so that popping knows how many elements
-it needs to consume. The language offers four operations for buffers:
-<code class="language-smolambda">reserve</code> preallocates memory
-(for optimization, otherwise size is doubled when needed),
-<code class="language-smolambda">push</code> adds data at the end,
-<code class="language-smolambda">copy</code> copies contents without
-altering the original. Finally, <code class="language-smolambda">put</code> 
-assigns runtype values to buffers.</p>
+it needs to consume. As an exception, you can have a buffer as a first argument to a buffer too,
+for example to copy it or concatenate it with more data. 
+Furthermore, <code class="language-smolambda">put</code> 
+assigns runtype values to the front elements. 
+If you want highly optimized allocation, 
+prefer using vectors from the standard library instead of buffers.
+Below is an example on buffer concatenation and modification. </p>
 
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -1026,18 +1032,34 @@ assigns runtype values to buffers.</p>
 smo Point(i64 x, i64 y) -> @new
 
 service main()
-    buf1 = buffer(1,2)
-    buf2 = buffer():reserve(2):push(3,4)
-    buf = buf1
-          : copy()
-          : push(buf2.copy())
-    // buf1 and buf2 are empty now
+    buf = buffer(1,2):buffer(1,2)
+    buf[2]:put(3,4)
     p1 = Point(buf)
     p2 = Point(buf)
     print(p1.x) // 1
     print(p2.y) // 4
     --
 </code></pre>
+
+<p>
+You can provide a buffer as the sole argument of another buffer to
+copy its data. Below is an example.
+</p>
+
+
+<pre><code class="language-smolambda">@include std.builtins
+
+smo Point(f64 x, f64 y) -> @new
+
+service main()
+    buf = buffer(1.0,2.0)
+    buf2 = buf:buffer
+    buf2[0:u64]:put(0.0)
+    print(buf2[0:u64]:f64)
+    print(buf[0:u64]:f64)
+    --
+</code></pre>
+
 
 <h1 id="std">Std <a href="#std" class="anchor-link">🔗</a></h1>
 

@@ -72,27 +72,58 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
     if(first_token=="buffer") {
         string var = create_temp();
         add_preample("#include<cstdlib>");
-        if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
         string inherit_buffer("");
-        vector<string> unpacks = gather_tuple(imp, p, types, inherit_buffer, curry);
-        if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
+        string prototype_buffer("");
+        vector<string> unpacks;
+
+        if(imp->at(p)=="(") {
+            if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
+            if(curry.size() && internalTypes.vars[curry]==types.vars["buffer"]) {prototype_buffer = curry;curry="";}
+            unpacks = gather_tuple(imp, p, types, inherit_buffer, curry);
+            if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
+        }
+        else {
+            if(!curry.size()) imp->error(--p, "Expecting opening parenthesis when there is no curry");
+            if(internalTypes.vars[curry]==types.vars["buffer"]) {prototype_buffer=curry;curry="";}
+            else if(internalTypes.vars[curry]->_is_primitive) packs.push_back(curry);
+            else for(const string& pack : internalTypes.vars[curry]->packs) packs.push_back(curry+"__"+pack);
+        }
         // vardecl += "u64 "+var+"____size = 0;\n";
         // vardecl += "u64 "+var+"____offset = 0;\n";
         // vardecl += "ptr "+var+"____contents;\n";
         implementation += "if("+var+"____size-"+var+"____offset) free("+var+"____contents);\n";
-        implementation += var+"____size = "+to_string(unpacks.size())+(inherit_buffer.size()?(" + "+inherit_buffer+"____size"):"")+";\n";
+        implementation += var+"____size = "+to_string(unpacks.size())+(inherit_buffer.size()?(" + "+inherit_buffer+"____size"):"")+(prototype_buffer.size()?(" + "+prototype_buffer+"____size"):"")+";\n";
         implementation += var+"____offset = 0;\n";
         implementation += var + "____contents = malloc(sizeof(i64)*" + var + "____size);\n";
         implementation += var + "____typetag = calloc(" + var + "____size/16+1, sizeof(u64));\n";
         //implementation += "std::memcpy((unsigned char*)" + var + "____contents, &" + var + "____size, sizeof(u64));\n";
         if(unpacks.size()) buffer_primitive_associations[var] = internalTypes.vars[unpacks[0]];
-        for(size_t i = 0; i < unpacks.size(); ++i) {
+        else if(prototype_buffer.size()) buffer_primitive_associations[var] = buffer_primitive_associations[prototype_buffer];
+        else if(inherit_buffer.size()) buffer_primitive_associations[var] = buffer_primitive_associations[inherit_buffer];
+
+        if(prototype_buffer.size() && buffer_primitive_associations[prototype_buffer]!=buffer_primitive_associations[var]) buffer_primitive_associations[var] = nullptr;
+        if(inherit_buffer.size() && buffer_primitive_associations[inherit_buffer]!=buffer_primitive_associations[var]) buffer_primitive_associations[var] = nullptr;
+
+        string offset = to_string(unpacks.size());
+        if (prototype_buffer.size()) {
+            implementation += "std::memcpy((unsigned char*)"+var+"____contents,  (unsigned char*)"+prototype_buffer+"____contents, sizeof(u64)*"+prototype_buffer+"____size);\n";
+            implementation += "for(u64 i = 0; i < "+prototype_buffer+"____size; ++i) ((u64*)"+var+"____typetag)[i/16] |=((u64*)"+prototype_buffer+"____typetag)[i/16] << ((i%16)*4);\n";
+            offset += "+"+prototype_buffer+"____size";
+        }
+        else for(size_t i = 0; i < unpacks.size(); ++i) {
             if(buffer_primitive_associations[var]!=internalTypes.vars[unpacks[i]]) buffer_primitive_associations[var] = nullptr;
             //if(buffer_primitive_associations[var]) 
             // for now it's mandatory to set the type because we might lose the primitive association in the future - the optimizer may just remove if if unused though
             implementation += "((u64*)" + var + "____typetag)["+to_string(i/16)+"] |= ((u64)__IS_"+internalTypes.vars[unpacks[i]]->name+")<<"+to_string((i%16)*4)+";\n";
             implementation += "std::memcpy((unsigned char*)" + var + "____contents + sizeof(u64) * " + to_string(i) + ", &" + unpacks[i] + ", sizeof("+unpacks[i]+"));\n";
         }
+        if(inherit_buffer.size()) {
+            implementation += "std::memcpy((unsigned char*)"+var+"____contents+sizeof(u64)*("+offset+"),  (unsigned char*)"+inherit_buffer+"____contents, sizeof(u64)*"+inherit_buffer+"____size);\n";
+            implementation += "for(u64 i = 0; i < "+inherit_buffer+"____size; ++i) ((u64*)"+var+"____typetag)[(i+"+offset+")/16] |=((u64*)"+prototype_buffer+"____typetag)[(i+"+offset+")/16] << (((i+"+offset+")%16)*4);\n";
+            offset += "+"+prototype_buffer+"____size";
+        }
+
+
         internalTypes.vars[var] = types.vars.find(first_token)->second;
         internalTypes.vars[var+"____size"] = types.vars["u64"];
         internalTypes.vars[var+"____offset"] = types.vars["u64"];

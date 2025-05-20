@@ -1,23 +1,11 @@
 @include std.builtins
-@include std.vec
-@include std.time
 
-smo point(f64 x, f64 y) -> @new
-union Elements (vec, point, f64, i64)
-smo first(Elements elements)
-    with value = elements:vec:at(0:u64) --
-    else value = elements:point.x --
-    else value = elements:f64 --
-    -> value
+smo Point(f64 x, f64 y) -> @new
 
 service main()
-    n = 1000000:u64
-    x1 = vec:rand(n)
-    x2 = vec:rand(n)
-    tic = time()
-    z = dot(x1,x2)
-    print("Elapsed \{time()-tic} sec")
-    print(x1:first)
-    print(z:first)
-    print(point(1.0,2.0):first)
+    buf = buffer(1.0,2.0)
+    buf2 = buf:buffer
+    buf2[0:u64]:put(0.0)
+    print(buf2[0:u64]:f64)
+    print(buf[0:u64]:f64)
     --
