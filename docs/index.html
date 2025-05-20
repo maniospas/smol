@@ -925,7 +925,8 @@ safe runtypes that will be discussed later.</p>
   <a href="#localbuffers">Local buffers</a> ·
   <a href="#returnbuffers">Returning buffers</a> ·
   <a href="#slicing">Slicing</a> ·
-  <a href="#concat">Concatenation</a>
+  <a href="#concat">Concatenation</a> ·
+  <a href="#alignment">Alignment</a>
 </p>
 <br>
 
@@ -1057,6 +1058,48 @@ service main()
     buf2[0:u64]:put(0.0)
     print(buf2[0:u64]:f64)
     print(buf[0:u64]:f64)
+    --
+</code></pre>
+
+
+<h3 id="alignment">Alignment <a href="#localbuffers" class="anchor-link">🔗</a></h3>
+
+<p>A last feature that has been delayed till this point is how to make
+buffer reads semantically secure in not front-popping unintended runtypes.
+The mechanism for doing so is presented at the runtype level by setting
+an <code class="language-smolambda">align</code> primitive as the first argument.
+</p>
+<p>Declaring this primitive as the first return value always assigns identifier
+bytes that are unique to the runtype. If, further, you provide non-zero bytes 
+as an argument, these need to be the same as the data structure.
+</p>
+<p>
+Compiled assembly usually ignores alignment primitives, as they are not going to be used.
+But it can help disambiguate otherwise strucurally equivalent runtypes among overloaded
+operations, within unions, or -importantly- when popping values from buffers.
+</p>
+<p>
+In general, having alignment in runtypes is optional, as it comes with stotage costs.
+That said, alignment as a first returned argument is mandatory for safety if 
+<code class="language-smolambda">ptr</code> data are also returned. This is mostly
+a feature for the standard library, for example to ensure string integrity.</p>
+
+<p>
+<b>smoλ is safe as long as you do not use <code class="language-smolambda">ptr</code> in
+your code and use implementations (e.g., the standard library) that safely implement pointers
+and provide alignment.</b>
+</p>
+
+
+<pre><code class="language-smolambda">@include std.builtins
+
+smo Point(align, f64 x, f64 y) -> @new
+
+service main()
+    p = align:Point(1.0, 2.0)
+    buf()
+    print(buf[1]:f64) // 1.0
+    print(buf:f64) // alignment ensures correctness 
     --
 </code></pre>
 

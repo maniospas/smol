@@ -9,7 +9,7 @@ Under the hood, it transpiles to C++.
 **Contact:** Emmanouil (Manios) Krasanakis<br>
 **License:** Apache 2.0
 
-## [Docs](https://maniospas.github.io/smol/)
+## [Docs](https://smolambda.netlify.app/)
 
 ## Quickstart
 
@@ -17,7 +17,7 @@ Here's two snippets that showcase several features on
 data structures and control flow  respectively.
 Visit the docs above for a comprehensive breakdown.
 
-```cpp
+```rust
 @include std
 
 smo Point(i64 x, i64 y) -> @new // return x,y
@@ -34,7 +34,7 @@ service main()
 ```
 
 
-```cpp
+```rust
 @include std
 
 service main()
