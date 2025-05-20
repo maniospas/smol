@@ -1,9 +1,12 @@
 # smoλ
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/977984ff-70ec-474c-b4a0-e9067e8b955a/deploy-status)](https://app.netlify.com/projects/smolambda/deploys)
+
 *A very low-level language.*
 
 This language is designed to create zero-cost abstractions for managing complex data structures.
 Under the hood, it transpiles to C++.
+
 
 **Dependencies:** GCC<br>
 **Contact:** Emmanouil (Manios) Krasanakis<br>
