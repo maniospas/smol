@@ -8,7 +8,6 @@ service contents(file f)
     ---> ret // -- ends while, then -> returns
 
 service main()
-    f = file("README.md")
-    print(f:contents)
-    print(isdir("."))
+    if "README.md":isfile:not print("Going to fail") --
+    print("README.md":file:contents)
     --

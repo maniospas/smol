@@ -1117,6 +1117,7 @@ it also supports string handling.
 <p><strong>Jump to:</strong>
   <a href="#console">Console</a> ·
   <a href="#strings">Strings</a> ·
+  <a href="#files">Files</a> ·
   <a href="#vectors">Vectors</a>
 </p>
 <br>
@@ -1183,6 +1184,36 @@ service main()
     r1 = add_service(r1,r2)
     print(r1)
 </code></pre>
+
+
+<h3 id="strings">Files <a href="#Files" class="anchor-link">🔗</a></h3>
+
+<p>The snippet below demonstrates how to create a service for reading the
+contents of a file one chunk at a time. File chunks span either 
+lines or the next 256 characters in the current line, if that is too long.
+</p>
+<p>
+Opening a non-existing file creates an error, so use 
+<code class="language-smolambda">isfile</code> if you are
+prepared to handle that scenario. Otherwise, let the current
+service fail.
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+@include std.file
+
+service contents(file f)
+    ret = str("") 
+    while f:ended:not 
+        ret = ret+f:chunk
+    ---&gt; ret // -- ends while, then -> returns
+
+service main()
+    if "README.md":isfile:not print("Going to fail") --
+    print("README.md":file:contents)
+    --
+</code></pre>
+
 
 
 <h3 id="vectors">Vectors <a href="#vectors" class="anchor-link">🔗</a></h3>
