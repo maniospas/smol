@@ -1,10 +1,13 @@
 @include std.builtins
+@include std.file
 
-smo Point(align, f64 x, f64 y) -> @new
+service contents(file f)
+    ret = str("") 
+    while f:ended:not 
+        ret = ret+f:chunk
+    ---> ret // -- ends while, then -> returns
 
 service main()
-    buf = buffer(align, 1.0, 0)
-    buf2 = buf:buffer
-    print(buf[1:u64]:f64)
-    print(buf2[0:u64]:f64)
+    f = file("README.md")
+    print(f:contents)
     --
