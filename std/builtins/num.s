@@ -66,31 +66,41 @@ smo neq(u64 x, u64 y) @body{bool z=(x!=y);} -> z
 smo eq(bool x, bool y)  @body{bool z=(x==y);} -> z
 smo neq(bool x, bool y) @body{bool z=(x!=y);} -> z
 smo not(bool x)         @body{bool z=(!x);} -> z
+smo and(bool x, bool y) @body{bool z=x&&y;} -> z
+smo or(bool x, bool y)  @body{bool z=x||y;} -> z
 
 smo exists(ptr x)     @body{bool z=(x);}    -> z
 
 smo add(u64 x, u64 y) @body{u64 z=x+y;}     -> z
+smo mul(u64 x, u64 y) @body{u64 z=x*y;}     -> z
+smo div(u64 x, u64 y)
+    if y==0:u64 @fail{printf("Division by zero\n");} --
+    @head{#include <stdio.h>}
+    @body{u64 z=x/y;}
+    -> z
 smo sub(u64 x, u64 y)
-    if y>x  @fail{printf("Unsigned substraction would yield a negative\n");} --
+    if y>x  @fail{printf("Unsigned substraction yielded a negative\n");} --
      @body{u64 z=x-y;}
      -> z
 
 smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
 smo mod(i64 x, i64 y) @body{i64 z=x%y;} -> z
 smo sub(i64 x, i64 y) @body{i64 z=x-y;} -> z
+smo negative(i64 x) -> sub(0, x)
 smo mul(i64 x, i64 y) @body{i64 z=x*y;} -> z
 smo div(i64 x, i64 y)
-    @head{#include <stdio.h>}
     if y==0 @fail{printf("Division by zero\n");} --
+    @head{#include <stdio.h>}
     @body{i64 z=x/y;}
     -> z
 
 smo add(f64 x, f64 y) @body{f64 z=x+y;} -> z
 smo sub(f64 x, f64 y) @body{f64 z=x-y;} -> z
 smo mul(f64 x, f64 y) @body{f64 z=x*y;} -> z
+smo negative(f64 x) -> sub(0.0, x)
 smo div(f64 x, f64 y)
+    if y==0.0 @fail{printf("Division by zero\n");}--
     @head{#include <stdio.h>}
-    if(y==0.0) @fail{printf("Division by zero\n");}--
     @body{f64 z=x/y;}
     -> z
 
@@ -98,12 +108,12 @@ smo read(i64)
     @head{#include <stdio.h>}
     @body{i64 number = 0; bool success = scanf("%ld", &number);}
     @body{char ch;while ((ch = getchar()) != '\n' && ch != EOF);}
-    if(success:not) @fail{printf("Invalid integer\n");} --
+    if success:not @fail{printf("Invalid integer\n");} --
     -> number
 
 smo read(f64)
     @head{#include <stdio.h>}
     @body{f64 number = 0; bool success = scanf("%lf", &number);}
     @body{char ch;while ((ch = getchar()) != '\n' && ch != EOF);}
-    if(success:not) @fail{printf("Invalid number\n");} --
+    if success:not @fail{printf("Invalid number\n");} --
     -> number

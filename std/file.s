@@ -26,7 +26,7 @@ smo file(str path)
     @body{ptr contents = (ptr)fopen((char*)path__contents, "r");}
     @body{ptr reader = (ptr)malloc(256);}
     if reader:exists:not @fail{printf("Unable to allocate buffer for file read\n");} --
-    if contents:exists:not @fail{printf("Unable to open file: %s\n", (char*)path__contents);} --
+    if contents:exists:not @fail{printf("Unable to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @finally{if(contents)fclose((FILE*)contents);contents=0;if(reader)free(reader);reader=0;}
     -> align, contents, reader
 

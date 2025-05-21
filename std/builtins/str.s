@@ -41,7 +41,6 @@ smo str(i64 number)
     @finally{if(readbuf)free(readbuf);}
     -> str(contents, length, first)
 
-
 smo str(f64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
@@ -65,7 +64,6 @@ smo str(f64 number)
     @finally{if(readbuf)free(readbuf);}
     -> str(contents, length, first)
 
-
 smo str(cstr raw)
     @head{#include <string.h>}
     @body{u64 length=strlen(raw);}
@@ -80,13 +78,41 @@ smo print(cstr message)
 
 smo print(str message)
     @head{#include <stdio.h>}
-    @body{printf("%s\n", (char*)message__contents);}
+    @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
     --
+
+smo substr(str s, u64 from, u64 to) 
+    if to<from @fail{printf("Substring cannot end before it starts\n");} --
+    if to>=s.length @fail{printf("Substring end must be at most at the length of the base string\n");} --
+    // the above two conditions mean that from<=to<s.length
+    // this means that s.length is never zero
+    // therefore there is no need to check for length when computing first
+    @body{
+        ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
+        char first = from==to?'\0':((char*)s__contents)[0];
+    }
+    -> str(contents, to-from, first)
+smo substr(cstr s, u64 from, u64 to) -> s:str:substr(from, to)
+
+smo substr(str s, u64 from) 
+    if from>=s.length @fail{printf("Substring beginning of base string size\n");} --
+    @body{
+        ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
+        char first = from+1==s__length?'\0':((char*)contents)[0];
+    }
+    -> str(contents, s.length-from, first)
+smo substr(cstr s, u64 from) -> s:str:substr(from)
 
 smo eq(char x, char y)  @body{bool z=(x==y);} -> z
 smo neq(char x, char y) @body{bool z=(x!=y);} -> z
-smo eq(str x, str y) @body{bool z=(x__length==y__length)&&(x__first==y__first)&&(strcmp((char*)x__contents,(char*)y__contents)==0);} -> z
-smo neq(str x, str y) @body{bool z=(x__length!=y__length)||(x__first!=y__first)||strcmp((char*)x__contents,(char*)y__contents);} -> z
+smo eq(str x, str y)
+    @head{#include <string.h>}
+    @body{bool z = (x__length != y__length) || memcmp(x__contents, y__contents, x__length) == 0;}
+    -> z
+smo neq(str x, str y)
+    @head{#include <string.h>}
+    @body{bool z = (x__length != y__length) || memcmp(x__contents, y__contents, x__length) != 0;} 
+    -> z
 smo len(str x) -> x.length
 
 smo len(cstr x)
@@ -101,13 +127,17 @@ smo add(str x, str y)
     @body{
         u64 len_x = x__length;
         u64 len_y = y__length;
+        u64 total_len = len_x + len_y;
         ptr dealloc = _contents;
-        ptr _contents = malloc(len_x + len_y + 1);
-        if(_contents){strcpy((char*)_contents, (const char*)x__contents);strcat((char*)_contents, (const char*)y__contents);}
+        ptr _contents = malloc(total_len);
+        if(_contents) {
+            memcpy((char*)_contents, (char*)x__contents, len_x);
+            memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
+        }
         if(dealloc) free(dealloc);
     }
-    @finally _contents {if(_contents)free(_contents);}
-    -> str(_contents, add(x.length, y.length), x.first)
+    @finally _contents {if(_contents)free(_contents);_contents=0;}
+    -> str(_contents, len_x + len_y, x.first)
 
 smo add(str x, cstr y)
     @head{#include <string.h>}
@@ -115,14 +145,17 @@ smo add(str x, cstr y)
     @body{
         u64 len_x = x__length;
         u64 len_y = strlen(y);
+        u64 total_len = len_x + len_y;
         ptr dealloc = _contents;
-        ptr _contents = malloc(len_x + len_y + 1);
-        if(_contents){strcpy((char*)_contents, (const char*)x__contents);strcat((char*)_contents, (const char*)y);}
+        ptr _contents = malloc(total_len);
+        if(_contents) {
+            memcpy((char*)_contents, (char*)x__contents, len_x);
+            memcpy((char*)_contents + len_x, (const char*)y, len_y);
+        }
         if(dealloc) free(dealloc);
     }
-    @finally _contents {if(_contents)free(_contents);}
-    -> str(_contents, add(x.length, len_y), x.first)
-
+    @finally _contents {if(_contents)free(_contents);_contents=0;}
+    -> str(_contents, len_x + len_y, x.first)
 
 smo add(cstr x, str y)
     @head{#include <string.h>}
@@ -130,14 +163,21 @@ smo add(cstr x, str y)
     @body{
         u64 len_x = strlen(x);
         u64 len_y = y__length;
+        u64 total_len = len_x + len_y;
+
         ptr dealloc = _contents;
-        ptr _contents = malloc(len_x + len_y + 1);
-        if(_contents){strcpy((char*)_contents, (const char*)x);strcat((char*)_contents, (const char*)y__contents);char first=((char*)_contents)[0];}
+        ptr _contents = malloc(total_len);
+        char first = 0;
+        if(_contents) {
+            memcpy((char*)_contents, (const char*)x, len_x);
+            memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
+            first = ((char*)_contents)[0];
+        }
         if(dealloc) free(dealloc);
     }
-    if(_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
-    @finally _contents {if(_contents)free(_contents);}
-    -> str(_contents, add(len_x, y.length), first)
+    if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
+    @finally _contents {if (_contents) free(_contents); _contents = 0;}
+    -> str(_contents, len_x + len_y, first)
 
 smo read(str)
     @head{#include <stdio.h>}

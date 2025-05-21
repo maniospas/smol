@@ -70,7 +70,8 @@ Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="rep
 <p>Overall, there are two main constructs: a) runtypes denoted by <code class="language-smolambda">smo</code>
 that declare short inlined operations, and b) services that are executed in parallel and handle internal failures gracefully.
 Use the former for speedy intermediate operations and the latter for error handling over large chunks of business logic.
-The type system is algebraic, with runtype overloads and unions, as well as realization mechanisms. All code is fastly
+The type system is algebraic, with runtype overloads and unions, as well as basic type inference - just enough magic to keep
+code simple without hiding behavior. All code is fastly
 executed on the stack, but there are heap buffers to handle variadic data.</p>
 
 <h1 id="quickstart">Quickstart <a href="#quickstart" class="anchor-link">🔗</a></h1>
@@ -973,8 +974,7 @@ service test()
     iterator = buf
     while iterator:len:bool
         print(iterator:i64)
-        --
-    return buf
+    ---&gt; buf
 
 service main()
     buf = test()
@@ -1140,8 +1140,9 @@ service main()
 
 <h3 id="strings">Strings <a href="#strings" class="anchor-link">🔗</a></h3>
 
-<p>Below is an example that demonstrates conversion from
-basic builtin types to strings. Similarly overload <code class="language-smolambda">str(Type obj)</code> 
+<p>String manipulation is included from the builtin functionalities of the
+standard library. Below is an example that demonstrates conversion from
+primitives. Similarly overload <code class="language-smolambda">str(Type obj)</code> 
 for custom types. Strings admit the following two optimizations under the hood to enable
 very fast handling without creating excessive bloat when passed around:
 a) they retain c-style strings for quoted characters, and b) they keep track of the first character
@@ -1168,6 +1169,28 @@ and requires extensive tests to demonstrate correctness. However, once
 safe implementations are provided, you can reuse those.
 </p>
 
+<p>Strings are immutable and therefore allow for very fast operations
+for obtaining substrings by increasing pointers and decreasing length
+under the hood. Those operations do aply bound checks but
+do not copy memory and are therefore exceptionally performant. Here is
+an example of what obtaining substrings looks like. Notice that you 
+must place only the first and non-inclusve ending position.</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+service main()
+    s = "I like bananas!"
+    print(s:substr(2:u64, 7:u64))  // prints "like"
+    --
+</code></pre>
+
+<p>
+As a trade-off for performance and safety, manipulating individual characters
+in strings can only be done by spliting and recombining them, which
+may be computationally intensive by moving memory.
+Manipulate characters at individual string positions without losing safety
+will be handled by future versions of the standard library.
+</p>
+
 <pre><code class="language-smolambda">@include std.builtins
 
 service add_service(str v1, str v2) 
@@ -1191,6 +1214,7 @@ service main()
 <p>The snippet below demonstrates how to create a service for reading the
 contents of a file one chunk at a time. File chunks span either 
 lines or the next 256 characters in the current line, if that is too long.
+They also include the line break character.
 </p>
 <p>
 Opening a non-existing file creates an error, so use 
