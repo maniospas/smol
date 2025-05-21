@@ -10,4 +10,5 @@ service contents(file f)
 service main()
     f = file("README.md")
     print(f:contents)
+    print(isdir("."))
     --

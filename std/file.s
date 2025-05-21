@@ -19,9 +19,7 @@
 @include std.builtins.str
 @include std.builtins.err
 
-
 smo file(str path) 
-    // opens a file, creating an error if that fails
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -35,8 +33,6 @@ smo file(str path)
 smo file(cstr path) -> file(path:str)
 
 smo chunk(file f)
-    // reads from the file until either a new line is encountered, 
-    // 256 characters have been read, or the file ends
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -59,7 +55,6 @@ smo chunk(file f)
     -> str(contents, length, first)
 
 smo ended(file f)
-    // checks that the file has been closed
     @head{#include <stdio.h>}
     @body{
         char c = fgetc((FILE*)f__contents);
@@ -67,3 +62,25 @@ smo ended(file f)
         if(!has_ended) ungetc(c, (FILE*)f__contents); 
     }
     -> has_ended
+
+smo isfile(str path)
+    @head{#include <stdio.h>}
+    @body{
+        ptr f = (ptr)fopen((char*)path__contents, "r");
+        bool exists = (f != 0);
+        if(f) fclose((FILE*)f);
+    }
+    -> exists
+smo isfile(cstr path) -> isfile(path:str)
+
+
+smo isdir(str path)
+    @head{#include <sys/stat.h> #ifdef _WIN32 #define stat _stat #endif}
+    @body{
+        ptr info = (ptr)malloc(sizeof(struct stat));
+        i64 status = stat((char*)path__contents, (struct stat*)info);
+        bool is_dir = (status == 0 && (((struct stat*)info)->st_mode & S_IFMT) == S_IFDIR);
+        free(info);
+    }
+    -> is_dir
+smo isdir(cstr path) -> isdir(path:str)

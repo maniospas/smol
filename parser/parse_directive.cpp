@@ -9,6 +9,7 @@ void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memo
             next = imp->at(p++);
             if(next=="{") depth++;
             if(next=="}") {depth--;if(depth==0) break;}
+            if(next=="#" && preample.size()) {preample += "\n#"; continue;}
             string nextnext = imp->at(p);
             preample += next;
             if(!is_symbol(next) && !is_symbol(nextnext)) preample += " ";
