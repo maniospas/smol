@@ -27,7 +27,8 @@ smo file(str path)
     @body{ptr reader = (ptr)malloc(256);}
     if reader:exists:not @fail{printf("Unable to allocate buffer for file read\n");} --
     if contents:exists:not @fail{printf("Unable to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
-    @finally{if(contents)fclose((FILE*)contents);contents=0;if(reader)free(reader);reader=0;}
+    @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
+    @finally reader {if(reader)free(reader);reader=0;}
     -> align, contents, reader
 
 smo file(cstr path) -> file(path:str)
@@ -39,11 +40,11 @@ smo chunk(file f)
     @body{
         ptr fp = (FILE*)f__contents;
         ptr res = fgets((char*)f__reader, 256, (FILE*)fp);
-        ptr contents = NULL;
+        if(contents) free(contents);
         u64 length = 0;
         if((char*)res) {
             length = strlen((char*)f__reader);
-            contents = malloc(length + 1);
+            ptr contents = malloc(length + 1);
             if (contents) {
                 memcpy(contents, (char*)f__reader, length);
                 ((char*)contents)[length] = '\0';
@@ -52,6 +53,7 @@ smo chunk(file f)
         char first = ((char*)contents)[0];
     }
     if(contents:exists:not) @fail{printf("Failed to read next line\n");} --
+    @finally contents {if(contents) free(contents); contents=0;}
     -> str(contents, length, first)
 
 smo ended(file f)

@@ -37,8 +37,8 @@ smo str(i64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally{if(contents)free(contents);}
-    @finally{if(readbuf)free(readbuf);}
+    @finally contents {if(contents)free(contents);}
+    @finally readbuf {if(readbuf)free(readbuf);}
     -> str(contents, length, first)
 
 smo str(f64 number)
@@ -60,8 +60,8 @@ smo str(f64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally{if(contents)free(contents);}
-    @finally{if(readbuf)free(readbuf);}
+    @finally contents {if(contents)free(contents);}
+    @finally readbuf {if(readbuf)free(readbuf);}
     -> str(contents, length, first)
 
 smo str(cstr raw)

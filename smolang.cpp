@@ -18,6 +18,7 @@
 
 // g++ smolang.cpp -o smol -O2 -std=c++23 -Wall
 // g++ smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
+// g++ main.cpp -o main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
 using namespace std;
 
