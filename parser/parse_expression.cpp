@@ -10,6 +10,134 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
 string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
     size_t first_token_pos = p-1;
     if(first_token=="." || first_token==":" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
+
+    if(first_token=="if") {
+        string temp = create_temp();
+        string finally_var = temp+"__if";
+        string closeif_var = temp+"__fi";
+        uplifting_targets.push_back(finally_var);
+        internalTypes.vars[finally_var] = types.vars["__label"];
+        internalTypes.vars[closeif_var] = types.vars["__label"];
+        string next = imp->at(p++);
+        string var = parse_expression(imp, p, next, types);
+        if(!internalTypes.contains(var)) imp->error(--p, "Expression did not evaluate to anything");
+        if(internalTypes.vars.find(var)->second!=types.vars["bool"]) imp->error(--p, "If expects bool condition but got "+internalTypes.vars.find(var)->second->name+" "+pretty_var(var));
+        implementation += "if(!"+var+") goto "+closeif_var+";\n";
+        parse(imp, p, types, false);
+        p++; // offset p-- after parse_return above
+        string else_var("");
+        if(p<imp->size()-1 && imp->at(p)=="else") {
+            p++;
+            else_var = temp+"__le";
+            internalTypes.vars[else_var] = types.vars["__label"];
+            string else_skip = temp+"__el";
+            internalTypes.vars[else_skip] = types.vars["__label"];
+            uplifting_targets.pop_back();
+            uplifting_targets.push_back(else_var);
+            implementation += finally_var+":\n";
+            implementation += "goto "+else_skip+";\n";
+            implementation += closeif_var+":\n";
+            parse(imp, p, types, false);
+            implementation += else_var+":\n";
+            p++; // offset p-- after parse_return above
+            if(internalTypes.contains(else_var+"r") && !internalTypes.contains(finally_var+"r")) imp->error(first_token_pos, "There was a non-empty return "+internalTypes.vars[else_var+"r"]->name+" `else` but no such value from `if`");
+            if(!internalTypes.contains(else_var+"r") && internalTypes.contains(finally_var+"r")) imp->error(first_token_pos, "There was a non-empty return "+internalTypes.vars[finally_var+"r"]->name+" `if` but no such value from `else`");
+            if(internalTypes.contains(else_var+"r")&& internalTypes.contains(finally_var+"r")) {
+                if(internalTypes.vars[finally_var+"r"]!=internalTypes.vars[else_var+"r"]) imp->error(first_token_pos, "There were mismatching return "+internalTypes.vars[finally_var+"r"]->name+" `if` and "+internalTypes.vars[else_var+"r"]->name+" `else`");
+                assign_variable(internalTypes.vars[finally_var+"r"],finally_var+"r", else_var+"r", imp, first_token_pos);
+            }
+            implementation += else_skip+":\n";
+        }
+        else implementation += finally_var+":\n"+closeif_var+":\n";
+        uplifting_targets.pop_back();
+        if(internalTypes.contains(finally_var+"r")) {
+            if(else_var.size()==0) imp->error(first_token_pos, "There was a non-empty return "+internalTypes.vars[finally_var+"r"]->name+" `if` but no `else` statement for the alternative"); 
+            return finally_var+"r";
+        }
+        return "";
+    }
+    if(first_token=="while") {
+        string temp = create_temp();
+        string finally_var = temp+"__while";
+        uplifting_targets.push_back(finally_var);
+        string start_var = temp+"__loop";
+        internalTypes.vars[start_var] = types.vars["__label"];
+        internalTypes.vars[finally_var] = types.vars["__label"];
+        implementation += start_var+":\n";
+        string next = imp->at(p++);
+        string var = parse_expression(imp, p, next, types);
+        if(!internalTypes.contains(var)) imp->error(--p, "Expression did not evaluate to anything");
+        if(internalTypes.vars.find(var)->second!=types.vars["bool"]) imp->error(--p, "If expects bool condition but got "+internalTypes.vars.find(var)->second->name+" "+pretty_var(var));
+        implementation += "if(!"+var+") goto "+finally_var+";\n";
+        parse(imp, p, types, false);
+        p++; // offset p-- after parse_return above
+        implementation += "goto "+start_var+";\n";
+        implementation += finally_var+":\n";
+        uplifting_targets.pop_back();
+        return "";
+    }
+    if(first_token=="with") { // TODO: this implementation does not account for nesting
+        string temp = create_temp();
+        string finally_var = temp+"__with";
+        size_t numberOfCandidates = 0;
+        string overloading_errors = "";
+        string competing = "";
+        int with_start = p-1;
+        uplifting_targets.push_back(finally_var);
+        internalTypes.vars[finally_var] = types.vars["__label"];
+        string next;
+        try {
+            parse(imp, p, types, false);
+            p++;
+            next = imp->at(p++);
+            numberOfCandidates++;
+            implementation += "goto "+finally_var+";\n";
+            if(numberOfCandidates) competing = "\n"+imp->tokens[with_start].show();
+        }
+        catch (const std::runtime_error& e) {
+            string what = e.what();
+            if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
+            overloading_errors += "\n- ";
+            overloading_errors += what;
+            end_block(imp, p);
+            next = imp->at(p++);
+        }
+        if(next!="else") imp->error(with_start, "Need at least one `else` statement");
+        while(next=="else") {
+            if(!numberOfCandidates) {
+                try {
+                    size_t else_start = p-1;
+                    parse(imp, p, types, false);
+                    numberOfCandidates++;
+                    implementation += "goto "+finally_var+";\n";
+                    ++p;
+                    if(numberOfCandidates) competing = "\n"+imp->tokens[else_start].show();
+                }
+                catch (const std::runtime_error& e) {
+                    string what = e.what();
+                    if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
+                    overloading_errors += "\n- ";
+                    overloading_errors += what;
+                    end_block(imp, p);
+                }
+            }
+            else end_block(imp, p);
+            next = p<imp->size()?imp->at(p):"";
+            p++;
+        }
+        p--;
+        if(numberOfCandidates>1) ERROR("Competes with previous branch of `with`"+competing);
+        if(numberOfCandidates==0) imp->error(with_start, "No valid branch of `with`"+overloading_errors);
+
+        implementation += finally_var+":\n";
+        uplifting_targets.pop_back();
+        return "";
+    }
+
+    
+
+
+
     if(is_primitive(first_token)) {
         string vartype = type_primitive(first_token);
         string defval = "0";

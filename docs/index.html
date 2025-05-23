@@ -476,6 +476,7 @@ smo first(Elements elements)
     with ->> elements:vec:at(0:u64)
     else ->> elements:point.x
     else ->> elements:f64
+    --
 
 service main()
     x1 = vec:rand(10)
@@ -908,9 +909,7 @@ service get_age()
 service main()
     age = get_age()
     while age.err:bool age = get_age() --
-    print("You've seen at least "
-            +str(age-1)
-            :" years gone by.")
+    print("You've seen at least \{age-1} years gone by.")
     --
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -1140,7 +1139,7 @@ it also supports string handling.
 
 <h3 id="console">Console <a href="#console" class="anchor-link">🔗</a></h3>
 <p>Basic functionalities are introduced for the console, namely reading and printing. These support all escape characters
-C++ can support, including ANSI codes for colorization. They have also been overloaded for integers, floats, and -as seen in the next
+C++ can support, including ANSI codes for colors. They have also been overloaded for integers, floats, and -as seen in the next
 segment- strings. Reading failure fails the current service under <i>smoλ</i>'s guidelines that services should fail completely and rerun
 instead of trying to recover from invalid states. Here's an example:
 </p>

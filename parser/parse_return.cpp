@@ -9,10 +9,18 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
         p++;
         uplifting++;
         if(uplifting>=uplifting_targets.size()) imp->error(p-1, "Too many levels of uplifting.\nYou are currently on "+to_string(uplifting_targets.size())+" nested blocks in.");
-        implementation += "goto "+uplifting_targets[uplifting_targets.size()-uplifting-1]+";\n";
+        implementation += "goto "+uplifting_targets[uplifting_targets.size()-uplifting]+";\n";
         return;
     }
-    if(uplifting)imp->error(p-1, "Uplifting with values not implemented yet.");
+    if(uplifting_targets.size()>1){
+        uplifting++;
+        if(uplifting>=uplifting_targets.size()) imp->error(p-1, "Too many levels of uplifting.\nYou are currently on "+to_string(uplifting_targets.size())+" nested blocks in.");
+        next = imp->at(p++);
+        next = parse_expression(imp, p, next, types);
+        if(internalTypes.contains(next)) assign_variable(internalTypes.vars[next], uplifting_targets[uplifting_targets.size()-uplifting]+"r", next, imp, p);
+        implementation += "goto "+uplifting_targets[uplifting_targets.size()-uplifting]+";\n";
+        return;
+    }
     
     next = imp->at(p++);
     bool hasComma = false;

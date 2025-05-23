@@ -1,9 +1,10 @@
 @include std.builtins
 
 service main()
-    x = 1
-    if x<0 -> print("negative")
-    else if x==1 -> print("unit")
-    else -> print("hi?")
-    print("test")
+    x = i64:read
+    sgn = 
+        if x>0        -> 1
+        else->if x==0 -> 0
+        else          -> 0-1
+    print(sgn)
     --

@@ -29,112 +29,6 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             else {parse_directive(imp, p, next, types);continue;}
         }
         if(next=="-") {parse_return(imp, p, next, types);end = p--; break;}
-        if(next=="if") {
-            string temp = create_temp();
-            string finally_var = temp+"__if";
-            uplifting_targets.push_back(finally_var);
-            internalTypes.vars[finally_var] = types.vars["__label"];
-            next = imp->at(p++);
-            string var = parse_expression(imp, p, next, types);
-            if(!internalTypes.contains(var)) imp->error(--p, "Expression did not evaluate to anything");
-            if(internalTypes.vars.find(var)->second!=types.vars["bool"]) imp->error(--p, "If expects bool condition but got "+internalTypes.vars.find(var)->second->name+" "+pretty_var(var));
-            implementation += "if(!"+var+") goto "+finally_var+";\n";
-            parse(i, p, types, false);
-            p++; // offset p-- after parse_return above
-            if(p<i->size()-1 && i->at(p)=="else") {
-                p++;
-                string else_var = temp+"__else";
-                internalTypes.vars[else_var] = types.vars["__label"];
-                uplifting_targets.pop_back();
-                uplifting_targets.push_back(else_var);
-                implementation += "goto "+else_var+";\n";
-                implementation += finally_var+":\n";
-                parse(i, p, types, false);
-                p++; // offset p-- after parse_return above
-                implementation += else_var+":\n";
-            }
-            else implementation += finally_var+":\n";
-            uplifting_targets.pop_back();
-            continue;
-        }
-        if(next=="while") {
-            string temp = create_temp();
-            string finally_var = temp+"__while";
-            uplifting_targets.push_back(finally_var);
-            string start_var = temp+"__loop";
-            internalTypes.vars[start_var] = types.vars["__label"];
-            internalTypes.vars[finally_var] = types.vars["__label"];
-            implementation += start_var+":\n";
-            next = imp->at(p++);
-            string var = parse_expression(imp, p, next, types);
-            if(!internalTypes.contains(var)) imp->error(--p, "Expression did not evaluate to anything");
-            if(internalTypes.vars.find(var)->second!=types.vars["bool"]) imp->error(--p, "If expects bool condition but got "+internalTypes.vars.find(var)->second->name+" "+pretty_var(var));
-            implementation += "if(!"+var+") goto "+finally_var+";\n";
-            parse(i, p, types, false);
-            p++; // offset p-- after parse_return above
-            implementation += "goto "+start_var+";\n";
-            implementation += finally_var+":\n";
-            uplifting_targets.pop_back();
-            continue;
-        }
-        if(next=="with") { // TODO: this implementation does not account for nesting
-            string temp = create_temp();
-            string finally_var = temp+"__with";
-            size_t numberOfCandidates = 0;
-            string overloading_errors = "";
-            string competing = "";
-            int with_start = p-1;
-            uplifting_targets.push_back(finally_var);
-            internalTypes.vars[finally_var] = types.vars["__label"];
-            
-            try {
-                parse(imp, p, types, false);
-                p++;
-                next = imp->at(p++);
-                numberOfCandidates++;
-                implementation += "goto "+finally_var+";\n";
-                if(numberOfCandidates) competing = "\n"+imp->tokens[with_start].show();
-            }
-            catch (const std::runtime_error& e) {
-                string what = e.what();
-                if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
-                overloading_errors += "\n- ";
-                overloading_errors += what;
-                end_block(imp, p);
-                next = imp->at(p++);
-            }
-            if(next!="else") imp->error(with_start, "Need at least one `else` statement");
-            while(next=="else") {
-                if(!numberOfCandidates) {
-                    try {
-                        size_t else_start = p-1;
-                        parse(imp, p, types, false);
-                        numberOfCandidates++;
-                        implementation += "goto "+finally_var+";\n";
-                        ++p;
-                        if(numberOfCandidates) competing = "\n"+imp->tokens[else_start].show();
-                    }
-                    catch (const std::runtime_error& e) {
-                        string what = e.what();
-                        if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
-                        overloading_errors += "\n- ";
-                        overloading_errors += what;
-                        end_block(imp, p);
-                    }
-                }
-                else end_block(imp, p);
-                next = p<imp->size()?imp->at(p):"";
-                p++;
-            }
-            p--;
-            if(numberOfCandidates>1) ERROR("Competes with previous branch of `with`"+competing);
-            if(numberOfCandidates==0) imp->error(with_start, "No valid branch of `with`"+overloading_errors);
-
-            implementation += finally_var+":\n";
-            uplifting_targets.pop_back();
-            continue;
-        }
-
         
         string var = imp->at(p);
         if(var=="." || var=="=") {
@@ -143,7 +37,7 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             if(imp->at(p++)!="=") imp->error(p, "Missing assignment");
             next = imp->at(p++);
             string expression_outcome = parse_expression(imp, p, next, types);
-            if(!expression_outcome.size()) imp->error(assignment_start, "Expression returns no value");
+            if(!expression_outcome.size()) imp->error(assignment_start, "The right-hand-side expression computes to no value");
             const auto& it = internalTypes.vars.find(expression_outcome);
             if(it==internalTypes.vars.end()) imp->error(assignment_start, "Failed to parse expression");
             if(is_next_assignment) {
