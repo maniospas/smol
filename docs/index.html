@@ -323,10 +323,11 @@ providing fast zero cost abstractions over machine code.</p>
 
 <h3 id="conditions">Conditions &amp; loops <a href="#conditions" class="anchor-link">🔗</a></h3>
 
-<p>Since these concepts are widely known, below is an example 
-where conditions must always evaluate to booleans.
+<p>Since these concepts are widely known, below is an example.
+Conditions must always evaluate to booleans. That is, there 
+are no implicit casts.
 The <code class="language-smolambda">else</code> branch of ifs is optional. 
-You can add parentheses for clarity, but this is not 
+You can also add parentheses for clarity, but this is not 
 required; the end of expressions is always unique.
 </p>
 
@@ -357,6 +358,22 @@ service main()
     ----
 </code></pre>
 
+<p>It is required that all <i>if</i> statements return
+the same type of value -or no value- and that this is 
+a runtype. Below is an exampe that demonstrates chained
+if-else statements using the above basic syntax.</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+service main()
+    x = i64:read // more on this syntax later
+    sgn = 
+        if x>0        -> 1
+        else->if x==0 -> 0
+        else          -> 0-1
+    print(sgn)
+    --
+</code></pre>
 
 
 <h3 id="next">@next <a href="#next" class="anchor-link">🔗</a></h3>
@@ -381,7 +398,7 @@ service main()
 
 
 <p>Aside from loops, the same mechanism is useful for scrambling values;
-below  <code class="language-smolambda">if(true)</code> 
+below  <code class="language-smolambda">if true</code> 
 is used to isolate the next values and intercept the internal return.
 </p>
 
@@ -390,7 +407,7 @@ is used to isolate the next values and intercept the internal return.
 service main()
     i = 1
     j = 2
-    if(true) 
+    if true
         @next i = j
         @next j = i
         --
@@ -463,8 +480,8 @@ is the one selected each time.
 <p>This feature is particularly useful with <code class="language-smolambda">union</code> types
 that let you write the same generic code once and call it with various kinds of data. In those
 cases, you might want to have code behave differently depending on the obtained data. Below
-is a first glimpse on this dynamism, where <i>first</i> employs a different pattern. In this
-case, the implementation could also be overloaded, but this provides a shorthand to change
+is a first glimpse on this dynamism, where <i>first</i> employs a different pattern depending on
+the data it is called with. The implementation could also be overloaded, but this provides a shorthand to change
 only how part of the code behaves. More on overloading later.</p>
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -1079,7 +1096,6 @@ service main()
     --
 </code></pre>
 
-
 <h3 id="alignment">Alignment <a href="#localbuffers" class="anchor-link">🔗</a></h3>
 
 <p>A last feature that has been delayed till this point is how to make
@@ -1202,8 +1218,8 @@ service main()
 As a trade-off for performance and safety, manipulating individual characters
 in strings can only be done by spliting and recombining them, which
 may be computationally intensive by moving memory.
-Manipulate characters at individual string positions without losing safety
-will be handled by future versions of the standard library.
+Manipulating characters at individual string positions without losing safety
+will be covered in future versions of the standard library.
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins

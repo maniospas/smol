@@ -32,30 +32,19 @@ smo file(str path)
     -> align, contents, reader
 
 smo file(cstr path) -> file(path:str)
+smo unsafe(align) -> @new
 
 smo chunk(file f)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        ptr fp = (FILE*)f__contents;
-        ptr res = fgets((char*)f__reader, 256, (FILE*)fp);
-        //if(contents) free(contents);
-        u64 length = 0;
-        if((char*)res) {
-            length = strlen((char*)f__reader);
-            ptr contents = f__reader;//malloc(length + 1);
-            //if (contents) {
-            //    memcpy(contents, (char*)f__reader, length);
-            //    ((char*)contents)[length] = '\0';
-            //}
-
-        }
-        char first = length?((char*)contents)[0]:'\0';
+        cstr ret = (cstr)fgets((char*)f__reader, 256, (FILE*)f__contents);
+        if(!ret) ((char*)f__reader)[0] = '\0';
+        ptr err = (ptr)ret;
     }
-    if(contents:exists:not:or(length==0:u64)) @fail{printf("Failed to read next line\n");} --
-    //@finally contents {if(contents) free(contents); contents=0;}
-    -> str(contents, length, first)
+    if err:exists:not @fail{printf("Tried to read after end of file\n");} --
+    -> ret
 
 smo ended(file f)
     @head{#include <stdio.h>}

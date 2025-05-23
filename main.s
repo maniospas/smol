@@ -1,10 +1,8 @@
 @include std.builtins
+@include std.file
 
 service main()
-    x = i64:read
-    sgn = 
-        if x>0        -> 1
-        else->if x==0 -> 0
-        else          -> 0-1
-    print(sgn)
+    f = file("README.md")
+    s = "":str while f:ended:not s = s+f:chunk--
+    print(s)
     --
