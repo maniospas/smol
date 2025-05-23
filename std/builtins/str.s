@@ -121,6 +121,11 @@ smo len(cstr x)
     @body{u64 z = strlen(x);}
     -> z
 
+smo at(str x, u64 pos) 
+    if x__length<=pos @fail{printf("String index out of bounds\n");} --
+    @body{char z=((char*)x__contents)[pos];} 
+    -> z
+
 smo add(str x, str y)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}

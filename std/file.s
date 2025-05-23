@@ -19,32 +19,47 @@
 @include std.builtins.str
 @include std.builtins.err
 
-smo file(str path) 
+smo file(str path, u64 chunk_size) 
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{ptr contents = (ptr)fopen((char*)path__contents, "r");}
-    @body{ptr reader = (ptr)malloc(256);}
+    @body{ptr reader = (ptr)malloc(4096);}
     if reader:exists:not @fail{printf("Unable to allocate buffer for file read\n");} --
     if contents:exists:not @fail{printf("Unable to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
     @finally reader {if(reader)free(reader);reader=0;}
-    -> align, contents, reader
+    -> align, contents, reader, chunk_size
 
-smo file(cstr path) -> file(path:str)
-smo unsafe(align) -> @new
+smo file(cstr path, u64 chunk_size) -> file(path:str, chunk_size)
+smo file(cstr path) -> file(path:str, 4096:u64)
+smo file(str path) -> file(path, 4096:u64)
+
+smo chunk_line(file f)
+    @head{#include <stdio.h>}
+    @head{#include <string.h>}
+    @head{#include <stdlib.h>}
+    @body{
+        cstr ret = (cstr)fgets((char*)f__reader, f__chunk_size, (FILE*)f__contents);
+        if(!ret) ((char*)f__reader)[0] = '\0';
+        ptr err = (ptr)ret;
+    }
+    if err:exists:not @fail{printf("File read error (maybe the file has ended)\n");} --
+    -> ret
 
 smo chunk(file f)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        cstr ret = (cstr)fgets((char*)f__reader, 256, (FILE*)f__contents);
-        if(!ret) ((char*)f__reader)[0] = '\0';
-        ptr err = (ptr)ret;
+        u64 bytes_read = fread((char*)f__reader, 1, f__chunk_size, (FILE*)f__contents);
+        if(!bytes_read) ((char*)f__reader)[bytes_read] = '\0'; // Null-terminate for cstr compatibility
+        ptr ret = bytes_read ? (ptr)f__reader : NULL;
+        char first = ((char*)f__reader)[0];
     }
-    if err:exists:not @fail{printf("Tried to read after end of file\n");} --
-    -> ret
+    if ret:exists:not @fail{printf("File read error (maybe the file has ended)\n");} --
+    -> align:str(ret, bytes_read, first)
+
 
 smo ended(file f)
     @head{#include <stdio.h>}
