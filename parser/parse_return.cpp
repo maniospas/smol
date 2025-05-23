@@ -16,17 +16,25 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
     
     next = imp->at(p++);
     bool hasComma = false;
-    if(is_service) {
-        packs.push_back("err");
-        internalTypes.vars["err"] = types.vars["errcode"];
+    if(is_service && !uplifting_targets.size()) {
+        bool found = false;
+        for(const string& pack : packs) if(pack=="err") {found=true;break;}
+        if(!found) {
+            packs.push_back("err");
+            internalTypes.vars["err"] = types.vars["errcode"];
+        }
     }
     if(next=="@") {
         next = imp->at(p++);
         if(next!="new") imp->error(--p, "Use `->@new`");
         choice_power++; 
-        if(is_service)  {
-            packs.push_back("err");
-            internalTypes.vars["err"] = types.vars["errcode"];
+        if(is_service && !uplifting_targets.size())  {
+            bool found = false;
+            for(const string& pack : packs) if(pack=="err") {found=true;break;}
+            if(!found) {
+                packs.push_back("err");
+                internalTypes.vars["err"] = types.vars["errcode"];
+            }
         }
         for (const auto& arg : args) packs.push_back(arg.name);
     }
@@ -35,8 +43,9 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
         // we are starting parenthesis
         while(true) {
             next = parse_expression(imp, p, imp->at(p++), types);
+            if(!internalTypes.contains(next)) break;
             if(!internalTypes.vars[next]->not_primitive()) {
-                if(is_service) {
+                if(is_service && !uplifting_targets.size()) {
                     implementation += "__value = "+next+";\n";
                     if(internalTypes.contains("__value") && internalTypes.vars["__value"]!=internalTypes.vars[next]) imp->error(--p, "Returning single value of multple types "+internalTypes.vars["__value"]->name+" and "+internalTypes.vars[next]->name);
                     internalTypes.vars["__value"] = internalTypes.vars[next];

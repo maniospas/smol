@@ -48,9 +48,7 @@ service main()
             squared = i*i
             print(squared) 
             --
-        else 
-            print(i) 
-            --
+        else -> print(i) // concise syntax (print yields no value)
     ---- // end `while` then `main` in one line
 ```
 

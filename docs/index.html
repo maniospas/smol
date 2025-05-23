@@ -326,8 +326,8 @@ providing fast zero cost abstractions over machine code.</p>
 <p>Since these concepts are widely known, below is an example 
 where conditions must always evaluate to booleans.
 The <code class="language-smolambda">else</code> branch of ifs is optional. 
-You can optionally add parentheses for clarity, but this is not 
-required because the end of expressions is always unique.
+You can add parentheses for clarity, but this is not 
+required; the end of expressions is always unique.
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -335,11 +335,28 @@ required because the end of expressions is always unique.
 service main()
     i = 0
     while i&lt;10
-        if(i%2) print("Even "+str(i)) --
-        else print("Odd "+str(i)) --
+        if i%2==0 -> print("Even "+i:str))
+        else      -> print("Odd "+i:str)
         i = i+1
     ---- // ends `while` then `main` 
 </code></pre>
+
+<p>To better organize conditions or loops of only one statement,
+return a parsed expression like the variation below. There, prints
+do not return values.
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+service main()
+    i = 0
+    while i&lt;10
+        if i%2==0 -> print("Even "+i:str)
+        else      -> print("Odd "+i:str)
+        i = i+1
+    ----
+</code></pre>
+
 
 
 <h3 id="next">@next <a href="#next" class="anchor-link">🔗</a></h3>
@@ -358,7 +375,7 @@ your code later.
 service main()
     i=0 while i&lt;10 @next i = i+1
     j=0 while j&lt;10 @next j = j+1
-        i:str:add(" "):add(j:str):print()
+        print(i:str+" "+j:str)
     ------
 </code></pre>
 
@@ -408,13 +425,14 @@ to return a runtype result from a condition within a loop.
 service main()
     i = 511 while i&lt;10 @next i = i+1
         if i%7==0 ->- // break
-        if i%2==0
-            print(i)
-    ------ // ends `if`, then `while`, then `main`
+        if i%2==0 -> print(i)
+    ---- // ends `while`, then `main`
 </code></pre>
 
 <p>
 Below is an example where uplifting returns even more steps back.
+Note that print returns no value, which would only create an error if
+one tried to assign the value returned by the top loop to a variable.
 </p>
 
 
@@ -423,10 +441,8 @@ Below is an example where uplifting returns even more steps back.
 service main()
     i=0 while i&lt;10 @next i = i+1
     j=0 while j&lt;10 @next j = j+1
-        i:str:add(" "):add(j:str):print()
-        if 5==i+j
-            print("done") 
-            ->>>-
+        print(i:str+" "+j:str)
+        if 5==i+j ->>>> print("done") 
     ------
 </code></pre>
 
@@ -457,10 +473,9 @@ only how part of the code behaves. More on overloading later.</p>
 smo point(f64 x, f64 y) -> @new
 union Elements (vec, point, f64, i64)
 smo first(Elements elements)
-    with value = elements:vec:at(0:u64) --
-    else value = elements:point.x --
-    else value = elements:f64 --
-    -> value
+    with ->> elements:vec:at(0:u64)
+    else ->> elements:point.x
+    else ->> elements:f64
 
 service main()
     x1 = vec:rand(10)
@@ -701,12 +716,12 @@ smo print(f64 message)
 smo read(i64)
     @head{#include &lt;stdio.h>}
     @body{i64 number = 0; bool success = scanf("%ld", &number);}
-    if(success:not) @fail{printf("Invalid integer\n");} --
+    if success:not @fail{printf("Invalid integer\n");} --
     -> number
 smo read(f64)
     @head{#include &lt;stdio.h>}
     @body{f64 number = 0; bool success = scanf("%lf", &number);}
-    if(success:not) @fail{printf("Invalid number\n");} --
+    if success:not @fail{printf("Invalid number\n");} --
     -> number
 
 service main()
@@ -861,8 +876,8 @@ service square(f64 x)
     -> mul(x,x)
 service main()
     y = square(2.0)
-    if(y.err:bool) print("Something went wrong") --
-    else print(y) --
+    if y.err:bool -> print("Something went wrong")
+    else          -> print(y)
     --
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -885,16 +900,17 @@ service fail too.
 service get_age() 
     print("What's your age?")
     age = i64:read()
-    if(age&lt;=1) fail("Too young for this stuff") --
-    if(age>=140) fail("Too old for this stuff") --
+    if age&lt;=1   -> fail("Too young for this stuff")
+    if age<5    -> fail("Still too young")
+    if age>=140 -> fail("Too old for this stuff")
     -> age
 
 service main()
     age = get_age()
-    while(age.err:bool) age = get_age() --
+    while age.err:bool age = get_age() --
     print("You've seen at least "
-            :add(age:sub(1):str)
-            :add(" years gone by."))
+            +str(age-1)
+            :" years gone by.")
     --
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -978,7 +994,7 @@ service test()
 
 service main()
     buf = test()
-    if buf:len:bool:not print("failed to generate buffer")
+    if buf:len:bool:not -> print("failed to generate buffer")
     --
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -1153,9 +1169,9 @@ to enable fast comparison without going through heap data.
 
 service main()
     i = 0
-    while(i&lt;=10) 
-        if(0==i%2) print("Even "+str(i)) --
-        else print("Odd  "+str(i)) --
+    while i&lt;=10 
+        if 0==i%2 -> print("Even "+str(i))
+        else      -> print("Odd  "+str(i))
         i = i+1
     ---- // end while and main with no return
 </code></pre>
@@ -1195,17 +1211,17 @@ will be handled by future versions of the standard library.
 
 service add_service(str v1, str v2) 
     i = 0
-    while(i&lt;10)
+    while i&lt;10
         v2 = v2:add("c")
         i = i+1
-        --
-    -> v1:add(v2)
+    ---> v1:add(v2)
 
 service main()
     r1 = "aa":str
     r2 = "bb":str
     r1 = add_service(r1,r2)
     print(r1)
+    --
 </code></pre>
 
 
@@ -1227,7 +1243,7 @@ service fail.
 @include std.file
 
 service contents(file f)
-    ret = str("") 
+    ret = "":str 
     while f:ended:not 
         ret = ret+f:chunk
     ---&gt; ret // -- ends while, then -> returns
@@ -1281,7 +1297,7 @@ Prism.languages.smolambda = {
       greedy: true
     },
     {
-      pattern: /(?:-->|->-|->>>|->>-|->>|->|--|\:|\=)/,
+      pattern: /(?:-->|->-|->>>>|->>>|->>-|->>|->|--|\:|\=)/,
       greedy: true
     }
   ],
