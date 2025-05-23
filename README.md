@@ -47,7 +47,7 @@ service main()
         if i>=2 
             squared = i*i
             print(squared) 
-            --
+            -- // return to signify end of condition and loop code
         else -> print(i) // concise syntax (print yields no value)
     ---- // end `while` then `main` in one line
 ```
