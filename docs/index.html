@@ -375,6 +375,17 @@ service main()
     --
 </code></pre>
 
+<p>Equivalently, replace the pattern <code class="language-smolambda">else->if</code> with the <code class="language-smolambda">elif</code>
+keyword; that is more ergonomic. Below is the same example rewritten more concisely.</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+service main()
+    x = i64:read
+    print(if x>0 -> 1 elif x==0 -> 0 else -> 0-1)
+    --
+</code></pre>
+
 
 <h3 id="next">@next <a href="#next" class="anchor-link">🔗</a></h3>
 
@@ -1243,9 +1254,12 @@ service main()
 <h3 id="files">Files <a href="#files" class="anchor-link">🔗</a></h3>
 
 <p>The snippet below demonstrates how to create a service for reading the
-contents of a file one chunk at a time. File chunks span either 
-lines or the next 256 characters in the current line, if that is too long.
-They also include the line break character.
+contents of a file one chunk of 4,096 bytes at a time. Use <i>line</i> instead of 
+<i>chunk</i> to stop reading chunks after new line characters too, 
+but the byte limit will still be used as a separator 
+if the line is too long. Set a different limit to the number of
+bytes per chunk by passing the number as a second <code class="language-smolambda">u64</code> 
+to the file runtype.
 </p>
 <p>
 Opening a non-existing file creates an error, so use 
@@ -1308,7 +1322,7 @@ Prism.languages.smolambda = {
   },
   'keyword': [
     {
-      pattern: /\b(?:smo|service|if|else|with|include|do|while|union|to|upto|lento|len)\b/,
+      pattern: /\b(?:smo|service|if|else|elif|with|include|do|while|union|to|upto|lento|len)\b/,
       greedy: true
     },
     {
@@ -1316,7 +1330,7 @@ Prism.languages.smolambda = {
       greedy: true
     }
   ],
-  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|push)\b/,
+  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

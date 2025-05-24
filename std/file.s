@@ -35,7 +35,7 @@ smo file(cstr path, u64 chunk_size) -> file(path:str, chunk_size)
 smo file(cstr path) -> file(path:str, 4096:u64)
 smo file(str path) -> file(path, 4096:u64)
 
-smo chunk_line(file f)
+smo line(file f)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}

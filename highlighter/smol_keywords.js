@@ -1,4 +1,4 @@
 module.exports = [
     "smo", "service", "if", "else", 
-    "as", "while", "union", "with"
+    "in", "while", "union", "with", "elif"
 ];

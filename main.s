@@ -1,8 +1,12 @@
 @include std.builtins
-@include std.file
+@include std.math
 
 service main()
-    f = file("README.md")
-    s = "":str while f:ended:not s = s+f:chunk--
-    print(s)
+    x = f64:read
+    y = 
+        if x<0.0    -> "negative" 
+        elif x<1.0  -> "unit"
+        elif x<10.0 -> "smol"
+        else        -> "big"
+    print(y)
     --

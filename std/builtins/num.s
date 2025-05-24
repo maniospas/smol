@@ -106,14 +106,24 @@ smo div(f64 x, f64 y)
 
 smo read(i64)
     @head{#include <stdio.h>}
-    @body{i64 number = 0; bool success = scanf("%ld", &number);}
-    @body{char ch;while ((ch = getchar()) != '\n' && ch != EOF);}
+    @body{
+        i64 number = 0;
+        char ch = 0;
+        i64 result = scanf("%ld%c", &number, &ch);
+        bool success = (result == 2 && ch == '\n');
+    }
     if success:not @fail{printf("Invalid integer\n");} --
     -> number
 
+
 smo read(f64)
     @head{#include <stdio.h>}
-    @body{f64 number = 0; bool success = scanf("%lf", &number);}
-    @body{char ch;while ((ch = getchar()) != '\n' && ch != EOF);}
+    @body{
+        f64 number = 0;
+        char ch = 0;
+        i64 result = scanf("%lf%c", &number, &ch);
+        bool success = (result == 2 && ch == '\n');
+    }
     if success:not @fail{printf("Invalid number\n");} --
     -> number
+

@@ -231,7 +231,16 @@ auto tokenize(const string& path) {
             }
             else {
                 while(i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) {i++; col++;}
-                if(start < i) tokens.emplace_back(line.substr(start, i - start), line_num, start_col, main_file);
+                if(start < i) {
+                    string substr = line.substr(start, i - start);
+                    if(substr=="elif") {
+                        tokens.emplace_back("else", line_num, start_col, main_file);
+                        tokens.emplace_back("-", line_num, start_col, main_file);
+                        tokens.emplace_back(">", line_num, start_col, main_file);
+                        tokens.emplace_back("if", line_num, start_col, main_file);
+                    }
+                    else tokens.emplace_back(substr, line_num, start_col, main_file);
+                }
             }
         }
     }
