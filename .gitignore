@@ -2,5 +2,6 @@ smol
 smol.exe
 main.cpp
 main
-highlighter/node_modules
-highlighter/package-lock.json
+lsp/node_modules
+lsp/package-lock.json
+.vscode
