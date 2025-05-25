@@ -22,16 +22,16 @@ Visit the docs above for a comprehensive breakdown.
 ```rust
 @include std
 
-smo Point(i64 x, i64 y) -> @new // return x,y
+smo Point(f64 x, f64 y) -> @new // return x,y
 smo Field(Point start, Point end) -> @new
-smo operation(Field f) 
+smo operation(Field f, f64 multiple) 
     value = f.start.x + f.end.y
-    -> value
+    -> value*multiple
 
 service main()
-    p = Point(3,5)
-    f = Field(1,2,p)
-    print(f:operation()) // prints 6
+    p = Point(3.0,5.0)
+    f = Field(1.0,2.0,p)
+    print(f:operation(1.0)) // prints 6
     -- // return nothing
 ```
 
