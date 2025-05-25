@@ -7,6 +7,167 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
     return parse_expression_no_par(imp, p, first_token, types, curry);
 }
 
+
+string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<string>& unpacks, const size_t first_token_pos, const string& first_token, const string& inherit_buffer, Memory& types) {
+    string overloading_errors("");
+        string var = create_temp();
+        Type successfullType = nullptr;
+        string multipleFound("");
+        int numberOfFound = 0;
+        int numberOfErrors = 0;
+        Type previousType = type;
+        int highest_choice_power = 0;
+        for(size_t i=0;i<unpacks.size();++i) 
+            if(!internalTypes.vars.contains(unpacks[i])) 
+                imp->error(p-3, "Missing symbol: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
+
+        for(const Type& type : previousType->get_options(imp, types)) { // options encompases all overloads, in case of unions it may not have the base overload
+            try {
+                //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
+                size_t type_args = type->not_primitive()?type->args.size():1;
+                if(inherit_buffer.size()) {
+                    if(unpacks.size()>type_args) throw runtime_error(type->signature()+": Requires "+to_string(type_args)+" but got > "+to_string(unpacks.size())+" arguments (buffers unpack at least one value)");
+                }
+                else if(unpacks.size()!=type_args) throw runtime_error(type->signature()+": Requires "+to_string(type_args)+" but got "+to_string(unpacks.size())+" arguments");
+                for(size_t i=0;i<unpacks.size();++i) {
+                    auto arg_type = type->_is_primitive?type:type->args[i].type;
+                    if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Cannot unpack abstract " + arg_type->signature() + " "+type->args[i].name);
+                    if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
+                    if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
+                        throw std::runtime_error(type->signature()+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                    if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
+
+                        if(!alignments[unpacks[i]]) alignments[unpacks[i]] = type->alignments[type->args[i].name];
+                        else throw std::runtime_error(type->signature()+": align "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" expects data from "+(!type->alignments[type->args[i].name]?"nothing":reverse_alignment_labels[type->alignments[type->args[i].name]]->signature())+" but got "+reverse_alignment_labels[alignments[unpacks[i]]]->signature());
+                    }
+                }
+                if(type->choice_power>highest_choice_power) {
+                    highest_choice_power = type->choice_power;
+                    numberOfFound = 0;
+                    multipleFound = "";
+                }
+                if(type->choice_power<highest_choice_power) continue;
+                /*bool equivalentTypes = true;
+                if(!successfullType) equivalentTypes = false;
+                else if(successfullType->name!=type->name) equivalentTypes = false;
+                else if(successfullType->args.size()!=type->args.size()) equivalentTypes = false;
+                else for(size_t i=0;i<type->args.size();++i) if(type->args[i].name!=successfullType->args[i].name || type->args[i].type!=successfullType->args[i].type) {equivalentTypes=false;break;}
+                if(equivalentTypes) continue;
+                */
+                successfullType = type;
+                multipleFound += "\n- "+type->signature();
+                numberOfFound++;
+            }
+            catch (const std::runtime_error& e) {
+                overloading_errors += "\n- ";
+                overloading_errors += e.what();
+                numberOfErrors++;
+            }
+        }
+        type = successfullType;
+        if(!type && numberOfErrors) imp->error(first_token_pos, "Runtype not found among "+to_string(numberOfErrors)+" candidates"+overloading_errors);
+        if(!type) imp->error(first_token_pos, "Runtype not found: "+first_token+recommend_runtype(types, first_token));
+        if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of "+to_string(numberOfFound)+" acceptable runtypes"+multipleFound);
+        if(inherit_buffer.size()) { // unpack buffer
+            string arg = inherit_buffer;
+            int remaining = (int)(type->args.size()-unpacks.size());
+            if(type->_is_primitive) remaining++;
+            string fail_var = create_temp();
+            string fail_var_type = create_temp();
+            if(remaining==1) implementation += "if("+arg+"____size<="+arg+"____offset) goto "+fail_var+";\n";
+            else implementation += "if("+arg+"____size<"+arg+"____offset+"+to_string(remaining)+") goto "+fail_var+";\n";
+            errors += fail_var+":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+            errors += fail_var_type+":\nprintf(\"Runtime error: buffer element has the wrong type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+            add_preample("#include <stdio.h>");
+            string tmp = create_temp();
+            for(int i=0;i<remaining;++i) {
+                Type desiredType = type->_is_primitive?type:type->args[unpacks.size()].type;// don't add i because we push back the element
+                bool typecheck = !buffer_primitive_associations[inherit_buffer];//desiredType!=buffer_primitive_associations[inherit_buffer];
+                if(!typecheck && desiredType!=buffer_primitive_associations[inherit_buffer]) imp->error(--p, "Buffer contains only "+buffer_primitive_associations[inherit_buffer]->name+" primitives but tried to extract "+desiredType->name);
+                string element = "__"+tmp+"__"+to_string(i);
+                if(typecheck) {
+                    internalTypes.vars[element+"t"] = types.vars["u64"];
+                    implementation += element+"t = ((u64*)"+arg+"____typetag)[("+ to_string(i)+"+"+arg+"____offset)/16];\n";
+                    string pos = "((("+ to_string(i)+"+"+arg+"____offset)%16)*4)";
+                    implementation += "if((("+element+"t>>"+pos+")& 0xF)!=__IS_"+desiredType->name+") goto "+fail_var_type+";\n";
+                }
+                implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset), sizeof("+element+"));\n";
+                if(desiredType) internalTypes.vars[element] = desiredType;
+                unpacks.push_back(element);
+            }
+            implementation += arg+"____offset += "+to_string(remaining)+";\n";
+        }
+        if(type->is_service) {
+            var = create_temp();
+            // vardecl += "errcode "+var+"__err = 0;\n";
+            string impl = var+"__err = "+type->name+"(";
+            internalTypes.vars[var+"__err"] = types.vars["errcode"];
+            internalTypes.vars[var] = type;
+            for(const string& pack : type->packs) if(type->alignments[pack]) alignments[var+"__"+pack] = type->alignments[pack];
+            bool toadd = false;
+            for(size_t i=1;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
+                const string& ret = type->packs[i];
+                assign_variable(type->internalTypes.vars[ret], var+"__"+ret, "0", imp, p);
+                if(toadd) impl += ",";
+                impl += var+"__"+ret;
+                toadd = true;
+                type->coallesce_finals(ret);
+                finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
+                if(type->internalTypes.vars[ret]->name=="buffer") buffer_primitive_associations[var+"__"+ret] = type->buffer_primitive_associations[ret];
+            }
+            for(size_t i=0;i<unpacks.size();++i) {
+                if(toadd) impl += ",";
+                impl += unpacks[i];
+                toadd = true;
+                if(type->args[i].mut) {
+                    string ret = unpacks[i];
+                    type->coallesce_finals(type->args[i].name);
+                    finals[unpacks[i]] += type->rename_var(type->finals[type->args[i].name], type->args[i].name, unpacks[i]);
+                    if(type->internalTypes.vars[ret]->name=="buffer") buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[type->args[i].name];
+                }
+            }
+            impl += ");\n";
+            implementation += impl;
+            finals[var] = type->rebase(type->finals_when_used, var);
+            internalTypes.vars[var] = type->alias_for.size()?type->internalTypes.vars[type->alias_for]:type;
+            if(internalTypes.vars[var]->name=="buffer") buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
+            return next_var(imp, p, var, types);
+        }
+        if(type->_is_primitive) {
+            if(unpacks.size()!=1) imp->error(--p, "Primitive types only accept one argument");
+            assign_variable(type, var, unpacks[0], imp, p);
+            return next_var(imp, p, var, types);
+        }
+        for(const auto& it : type->alignments) if(it.second) alignments[var+"__"+it.first] = it.second; 
+        string immediate_finals("");
+        for(size_t i=0;i<unpacks.size();++i) {
+            assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
+            if(type->args[i].mut) {
+                immediate_finals += unpacks[i]+ " = "+var+"__"+type->args[i].name+";\n";
+                current_renaming[unpacks[i]] = var+"__"+type->args[i].name;
+                buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[var+"__"+type->args[i].name];
+            }
+        }
+        internalTypes.vars[var] = type->alias_for.size()?type->internalTypes.vars[type->alias_for]:type;
+        implementation += type->rebase(type->implementation, var);
+        for(const string& pre : type->preample) add_preample(type->rebase(pre, var));
+
+        for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); 
+        //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
+        errors = errors+type->rebase(type->errors, var);
+        for(const auto& it : type->current_renaming) current_renaming[var+"__"+it.first] = var+"__"+it.second; 
+        for(const auto& it : type->internalTypes.vars) {
+            internalTypes.vars[var+"__"+it.first] = it.second;
+            if(it.second->name=="buffer") buffer_primitive_associations[var+"__"+it.first] = type->buffer_primitive_associations[it.first];
+        }
+        finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
+        finals[var] = type->rebase(type->finals_when_used, var);
+        if(internalTypes.contains(var) && internalTypes.vars[var]->name=="buffer") buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
+        if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0], types);
+        return next_var(imp, p, var, types);
+}
+
+
 string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
     size_t first_token_pos = p-1;
     if(first_token=="." || first_token==":" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
@@ -347,163 +508,11 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
         }
 
-        string overloading_errors("");
-        string var = create_temp();
-        Type successfullType = nullptr;
-        string multipleFound("");
-        int numberOfFound = 0;
-        int numberOfErrors = 0;
-        Type previousType = type;
-        int highest_choice_power = 0;
-        for(size_t i=0;i<unpacks.size();++i) 
-            if(!internalTypes.vars.contains(unpacks[i])) 
-                imp->error(p-3, "Missing symbol: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
-
-        for(const Type& type : previousType->get_options(imp, types)) { // options encompases all overloads, in case of unions it may not have the base overload
-            try {
-                //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
-                size_t type_args = type->not_primitive()?type->args.size():1;
-                if(inherit_buffer.size()) {
-                    if(unpacks.size()>type_args) throw runtime_error(type->signature()+": Requires "+to_string(type_args)+" but got > "+to_string(unpacks.size())+" arguments (buffers unpack at least one value)");
-                }
-                else if(unpacks.size()!=type_args) throw runtime_error(type->signature()+": Requires "+to_string(type_args)+" but got "+to_string(unpacks.size())+" arguments");
-                for(size_t i=0;i<unpacks.size();++i) {
-                    auto arg_type = type->_is_primitive?type:type->args[i].type;
-                    if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Cannot unpack abstract " + arg_type->signature() + " "+type->args[i].name);
-                    if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
-                    if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
-                        throw std::runtime_error(type->signature()+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
-                    if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
-
-                        if(!alignments[unpacks[i]]) alignments[unpacks[i]] = type->alignments[type->args[i].name];
-                        else throw std::runtime_error(type->signature()+": align "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" expects data from "+(!type->alignments[type->args[i].name]?"nothing":reverse_alignment_labels[type->alignments[type->args[i].name]]->signature())+" but got "+reverse_alignment_labels[alignments[unpacks[i]]]->signature());
-                    }
-                }
-                if(type->choice_power>highest_choice_power) {
-                    highest_choice_power = type->choice_power;
-                    numberOfFound = 0;
-                    multipleFound = "";
-                }
-                if(type->choice_power<highest_choice_power) continue;
-                /*bool equivalentTypes = true;
-                if(!successfullType) equivalentTypes = false;
-                else if(successfullType->name!=type->name) equivalentTypes = false;
-                else if(successfullType->args.size()!=type->args.size()) equivalentTypes = false;
-                else for(size_t i=0;i<type->args.size();++i) if(type->args[i].name!=successfullType->args[i].name || type->args[i].type!=successfullType->args[i].type) {equivalentTypes=false;break;}
-                if(equivalentTypes) continue;
-                */
-                successfullType = type;
-                multipleFound += "\n- "+type->signature();
-                numberOfFound++;
-            }
-            catch (const std::runtime_error& e) {
-                overloading_errors += "\n- ";
-                overloading_errors += e.what();
-                numberOfErrors++;
-            }
-        }
-        type = successfullType;
-        if(!type && numberOfErrors) imp->error(first_token_pos, "Runtype not found among "+to_string(numberOfErrors)+" candidates"+overloading_errors);
-        if(!type) imp->error(first_token_pos, "Runtype not found: "+first_token+recommend_runtype(types, first_token));
-        if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of "+to_string(numberOfFound)+" acceptable runtypes"+multipleFound);
-        if(inherit_buffer.size()) { // unpack buffer
-            string arg = inherit_buffer;
-            int remaining = (int)(type->args.size()-unpacks.size());
-            if(type->_is_primitive) remaining++;
-            string fail_var = create_temp();
-            string fail_var_type = create_temp();
-            if(remaining==1) implementation += "if("+arg+"____size<="+arg+"____offset) goto "+fail_var+";\n";
-            else implementation += "if("+arg+"____size<"+arg+"____offset+"+to_string(remaining)+") goto "+fail_var+";\n";
-            errors += fail_var+":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
-            errors += fail_var_type+":\nprintf(\"Runtime error: buffer element has the wrong type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
-            add_preample("#include <stdio.h>");
-            string tmp = create_temp();
-            for(int i=0;i<remaining;++i) {
-                Type desiredType = type->_is_primitive?type:type->args[unpacks.size()].type;// don't add i because we push back the element
-                bool typecheck = !buffer_primitive_associations[inherit_buffer];//desiredType!=buffer_primitive_associations[inherit_buffer];
-                if(!typecheck && desiredType!=buffer_primitive_associations[inherit_buffer]) imp->error(--p, "Buffer contains only "+buffer_primitive_associations[inherit_buffer]->name+" primitives but tried to extract "+desiredType->name);
-                string element = "__"+tmp+"__"+to_string(i);
-                if(typecheck) {
-                    internalTypes.vars[element+"t"] = types.vars["u64"];
-                    implementation += element+"t = ((u64*)"+arg+"____typetag)[("+ to_string(i)+"+"+arg+"____offset)/16];\n";
-                    string pos = "((("+ to_string(i)+"+"+arg+"____offset)%16)*4)";
-                    implementation += "if((("+element+"t>>"+pos+")& 0xF)!=__IS_"+desiredType->name+") goto "+fail_var_type+";\n";
-                }
-                implementation += "std::memcpy(&" + element + ", (unsigned char*)" + arg + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset), sizeof("+element+"));\n";
-                if(desiredType) internalTypes.vars[element] = desiredType;
-                unpacks.push_back(element);
-            }
-            implementation += arg+"____offset += "+to_string(remaining)+";\n";
-        }
-        if(type->is_service) {
-            var = create_temp();
-            // vardecl += "errcode "+var+"__err = 0;\n";
-            string impl = var+"__err = "+type->name+"(";
-            internalTypes.vars[var+"__err"] = types.vars["errcode"];
-            internalTypes.vars[var] = type;
-            for(const string& pack : type->packs) if(type->alignments[pack]) alignments[var+"__"+pack] = type->alignments[pack];
-            bool toadd = false;
-            for(size_t i=1;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
-                const string& ret = type->packs[i];
-                assign_variable(type->internalTypes.vars[ret], var+"__"+ret, "0", imp, p);
-                if(toadd) impl += ",";
-                impl += var+"__"+ret;
-                toadd = true;
-                type->coallesce_finals(ret);
-                finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
-                if(type->internalTypes.vars[ret]->name=="buffer") buffer_primitive_associations[var+"__"+ret] = type->buffer_primitive_associations[ret];
-            }
-            for(size_t i=0;i<unpacks.size();++i) {
-                if(toadd) impl += ",";
-                impl += unpacks[i];
-                toadd = true;
-                if(type->args[i].mut) {
-                    string ret = unpacks[i];
-                    type->coallesce_finals(type->args[i].name);
-                    finals[unpacks[i]] += type->rename_var(type->finals[type->args[i].name], type->args[i].name, unpacks[i]);
-                    if(type->internalTypes.vars[ret]->name=="buffer") buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[type->args[i].name];
-                }
-            }
-            impl += ");\n";
-            implementation += impl;
-            finals[var] = type->rebase(type->finals_when_used, var);
-            internalTypes.vars[var] = type->alias_for.size()?type->internalTypes.vars[type->alias_for]:type;
-            if(internalTypes.vars[var]->name=="buffer") buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
-            return next_var(imp, p, var, types);
-        }
-        if(type->_is_primitive) {
-            if(unpacks.size()!=1) imp->error(--p, "Primitive types only accept one argument");
-            assign_variable(type, var, unpacks[0], imp, p);
-            return next_var(imp, p, var, types);
-        }
-        for(const auto& it : type->alignments) if(it.second) alignments[var+"__"+it.first] = it.second; 
-        string immediate_finals("");
-        for(size_t i=0;i<unpacks.size();++i) {
-            assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
-            if(type->args[i].mut) {
-                immediate_finals += unpacks[i]+ " = "+var+"__"+type->args[i].name+";\n";
-                current_renaming[unpacks[i]] = var+"__"+type->args[i].name;
-                buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[var+"__"+type->args[i].name];
-            }
-        }
-        internalTypes.vars[var] = type->alias_for.size()?type->internalTypes.vars[type->alias_for]:type;
-        implementation += type->rebase(type->implementation, var);
-        for(const string& pre : type->preample) add_preample(type->rebase(pre, var));
-
-        for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); 
-        //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
-        errors = errors+type->rebase(type->errors, var);
-        for(const auto& it : type->current_renaming) current_renaming[var+"__"+it.first] = var+"__"+it.second; 
-        for(const auto& it : type->internalTypes.vars) {
-            internalTypes.vars[var+"__"+it.first] = it.second;
-            if(it.second->name=="buffer") buffer_primitive_associations[var+"__"+it.first] = type->buffer_primitive_associations[it.first];
-        }
-        finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
-        finals[var] = type->rebase(type->finals_when_used, var);
-        if(internalTypes.contains(var) && internalTypes.vars[var]->name=="buffer") buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
-        if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0], types);
-        return next_var(imp, p, var, types);
+        return call_type(imp, p, type, unpacks, first_token_pos, first_token, inherit_buffer, types);
     }
     if(curry.size() || (p<imp->size() && (imp->at(p)=="(" || imp->at(p)=="__consume"))) imp->error(--p, "Missing runtype: "+first_token+recommend_runtype(types, first_token));
     return next_var(imp, p, first_token, types);
 }
+
+
+

@@ -41,6 +41,29 @@ smo str(i64 number)
     @finally readbuf {if(readbuf)free(readbuf);}
     -> nom:str(contents, length, first)
 
+smo str(u64 number)
+    @head{#include <stdio.h>}
+    @head{#include <stdlib.h>}
+    @head{#include <string.h>}
+    @body{
+        ptr readbuf = (ptr)malloc(32);
+        if(readbuf) {
+            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%lu", number);
+            if (length < 32) {
+                ptr contents = malloc(length + 1);
+                if(contents) {
+                    memcpy(contents, (char*)readbuf, length);
+                    ((char*)contents)[length] = '\0';
+                    char first = ((char*)contents)[0];
+                }
+            }
+        }
+    }
+    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
+    @finally contents {if(contents)free(contents);}
+    @finally readbuf {if(readbuf)free(readbuf);}
+    -> nom:str(contents, length, first)
+
 smo str(f64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
@@ -81,9 +104,9 @@ smo print(str message)
     @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
     --
 
-smo substr(str s, u64 from, u64 to) 
-    if to<from @fail{printf("Substring cannot end before it starts\n");} --
-    if to>=s.length @fail{printf("Substring end must be at most at the length of the base string\n");} --
+smo slice(str s, u64 from, u64 to) 
+    if to<from @fail{printf("String slice cannot end before it starts\n");} --
+    if to>=s.length @fail{printf("String slice must end at most at the length of the base string\n");} --
     // the above two conditions mean that 0<=from<=to<s.length
     // this means that s.length is never zero
     // therefore there is no need to check for length when computing first
@@ -92,16 +115,16 @@ smo substr(str s, u64 from, u64 to)
         char first = from==to?'\0':((char*)s__contents)[0];
     }
     -> nom:str(contents, to-from, first)
-smo substr(cstr s, u64 from, u64 to) -> s:str:substr(from, to)
+smo slice(cstr s, u64 from, u64 to) -> s:str:slice(from, to)
 
-smo substr(str s, u64 from) 
-    if from>=s.length @fail{printf("Substring beginning of base string size\n");} --
+smo slice(str s, u64 from) 
+    if from>=s.length @fail{printf("String slice start is out of bounds\n");} --
     @body{
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from+1==s__length?'\0':((char*)contents)[0];
     }
     -> nom:str(contents, s.length-from, first)
-smo substr(cstr s, u64 from) -> s:str:substr(from)
+smo slice(cstr s, u64 from) -> s:str:slice(from)
 
 smo eq(char x, char y)  @body{bool z=(x==y);} -> z
 smo neq(char x, char y) @body{bool z=(x!=y);} -> z

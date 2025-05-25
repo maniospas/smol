@@ -80,14 +80,15 @@ smo sub(u64 x, u64 y)
     if y>x  @fail{printf("Unsigned substraction yielded a negative\n");} --
      @body{u64 z=x-y;}
      -> z
+smo mod(u64 x, u64 y) @body{u64 z=x%y;} -> z
 
 smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
 smo mod(i64 x, i64 y) @body{i64 z=x%y;} -> z
 smo sub(i64 x, i64 y) @body{i64 z=x-y;} -> z
-smo negative(i64 x) -> sub(0, x)
+smo negative(i64 x) -> sub(0:i64, x)
 smo mul(i64 x, i64 y) @body{i64 z=x*y;} -> z
 smo div(i64 x, i64 y)
-    if y==0 @fail{printf("Division by zero\n");} --
+    if y==0:i64 @fail{printf("Division by zero\n");} --
     @head{#include <stdio.h>}
     @body{i64 z=x/y;}
     -> z
@@ -113,6 +114,21 @@ smo read(i64)
     if success:not @fail{printf("Invalid integer\n");} --
     -> number
 
+smo read(u64)
+    @head{#include <stdio.h>}
+    @body{
+        u64 number = 0;
+        char ch = 0;
+        bool success = false;
+        char first = getchar();
+        if (first != '-' && first != EOF) {
+            ungetc(first, stdin);
+            i64 result = scanf("%lu%c", &number, &ch);
+            success = (result == 2 && ch == '\n');
+        }
+    }
+    if success:not @fail{printf("Invalid unsigned integer\n");} --
+    -> number
 
 smo read(f64)
     @head{#include <stdio.h>}

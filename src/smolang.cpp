@@ -364,10 +364,10 @@ int main(int argc, char* argv[]) {
                 it.second->internalTypes.vars.clear();
                 it.second->options.clear();
             }
-            if(selected_task==Task::Run) {int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -funsafe-math-optimizations -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" && ./"+file.substr(0, file.size()-2)).c_str()); if (run_status != 0) return run_status;}
-            else if(selected_task==Task::Assemble) {int run_status = system(("g++ -O3 -ffunction-sections -fno-exceptions -fno-rtti -funsafe-math-optimizations -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -S -masm=intel -fverbose-asm ").c_str()); if (run_status != 0) return run_status;}
+            if(selected_task==Task::Run) {int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" && ./"+file.substr(0, file.size()-2)).c_str()); if (run_status != 0) return run_status;}
+            else if(selected_task==Task::Assemble) {int run_status = system(("g++ -O3 -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -S -masm=intel -fverbose-asm ").c_str()); if (run_status != 0) return run_status;}
             else {
-                int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -nodefaultlibs -lc -funsafe-math-optimizations").c_str());
+                int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -nodefaultlibs -lc").c_str());
                 if (run_status != 0) return run_status;
                 cout << "\033[30;42m ./ \033[0m " + file.substr(0, file.size()-2) + "\n";
             }

@@ -69,7 +69,7 @@ string type_primitive(const string& name) {
     while (isspace(*str)) ++str;
     if (*str == '\0') return "CANNOT DETECT TYPE";
     std::strtol(str, &end, 10);
-    if (end != str && *end == '\0') return "i64";
+    if (end != str && *end == '\0') return "u64";
     std::strtod(str, &end);
     if (end != str && *end == '\0') return "f64";
     if (name.size() >= 2 && name.front() == '"' && name.back() == '"') return "cstr";

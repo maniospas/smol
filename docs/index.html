@@ -94,12 +94,14 @@ The language server offers tooltips, error traces, and jumping to definitions.</
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Point(i64 x, i64 y) -> @new
+smo Point(f64 x, f64 y) -> @new
 smo Field(Point start, Point end) -> @new
 
 service main()
-    p = Point(3,5)
-    f = Field(1,2,p)
+    // raw numbers you write are either 
+    // f64 (floats) or u64 (unsigned ints)
+    p = Point(3.0,5.0)
+    f = Field(1.0,2.0,p)
     print(f.start.x + f.end.y) // 6
     --
 </code></pre>
@@ -341,7 +343,7 @@ required; the end of expressions is always unique.
 service main()
     i = 0
     while i&lt;10
-        if i%2==0 -> print("Even "+i:str))
+        if 0==i%2 -> print("Even "+i:str)
         else      -> print("Odd "+i:str)
         i = i+1
     ---- // ends `while` then `main` 
@@ -359,7 +361,7 @@ to printing and then ending code blocks with <code class="language-smolambda">--
 service main()
     i = 0
     while i&lt;10
-        if i%2==0 -> print("Even "+i:str)
+        if 0==i%2 -> print("Even "+i:str)
         else      -> print("Odd "+i:str)
         i = i+1
     ----
@@ -368,16 +370,20 @@ service main()
 <p>It is required that all <i>if</i> statements return
 the same type of value -or no value- and that this is 
 a runtype. Below is an exampe that demonstrates chained
-if-else statements using the above basic syntax.</p>
+if-else statements. Use <code class="language-smolambda">:i64</code>
+to convert numbers to signed integers (unsigned ones are the default)
+and carefull to use the floating point zero <code class="language-smolambda">0.0</code>.
+Different types of numbers can be converted to each other bur are normally
+not allowed to mingle for safety.</p>
 
 <pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    x = i64:read // more on this syntax later
+    x = f64:read // more on this syntax later
     sgn = 
-        if x>0        -> 1
-        else->if x==0 -> 0
-        else          -> 0-1
+        if x>0.0        -> 1:i64
+        else->if x==0.0 -> 0:i64
+        else            -> 0:i64-1:i64
     print(sgn)
     --
 </code></pre>
@@ -388,8 +394,12 @@ keyword; that is more ergonomic. Below is the same example rewritten more concis
 <pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    x = i64:read
-    print(if x>0 -> 1 elif x==0 -> 0 else -> 0-1)
+    x = f64:read
+    sgn = 
+        if x>0.0    -> 1:i64
+        elif x==0.0 -> 0:i64
+        else        -> 0:i64-1:i64
+    print(sgn)
     --
 </code></pre>
 
@@ -520,16 +530,16 @@ is the one selected each time.
 that let you write the same generic code once and call it with various kinds of data. In those
 cases, you might want to have code behave differently depending on the obtained data. Below
 is a first glimpse on this dynamism, where <i>first</i> employs a different pattern depending on
-the data it is called with. The implementation could also be overloaded, but this provides a shorthand to change
-only how part of the code behaves. More on overloading later.</p>
+the data it is called with. The implementation could also be overloaded, though code selection is an
+ergonomic alternative. More on overloading later.</p>
 
 <pre><code class="language-smolambda">@include std.builtins
-@include std.vec
+@include std.vec // more on vectors later
 
 smo point(f64 x, f64 y) -> @new
 union Elements (vec, point, f64, i64)
 smo first(Elements elements)
-    with ->> elements:vec:at(0:u64)
+    with ->> elements:vec[0]
     else ->> elements:point.x
     else ->> elements:f64
     --
@@ -553,12 +563,12 @@ We call the merged concept <i>runtypes</i>.
 As an example, look at a definition from the standard library,
 which also gives a taste of the C++ ABI:</p>
 
-<pre><code class="language-smolambda">smo add(i64 x, i64 y)
-    @body{i64 z=x+y;}
+<pre><code class="language-smolambda">smo add(f64 x, f64 y)
+    @body{f64 z=x+y;}
     -> z
 </code></pre>
 
-<p>This tells us that we are defining an integer addition runtype with the corresponding arguments.
+<p>This tells us that we are defining an 64-bit floating number runtype with the corresponding arguments.
 When called from other code, the definition is inlined in an optimization-friendly way. For example,
 despite the illusion of typing, everything consists of direct variable operations; under the hood, field access like
 <code class="language-smolambda">f.start.x</code> is replaced with variables like <code class="language-smolambda">f__start__x</code>.</p>
@@ -658,10 +668,10 @@ without internal implementation.
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins
-smo multi_out(i64 x)
+smo multi_out(u64 x)
     xinc = add(x,1)
     -> xinc, x
-smo single_out(i64 x)
+smo single_out(u64 x)
     x = add(x,1)
     -> x
 
@@ -686,7 +696,7 @@ internal modifications are retained. Below is an example.</p>
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo inc(i64 &x)
+smo inc(u64 &x)
     x = add(x,1)
     --
 
@@ -727,7 +737,7 @@ to have side-effects.
 
 <p>Overload runtypes that are structurally
 different when converted to a flat representation of primitives 
-(<code class="language-smolambda">i64</code>, <code class="language-smolambda">f64</code>, etc).
+(<code class="language-smolambda">i64</code>, <code class="language-smolambda">u64</code>, <code class="language-smolambda">f64</code>, etc).
 Runtypes that are equivalent in their expansion into primitives cannot be used 
 as part of function signatures due to ambiguity. More on circumventing this issue later.
 As an example, the following definitions come from the standard library.</p>
@@ -740,7 +750,7 @@ smo print(i64 message)
     @head{#include &lt;stdio.h>}
     @body{printf("%ld\n", message);}
     --
-smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
+smo add(u64 x, u64 y) @body{u64 z=x+y;} -> z
 smo add(f64 x, f64 y) @body{f64 z=x+y;} -> z
 
 service main()
@@ -780,7 +790,7 @@ smo read(f64)
     -> number
 
 service main()
-    x = read(f64)
+    x = f64:read // x = read(f64)
     print(x)
     --
 </code></pre>
@@ -954,7 +964,7 @@ service fail too.
 
 service get_age() 
     print("What's your age?")
-    age = i64:read()
+    age = u64:read()
     if age&lt;=1   -> fail("Too young for this stuff")
     if age<5    -> fail("Still too young")
     if age>=140 -> fail("Too old for this stuff")
@@ -971,7 +981,7 @@ What's your age?
 1000
 Too old for this stuff
 What's your age?
--10
+0
 Too young for this stuff
 What's your age?
 10
@@ -1015,7 +1025,7 @@ elements with the <code class="language-smolambda">len</code> runtype.
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Point(i64 x, i64 y) -> @new
+smo Point(u64 x, u64 y) -> @new
 smo Field(Point start, Point end) -> @new
 
 service main()
@@ -1023,7 +1033,7 @@ service main()
     print(buf:len)    // 5
     f = buf:Field     // pops front
     print(f.start.x)  // 1
-    print(buf:i64)    // 5
+    print(buf:u64)    // 5
     --
 </code></pre>
 
@@ -1042,7 +1052,7 @@ service test()
     buf = buffer(0,1,2.0,3,4) // accidentally has an f64
     iterator = buf
     while iterator:len:bool
-        print(iterator:i64)
+        print(iterator:u64)
     ---&gt; buf
 
 service main()
@@ -1079,12 +1089,12 @@ with the exception that specifying an end also checks for bounds compared to the
 
 service main()
     buf = buffer(0,1,2,3,4,5)
-    slice = buf[1:u64 to 3:u64]
-    print(slice:i64)        // 1 (pops front from slice)
-    print(buf[0:u64]:i64)   // 0 (buf[0] is also a slice)
-    print(buf:i64)          // 0 (slice remains unaffected)
-    print(slice:i64)        // 2 (continuing from where we left)
-    print(slice:i64)        // CREATES RUNTIME ERROR
+    slice = buf[1 to 3]
+    print(slice:u64)    // 1 (pops front from slice)
+    print(buf[0]:u64)   // 0 (buf[0] is also a slice)
+    print(buf:u64)      // 0 (slice remains unaffected)
+    print(slice:u64)    // 2 (continuing from where we left)
+    print(slice:u64)    // CREATES RUNTIME ERROR
     --
 </code></pre>
 
@@ -1102,7 +1112,7 @@ Below is an example on buffer concatenation and modification. </p>
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Point(i64 x, i64 y) -> @new
+smo Point(u64 x, u64 y) -> @new
 
 service main()
     buf = buffer(1,2):buffer(1,2)
@@ -1127,9 +1137,9 @@ smo Point(f64 x, f64 y) -> @new
 service main()
     buf = buffer(1.0,2.0)
     buf2 = buf:buffer
-    buf2[0:u64]:put(0.0)
-    print(buf2[0:u64]:f64)
-    print(buf[0:u64]:f64)
+    buf2[0]:put(0.0)
+    print(buf2[0]:f64)
+    print(buf[0]:f64)
     --
 </code></pre>
 
@@ -1259,13 +1269,12 @@ safe implementations are provided, you can reuse those.
 for obtaining substrings by increasing pointers and decreasing length
 under the hood. Those operations do aply bound checks but
 do not copy memory and are therefore exceptionally performant. Here is
-an example of what obtaining substrings looks like. Notice that you 
-must place only the first and non-inclusve ending position.</p>
+an example of obtaining substrings with the slicing notation.</p>
 
 <pre><code class="language-smolambda">@include std.builtins
 service main()
     s = "I like bananas!"
-    print(s:substr(2:u64, 7:u64))  // prints "like"
+    print(s[2 to 7])  // prints "like"
     --
 </code></pre>
 
@@ -1284,7 +1293,7 @@ service add_service(str v1, str v2)
     while i&lt;10
         v2 = v2+"c"
         i = i+1
-    ---> v1:add(v2)
+    ---&gt; v1+v2
 
 service main()
     r1 = "aa":str

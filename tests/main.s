@@ -1,13 +1,16 @@
 @include std.builtins
 @include std.vec
 
+service generate() -> vec:rand(1000)
+
 service main()
-    v = vec:rand(1000:u64)
+    v = generate()
     sum = 0.0
-    i = 0:u64 
-    while i<v:len
-        @next i=i+1:u64
-        sum = sum+v:at(i) 
+    i = 0
+    lim = u64:read
+    while i<v:len-lim:u64
+        @next i=i+1
+        sum = sum+v[i]
         --
     print(sum)
     --

@@ -25,6 +25,12 @@ smo vec(u64 size)
     -> nom:vec(contents, size)
 
 smo len(vec v) -> v.size
+smo slice(vec v, u64 from, u64 to) 
+    if from >= to fail("Empty vec slice") --
+    if to > v.size fail("Vec out of bounds") --
+    // so we have 0<=from < to <= v.size
+    @body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
+    -> nom:vec(contents, to-from)
 
 smo rand(vec, u64 size)
     @body{ptr previous = contents; ptr contents = new f64[size]; if(previous)delete (f64*)previous; }
