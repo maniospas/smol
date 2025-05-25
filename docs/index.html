@@ -232,6 +232,16 @@ available in the standard library.
       <td>Can be used with <code class="language-smolambda">else</code>, can yield value</td>
     </tr>
     <tr>
+      <td><code class="language-smolambda">else</code></td>
+      <td>Alternative</td>
+      <td>Matches conditions</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">elif</code></td>
+      <td>Alternate condition</td>
+      <td>Shorthand for <code class="language-smolambda">else->if</code></td>
+    </tr>
+    <tr>
       <td><code class="language-smolambda">while</code></td>
       <td>Loop</td>
       <td>Can yield a buffer of internal returns</td>
@@ -253,7 +263,7 @@ available in the standard library.
     </tr>
     <tr class="section-header"><td colspan="3"><u>Builtins</u></td></tr>
     <tr>
-      <td><code class="language-smolambda">nom, ...</code></td>
+      <td><code class="language-smolambda">nom</code></td>
       <td>Nominal type checking</td>
       <td>Automatic unique value in arguments</td>
     </tr>
@@ -270,7 +280,7 @@ available in the standard library.
     <tr>
       <td><code class="language-smolambda">[start to end]</code></td>
       <td>Slicing (exclusive end)</td>
-      <td>Returns a view of buffer contents</td>
+      <td>Returns a view of contents</td>
     </tr>
     <tr>
       <td><code class="language-smolambda">[start upto end]</code></td>
