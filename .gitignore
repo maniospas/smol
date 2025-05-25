@@ -1,6 +1,7 @@
 smol
 smol.exe
 main.cpp
+main.o
 main
 lsp/node_modules
 lsp/package-lock.json

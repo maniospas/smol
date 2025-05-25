@@ -111,6 +111,7 @@ int Def::temp = 0;
 bool Def::debug = false;
 
 enum class Task {
+    Assemble,
     Compile,
     Verify,
     Run
@@ -119,6 +120,7 @@ Task parse_task(const string& arg) {
     if (arg == "compile") return Task::Compile;
     if (arg == "verify") return Task::Verify;
     if (arg == "run") return Task::Run;
+    if (arg == "assemble") return Task::Assemble;
     throw invalid_argument("Unknown task: " + arg);
 }
 
@@ -272,7 +274,7 @@ int main(int argc, char* argv[]) {
     }
     if(files.size()==0) files.push_back("main.s");
     for(string file : files) {
-        if(file.size()<2 || file.substr(file.size()-2) != ".s") {cerr << "Error: expecting '.s' extension for file: " << file << endl; return 1;}
+        if(file.size()<2 || file.substr(file.size()-2) != ".s") {cerr << "Error: expecting '.s' extension but got file: " << file << endl; return 1;}
         try {
             codegen(included, file, builtins);
             Type main = included[file].vars["main"];
@@ -302,7 +304,7 @@ int main(int argc, char* argv[]) {
                 "#define i64 long\n"
                 "#define nom unsigned long\n"
                 "#define f64 double\n\n";
-            std::ofstream out(file.substr(0, file.size()-2)+".cpp");
+            std::ofstream out("__smolambda__temp__main.cpp");
             // globals & define services
             out << globals;
             for(const auto& it : included[file].vars) if(it.second->is_service) {
@@ -362,9 +364,10 @@ int main(int argc, char* argv[]) {
                 it.second->internalTypes.vars.clear();
                 it.second->options.clear();
             }
-            if(selected_task==Task::Run) {int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections "+file.substr(0, file.size()-2)+".cpp -o "+file.substr(0, file.size()-2)+" && ./"+file.substr(0, file.size()-2)).c_str()); if (run_status != 0) return run_status;}
+            if(selected_task==Task::Run) {int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -funsafe-math-optimizations -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" && ./"+file.substr(0, file.size()-2)).c_str()); if (run_status != 0) return run_status;}
+            else if(selected_task==Task::Assemble) {int run_status = system(("g++ -O3 -ffunction-sections -fno-exceptions -fno-rtti -funsafe-math-optimizations -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -S -masm=intel -fverbose-asm ").c_str()); if (run_status != 0) return run_status;}
             else {
-                int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections "+file.substr(0, file.size()-2)+".cpp -o "+file.substr(0, file.size()-2)+" -nodefaultlibs -lc").c_str());
+                int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -nodefaultlibs -lc -funsafe-math-optimizations").c_str());
                 if (run_status != 0) return run_status;
                 cout << "\033[30;42m ./ \033[0m " + file.substr(0, file.size()-2) + "\n";
             }
@@ -373,6 +376,7 @@ int main(int argc, char* argv[]) {
             if(selected_task!=Task::Run) cout << "\033[30;41m ERROR \033[0m " << file << "\n";
             cerr << e.what() << std::endl;
         }
+        std::remove("__smolambda__temp__main.cpp");
         included.clear();
     }
     return 0;

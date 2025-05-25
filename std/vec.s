@@ -24,6 +24,8 @@ smo vec(u64 size)
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
     -> nom:vec(contents, size)
 
+smo len(vec v) -> v.size
+
 smo rand(vec, u64 size)
     @body{ptr previous = contents; ptr contents = new f64[size]; if(previous)delete (f64*)previous; }
     @finally contents {if(contents)delete (f64*)contents; contents=0;}
