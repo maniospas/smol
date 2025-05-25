@@ -2,7 +2,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
     if(first_token=="(") {
         string ret = parse_expression(imp, p, imp->at(p++), types, curry);
         if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
-        return ret;
+        return next_var(imp, p, ret, types);
     }
     return parse_expression_no_par(imp, p, first_token, types, curry);
 }
@@ -192,7 +192,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             implementation += "std::memcpy((unsigned char*)" + arg + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg+"____offset), &"+unpacks[i]+", sizeof("+unpacks[i]+"));\n";
         }
         implementation += arg+"____offset += "+to_string(remaining)+";\n";
-        return arg;
+        return next_var(imp, p, arg, types);
     }
     if(internalTypes.contains(first_token)) {
         if(curry.size()) imp->error(p, "Expecting runtype (not variable): "+first_token);
@@ -312,7 +312,8 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             }
             else unpacks.push_back(curry);
         }
-        else if(imp->at(p)==")" || imp->at(p)=="]" || imp->at(p)=="," || imp->at(p)==":") {
+        else if(imp->at(p)==")" || imp->at(p)=="]" || imp->at(p)=="," || imp->at(p)==":"){// || imp->at(p)=="and" || imp->at(p)=="or" 
+            //|| types.vars.find(imp->at(p))!=types.vars.end() || (imp->at(p)=="-" && p<imp->size()-1 && (imp->at(p+1)=="-" || imp->at(p+1)==">"))) {
             int num_choices = 0;
             int highest_choice_power = 0;
             string candidates("");

@@ -8,6 +8,34 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             ++p;
             next = parse_expression(i, p, imp->at(p++), types, next);
         }
+        else if(imp->at(p)=="and") {
+            if(!internalTypes.contains(next)) imp->error(--p, "Unknown symbol "+pretty_var(next));
+            if(internalTypes.vars[next]!=types.vars["bool"]) imp->error(--p, "Left hand side of `and` expected bool but got "+internalTypes.vars[next]->name+" "+pretty_var(next));
+            ++p;
+            string prev = next;
+            string tmp = create_temp();
+            implementation += "if(!"+next+")"+" goto "+tmp+";\n";
+            next = parse_expression(i, p, imp->at(p++), types);
+            if(!internalTypes.contains(next)) imp->error(--p, "Unknown symbol "+pretty_var(next));
+            if(internalTypes.vars[next]!=types.vars["bool"]) imp->error(--p, "Right hand side of `and` expected bool but got "+internalTypes.vars[next]->name+" "+pretty_var(next));
+            implementation += prev+"="+next+";\n";
+            implementation += tmp+":\n";
+            next = prev;
+        }
+        else if(imp->at(p)=="or") {
+            if(!internalTypes.contains(next)) imp->error(--p, "Unknown symbol "+pretty_var(next));
+            if(internalTypes.vars[next]!=types.vars["bool"]) imp->error(--p, "Left hand side of `or` expected bool but got "+internalTypes.vars[next]->name+" "+pretty_var(next));
+            ++p;
+            string prev = next;
+            string tmp = create_temp();
+            implementation += "if("+next+")"+" goto "+tmp+";\n";
+            next = parse_expression(i, p, imp->at(p++), types);
+            if(!internalTypes.contains(next)) imp->error(--p, "Unknown symbol "+pretty_var(next));
+            if(internalTypes.vars[next]!=types.vars["bool"]) imp->error(--p, "Right hand side of `or` expected bool but got "+internalTypes.vars[next]->name+" "+pretty_var(next));
+            implementation += prev+"="+next+";\n";
+            implementation += tmp+":\n";
+            next = prev;
+        }
         else if(imp->at(p)==".") {
             //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
             next += "__";

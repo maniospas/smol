@@ -66,8 +66,6 @@ smo neq(u64 x, u64 y) @body{bool z=(x!=y);} -> z
 smo eq(bool x, bool y)  @body{bool z=(x==y);} -> z
 smo neq(bool x, bool y) @body{bool z=(x!=y);} -> z
 smo not(bool x)         @body{bool z=(!x);} -> z
-smo and(bool x, bool y) @body{bool z=x&&y;} -> z
-smo or(bool x, bool y)  @body{bool z=x||y;} -> z
 
 smo exists(ptr x)     @body{bool z=(x);}    -> z
 

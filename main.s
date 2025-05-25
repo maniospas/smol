@@ -1,13 +1,13 @@
 @include std.builtins
-@include std.file
 
-service contents(file f)
-    ret = "":str 
-    while f:ended:not 
-        ret = ret+f:chunk
-    ---> ret // -- ends while, then -> returns
+smo atrue() print("always true") -> true
+smo afalse() print("alwas false") -> false
 
 service main()
-    if "README.md":isfile:not print("Going to fail") --
-    print("README.md":file:contents)
+    print("Normal conditions")
+    true and atrue()
+    false or afalse()
+    print("The rest are short-circuited away")
+    false and atrue()
+    true or afalse()
     --

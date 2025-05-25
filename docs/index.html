@@ -350,7 +350,9 @@ service main()
 
 <p>To better organize conditions or loops of only one statement,
 return a parsed expression like the variation below. There, prints
-do not return values.
+do not return values and you would therefore get an error if
+you tried to return a value in one of the branches. Syntax is equivalent
+to printing and then ending code blocks with <code class="language-smolambda">--</code>. 
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -389,6 +391,27 @@ keyword; that is more ergonomic. Below is the same example rewritten more concis
 service main()
     x = i64:read
     print(if x>0 -> 1 elif x==0 -> 0 else -> 0-1)
+    --
+</code></pre>
+
+<p>Finally, <i>smol</i> supports logical operators <code class="language-smolambda">and</code> and
+<code class="language-smolambda">or</code> that are applied on boolean values. These operators are
+define as part of the language and apply only on <code class="language-smolambda">bool</code> inputs.
+They further short-circuit logic expressions, that is, do not compute redundant segments as shown
+below. These operations are part of the language because runtype or service declarations are not 
+allowed to modify control flow.</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+smo test() print("called") -> true
+
+service main()
+    print("Normal conditions") // prints
+    true and test() // prints
+    false or test() // prints
+    print("The rest are short-circuited away")
+    false and test()
+    true or test()
     --
 </code></pre>
 
@@ -1148,10 +1171,9 @@ service main()
 </code></pre>
 
 <p>
-In general, having alignment in runtypes is optional, as it comes with storage costs.
-That said, alignment as a first returned argument is mandatory for safety if 
-<code class="language-smolambda">ptr</code> data are also returned. This is mostly
-a feature for the standard library, for example to ensure string integrity.</p>
+In general, having nominal typing in runtypes is optional, as it comes with storage costs.
+That said, the compiler imposes the restriction when 
+<code class="language-smolambda">ptr</code> data are returned.</p>
 
 <p>
 <b>smoλ is safe as long as you do not use <code class="language-smolambda">ptr</code> in
@@ -1168,7 +1190,7 @@ service main()
     p = nom:Point(1.0, 2.0)
     buf()
     print(buf[1]:f64) // 1.0
-    print(buf:f64) // alignment ensures correctness 
+    print(buf:f64) // will create an error - nominal typing ensures correctness 
     --
 </code></pre>
 
@@ -1367,7 +1389,7 @@ Prism.languages.smolambda = {
   },
   'keyword': [
     {
-      pattern: /\b(?:smo|service|if|else|elif|with|include|do|while|union|to|upto|lento|len)\b/,
+      pattern: /\b(?:smo|service|if|else|elif|with|include|do|while|union|to|upto|lento|len|and|or)\b/,
       greedy: true
     },
     {
