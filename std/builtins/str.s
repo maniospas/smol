@@ -84,7 +84,7 @@ smo print(str message)
 smo substr(str s, u64 from, u64 to) 
     if to<from @fail{printf("Substring cannot end before it starts\n");} --
     if to>=s.length @fail{printf("Substring end must be at most at the length of the base string\n");} --
-    // the above two conditions mean that from<=to<s.length
+    // the above two conditions mean that 0<=from<=to<s.length
     // this means that s.length is never zero
     // therefore there is no need to check for length when computing first
     @body{

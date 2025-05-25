@@ -20,6 +20,7 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
     if(!uplifting_targets.size()) uplifting_targets.push_back("__end");
     start = p;
     if(lazy_compile && with_signature && !debug) return;
+
     unordered_set<string> next_assignments;
     while(p<imp->size()) {
         bool is_next_assignment = false;

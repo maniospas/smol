@@ -5,6 +5,10 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
     else if(imp->at(p)!="smo") imp->error(--p, "Missing `service` or `smo` to declare runtype");
     p++;
     if(!is_as) name = imp->at(p++); else name = create_temp();
+    if(types.contains(name)) {
+        if(is_service) imp->error(--p, "A service cannot overload a runtype or service with the same name");
+        else if(types.vars[name]->is_service) imp->error(--p, "A runtype cannot overload a service with the same name");
+    }
     //cout << "parsing  "<<name<<"\n";
     if(imp->at(p++)!="(") imp->error(--p, "Missing left parenthesis");
     while(true) {
@@ -31,7 +35,8 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
         }
         if(!accepted_var_name(arg_name)) imp->error(--p, "Not a valid name");
         if(types.vars.find(arg_name)!=types.vars.end()) imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
-        Type argType = types.vars.find(next)->second;
+        if(next=="align" && args.size()) imp->error(--p, "Misplaced align\nCan only be the first argument of a runtype\nor the argument of dependent runtypes");
+        Type argType = types.vars[next];
         if(argType->lazy_compile && debug) {
             //cout << arg_name<<"\n";
             auto def = make_shared<Def>();
@@ -62,6 +67,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
                 for(const auto& final : it.type->finals) finals[arg_name+"__"+final.first] += it.type->rebase(final.second, arg_name); 
                 //finals = it.type->rebase(it.type->finals, arg_name)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
                 for(const auto& it : it.type->current_renaming) current_renaming[arg_name+"__"+it.first] = arg_name+"__"+it.second;
+                for(const auto& it : it.type->alignments) if(it.second) {alignments[arg_name+"__"+it.first] = it.second;}
                 errors = errors+it.type->rebase(it.type->errors, arg_name);
                 for(const auto& it2 : it.type->internalTypes.vars) {
                     string arg = arg_name+"__"+it2.first;
@@ -72,11 +78,13 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
             else for(const auto& itarg : argType->packs) {
                 args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut);
                 internalTypes.vars[arg_name+"__"+itarg] = argType->internalTypes.vars[itarg];
+                for(const auto& it : argType->alignments) if(it.second) {alignments[arg_name+"__"+it.first] = it.second;}
             }
         }
         else {
             args.emplace_back(arg_name, argType, mut);
             internalTypes.vars[arg_name] = argType;
+            if(argType->name=="align") alignments[arg_name] = alignment_labels[this];
         }
         if(p>=imp->size()) imp->error(pos+2, "Missing matching right parenthesis");
     }
@@ -129,6 +137,10 @@ vector<Type> get_lazy_options(const shared_ptr<Import>& imp, Memory& types) {
         auto def = make_shared<Def>();
         def->parse(imp, p, types);
         def->choice_power += power;
+        for(const auto& it : argoption) {
+            cout << it.first << "\n";
+            for(const string& pack : it.second->packs) def->alignments[it.first+"__"+pack] = it.second->alignments[pack];
+        }
         newOptions.push_back(def);
         //cout << def->signature() <<"\n";
         //cout << "---------------------------\n";

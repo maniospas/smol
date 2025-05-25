@@ -22,9 +22,19 @@ smo cos(f64 x)
     @body{f64 z = cos(x);}
     -> z
 
+smo acos(f64 x)
+    @head{#include <math.h>}
+    @body{f64 z = acos(x);}
+    -> z
+
 smo sin(f64 x)
     @head{#include <math.h>}
     @body{f64 z = sin(x);}
+    -> z
+
+smo asin(f64 x)
+    @head{#include <math.h>}
+    @body{f64 z = asin(x);}
     -> z
 
 smo log(f64 x)

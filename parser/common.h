@@ -19,11 +19,12 @@ inline void ERROR(const string& message) {
 
 
 string pretty_var(const string& name) {
-    if(name.size()>=2 && name[0]=='_' && name[1]=='_') return "[noname]";
+    if(name.size()>=2 && name[0]=='_' && name[1]=='_') return "?";
     string result;
     size_t i = 0;
     while (i < name.size()) {
         if(i && name[i]=='_' && i+1<name.size() && name[i+1]=='_' && name[i - 1] != '_') {result += '.';i += 2;}
+        else if(i && name[i]=='_' && i+1<name.size() && name[i+1]=='_') {result += '?';while(i<name.size() && name[i]!='.')i++;i++;}
         else result += name[i++];
     }
     return result;

@@ -285,7 +285,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second==types.vars["buffer"]) imp->error(p-2, "Operator does not accept buffer as the first input");
             else {
                 if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second->not_primitive()) {
-                    for(const string& pack : internalTypes.vars.find(curry)->second->packs)  unpacks.push_back(curry+"__"+pack);
+                    for(const string& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry+"__"+pack);
                 }
                 else unpacks.push_back(curry);
             }
@@ -371,7 +371,12 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                     if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Cannot unpack abstract " + arg_type->signature() + " "+type->args[i].name);
                     if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
                     if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
-                        throw std::runtime_error(type->signature()+": Expecting " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                        throw std::runtime_error(type->signature()+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                    if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="align" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
+
+                        if(!alignments[unpacks[i]]) alignments[unpacks[i]] = type->alignments[type->args[i].name];
+                        else throw std::runtime_error(type->signature()+": align "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" expects data from "+(!type->alignments[type->args[i].name]?"nothing":reverse_alignment_labels[type->alignments[type->args[i].name]]->signature())+" but got "+reverse_alignment_labels[alignments[unpacks[i]]]->signature());
+                    }
                 }
                 if(type->choice_power>highest_choice_power) {
                     highest_choice_power = type->choice_power;
@@ -469,6 +474,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             assign_variable(type, var, unpacks[0], imp, p);
             return next_var(imp, p, var, types);
         }
+        for(const auto& it : type->alignments) if(it.second) alignments[var+"__"+it.first] = it.second; 
         string immediate_finals("");
         for(size_t i=0;i<unpacks.size();++i) {
             assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);

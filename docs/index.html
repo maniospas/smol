@@ -1123,8 +1123,25 @@ Compiled assembly usually ignores alignment primitives, as they are not going to
 But it can help disambiguate otherwise strucurally equivalent runtypes among overloaded
 operations, within unions, or -importantly- when popping values from buffers.
 </p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+smo Type1(align, f64 value) -> @new
+smo Type2(align, f64 value) -> @new
+
+smo recognize(Type1 p) print("this is Type1") --
+smo recognize(Type2 p) print("this is Type2") --
+
+service main()
+    p1 = align:Type1(1.0)
+    p2 = align:Type2(2.0)
+    recognize(p1) 
+    recognize(p2) 
+    --
+</code></pre>
+
 <p>
-In general, having alignment in runtypes is optional, as it comes with stotage costs.
+In general, having alignment in runtypes is optional, as it comes with storage costs.
 That said, alignment as a first returned argument is mandatory for safety if 
 <code class="language-smolambda">ptr</code> data are also returned. This is mostly
 a feature for the standard library, for example to ensure string integrity.</p>
@@ -1160,7 +1177,8 @@ it also supports string handling.
   <a href="#console">Console</a> ·
   <a href="#strings">Strings</a> ·
   <a href="#files">Files</a> ·
-  <a href="#vectors">Vectors</a>
+  <a href="#vectors">Vectors</a> ·
+  <a href="#math">Math</a>
 </p>
 <br>
 
@@ -1284,7 +1302,6 @@ service main()
 </code></pre>
 
 
-
 <h3 id="vectors">Vectors <a href="#vectors" class="anchor-link">🔗</a></h3>
 <b>Under construction.</b>
 
@@ -1309,6 +1326,28 @@ service main()
 </code></pre>
 
 
+<h3 id="math">Math <a href="#math" class="anchor-link">🔗</a></h3>
+
+<p>Various trigonometric operations are available, namely <code>cos, sin, tan, acos, asin, atan</code>.
+In addition to those, you can compute multiples of <code>π=3.14159...</code> per <code class="language-smolambda">value:pi</code> like below.
+</p>
+<pre><code class="language-smolambda">@include std.builtins
+@include std.math
+
+service main()
+    print("Give a number of radians")
+    rads = f64:read:pi
+    print("cos \{rads:cos}")
+    print("sin \{rads:sin}")
+    print("tan \{rads:tan}")
+    --
+</code></pre>
+<o>
+Furthermore, <code>exp,log,pow,sqrt</code> are also available. Importantly, the logarithm requires
+a positive inputs, the square root requires non-negative input, and power computations require
+non-negative base. 
+</p>
+
     
 
 </div>
@@ -1330,7 +1369,7 @@ Prism.languages.smolambda = {
       greedy: true
     }
   ],
-  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not)\b/,
+  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

@@ -41,6 +41,9 @@ public:
     Arg(const string& n, const Type& t, bool m):name(n),type(t),mut(m){}
 };
 
+unordered_map<Def*, unsigned long> alignment_labels;
+unordered_map<unsigned long, Def*> reverse_alignment_labels;
+
 class Def {
     static int temp;
     static string create_temp() {return "__"+numberToVar(++temp);}
@@ -71,6 +74,7 @@ public:
     unordered_map<string, string> finals;
     unordered_map<string, Type> parametric_types;
     unordered_map<string, Type> buffer_primitive_associations;
+    unordered_map<string, unsigned long> alignments;
     vector<string> uplifting_targets;
     void add_preample(const string& pre) {
         if(preample.find(pre)==preample.end()) preample.insert(pre);
@@ -90,7 +94,10 @@ public:
     }
 
     Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors("") {}
-    Def(): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors("") {}
+    Def(): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors("") {
+        reverse_alignment_labels[alignment_labels.size()+1] = this;
+        alignment_labels[this] = alignment_labels.size()+1;// +1 needed to ensure that zero alignment has no associated type
+    } 
     vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer, const string& curry);
     inline bool not_primitive() const {return !_is_primitive;}
     string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test=true);
