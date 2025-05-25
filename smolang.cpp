@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
     builtins.vars["cstr"] = make_shared<Def>("cstr");
     builtins.vars["bool"] = make_shared<Def>("bool");
     builtins.vars["char"] = make_shared<Def>("char");
-    builtins.vars["align"] = make_shared<Def>("align");
+    builtins.vars["nom"] = make_shared<Def>("nom");
 
     builtins.vars["__label"] = make_shared<Def>("__label");
 
@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
                 "#define __IS_errcode 6\n"
                 "#define __IS_cstr 7\n"
                 "#define __IS_bool 8\n"
-                "#define __IS_align 9\n"
+                "#define __IS_nom 9\n"
                 "#define __NULL void*\n"
                 "#define __USER__ERROR 1\n"
                 "#define __BUFFER__ERROR 2\n"
@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
                 "#define cstr const char*\n"
                 "#define u64 unsigned long\n"
                 "#define i64 long\n"
-                "#define align unsigned long\n"
+                "#define nom unsigned long\n"
                 "#define f64 double\n\n";
             std::ofstream out(file.substr(0, file.size()-2)+".cpp");
             // globals & define services

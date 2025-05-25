@@ -116,7 +116,8 @@ Nothing exciting yet.</p>
 keyword. These merge the concept of types and functions, where <code class="language-smolambda">-></code>
 returns a value or tuple. If variable names are part of the returned tuple, they can be accessed as fields
 from the result. <code class="language-smolambda">@new</code> is a shorthand for
-returning a tuple of all arguments. This is useful for declaring structural data without any functionality.</p>
+returning a tuple of all arguments. It is useful for declaring structural data without functionality - though
+those data may make runtime assertions.</p>
 
 <p>Write something like <code class="language-smolambda">p = Point(...)</code> 
 to access all returned named variables using notation like
@@ -251,6 +252,11 @@ available in the standard library.
     </tr>
     <tr class="section-header"><td colspan="3"><u>Builtins</u></td></tr>
     <tr>
+      <td><code class="language-smolambda">nom, ...</code></td>
+      <td>Nominal type checking</td>
+      <td>Automatic unique value in arguments</td>
+    </tr>
+    <tr>
       <td><code class="language-smolambda">i64, u64, f64, ...</code></td>
       <td>Builtin runtypes</td>
       <td>Can be called to convert to each other</td>
@@ -293,7 +299,7 @@ available in the standard library.
     </tr>
     <tr>
       <td><code class="language-smolambda">@finally{...}</code></td>
-      <td>C++ for releasing resources</td>
+      <td>C++ to free resources</td>
       <td>Can also tie the resources to a variable</td>
     </tr>
   </tbody>
@@ -973,7 +979,7 @@ safe runtypes that will be discussed later.</p>
   <a href="#returnbuffers">Returning buffers</a> ·
   <a href="#slicing">Slicing</a> ·
   <a href="#concat">Concatenation</a> ·
-  <a href="#alignment">Alignment</a>
+  <a href="#nominal">Nominal typing</a>
 </p>
 <br>
 
@@ -1107,34 +1113,35 @@ service main()
     --
 </code></pre>
 
-<h3 id="alignment">Alignment <a href="#localbuffers" class="anchor-link">🔗</a></h3>
+<h3 id="nominal">Nominal typing <a href="#nominal" class="anchor-link">🔗</a></h3>
 
 <p>A last feature that has been delayed till this point is how to make
 buffer reads semantically secure in not front-popping unintended runtypes.
 The mechanism for doing so is presented at the runtype level by setting
-an <code class="language-smolambda">align</code> primitive as the first argument.
+an <code class="language-smolambda">nom</code> primitive as the first argument.
 </p>
-<p>Declaring this primitive as the first return value always assigns identifier
-bytes that are unique to the runtype. If, further, you provide non-zero bytes 
-as an argument, these need to be the same as the data structure.
+<p>This primitive is an expression of the so-called <i>nonimal typing</i>: 
+if also contained in the returned tuple, it ties it back to the runtype. You
+cannot normally set values to it.
 </p>
 <p>
-Compiled assembly usually ignores alignment primitives, as they are not going to be used.
-But it can help disambiguate otherwise strucurally equivalent runtypes among overloaded
-operations, within unions, or -importantly- when popping values from buffers.
+Compiled assembly often ignores nominal typing primitives, as they are mostly
+used for compilation checks, where they disambiguate strucurally equivalent runtypes 
+among overloaded operations, or within unions. Nominal typing has a small dynamic overhead
+when popping values from buffers.
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Type1(align, f64 value) -> @new
-smo Type2(align, f64 value) -> @new
+smo Type1(nom, f64 value) -> @new
+smo Type2(nom, f64 value) -> @new
 
 smo recognize(Type1 p) print("this is Type1") --
 smo recognize(Type2 p) print("this is Type2") --
 
 service main()
-    p1 = align:Type1(1.0)
-    p2 = align:Type2(2.0)
+    p1 = nom:Type1(1.0)
+    p2 = nom:Type2(2.0)
     recognize(p1) 
     recognize(p2) 
     --
@@ -1155,10 +1162,10 @@ and provide alignment.</b>
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Point(align, f64 x, f64 y) -> @new
+smo Point(nom, f64 x, f64 y) -> @new
 
 service main()
-    p = align:Point(1.0, 2.0)
+    p = nom:Point(1.0, 2.0)
     buf()
     print(buf[1]:f64) // 1.0
     print(buf:f64) // alignment ensures correctness 
@@ -1271,11 +1278,10 @@ service main()
 
 <h3 id="files">Files <a href="#files" class="anchor-link">🔗</a></h3>
 
-<p>The snippet below demonstrates how to create a service for reading the
+<p>The next snipper shows how to create a service for reading the
 contents of a file one chunk of 4,096 bytes at a time. Use <i>line</i> instead of 
 <i>chunk</i> to stop reading chunks after new line characters too, 
-but the byte limit will still be used as a separator 
-if the line is too long. Set a different limit to the number of
+but the byte limit will still be used to break long lines. Set a different limit to the number of
 bytes per chunk by passing the number as a second <code class="language-smolambda">u64</code> 
 to the file runtype.
 </p>
@@ -1369,7 +1375,7 @@ Prism.languages.smolambda = {
       greedy: true
     }
   ],
-  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div)\b/,
+  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

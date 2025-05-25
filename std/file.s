@@ -19,6 +19,7 @@
 @include std.builtins.str
 @include std.builtins.err
 
+smo file(nom, ptr contents, ptr reader, u64 chunk_size) -> @new
 smo file(str path, u64 chunk_size) 
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -29,7 +30,7 @@ smo file(str path, u64 chunk_size)
     if contents:exists:not @fail{printf("Unable to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
     @finally reader {if(reader)free(reader);reader=0;}
-    -> align, contents, reader, chunk_size
+    -> nom:file(contents, reader, chunk_size)
 
 smo file(cstr path, u64 chunk_size) -> file(path:str, chunk_size)
 smo file(cstr path) -> file(path:str, 4096:u64)
@@ -58,7 +59,7 @@ smo chunk(file f)
         char first = ((char*)f__reader)[0];
     }
     if ret:exists:not @fail{printf("File read error (maybe the file has ended)\n");} --
-    -> align:str(ret, bytes_read, first)
+    -> nom:str(ret, bytes_read, first)
 
 
 smo ended(file f)

@@ -10,6 +10,7 @@ string recommend_runtype(const Memory& types, const string& candidate) {
         }
     }
     if(!recommendation.size()) return recommendation;
+    if(recommendation.size()>=2 && recommendation[0]=='_' && recommendation[1]=='_') return "";
     return "\nDid you mean "+recommendation+"?";
 }
 
@@ -24,5 +25,6 @@ string recommend_variable(const Memory& types, const string& candidate) {
         }
     }
     if(!recommendation.size()) return recommendation;
+    if(recommendation.size()>=2 && recommendation[0]=='_' && recommendation[1]=='_') return "";
     return "\nDid you mean "+pretty_var(recommendation)+"?";
 }

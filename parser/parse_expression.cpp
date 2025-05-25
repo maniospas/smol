@@ -372,7 +372,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                     if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
                     if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
                         throw std::runtime_error(type->signature()+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
-                    if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="align" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
+                    if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
 
                         if(!alignments[unpacks[i]]) alignments[unpacks[i]] = type->alignments[type->args[i].name];
                         else throw std::runtime_error(type->signature()+": align "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" expects data from "+(!type->alignments[type->args[i].name]?"nothing":reverse_alignment_labels[type->alignments[type->args[i].name]]->signature())+" but got "+reverse_alignment_labels[alignments[unpacks[i]]]->signature());
@@ -440,6 +440,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             string impl = var+"__err = "+type->name+"(";
             internalTypes.vars[var+"__err"] = types.vars["errcode"];
             internalTypes.vars[var] = type;
+            for(const string& pack : type->packs) if(type->alignments[pack]) alignments[var+"__"+pack] = type->alignments[pack];
             bool toadd = false;
             for(size_t i=1;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
                 const string& ret = type->packs[i];

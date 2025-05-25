@@ -24,7 +24,7 @@ void assign_variable(const Type& type, const string& from, const string& to, con
     else if(it==internalTypes.vars.end()) internalTypes.vars[from] = type;
     else if(it->second!=type) imp->error(--p, "Cannot assign to "+it->second->name+" "+pretty_var(from)+" from "+type->name+" "+pretty_var(to));
     
-    if(type->name=="align" && to!="0") {
+    if(type->name=="nom" && to!="0") {
         //if(!alignments[from]) imp->error(--p, "Cannot assign to align "+pretty_var(from)+" because it does not already have a valid alignment to check for validity");
         //if(!alignments[to]) imp->error(--p, "Cannot assign to align from "+pretty_var(to)+" because it does not have a valid alignment");
         if(alignments[from] && alignments[from]!=alignments[to]) imp->error(--p, "Cannot assign to align "+pretty_var(from)+" from a different runtype's alignment "+pretty_var(to));

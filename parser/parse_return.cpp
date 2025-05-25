@@ -24,7 +24,7 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
     
     next = imp->at(p++);
     bool hasComma = false;
-    if(is_service && !uplifting_targets.size()) {
+    if(is_service && uplifting_targets.size()<=1) {
         bool found = false;
         for(const string& pack : packs) if(pack=="err") {found=true;break;}
         if(!found) {
@@ -53,7 +53,7 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
             next = parse_expression(imp, p, imp->at(p++), types);
             if(!internalTypes.contains(next)) break;
             if(!internalTypes.vars[next]->not_primitive()) {
-                if(internalTypes.contains(next) && internalTypes.vars[next]->name=="align" && !alignments[next]) imp->error(--p, "You are returning an unset align "+pretty_var(next)+"\nAdd an align first variable to the signature and return that instead");
+                if(internalTypes.contains(next) && internalTypes.vars[next]->name=="nom" && !alignments[next]) imp->error(--p, "You are returning an unset align "+pretty_var(next)+"\nAdd an align first variable to the signature and return that instead");
                 if(is_service && !uplifting_targets.size()) {
                     implementation += "__value = "+next+";\n";
                     if(internalTypes.contains("__value") && internalTypes.vars["__value"]!=internalTypes.vars[next]) imp->error(--p, "Returning single value of multple types "+internalTypes.vars["__value"]->name+" and "+internalTypes.vars[next]->name);
@@ -75,14 +75,14 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
                     for(const string& pack : internalTypes.vars[next]->packs) {
                         assign_variable(internalTypes.vars[next]->internalTypes.vars[pack], pack, next+"__"+pack, imp, p);
                         packs.push_back(pack);
-                        if(internalTypes.contains(pack) && internalTypes.vars[pack]->name=="align" && !alignments[pack]) imp->error(--p, "You are returning an unset align "+pretty_var(pack)+"\nAdd an align first variable to the signature and return that instead");
+                        if(internalTypes.contains(pack) && internalTypes.vars[pack]->name=="nom" && !alignments[pack]) imp->error(--p, "You are returning an unset align "+pretty_var(pack)+"\nAdd an align first variable to the signature and return that instead");
                     }
                 }
                 else {
                     if(internalTypes.vars[next]->name=="buffer") imp->error(--p, "Cannot return a buffer alongside other values");
                     for(const string& pack : internalTypes.vars[next]->packs) {
                         packs.push_back(next+"__"+pack);
-                        if(internalTypes.contains(next+"__"+pack) && internalTypes.vars[next+"__"+pack]->name=="align" && !alignments[next+"__"+pack]) imp->error(--p, "You are returning an unset align "+pretty_var(next+"__"+pack)+"\nAdd an align first variable to the signature and return that instead");
+                        if(internalTypes.contains(next+"__"+pack) && internalTypes.vars[next+"__"+pack]->name=="nom" && !alignments[next+"__"+pack]) imp->error(--p, "You are returning an unset align "+pretty_var(next+"__"+pack)+"\nAdd an align first variable to the signature and return that instead");
                     }
                 }
             }

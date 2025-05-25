@@ -35,7 +35,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
         }
         if(!accepted_var_name(arg_name)) imp->error(--p, "Not a valid name");
         if(types.vars.find(arg_name)!=types.vars.end()) imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
-        if(next=="align" && args.size()) imp->error(--p, "Misplaced align\nCan only be the first argument of a runtype\nor the argument of dependent runtypes");
+        if(next=="nom" && args.size()) imp->error(--p, "Misplaced align\nCan only be the first argument of a runtype\nor the argument of dependent runtypes");
         Type argType = types.vars[next];
         if(argType->lazy_compile && debug) {
             //cout << arg_name<<"\n";
@@ -84,7 +84,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
         else {
             args.emplace_back(arg_name, argType, mut);
             internalTypes.vars[arg_name] = argType;
-            if(argType->name=="align") alignments[arg_name] = alignment_labels[this];
+            if(argType->name=="nom") alignments[arg_name] = alignment_labels[this];
         }
         if(p>=imp->size()) imp->error(pos+2, "Missing matching right parenthesis");
     }

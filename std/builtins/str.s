@@ -17,7 +17,7 @@
 
 @include std.builtins.num
 
-smo str(align, ptr contents, u64 length, char first) -> @new
+smo str(nom, ptr contents, u64 length, char first) -> @new
 smo str(i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
@@ -39,7 +39,7 @@ smo str(i64 number)
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
     @finally contents {if(contents)free(contents);}
     @finally readbuf {if(readbuf)free(readbuf);}
-    -> align:str(contents, length, first)
+    -> nom:str(contents, length, first)
 
 smo str(f64 number)
     @head{#include <stdio.h>}
@@ -62,14 +62,14 @@ smo str(f64 number)
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
     @finally contents {if(contents)free(contents);}
     @finally readbuf {if(readbuf)free(readbuf);}
-    -> align:str(contents, length, first)
+    -> nom:str(contents, length, first)
 
 smo str(cstr raw)
     @head{#include <string.h>}
     @body{u64 length=strlen(raw);}
     @body{ptr contents=(void*)raw;}
     @body{char first=raw[0];}
-    -> align:str(contents, length, first)
+    -> nom:str(contents, length, first)
 
 smo print(cstr message)
     @head{#include <stdio.h>}
@@ -91,7 +91,7 @@ smo substr(str s, u64 from, u64 to)
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from==to?'\0':((char*)s__contents)[0];
     }
-    -> align:str(contents, to-from, first)
+    -> nom:str(contents, to-from, first)
 smo substr(cstr s, u64 from, u64 to) -> s:str:substr(from, to)
 
 smo substr(str s, u64 from) 
@@ -100,7 +100,7 @@ smo substr(str s, u64 from)
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from+1==s__length?'\0':((char*)contents)[0];
     }
-    -> align:str(contents, s.length-from, first)
+    -> nom:str(contents, s.length-from, first)
 smo substr(cstr s, u64 from) -> s:str:substr(from)
 
 smo eq(char x, char y)  @body{bool z=(x==y);} -> z
@@ -142,7 +142,7 @@ smo add(str x, str y)
         if(dealloc) free(dealloc);
     }
     @finally _contents {if(_contents)free(_contents);_contents=0;}
-    -> align:str(_contents, len_x + len_y, x.first)
+    -> nom:str(_contents, len_x + len_y, x.first)
 
 smo add(str x, cstr y)
     @head{#include <string.h>}
@@ -160,7 +160,7 @@ smo add(str x, cstr y)
         if(dealloc) free(dealloc);
     }
     @finally _contents {if(_contents)free(_contents);_contents=0;}
-    -> align:str(_contents, len_x + len_y, x.first)
+    -> nom:str(_contents, len_x + len_y, x.first)
 
 smo add(cstr x, str y)
     @head{#include <string.h>}
@@ -182,7 +182,7 @@ smo add(cstr x, str y)
     }
     if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
     @finally _contents {if (_contents) free(_contents); _contents = 0;}
-    -> align:str(_contents, len_x + len_y, first)
+    -> nom:str(_contents, len_x + len_y, first)
 
 smo read(str)
     @head{#include <stdio.h>}
@@ -200,4 +200,4 @@ smo read(str)
     }
     @finally _contents {if(_contents)free(_contents);}
     if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
-    -> align:str(_contents, length, first)
+    -> nom:str(_contents, length, first)
