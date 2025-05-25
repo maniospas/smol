@@ -4,8 +4,7 @@
 
 ![logo](./docs/smol.png)
 
-This language is designed to create zero-cost abstractions for managing complex data structures.
-Under the hood, it transpiles to C++.
+Declare zero-cost safe abstractions for structural and nominal data. Transpile to performant C++.
 
 
 **Dependencies:** GCC<br>

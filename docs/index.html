@@ -61,8 +61,7 @@
 
 
 <p><i>Smoλ</i>  (pronounced like "small" but with "o" instead of "a") is a low-level language with fast zero-cost abstractions that are organized 
-into failsafe services.
-Its core is tiny — really tiny! So tiny, in fact, that printing and basic
+into failsafe services. Its core is tiny — really tiny! So tiny, in fact, that printing and basic
 arithmetics are externally implemented in the standard library with a C++ interface.
 Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="repository">GitHub</a> to track progress.</p>
 
@@ -646,6 +645,37 @@ service main()
 </code></pre>
 
 
+<p>The assignment operator copies the outcome of function calls to variables.
+However, only returned symbols can be accessed as fields and only if there are 
+multiple of them packed into a comma-separated tuple.
+For example, below the input variable <code class="language-smolambda">x</code>
+cannot be accessed after computations conclude.
+</p>
+
+<p>We already saw that it may be convenient to unpack all runtype inputs with
+<code class="language-smolambda">@new</code> to directly declare a structural type
+without internal implementation.
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+smo multi_out(i64 x)
+    xinc = add(x,1)
+    -> xinc, x
+smo single_out(i64 x)
+    x = add(x,1)
+    -> x
+
+service main()
+    p1 = multi_out(1)
+    print(p1.x)        // 1
+    print(p1.incx)     // 2
+    p2 = single_out(1)
+    print(p2)          // 2
+    print(p2.x)        // CREATES AN ERROR
+    --
+</code></pre>
+
+
 <h3 id="mutability">Mutability (call by reference) <a href="#mutability" class="anchor-link">🔗</a></h3>
 
 <p>Runtypes are called by value,
@@ -692,39 +722,6 @@ However, you can pass a known or type as an argument to denote dummy empty objec
 is conceptually similar. Note that mutability should be explicitly declared if you want <code class="language-smolambda">rt</code>
 to have side-effects.
 </p>
-
-<h3 id="fields">Fields <a href="#fields" class="anchor-link">🔗</a></h3>
-
-<p>The assignment operator copies the outcome of function calls to variables.
-However, only returned symbols can be accessed as fields and only if there are 
-multiple of them packed into a comma-separated tuple.
-For example, below the input variable <code class="language-smolambda">x</code>
-cannot be accessed after computations conclude.
-</p>
-
-<p>We already saw that it may be convenient to unpack all runtype inputs with
-<code class="language-smolambda">@new</code> to directly declare a structural type
-without internal implementation.
-</p>
-
-<pre><code class="language-smolambda">@include std.builtins
-smo multi_out(i64 x)
-    xinc = add(x,1)
-    -> xinc, x
-smo single_out(i64 x)
-    x = add(x,1)
-    -> x
-
-service main()
-    p1 = multi_out(1)
-    print(p1.x)        // 1
-    print(p1.incx)     // 2
-    p2 = single_out(1)
-    print(p2)          // 2
-    print(p2.x)        // CREATES AN ERROR
-    --
-</code></pre>
-
 
 <h3 id="overloading">Overloading <a href="#overloading" class="anchor-link">🔗</a></h3>
 
@@ -1143,7 +1140,7 @@ buffer reads semantically secure in not front-popping unintended runtypes.
 The mechanism for doing so is presented at the runtype level by setting
 an <code class="language-smolambda">nom</code> primitive as the first argument.
 </p>
-<p>This primitive is an expression of the so-called <i>nonimal typing</i>: 
+<p>This primitive is an expression of the so-called <i>nominal typing</i>: 
 if also contained in the returned tuple, it ties it back to the runtype. You
 cannot normally set values to it.
 </p>
@@ -1243,8 +1240,8 @@ to enable fast comparison without going through heap data.
 service main()
     i = 0
     while i&lt;=10 
-        if 0==i%2 -> print("Even "+str(i))
-        else      -> print("Odd  "+str(i))
+        if 0==i%2 -> print("Even "+i:str)
+        else      -> print("Odd  "+i:str)
         i = i+1
     ---- // end while and main with no return
 </code></pre>
