@@ -6,3 +6,4 @@ main
 lsp/node_modules
 lsp/package-lock.json
 .vscode
+raylib

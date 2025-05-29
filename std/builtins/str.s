@@ -104,6 +104,19 @@ smo print(str message)
     @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
     --
 
+smo null_terminated(str s)
+    @body{
+        ptr scstr = malloc(s__length+1);
+        if(scstr) {
+            memcpy((char*)scstr, command__contents, command__length);
+            ((char*)scstr)[s__length] = '\0';
+        }
+        cstr rcstr = (char*)scstr;
+    }
+    if scstr:exists:not @fail{printf("Failed to allocate str\n");} --
+    @finally scstr {if(scstr) free((char*)scstr);scstr=0;}
+    -> rcstr
+
 smo slice(str s, u64 from, u64 to) 
     if to<from @fail{printf("String slice cannot end before it starts\n");} --
     if to>=s.length @fail{printf("String slice must end at most at the length of the base string\n");} --
@@ -116,7 +129,6 @@ smo slice(str s, u64 from, u64 to)
     }
     -> nom:str(contents, to-from, first)
 smo slice(cstr s, u64 from, u64 to) -> s:str:slice(from, to)
-
 smo slice(str s, u64 from) 
     if from>=s.length @fail{printf("String slice start is out of bounds\n");} --
     @body{

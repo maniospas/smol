@@ -92,3 +92,10 @@ smo isdir(str path)
     }
     -> is_dir
 smo isdir(cstr path) -> isdir(path:str)
+
+smo removefile(str path)
+    @head{#include <stdio.h>}
+    @body{u64 status = remove((char*)path__contents);}
+    if status:bool @fail{printf("Failed to remove file: %.*s\n", (int)path__length, (char*)path__contents);} --
+    --
+smo removefile(cstr path) -> removefile(path:str)
