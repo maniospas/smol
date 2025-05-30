@@ -1,6 +1,7 @@
 void assign_variable(const Type& type, const string& from, const string& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false) {
     if(type && type->not_primitive()) {
         if(error_on_non_primitives) imp->error(p, "Failed to resolve "+type->name+" "+pretty_var(to)+" to a primitive");
+        if(type->packs.size()==0) return;
         if(internalTypes.contains(from)) {
             if(!internalTypes.contains(to)) imp->error(p, "Failed to re-assign "+internalTypes.vars[from]->name+" "+pretty_var(from)+" from no-type"+pretty_var(to));
             if(internalTypes.vars[from]!=internalTypes.vars[to]) imp->error(p-1, "Failed to re-assign "+internalTypes.vars[from]->name+" "+pretty_var(from)+" from different type "+internalTypes.vars[to]->name+" "+pretty_var(to));

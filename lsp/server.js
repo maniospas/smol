@@ -27,6 +27,8 @@ process.on("unhandledRejection", (reason) => { sendErrorToClient("Unhandled Reje
 function analyzeDocument(uri, text) {
   const lines = text.split(/\r?\n/);
   const symbols = [];
+  const decorations_arrow = [];
+  const decorations_dash = [];
   const includes = new Set();
   for(let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -42,9 +44,25 @@ function analyzeDocument(uri, text) {
       includes.add(includedUri);
       if(!symbolTable.has(includedUri) && fs.existsSync(resolvedPath)) analyzeDocument(includedUri, fs.readFileSync(resolvedPath, "utf8"));
     }
+    let match;
+    const arrowRegex = /->/g;
+    while ((match = arrowRegex.exec(line)) !== null) {
+      decorations_arrow.push({
+        range: {start: { line: i, character: match.index }, end: { line: i, character: match.index + 2 }},
+        text: "⟶"
+      });
+    }
+    const dashRegex = /--/g;
+    while ((match = dashRegex.exec(line)) !== null) {
+      decorations_dash.push({
+        range: {start: { line: i, character: match.index }, end: { line: i, character: match.index + 2 }},
+        text: "—"
+      });
+    }
   }
   symbolTable.set(uri, symbols);
   includeGraph.set(uri, includes);
+  connection.sendNotification("smolambda/decorations", {uri, arrows: decorations_arrow, dashes: decorations_dash});
 }
 
 documents.onDidOpen(e => {analyzeDocument(e.document.uri, e.document.getText());});
@@ -199,7 +217,8 @@ connection.languages.semanticTokens.on((params) => {
         continue;
       }
   
-      if(textLine.startsWith("->", pos) || textLine.startsWith("--", pos) || textLine.startsWith("-->", pos) || textLine.startsWith("->>", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
+      //if(textLine.startsWith("->", pos) || textLine.startsWith("--", pos) || textLine.startsWith("-->", pos) || textLine.startsWith("->>", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
+      if(textLine.startsWith("-->", pos) || textLine.startsWith("->>", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
       if(textLine[pos] === ':') {builder.push(line, pos, 1, 3, 0);pos += 1;continue;}
       const match = textLine.slice(pos).match(/^@?[A-Za-z_][A-Za-z0-9_.]*/);
       if(match) {
@@ -286,8 +305,7 @@ function runCompilerAndSendDiagnostics(document) {
   }
 }
 
-
-
+connection.onNotification('custom/windowFocused', (params) => {analyzeDocument(params.uri, params.text);});
 documents.onDidChangeContent(async (e) => {await runCompilerAndSendDiagnostics(e.document);});
 documents.onDidSave(async (e) => {await runCompilerAndSendDiagnostics(e.document);});
 documents.listen(connection);

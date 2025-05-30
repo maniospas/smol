@@ -26,8 +26,8 @@ smo vec(u64 size)
 
 smo len(vec v) -> v.size
 smo slice(vec v, u64 from, u64 to) 
-    if from >= to fail("Empty vec slice") --
-    if to > v.size fail("Vec out of bounds") --
+    if from >= to -> fail("Empty vec slice")
+    if to > v.size -> fail("Vec out of bounds")
     // so we have 0<=from < to <= v.size
     @body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
     -> nom:vec(contents, to-from)
@@ -42,17 +42,17 @@ smo rand(vec, u64 size)
     -> nom:vec(contents, size)
 
 smo at(vec v, u64 pos) 
-    if pos>=v.size fail("Vec out of bounds") --
+    if pos>=v.size -> fail("Vec out of bounds")
     @body{f64 value = ((f64*)v__contents)[pos];} 
     -> value
 
 smo put(vec v, u64 pos, f64 value)
-    if pos>=v.size fail("Vec out of bounds") --
+    if pos>=v.size -> fail("Vec out of bounds")
     @body{((f64*)v__contents)[pos] = value;}
     -> v
 
 smo dot(vec x1, vec x2)
-    if x1.size!=x2.size fail("Incompatible vec sizes") --
+    if x1.size!=x2.size -> fail("Incompatible vec sizes")
     x2.size = x1.size // this helps the optimizer
     sum = 0.0
     i=0:u64 while i<x1.size @next i = i+1:u64
@@ -61,10 +61,10 @@ smo dot(vec x1, vec x2)
                 :add(sum)
         --
     //@body{for(u64 i=0;i<x1__size;++i) sum += ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
-    -> sum
+    -> sum 
 
 smo add(vec x1, vec x2)
-    if x1.size!=x2.size fail("Incompatible vec sizes") --
+    if x1.size!=x2.size -> fail("Incompatible vec sizes")
     x2.size = x1.size // this helps the optimizer
     size = x1.size
     @body{ptr previous = contents;}
@@ -75,7 +75,7 @@ smo add(vec x1, vec x2)
     -> nom:vec(contents, size)
 
 smo sub(vec x1, vec x2)
-    if x1.size!=x2.size fail("Incompatible vec sizes") --
+    if x1.size!=x2.size -> fail("Incompatible vec sizes")
     x2.size = x1.size // this helps the optimizer
     size = x1.size
     @body{ptr previous = contents;}
@@ -86,7 +86,7 @@ smo sub(vec x1, vec x2)
     -> nom:vec(contents, size)
 
 smo mul(vec x1, vec x2)
-    if x1.size!=x2.size fail("Incompatible vec sizes") --
+    if x1.size!=x2.size -> fail("Incompatible vec sizes")
     x2.size = x1.size // this helps the optimizer
     size = x1.size
     @body{ptr previous = contents;}

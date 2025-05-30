@@ -119,13 +119,10 @@ smo null_terminated(str s)
 
 smo slice(str s, u64 from, u64 to) 
     if to<from @fail{printf("String slice cannot end before it starts\n");} --
-    if to>=s.length @fail{printf("String slice must end at most at the length of the base string\n");} --
-    // the above two conditions mean that 0<=from<=to<s.length
-    // this means that s.length is never zero
-    // therefore there is no need to check for length when computing first
+    if to>s.length @fail{printf("String slice must end at most at the length of the base string\n");} --
     @body{
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
-        char first = from==to?'\0':((char*)s__contents)[0];
+        char first = from==to?'\0':((char*)s__contents)[from];
     }
     -> nom:str(contents, to-from, first)
 smo slice(cstr s, u64 from, u64 to) -> s:str:slice(from, to)
@@ -133,7 +130,7 @@ smo slice(str s, u64 from)
     if from>=s.length @fail{printf("String slice start is out of bounds\n");} --
     @body{
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
-        char first = from+1==s__length?'\0':((char*)contents)[0];
+        char first = from+1==s__length?'\0':((char*)contents)[from];
     }
     -> nom:str(contents, s.length-from, first)
 smo slice(cstr s, u64 from) -> s:str:slice(from)
@@ -142,11 +139,11 @@ smo eq(char x, char y)  @body{bool z=(x==y);} -> z
 smo neq(char x, char y) @body{bool z=(x!=y);} -> z
 smo eq(str x, str y)
     @head{#include <string.h>}
-    @body{bool z = (x__length != y__length) || memcmp(x__contents, y__contents, x__length) == 0;}
+    @body{bool z = x__first==y__first && (x__length == y__length) && memcmp(x__contents, y__contents, x__length) == 0;}
     -> z
 smo neq(str x, str y)
     @head{#include <string.h>}
-    @body{bool z = (x__length != y__length) || memcmp(x__contents, y__contents, x__length) != 0;} 
+    @body{bool z = x__first!=y__first || (x__length != y__length) || memcmp(x__contents, y__contents, x__length) != 0;} 
     -> z
 smo len(str x) -> x.length
 
