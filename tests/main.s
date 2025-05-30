@@ -1,19 +1,14 @@
 @include std.builtins
 
-smo split(str query, str sep)
-    pos = 0
-    prev = 0
-    while pos<query:len-sep:len
-        if sep==query[pos to pos+sep:len] 
-            if pos>prev -> query[prev to pos]:print
-            prev = pos+sep:len
-            pos = prev
-            --
-        pos = pos+1 
-        --
-    if prev<query:len -> query[prev to query:len]:print
-    -- 
+// declare nominal range
+smo range(nom, u64 start, u64 end) -> @new
+// call by reference
+smo next(range &r, u64 &value)
+    value = r.start
+    r.start = r.start + 1
+    -> r.start <= r.end
 
 service main()
-    str:read:split(" ":str)
-    --
+    nom:range(0,10):while next(u64 value) 
+        print(value) 
+    ----

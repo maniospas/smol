@@ -29,7 +29,9 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
             if(p<i->size() && i->at(p)=="next"){is_next_assignment=true;p++;next = imp->at(p++);}
             else {parse_directive(imp, p, next, types);continue;}
         }
-        if(next=="-") {parse_return(imp, p, next, types);end = p--; break;}
+        if(next=="-") {
+            parse_return(imp, p, next, types);end = p--; break;
+        }
         
         string var = imp->at(p);
         if(var=="." || var=="=") {

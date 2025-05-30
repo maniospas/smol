@@ -26,7 +26,7 @@ vector<string> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memor
         if(next==")") {--p;break;}
         string var = parse_expression(imp, p, next, types);
         if(!internalTypes.contains(var)) imp->error(expression_start, "Failed to parse expression");
-        const auto& type = internalTypes.vars.find(var)->second;
+        const auto& type = internalTypes.vars[var];
         if(type->name=="buffer") inherit_buffer = var;
         else {
             if(!type->not_primitive()) ret.push_back(var);

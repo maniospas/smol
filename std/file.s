@@ -25,40 +25,35 @@ smo file(str path, u64 chunk_size)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{ptr contents = (ptr)fopen((char*)path__contents, "r");}
-    @body{ptr reader = (ptr)malloc(4096);}
+    @body{
+        ptr reader = (ptr)malloc(4096);
+        cstr ret = (cstr)fgets((char*)reader, chunk_size, (FILE*)contents);
+        if(!ret) ((char*)reader)[0] = '\0';
+    }
     if reader:exists:not -> fail("Unable to allocate buffer for file read")
+    @finally reader {if(reader)free(reader);reader=0;}
     if contents:exists:not @fail{printf("Unable to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
-    @finally reader {if(reader)free(reader);reader=0;}
     -> nom:file(contents, reader, chunk_size)
 
 smo file(cstr path, u64 chunk_size) -> file(path:str, chunk_size)
 smo file(cstr path) -> file(path:str, 4096:u64)
 smo file(str path) -> file(path, 4096:u64)
 
-smo line(file f)
-    @head{#include <stdio.h>}
-    @head{#include <string.h>} 
-    @head{#include <stdlib.h>}
-    @body{
-        cstr ret = (cstr)fgets((char*)f__reader, f__chunk_size, (FILE*)f__contents);
-        if(!ret) ((char*)f__reader)[0] = '\0';
-        ptr err = (ptr)ret;
-    }
-    if err:exists:not -> fail("File read error (maybe the file has ended)")
-    -> ret
-
-smo chunk(file f)
+smo chunk(file &f)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        u64 bytes_read = fread((char*)f__reader, 1, f__chunk_size, (FILE*)f__contents);
-        if(!bytes_read) ((char*)f__reader)[bytes_read] = '\0'; // Null-terminate for cstr compatibility
-        ptr ret = bytes_read ? (ptr)f__reader : NULL;
-        char first = ((char*)f__reader)[0];
+        bool err = ((char*)f__reader)[0] == '\0';
+        if(!err) {
+            u64 bytes_read = fread((char*)f__reader, 1, f__chunk_size, (FILE*)f__contents);
+            if(!bytes_read) ((char*)f__reader)[bytes_read] = '\0'; // Null-terminate for cstr compatibility
+            ptr ret = bytes_read ? (ptr)f__reader : 0;
+            char first = ((char*)f__reader)[0];
+        }
     }
-    if ret:exists:not -> fail("File read error (maybe the file has ended)")
+    if err -> fail("File read error (maybe the file has ended)")
     -> nom:str(ret, bytes_read, first)
 
 

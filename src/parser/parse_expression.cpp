@@ -150,6 +150,7 @@ string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<st
         }
         internalTypes.vars[var] = type->alias_for.size()?type->internalTypes.vars[type->alias_for]:type;
         implementation += type->rebase(type->implementation, var);
+        implementation += immediate_finals;
         for(const string& pre : type->preample) add_preample(type->rebase(pre, var));
 
         for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); 
@@ -160,7 +161,7 @@ string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<st
             internalTypes.vars[var+"__"+it.first] = it.second;
             if(it.second->name=="buffer") buffer_primitive_associations[var+"__"+it.first] = type->buffer_primitive_associations[it.first];
         }
-        finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
+        //finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
         finals[var] = type->rebase(type->finals_when_used, var);
         if(internalTypes.contains(var) && internalTypes.vars[var]->name=="buffer") buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
         if(type->packs.size()==1) return next_var(imp, p, var+"__"+type->packs[0], types);
@@ -180,7 +181,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         internalTypes.vars[finally_var] = types.vars["__label"];
         internalTypes.vars[closeif_var] = types.vars["__label"];
         string next = imp->at(p++);
-        string var = parse_expression(imp, p, next, types);
+        string var = parse_expression(imp, p, next, types, curry);
         if(!internalTypes.contains(var)) imp->error(--p, "Expression did not evaluate to anything");
         if(internalTypes.vars.find(var)->second!=types.vars["bool"]) imp->error(--p, "If expects bool condition but got "+internalTypes.vars.find(var)->second->name+" "+pretty_var(var));
         implementation += "if(!"+var+") goto "+closeif_var+";\n";
@@ -226,7 +227,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         internalTypes.vars[finally_var] = types.vars["__label"];
         implementation += start_var+":\n";
         string next = imp->at(p++);
-        string var = parse_expression(imp, p, next, types);
+        string var = parse_expression(imp, p, next, types, curry);
         if(!internalTypes.contains(var)) imp->error(--p, "Expression did not evaluate to anything");
         if(internalTypes.vars.find(var)->second!=types.vars["bool"]) imp->error(--p, "If expects bool condition but got "+internalTypes.vars.find(var)->second->name+" "+pretty_var(var));
         implementation += "if(!"+var+") goto "+finally_var+";\n";
@@ -248,6 +249,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         internalTypes.vars[finally_var] = types.vars["__label"];
         string next;
         try {
+            if(curry.size()) imp->error(--p, "Cannot have a curry in `with`.");
             parse(imp, p, types, false);
             p++;
             next = imp->at(p++);
@@ -493,14 +495,43 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             if(num_choices!=1) imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@new return\nto break the priority stalemate.\nCandidates:"+candidates);
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
                 string var = create_temp();
-                assign_variable(type->args[i].type, var, "0", imp, p, true);
-                unpacks.push_back(var);
+                assign_variable(type->args[i].type, var+"__"+type->args[i].name, "0", imp, p, true);
+                unpacks.push_back(var+"__"+type->args[i].name);
             }
             else {
                 string var = create_temp();
                 assign_variable(type, var, "0", imp, p, true);
                 unpacks.push_back(var);
             }
+        }
+        else if(p<imp->size()-1 && (imp->at(p+1)==")" || imp->at(p+1)==",") && imp->at(p)!="("){
+            string var = imp->at(p++);
+            if(internalTypes.contains(var)) imp->error(--p, "Cannot redeclare local variable "+internalTypes.vars[var]->name+" "+pretty_var(var));
+            int num_choices = 0;
+            int highest_choice_power = 0;
+            string candidates("");
+            if(type->options.size()==1) {type = type->options[0];num_choices=1;}
+            else for(const auto& option : type->options) {
+                if(option->choice_power>highest_choice_power) {
+                    highest_choice_power = option->choice_power;
+                    num_choices = 0;
+                    candidates = "";
+                }
+                if(option->choice_power<highest_choice_power) continue;
+                num_choices ++;
+                type = option;
+                candidates += "\n"+option->signature();
+            }
+            if(num_choices!=1) imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@new return\nto break the priority stalemate.\nCandidates:"+candidates);
+            if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
+                internalTypes.vars[var+"__"+type->args[i].name] = type->args[i].type;
+                unpacks.push_back(var+"__"+type->args[i].name);
+            }
+            else {
+                internalTypes.vars[var] = type;
+                unpacks.push_back(var);
+            }
+            return var;
         }
         else {
             if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");

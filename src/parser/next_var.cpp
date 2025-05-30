@@ -1,4 +1,5 @@
 string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test) {
+    if(first_token.size()==0) return "";
     size_t n = i->size();
     if(p>=n) return first_token;
     string next = first_token;
@@ -149,6 +150,6 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
         }
         else break;
     }
-    if(test && !internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)+recommend_variable(types, next));
+    if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)+recommend_variable(types, next));
     return next;
 }
