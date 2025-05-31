@@ -75,10 +75,17 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
                     if(it2.second->name=="buffer") buffer_primitive_associations[arg] = it.type->buffer_primitive_associations[it2.first];
                 }
             }
-            else for(const auto& itarg : argType->packs) {
-                args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut);
-                internalTypes.vars[arg_name+"__"+itarg] = argType->internalTypes.vars[itarg];
-                for(const auto& it : argType->alignments) if(it.second) {alignments[arg_name+"__"+it.first] = it.second;}
+            else {
+                internalTypes.vars[arg_name] = argType;
+                for(const auto& itarg : argType->packs) {
+                    args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut);
+                    internalTypes.vars[arg_name+"__"+itarg] = argType->internalTypes.vars[itarg];
+                    for(const auto& it : argType->alignments) if(it.second) {alignments[arg_name+"__"+it.first] = it.second;}
+                }
+                for(const auto& itarg : argType->internalTypes.vars) {
+                    // TODO: this may be too expensive - consider tracking only packs parents
+                    internalTypes.vars[arg_name+"__"+itarg.first] = itarg.second;
+                }
             }
         }
         else {
@@ -135,10 +142,10 @@ vector<Type> get_lazy_options(const shared_ptr<Import>& imp, Memory& types) {
         //cout << "---------\n";
         size_t p = pos;
         auto def = make_shared<Def>();
+
         def->parse(imp, p, types);
         def->choice_power += power;
         for(const auto& it : argoption) {
-            cout << it.first << "\n";
             for(const string& pack : it.second->packs) def->alignments[it.first+"__"+pack] = it.second->alignments[pack];
         }
         newOptions.push_back(def);

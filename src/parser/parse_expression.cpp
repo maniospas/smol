@@ -36,7 +36,6 @@ string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<st
                     if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
                         throw std::runtime_error(type->signature()+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                     if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
-
                         if(!alignments[unpacks[i]]) alignments[unpacks[i]] = type->alignments[type->args[i].name];
                         else throw std::runtime_error(type->signature()+": align "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" expects data from "+(!type->alignments[type->args[i].name]?"nothing":reverse_alignment_labels[type->alignments[type->args[i].name]]->signature())+" but got "+reverse_alignment_labels[alignments[unpacks[i]]]->signature());
                     }
@@ -156,7 +155,7 @@ string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<st
         for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); 
         //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
         errors = errors+type->rebase(type->errors, var);
-        for(const auto& it : type->current_renaming) current_renaming[var+"__"+it.first] = var+"__"+it.second; 
+        for(const auto& it : type->current_renaming) current_renaming[var+"__"+it.first] = var+"__"+it.second;
         for(const auto& it : type->internalTypes.vars) {
             internalTypes.vars[var+"__"+it.first] = it.second;
             if(it.second->name=="buffer") buffer_primitive_associations[var+"__"+it.first] = type->buffer_primitive_associations[it.first];
@@ -445,13 +444,12 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
         vector<string> unpacks;
         if(imp->at(p)=="__consume") {
             if(!curry.size()) imp->error(p-2, "Unexpected usage of operator\nThere is no left-hand-side");
-            if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second==types.vars["buffer"]) imp->error(p-2, "Operator does not accept buffer as the first input");
-            else {
-                if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second->not_primitive()) {
-                    for(const string& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry+"__"+pack);
-                }
-                else unpacks.push_back(curry);
+            if(!internalTypes.contains(curry)) imp->error(first_token_pos-2, "Missing symbol: "+pretty_var(curry)+recommend_runtype(types, curry));
+            else if(internalTypes.vars.find(curry)->second==types.vars["buffer"]) imp->error(p-2, "Operator does not accept buffer as the first input");
+            else if(internalTypes.vars.find(curry)->second->not_primitive()) {
+                for(const string& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry+"__"+pack);
             }
+            else unpacks.push_back(curry);
             p++;
             string next = imp->at(p++);
             string rhs = parse_expression(imp, p, next, types);
@@ -469,8 +467,9 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             else for(const string& pack : rhsType->packs) unpacks.push_back(rhs+"__"+pack);
         }
         else if(imp->at(p)!="(" && curry.size()) {
-            if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second==types.vars["buffer"]) inherit_buffer = curry;
-            else if(internalTypes.contains(curry) && internalTypes.vars.find(curry)->second->not_primitive()) {
+            if(!internalTypes.contains(curry)) imp->error(first_token_pos-2, "Missing symbol: "+pretty_var(curry)+recommend_runtype(types, curry));
+            else if(internalTypes.vars.find(curry)->second==types.vars["buffer"]) inherit_buffer = curry;
+            else if(internalTypes.vars.find(curry)->second->not_primitive()) {
                 for(const string& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry+"__"+pack);
             }
             else unpacks.push_back(curry);

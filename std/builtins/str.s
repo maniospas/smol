@@ -90,7 +90,7 @@ smo str(f64 number)
 smo str(cstr raw)
     @head{#include <string.h>}
     @body{u64 length=strlen(raw);}
-    @body{ptr contents=(void*)raw;}
+    @body{ptr contents=(ptr)raw;}
     @body{char first=raw[0];}
     -> nom:str(contents, length, first)
 
@@ -139,11 +139,11 @@ smo eq(char x, char y)  @body{bool z=(x==y);} -> z
 smo neq(char x, char y) @body{bool z=(x!=y);} -> z
 smo eq(str x, str y)
     @head{#include <string.h>}
-    @body{bool z = x__first==y__first && (x__length == y__length) && memcmp(x__contents, y__contents, x__length) == 0;}
+    @body{bool z = x__first==y__first && (x__length == y__length) && memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) == 0;}
     -> z
 smo neq(str x, str y)
     @head{#include <string.h>}
-    @body{bool z = x__first!=y__first || (x__length != y__length) || memcmp(x__contents, y__contents, x__length) != 0;} 
+    @body{bool z = x__first!=y__first || (x__length != y__length) || memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) != 0;} 
     -> z
 smo len(str x) -> x.length
 
@@ -233,3 +233,34 @@ smo read(str)
     @finally _contents {if(_contents)free(_contents);}
     if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
     -> nom:str(_contents, length, first)
+
+smo split(nom type, str query, str sep, u64 pos) -> @new
+smo split(str query, str sep) -> nom:split(query, sep, 0)
+smo split(cstr query, str sep) -> nom:split(query:str, sep, 0)
+smo split(str query, cstr sep) -> nom:split(query, sep:str, 0)
+smo split(cstr query, cstr sep) -> nom:split(query:str, sep:str, 0)
+smo split(str query, str sep, u64 start_from) -> nom:split(query, sep, start_from)
+smo split(cstr query, str sep, u64 start_from) -> nom:split(query:str, sep, start_from)
+smo split(str query, cstr sep, u64 start_from) -> nom:split(query, sep:str, start_from)
+smo split(cstr query, cstr sep, u64 start_from) -> nom:split(query:str, sep:str, start_from)
+smo next(split &self, str &next)
+    ret = self.pos<self.query:len
+    if ret 
+        searching = true
+        prev = self.pos
+        while (searching==true) and (self.pos<self.query:len-self.sep:len)
+            if self.sep==self.query[self.pos to self.pos+self.sep:len] 
+                if self.pos>prev next = self.query[prev to self.pos] searching = false --
+                self.pos = self.pos+self.sep:len
+                --
+            else self.pos = self.pos+1 --
+            --
+        if searching
+            self.pos = self.query:len
+            next = self.query[prev to self.pos] 
+            --
+        --
+    -> ret
+
+
+smo pass() --

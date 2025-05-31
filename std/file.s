@@ -18,44 +18,35 @@
 @include std.builtins.num
 @include std.builtins.str
 @include std.builtins.err
+@include std.unsafe
 
-smo file(nom, ptr contents, ptr reader, u64 chunk_size) -> @new
-smo file(str path, u64 chunk_size) 
+smo file(nom, ptr contents) -> @new
+smo file(str path) 
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
-    @body{ptr contents = (ptr)fopen((char*)path__contents, "r");}
-    @body{
-        ptr reader = (ptr)malloc(4096);
-        cstr ret = (cstr)fgets((char*)reader, chunk_size, (FILE*)contents);
-        if(!ret) ((char*)reader)[0] = '\0';
-    }
-    if reader:exists:not -> fail("Unable to allocate buffer for file read")
-    @finally reader {if(reader)free(reader);reader=0;}
+    @body{ptr contents = fopen((char*)path__contents, "r");}
     if contents:exists:not @fail{printf("Unable to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
-    -> nom:file(contents, reader, chunk_size)
+    -> nom:file(contents)
+smo file(cstr path) -> file(path:str)
 
-smo file(cstr path, u64 chunk_size) -> file(path:str, chunk_size)
-smo file(cstr path) -> file(path:str, 4096:u64)
-smo file(str path) -> file(path, 4096:u64)
+smo chunks(nom type, file &f, u64 chunk_size)
+    reader = malloc(chunk_size)
+    -> type, f, reader, chunk_size
 
-smo chunk(file &f)
+smo next(chunks &self, str& value)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        bool err = ((char*)f__reader)[0] == '\0';
-        if(!err) {
-            u64 bytes_read = fread((char*)f__reader, 1, f__chunk_size, (FILE*)f__contents);
-            if(!bytes_read) ((char*)f__reader)[bytes_read] = '\0'; // Null-terminate for cstr compatibility
-            ptr ret = bytes_read ? (ptr)f__reader : 0;
-            char first = ((char*)f__reader)[0];
-        }
+        u64 bytes_read = fread((char*)self__reader, 1, self__chunk_size, (FILE*)self__f__contents);
+        if(!bytes_read) ((char*)self__reader)[bytes_read] = '\0'; // Null-terminate for cstr compatibility
+        ptr ret = bytes_read ? (ptr)self__reader : 0;
+        char first = ((char*)self__reader)[0];
     }
-    if err -> fail("File read error (maybe the file has ended)")
-    -> nom:str(ret, bytes_read, first)
-
+    value = nom:str(ret, bytes_read, first)
+    -> ret:bool
 
 smo ended(file f)
     @head{#include <stdio.h>}
@@ -69,7 +60,7 @@ smo ended(file f)
 smo isfile(str path)
     @head{#include <stdio.h>}
     @body{
-        ptr f = (ptr)fopen((char*)path__contents, "r");
+        ptr f = fopen((char*)path__contents, "r");
         bool exists = (f != 0);
         if(f) fclose((FILE*)f);
     }

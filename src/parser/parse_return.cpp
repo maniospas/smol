@@ -44,7 +44,14 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
                 internalTypes.vars["err"] = types.vars["errcode"];
             }
         }
-        for (const auto& arg : args) packs.push_back(arg.name);
+        for (const auto& arg : args) {
+            string next = arg.name;
+            if(internalTypes.vars[next]->_is_primitive) packs.push_back(next);
+            else for(const string& pack : internalTypes.vars[next]->packs) {
+                packs.push_back(next+"__"+pack);
+                if(internalTypes.contains(next+"__"+pack) && internalTypes.vars[next+"__"+pack]->name=="nom" && !alignments[next+"__"+pack]) imp->error(--p, "You are returning an unset align "+pretty_var(next+"__"+pack)+"\nAdd an align first variable to the signature and return that instead");
+            }
+        }
     }
     else {
         --p;
@@ -63,7 +70,8 @@ void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory&
                 else packs.push_back(next);
             }
             else {
-                if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Symbol not declared: "+pretty_var(next)+recommend_variable(types, next));
+                // not primitives here
+                if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Missing symbol: "+pretty_var(next)+recommend_variable(types, next));
                 if(!hasComma && p<imp->size() && imp->at(p)!=",") {
                     alias_for = next;
                     /*coallesce_finals(next);

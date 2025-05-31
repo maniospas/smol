@@ -43,6 +43,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             ++p;
             next += imp->at(p++);
             if(p>=n) return first_token;
+            if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "MIssing symbol2: "+pretty_var(next)+recommend_variable(types, next));
         }
         else if(imp->at(p)=="[") {
             if(!internalTypes.contains(next)) imp->error(--p, "Missing symbol: "+pretty_var(next)+recommend_variable(types, next));
@@ -150,6 +151,6 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
         }
         else break;
     }
-    if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)+recommend_variable(types, next));
+    if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Missing symbol: "+pretty_var(next)+recommend_variable(types, next));
     return next;
 }

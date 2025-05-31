@@ -743,11 +743,11 @@ is conceptually similar. Note that mutability should be explicitly declared if y
 to have side-effects.
 </p>
 
-<p>If currying is prepended to <i>if</i> or <i>while</i> then the expression is computed and transferred to
+<p>If currying is prepended to <code>if</code> or <code>while</code> then the expression is computed and transferred to
 the computed condition. This let you define runtypes that serve as iterators by modifying a provided
 iterated value by reference. Below is an example, where <code class="language-smolambda">u64 i</code> 
 declares a previously zero-initialized version of the runtype. For safety, this pattern is available
-only if <i>i</i> has not been declared and only for passing arguments.</p>
+only if <code>i</code> has not been declared and only for passing arguments.</p>
 
 
 <pre><code class="language-smolambda">@include std.builtins
