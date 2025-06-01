@@ -15,12 +15,14 @@
 #include <cstdlib>
 #include <unordered_set>
 #include <set>
+#include <queue>  
 
 // g++ src/smolang.cpp -o smol -O2 -std=c++23 -Wall
 // g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 // g++ main.cpp -o main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
 using namespace std;
+int log_depth = 0;
 
 struct Def;
 typedef shared_ptr<Def> Type;
@@ -203,6 +205,7 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
                     if(next==")") {break;}
                     if(next!=",") imp->error(--p, "Missing comma");
                 }
+                --p;
                 types.vars[def->name] = def;
                 /*if(def->lazy_compile) {
                     while(p<imp->size()-1) {

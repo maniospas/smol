@@ -471,6 +471,7 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             else if(internalTypes.vars.find(curry)->second==types.vars["buffer"]) inherit_buffer = curry;
             else if(internalTypes.vars.find(curry)->second->not_primitive()) {
                 for(const string& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry+"__"+pack);
+                //if(type->args.size() && type->args[0].type->name=="nom") alignments[curry+"__"+type->args[0].name] = alignment_labels[type.get()]; (should be already done)
             }
             else unpacks.push_back(curry);
         }
@@ -525,8 +526,10 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
                 internalTypes.vars[var+"__"+type->args[i].name] = type->args[i].type;
                 unpacks.push_back(var+"__"+type->args[i].name);
+                
             }
             else unpacks.push_back(var);
+            if(type->args.size() && type->args[0].type->name=="nom") alignments[var+"__"+type->args[0].name] = alignment_labels[type.get()];
             internalTypes.vars[var] = type;
             return var;
         }

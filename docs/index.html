@@ -1342,14 +1342,15 @@ service main()
 
 <p><i>Section under construction.</i></p>
 
+<p>Allocation injects an automatic deallocation pattern. 
+</p>
+
 <pre><code class="language-smolambda">@include std.builtins
-@include std.file
 @include std.mem
 
 service main()
-    f = file("README.md")
-    chunk = "":str
-    nom:chunks(f, 4096, heap):while next(chunk) print(chunk) --
+    p = heap:allocate(1024) // allocates 1024 bytes
+    @delete p
     --
 </code></pre>
 

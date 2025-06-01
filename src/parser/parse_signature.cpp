@@ -80,7 +80,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
                 for(const auto& itarg : argType->packs) {
                     args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut);
                     internalTypes.vars[arg_name+"__"+itarg] = argType->internalTypes.vars[itarg];
-                    for(const auto& it : argType->alignments) if(it.second) {alignments[arg_name+"__"+it.first] = it.second;}
+                    for(const auto& it : argType->alignments) if(it.second) alignments[arg_name+"__"+it.first] = it.second;
                 }
                 for(const auto& itarg : argType->internalTypes.vars) {
                     // TODO: this may be too expensive - consider tracking only packs parents
@@ -98,29 +98,34 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
 }
 
 
-void signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current) {
+void signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current, const Memory& types) {
     unordered_map<string, Type> next(current);
     if(i>=parametric_names.size()) {results.push_back(next);return;}
     // will always have a lazy compilation here
     string parametric_name = parametric_names[i];
-    for(const Type& option : parametric_types[parametric_name]->options) if(!option->is_union) {
+    for(const Type& option : types.vars.find(parametric_name)->second->options) if(!option->is_union) {
         next[parametric_name] = option;
-        signature_until_position(results, parametric_names, i+1, next);
+        signature_until_position(results, parametric_names, i+1, next, types);
     }
 }
 
 vector<Type> get_options(Memory& types) {
-    if(debug) return options;
+    //if(debug) return options;
     vector<Type> newOptions;
     for(const auto& option : options) if(option->lazy_compile) {for(const auto& parametric_option : option->get_lazy_options(types)) newOptions.push_back(parametric_option);} else newOptions.push_back(option);
     return newOptions;
 }
 
 const bool log_type_resolution = false;
+void print_depth() {
+    for(int i=0;i<log_depth;++i) cout<<"| "; 
+}
 
 vector<Type> get_lazy_options(Memory& types) {
     // store prev state
+    if(log_type_resolution) print_depth();
     if(log_type_resolution) cout << signature() <<" "<< this << "\n";
+    log_depth += 1;
     Memory prevTypes;
     for(const auto& it : types.vars) prevTypes.vars[it.first] = it.second;
     //prevTypes.vars = types.vars;
@@ -130,11 +135,19 @@ vector<Type> get_lazy_options(Memory& types) {
     // gather variations
     vector<unordered_map<string, Type>> argoptions;
     unordered_map<string, size_t> positions; // avoids setting again the same parameter and thus creating too many varations
-    signature_until_position(argoptions, parametric_names, 0, unordered_map<string, Type>());
+    signature_until_position(argoptions, parametric_names, 0, unordered_map<string, Type>(), types);
     // iterate through variations
     debug = true;
     vector<Type> newOptions;
-    for(auto& argoption : argoptions) {
+
+    std::queue<unordered_map<string, Type>> processingQueue;
+    for (auto& opt : argoptions) processingQueue.push(opt);
+    argoptions.clear();
+
+
+    while(!processingQueue.empty()) {
+        auto argoption = processingQueue.front();
+        processingQueue.pop();
         int power = 0;
         bool retry = true;
         while(retry) {
@@ -143,27 +156,51 @@ vector<Type> get_lazy_options(Memory& types) {
             for(const auto& it : argoption) {
                 types.vars[it.first] = it.second;
                 power += (it.second->choice_power+1)/2;
-                if(log_type_resolution) cout<<"    - "<<pretty_runtype(it.first)<<" could be "<<it.second->signature()<<" "<<it.second.get()<<"\n";
+                if(log_type_resolution) print_depth();
+                if(log_type_resolution) cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature()<<" "<<it.second.get()<<"\n";
                 if(it.second->lazy_compile) retry = true;
                 //if(it.second->lazy_compile) ERROR("Internal error: not fully resolved\nFailed to resolve "+pretty_runtype(it.first)+" required by "+pretty_runtype(name));
             }
-            if(retry && log_type_resolution) cout <<"    resolving dependencies and retrying\n";
+            if(retry && log_type_resolution) {print_depth();cout <<"resolving\n";}
             if(retry) {
                 bool anysuccess = false;
                 for(auto& it : argoption) if(it.second->lazy_compile) {
-                    //if(log_type_resolution) cout << "========  DEPENDENT RESOLUTION  ========\n";
-                    //if(log_type_resolution) cout << "resolving "<<it.second->signature() << "\n";
+                    //if(log_type_resolution) print_depth();if(log_type_resolution) cout << "========  DEPENDENT RESOLUTION  ========\n";
+                    //if(log_type_resolution) print_depth();if(log_type_resolution) cout << "resolving "<<it.second->signature() << "\n";
+                    log_depth += 1;
                     vector<Type> dependent_options = it.second->get_options(types);
-                    if(dependent_options.size()!=1) ERROR("Could not resolve to one option\nFailed to resolve "+pretty_runtype(it.first)+" required by "+pretty_runtype(name));
+                    log_depth -= 1;
+                    if(dependent_options.size()==0) imp->error(pos, "A call of "+pretty_runtype(name)+" failed to resolve "+pretty_runtype(it.first)+" due to no candidates");
+                    if(dependent_options.size()>1) {
+                        if(log_type_resolution) print_depth();
+                        if(log_type_resolution) cout << "SKIPPED & changing resolution of "+pretty_runtype(it.first)+" to be considered once for every option\n";
+                        for(const auto& dep : dependent_options) {
+                            // replace and copy
+                            it.second = dep;
+                            auto newoptions = argoption; 
+                            processingQueue.push(argoption);
+                        }
+                        // forcefully stop looping
+                        power = -1;
+                        retry = false;
+                        anysuccess = true;
+                        break;
+                        /*string cand("");
+                        for(const auto& opt : dependent_options) cand += "\n"+opt->signature(); 
+                        imp->error(pos, "A call of "+pretty_runtype(name)+" failed to resolve "+pretty_runtype(it.first)+" due to multiple candidates:"+cand);*/
+                    }
                     size_t p = dependent_options[0]->pos;
                     auto def = make_shared<Def>();
+                    log_depth += 1;
                     def->parse(dependent_options[0]->imp, p, types);
+                    log_depth -= 1;
                     if(def->args.size() && def->args[0].type->name=="nom") def->alignments[def->args[0].name] = dependent_options[0]->alignments[def->args[0].name];
                     it.second = def;
                     if(!it.second->lazy_compile) anysuccess = true;
+                    def->options.push_back(def);
                     //if(dependent_options[0]->lazy_compile) ERROR("Internal error: not fully resolved\nFailed to resolve "+pretty_runtype(it.first)+" required by "+pretty_runtype(name));
-                    //if(log_type_resolution) cout << "resolved to "<<it.second->signature() << "\n";
-                    //if(log_type_resolution) cout << "========================================\n";
+                    //if(log_type_resolution) print_depth();if(log_type_resolution) cout << "resolved to "<<it.second->signature() << "\n";
+                    //if(log_type_resolution) print_depth();if(log_type_resolution) cout << "========================================\n";
                 }
                 if(!anysuccess) {
                     string deps;
@@ -171,21 +208,27 @@ vector<Type> get_lazy_options(Memory& types) {
                     imp->error(pos, "Incomplete union/overload resolution\nResolve the following runtype dependencies\n"+deps);
                 }
             }
+            if(retry && log_type_resolution) {print_depth();cout <<"RETRY with resolution\n";}
         }
-
-        if(power<0) {if(log_type_resolution) cout << "  these contain an union so implementation skipped";continue;}
-        if(log_type_resolution) cout << "  resolution option ";
+        if(power<0) continue;
+        if(log_type_resolution) print_depth();
+        if(log_type_resolution) cout << "resolving\n";
         size_t p = pos;
         auto def = make_shared<Def>();
+        log_depth += 1;
         def->parse(imp, p, types);
+        log_depth -= 1;
         if(args.size() && args[0].type->name=="nom") def->alignments[def->args[0].name] = alignments[args[0].name];
         if(def->lazy_compile) def->imp->error(def->pos, "Failed resolved all dependent types");
         def->choice_power += power;
+        def->options.push_back(def);
         newOptions.push_back(def);
-        if(log_type_resolution) cout << def->signature() <<"\n";
+        if(log_type_resolution) print_depth();
+        if(log_type_resolution) cout <<"OPTION "<< def->signature() <<"\n";
     }
     // restore proper type system
     types.vars = move(prevTypes.vars);
     debug = false;
+    log_depth -= 1;
     return newOptions;
 }
