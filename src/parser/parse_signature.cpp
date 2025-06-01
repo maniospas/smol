@@ -1,5 +1,6 @@
 void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
     bool is_as = false;
+    if(p>=imp->size()) ERROR("Internal error: parsing "+name+" has misjudged end of file");
     if(imp->at(p)=="as") is_as = true;
     else if(imp->at(p)=="service") is_service = true;
     else if(imp->at(p)!="smo") imp->error(--p, "Missing `service` or `smo` to declare runtype");
@@ -9,7 +10,6 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
         if(is_service) imp->error(--p, "A service cannot overload a runtype or service with the same name");
         else if(types.vars[name]->is_service) imp->error(--p, "A runtype cannot overload a service with the same name");
     }
-    //cout << "parsing  "<<name<<"\n";
     if(imp->at(p++)!="(") imp->error(--p, "Missing left parenthesis");
     while(true) {
         bool autoconstruct = false;
@@ -98,62 +98,94 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
 }
 
 
-void signature_until_position(const shared_ptr<Import>& imp, vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current) {
+void signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current) {
     unordered_map<string, Type> next(current);
     if(i>=parametric_names.size()) {results.push_back(next);return;}
     // will always have a lazy compilation here
     string parametric_name = parametric_names[i];
-    for(const Type& option : parametric_types[parametric_name]->options) {
+    for(const Type& option : parametric_types[parametric_name]->options) if(!option->is_union) {
         next[parametric_name] = option;
-        signature_until_position(imp, results, parametric_names, i+1, next);
+        signature_until_position(results, parametric_names, i+1, next);
     }
 }
 
-vector<Type> get_options(const shared_ptr<Import>& imp, Memory& types) {
+vector<Type> get_options(Memory& types) {
     if(debug) return options;
     vector<Type> newOptions;
-    for(const auto& option : options) if(option->lazy_compile) {for(const auto& parametric_option : option->get_lazy_options(imp, types)) newOptions.push_back(parametric_option);} else newOptions.push_back(option);
+    for(const auto& option : options) if(option->lazy_compile) {for(const auto& parametric_option : option->get_lazy_options(types)) newOptions.push_back(parametric_option);} else newOptions.push_back(option);
     return newOptions;
 }
 
-vector<Type> get_lazy_options(const shared_ptr<Import>& imp, Memory& types) {
+const bool log_type_resolution = false;
+
+vector<Type> get_lazy_options(Memory& types) {
     // store prev state
-    //cout << "---------------------------\n";
-    //cout << signature() << " " <<  this << "\n";
-    //cout << "---------------------------\n";
+    if(log_type_resolution) cout << signature() <<" "<< this << "\n";
     Memory prevTypes;
-    prevTypes.vars = types.vars;
+    for(const auto& it : types.vars) prevTypes.vars[it.first] = it.second;
+    //prevTypes.vars = types.vars;
+
     vector<string> parametric_names;
     for(const auto& it : parametric_types) parametric_names.push_back(it.first);
     // gather variations
     vector<unordered_map<string, Type>> argoptions;
     unordered_map<string, size_t> positions; // avoids setting again the same parameter and thus creating too many varations
-    signature_until_position(imp, argoptions, parametric_names, 0, unordered_map<string, Type>());
+    signature_until_position(argoptions, parametric_names, 0, unordered_map<string, Type>());
     // iterate through variations
     debug = true;
     vector<Type> newOptions;
-    for(const auto& argoption : argoptions) {
+    for(auto& argoption : argoptions) {
         int power = 0;
-        for(const auto& it : argoption) {
-            types.vars[it.first] = it.second;
-            power += (it.second->choice_power+1)/2;
-            //cout<<it.first<<" "<<it.second->signature()<<" "<<it.second.get()<<"\n";
+        bool retry = true;
+        while(retry) {
+            power = 0;
+            retry = false;
+            for(const auto& it : argoption) {
+                types.vars[it.first] = it.second;
+                power += (it.second->choice_power+1)/2;
+                if(log_type_resolution) cout<<"    - "<<pretty_runtype(it.first)<<" could be "<<it.second->signature()<<" "<<it.second.get()<<"\n";
+                if(it.second->lazy_compile) retry = true;
+                //if(it.second->lazy_compile) ERROR("Internal error: not fully resolved\nFailed to resolve "+pretty_runtype(it.first)+" required by "+pretty_runtype(name));
+            }
+            if(retry && log_type_resolution) cout <<"    resolving dependencies and retrying\n";
+            if(retry) {
+                bool anysuccess = false;
+                for(auto& it : argoption) if(it.second->lazy_compile) {
+                    //if(log_type_resolution) cout << "========  DEPENDENT RESOLUTION  ========\n";
+                    //if(log_type_resolution) cout << "resolving "<<it.second->signature() << "\n";
+                    vector<Type> dependent_options = it.second->get_options(types);
+                    if(dependent_options.size()!=1) ERROR("Could not resolve to one option\nFailed to resolve "+pretty_runtype(it.first)+" required by "+pretty_runtype(name));
+                    size_t p = dependent_options[0]->pos;
+                    auto def = make_shared<Def>();
+                    def->parse(dependent_options[0]->imp, p, types);
+                    if(def->args.size() && def->args[0].type->name=="nom") def->alignments[def->args[0].name] = dependent_options[0]->alignments[def->args[0].name];
+                    it.second = def;
+                    if(!it.second->lazy_compile) anysuccess = true;
+                    //if(dependent_options[0]->lazy_compile) ERROR("Internal error: not fully resolved\nFailed to resolve "+pretty_runtype(it.first)+" required by "+pretty_runtype(name));
+                    //if(log_type_resolution) cout << "resolved to "<<it.second->signature() << "\n";
+                    //if(log_type_resolution) cout << "========================================\n";
+                }
+                if(!anysuccess) {
+                    string deps;
+                    for(auto& it : argoption) if(it.second->lazy_compile) deps += "\n- "+it.second->signature();
+                    imp->error(pos, "Incomplete union/overload resolution\nResolve the following runtype dependencies\n"+deps);
+                }
+            }
         }
-        //cout << "---------\n";
+
+        if(power<0) {if(log_type_resolution) cout << "  these contain an union so implementation skipped";continue;}
+        if(log_type_resolution) cout << "  resolution option ";
         size_t p = pos;
         auto def = make_shared<Def>();
-
         def->parse(imp, p, types);
+        if(args.size() && args[0].type->name=="nom") def->alignments[def->args[0].name] = alignments[args[0].name];
+        if(def->lazy_compile) def->imp->error(def->pos, "Failed resolved all dependent types");
         def->choice_power += power;
-        for(const auto& it : argoption) {
-            for(const string& pack : it.second->packs) def->alignments[it.first+"__"+pack] = it.second->alignments[pack];
-        }
         newOptions.push_back(def);
-        //cout << def->signature() <<"\n";
-        //cout << "---------------------------\n";
+        if(log_type_resolution) cout << def->signature() <<"\n";
     }
     // restore proper type system
-    types.vars = prevTypes.vars;
+    types.vars = move(prevTypes.vars);
     debug = false;
     return newOptions;
 }

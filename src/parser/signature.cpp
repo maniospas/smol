@@ -1,11 +1,28 @@
 string signature() {
     //if(!args.size()) return name;
     string ret("");
-    for(const auto& arg : args) {
+    for(size_t i=0;i<args.size();++i) {
         if(ret.size()) ret += ", ";
-        ret += ""+arg.type->name+" "+(arg.mut?"&":"")+pretty_var(arg.name);
+        if(alignments[args[i].name] && reverse_alignment_labels[alignments[args[i].name]]!=this && reverse_alignment_labels[alignments[args[i].name]]->packs.size()>1) {
+            ret += pretty_runtype(reverse_alignment_labels[alignments[args[i].name]]->name)+""+(args[i].mut?"\033[31m&\033[0m":"")+"["+to_string(reverse_alignment_labels[alignments[args[i].name]]->packs.size())+"]";//+pretty_var(args[i].name)+"["+to_string(reverse_alignment_labels[alignments[args[i].name]]->packs.size())+" args]";
+            i += reverse_alignment_labels[alignments[args[i].name]]->packs.size()-1;
+        }
+        else ret += ""+pretty_runtype(args[i].type->name)+""+(args[i].mut?"\033[31m&\033[0m":"");//+pretty_var(args[i].name);
     }
-    return name+"("+ret+")";
+    return "`"+pretty_runtype(name)+"("+ret+")`";
+}
+
+string signature_like(vector<string> args) {
+    string ret("");
+    for(size_t i=0;i<args.size();++i) {
+        if(ret.size()) ret += ", ";
+        if(alignments[args[i]] && reverse_alignment_labels[alignments[args[i]]]!=this && reverse_alignment_labels[alignments[args[i]]]->packs.size()>1) {
+            ret += pretty_runtype(reverse_alignment_labels[alignments[args[i]]]->name)+""+"["+to_string(reverse_alignment_labels[alignments[args[i]]]->packs.size())+"]";//+pretty_var(args[i].name)+"["+to_string(reverse_alignment_labels[alignments[args[i].name]]->packs.size())+" args]";
+            i += reverse_alignment_labels[alignments[args[i]]]->packs.size()-1;
+        }
+        else ret += ""+pretty_runtype(internalTypes.vars[args[i]]->name);
+    }
+    return "("+ret+")";
 }
 
 string canonic_name() {

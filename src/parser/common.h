@@ -30,6 +30,10 @@ string pretty_var(const string& name) {
     return result;
 }
 
+string pretty_runtype(const string& name) {
+    return "\033[36m" + name + "\033[0m";
+}
+
 int min2(int a, int b) {return (a < b) ? a : b;}
 int min3(int a, int b, int c) {return min2(min2(a, b), c);}
 

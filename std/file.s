@@ -18,7 +18,7 @@
 @include std.builtins.num
 @include std.builtins.str
 @include std.builtins.err
-@include std.unsafe
+@include std.mem
 
 smo file(nom, ptr contents) -> @new
 smo file(str path) 
@@ -31,9 +31,9 @@ smo file(str path)
     -> nom:file(contents)
 smo file(cstr path) -> file(path:str)
 
-smo chunks(nom type, file &f, u64 chunk_size)
-    reader = malloc(chunk_size)
-    -> type, f, reader, chunk_size
+smo chunks(nom type, file &f, u64 chunk_size, Memory)
+    reader = Memory:allocate(chunk_size)
+    -> type, f, reader, chunk_size, Memory
 
 smo next(chunks &self, str& value)
     @head{#include <stdio.h>}
@@ -66,7 +66,6 @@ smo isfile(str path)
     }
     -> exists
 smo isfile(cstr path) -> isfile(path:str)
-
 
 smo isdir(str path)
     @head{#include <sys/stat.h> #ifdef _WIN32 #define stat _stat #endif}

@@ -57,6 +57,7 @@ class Def {
 public:
     int choice_power;
     bool is_service;
+    bool is_union;
     bool _is_primitive;
     bool lazy_compile;
     static bool debug;
@@ -93,8 +94,8 @@ public:
         }
     }
 
-    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors("") {}
-    Def(): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors("") {
+    Def(const string& builtin): choice_power(0), is_service(false), is_union(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors("") {}
+    Def(): choice_power(0), is_service(false), is_union(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors("") {
         reverse_alignment_labels[alignment_labels.size()+1] = this;
         alignment_labels[this] = alignment_labels.size()+1;// +1 needed to ensure that zero alignment has no associated type
     } 
@@ -170,6 +171,7 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
             }
             else if(imp->at(p)=="smo" || imp->at(p)=="service") {
                 auto def = make_shared<Def>();
+                def->imp = imp;
                 def->parse(imp, p, types);
                 if(!types.contains(def->name)) types.vars[def->name] = def;
                 types.vars[def->name]->options.push_back(def);
@@ -185,6 +187,8 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
             }
             else if(imp->at(p)=="union") {
                 auto def = make_shared<Def>();
+                def->imp = imp;
+                def->is_union = true;
                 def->lazy_compile = true;
                 ++p;
                 def->name = imp->at(p++);
@@ -200,15 +204,13 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
                     if(next!=",") imp->error(--p, "Missing comma");
                 }
                 types.vars[def->name] = def;
-                if(def->lazy_compile) {
-                    --p;
+                /*if(def->lazy_compile) {
                     while(p<imp->size()-1) {
-                        p++;
                         if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
                         if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
+                        p++;
                     }
-                    --p;
-                }
+                }*/
             }
             else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union` or `@include` allowed");
             p++;
@@ -228,7 +230,7 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
         }
     }
 
-    imp->tokens.clear();
+    //imp->tokens.clear();  // DO NOT CLEAR HERE BECAUSE IT PREVENTS LAZY DEFS FROM PARSING
 }
 
 int main(int argc, char* argv[]) {

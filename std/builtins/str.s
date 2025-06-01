@@ -72,7 +72,7 @@ smo str(f64 number)
         ptr readbuf = (ptr)malloc(32);
         if(readbuf) {
             u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%.6f", number);
-            if (length < 32) {
+            if(length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
                     memcpy(contents, (char*)readbuf, length);
@@ -89,9 +89,11 @@ smo str(f64 number)
 
 smo str(cstr raw)
     @head{#include <string.h>}
-    @body{u64 length=strlen(raw);}
-    @body{ptr contents=(ptr)raw;}
-    @body{char first=raw[0];}
+    @body{
+        u64 length=strlen(raw);
+        ptr contents=(ptr)raw;
+        char first=raw[0];
+    }
     -> nom:str(contents, length, first)
 
 smo print(cstr message)
@@ -261,6 +263,3 @@ smo next(split &self, str &next)
             --
         --
     -> ret
-
-
-smo pass() --

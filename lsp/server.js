@@ -300,7 +300,11 @@ function runCompilerAndSendDiagnostics(document) {
   function stripAnsi(line) {
     return line
       .replace(/\x1b\[31m/g, "")
+      .replace(/\x1b\[32m/g, "")
       .replace(/\x1b\[33m/g, "")
+      .replace(/\x1b\[34m/g, "")
+      .replace(/\x1b\[35m/g, "")
+      .replace(/\x1b\[36m/g, "")
       .replace(/\x1b\[0m/g, "");
   }
 }

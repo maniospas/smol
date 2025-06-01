@@ -1,32 +1,33 @@
 void end_block(const shared_ptr<Import>& i, size_t& p) {
     size_t depth = 0;
-    while(p<i->size()) {
-        string next = i->at(p);
+    while(p<imp->size()) {
+        string next = imp->at(p);
         if(next=="if" || next=="else" || next=="while" || next=="with") ++depth;
-        if(next=="smo" || next=="service") i->error(p, "Unexpected end of definition");
-        if(next=="-" && p<i->size()-1) {
+        if(next=="smo" || next=="service") imp->error(p, "Unexpected end of definition");
+        if(next=="-" && p<imp->size()-1) {
             ++p;
-            next = i->at(p);
+            next = imp->at(p);
             if(next=="-") {if(depth==0){++p;break;} --depth;}
-            if(next==">") i->error(p, "Currently unimplemented nesting that ends in symbol other than -");
+            if(next==">") imp->error(p, "Currently unimplemented nesting that ends in symbol other than -");
         }
         ++p;
     }
 } 
 
-void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_signature=true) {
-    imp = i;
+void parse(const shared_ptr<Import>& _imp, size_t& p, Memory& types, bool with_signature=true) {
+    if(!imp) imp = _imp;
+    if(!imp) ERROR("Internal error: tried to parse a runtype without a file "+name);
+    if(is_union) imp->error(p, "Internal error: tried to parse a union");
     if(with_signature) {pos = p;parse_signature(imp, p, types);}
     if(!uplifting_targets.size()) uplifting_targets.push_back("__end");
     start = p;
     if(lazy_compile && with_signature && !debug) return;
-
     unordered_set<string> next_assignments;
     while(p<imp->size()) {
         bool is_next_assignment = false;
         string next = imp->at(p++);
         if(next=="@") {
-            if(p<i->size() && i->at(p)=="next"){is_next_assignment=true;p++;next = imp->at(p++);}
+            if(p<imp->size() && imp->at(p)=="next"){is_next_assignment=true;p++;next = imp->at(p++);}
             else {parse_directive(imp, p, next, types);continue;}
         }
         if(next=="-") {
@@ -48,14 +49,14 @@ void parse(const shared_ptr<Import>& i, size_t& p, Memory& types, bool with_sign
                 var = "__next__"+var;
             }
             if(it->second->name=="buffer") buffer_primitive_associations[var] = buffer_primitive_associations[expression_outcome];
-            assign_variable(it->second, var, expression_outcome, i, p);
+            assign_variable(it->second, var, expression_outcome, imp, p);
         }
         else {
             if(is_next_assignment) imp->error(p, "Expecting assignment to variable after @next");
             parse_expression(imp, p, next, types);
         }
     }
-    for(const string& var : next_assignments) assign_variable(internalTypes.vars["__next__"+var], var, "__next__"+var, i, p);
+    for(const string& var : next_assignments) assign_variable(internalTypes.vars["__next__"+var], var, "__next__"+var, imp, p);
     if(with_signature) {
         internalTypes.vars["__end"] = types.vars["__label"];
         implementation += "__end:\n";
