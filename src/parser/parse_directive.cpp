@@ -1,4 +1,4 @@
-void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memory& types) {
+void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memory& types) {
     next = imp->at(p++);
     if(next=="head") {
         next = imp->at(p++);

@@ -1,4 +1,6 @@
-string rebase(const string& impl, const string& var) {
+#include "../def.h"
+
+string Def::rebase(const string& impl, const string& var) {
     stringstream input(impl);
     string line, output;
     while(getline(input, line)) {
@@ -21,7 +23,7 @@ string rebase(const string& impl, const string& var) {
     return output;
 }
 
-string rename_var(const string& impl, const string& from, const string& to) {
+string Def::rename_var(const string& impl, const string& from, const string& to) {
     stringstream input(impl);
     string line, output;
     while(getline(input, line)) {

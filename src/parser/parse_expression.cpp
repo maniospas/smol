@@ -1,4 +1,6 @@
-string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
+#include "../def.h"
+
+string Def::parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry) {
     if(first_token=="(") {
         string ret = parse_expression(imp, p, imp->at(p++), types, curry);
         if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
@@ -8,7 +10,7 @@ string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& 
 }
 
 
-string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<string>& unpacks, const size_t first_token_pos, const string& first_token, const string& inherit_buffer, Memory& types) {
+string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<string>& unpacks, const size_t first_token_pos, const string& first_token, const string& inherit_buffer, Memory& types) {
     string overloading_errors("");
     string var = create_temp();
     Type successfullType = nullptr;
@@ -32,7 +34,7 @@ string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<st
             for(size_t i=0;i<unpacks.size();++i) {
                 auto arg_type = type->_is_primitive?type:type->args[i].type;
                 if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Cannot unpack abstract " + arg_type->signature() + " "+type->args[i].name);
-                if(!internalTypes.vars.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
+                if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
                 if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
                     throw std::runtime_error(type->signature()+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
@@ -168,7 +170,7 @@ string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<st
 }
 
 
-string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="") {
+string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry) {
     size_t first_token_pos = p-1;
     if(first_token=="." || first_token==":" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
 

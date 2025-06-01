@@ -1,117 +1,19 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <stack>
-#include <utility>
-#include <memory>
-#include <unordered_map>
-#include <cctype>
-#include "parser/tokenize.h"
-#include "parser/common.h"
-#include "parser/base64.cpp"
-#include <cctype>
-#include <cstdlib>
-#include <unordered_set>
-#include <set>
-#include <queue>  
+#include "def.h"
+#include "parser/recommendations.cpp"
+#include "parser/gather_tuple.cpp"
+#include "parser/next_var.cpp"
+#include "parser/assign_variable.cpp"
+#include "parser/parse_signature.cpp"
+#include "parser/parse_directive.cpp"
+#include "parser/parse_expression.cpp"
+#include "parser/signature.cpp"
+#include "parser/rebase.cpp"
+#include "parser/parse.cpp"
+#include "parser/parse_return.cpp"
 
 // g++ src/smolang.cpp -o smol -O2 -std=c++23 -Wall
 // g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 // g++ main.cpp -o main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
-
-using namespace std;
-int log_depth = 0;
-
-struct Def;
-typedef shared_ptr<Def> Type;
-
-class Memory {
-public:
-    unordered_map<string, Type> vars;
-    unordered_set<string> all_errors;
-    inline bool contains(const string& var) const {return vars.find(var)!=vars.end();}
-    Memory() = default;
-};
-
-class Arg {
-public:
-    string name;
-    Type type;
-    bool mut;
-    Arg(const string& n, const Type& t, bool m):name(n),type(t),mut(m){}
-};
-
-unordered_map<Def*, unsigned long> alignment_labels;
-unordered_map<unsigned long, Def*> reverse_alignment_labels;
-
-class Def {
-    static int temp;
-    static string create_temp() {return "__"+numberToVar(++temp);}
-    unordered_map<string, string> current_renaming;
-    #include "parser/recommendations.cpp"
-    #include "parser/assign_variable.cpp"
-    #include "parser/parse_directive.cpp"
-    #include "parser/parse_expression.cpp"
-    #include "parser/parse_return.cpp"
-    #include "parser/parse_signature.cpp"
-public:
-    int choice_power;
-    bool is_service;
-    bool is_union;
-    bool _is_primitive;
-    bool lazy_compile;
-    static bool debug;
-    vector<Type> options;
-    vector<Arg> args;
-    shared_ptr<Import> imp;
-    Memory internalTypes;
-    vector<string> packs;
-    vector<string> ghost_packs;
-    string finals_when_used;
-    string alias_for;
-    size_t pos, start, end;
-    string name, vardecl, implementation, errors;
-    set<string> preample;
-    unordered_map<string, string> finals;
-    unordered_map<string, Type> parametric_types;
-    unordered_map<string, Type> buffer_primitive_associations;
-    unordered_map<string, unsigned long> alignments;
-    vector<string> uplifting_targets;
-    void add_preample(const string& pre) {
-        if(preample.find(pre)==preample.end()) preample.insert(pre);
-    }
-    void coallesce_finals(const string& original) {
-        // TODO: optimize this
-        unordered_set<string> previous;
-        string current = original;
-        previous.insert(current);
-        while(current_renaming.find(current)!=current_renaming.end()) {
-            current = current_renaming[current];
-            if(previous.find(current)!=previous.end()) break;
-            previous.insert(current);
-            if(current==original) break;
-            if(finals.find(current)!=finals.end()) {finals[original] += rename_var(finals[current], current, original);finals[current] = "";}
-        }
-    }
-
-    Def(const string& builtin): choice_power(0), is_service(false), is_union(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors("") {}
-    Def(): choice_power(0), is_service(false), is_union(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors("") {
-        reverse_alignment_labels[alignment_labels.size()+1] = this;
-        alignment_labels[this] = alignment_labels.size()+1;// +1 needed to ensure that zero alignment has no associated type
-    } 
-    vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer, const string& curry);
-    inline bool not_primitive() const {return !_is_primitive;}
-    string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test=true);
-    #include "parser/signature.cpp"
-    #include "parser/rebase.cpp"
-    #include "parser/parse.cpp"
-};
-#include "parser/gather_tuple.cpp"
-#include "parser/next_var.cpp"
-int Def::temp = 0;
-bool Def::debug = false;
 
 enum class Task {
     Assemble,
@@ -269,7 +171,8 @@ int main(int argc, char* argv[]) {
 
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
-        if (arg == "--task") {
+        if (arg == "--log") log_type_resolution = true;
+        else if (arg == "--task") {
             if(i + 1 >= argc) {cerr << "Error: --task requires an argument (compile, verify, run)" << endl;return 1;}
             try {selected_task = parse_task(argv[++i]); } 
             catch (const invalid_argument& e) {cerr << "Error: " << e.what() << endl; return 1;}

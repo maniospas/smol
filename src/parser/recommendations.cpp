@@ -1,5 +1,7 @@
+#include "../def.h"
 
-string recommend_runtype(const Memory& types, const string& candidate) {
+
+string Def::recommend_runtype(const Memory& types, const string& candidate) {
     int min_distance = numeric_limits<int>::max();
     string recommendation = "";
     for(const auto& it : types.vars) {
@@ -14,7 +16,7 @@ string recommend_runtype(const Memory& types, const string& candidate) {
     return "\nDid you mean "+recommendation+"?";
 }
 
-string recommend_variable(const Memory& types, const string& candidate) {
+string Def::recommend_variable(const Memory& types, const string& candidate) {
     int min_distance = numeric_limits<int>::max();
     string recommendation = "";
     for(const auto& it : internalTypes.vars) {

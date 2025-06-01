@@ -1,4 +1,6 @@
-void end_block(const shared_ptr<Import>& i, size_t& p) {
+#include "../def.h"
+
+void Def::end_block(const shared_ptr<Import>& i, size_t& p) {
     size_t depth = 0;
     while(p<imp->size()) {
         string next = imp->at(p);
@@ -14,7 +16,7 @@ void end_block(const shared_ptr<Import>& i, size_t& p) {
     }
 } 
 
-void parse(const shared_ptr<Import>& _imp, size_t& p, Memory& types, bool with_signature=true) {
+void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Memory& types, bool with_signature) {
     if(!imp) imp = _imp;
     if(!imp) ERROR("Internal error: tried to parse a runtype without a file "+name);
     if(is_union) imp->error(p, "Internal error: tried to parse a union");

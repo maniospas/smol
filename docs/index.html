@@ -1342,14 +1342,11 @@ service main()
 
 <p><i>Section under construction.</i></p>
 
-<p>Allocation injects an automatic deallocation pattern. 
-</p>
-
 <pre><code class="language-smolambda">@include std.builtins
 @include std.mem
 
 service main()
-    p = heap:allocate(1024) // allocates 1024 bytes
+    p = heap:allocate(1024, char) // allocates 1024 bytes
     @delete p
     --
 </code></pre>

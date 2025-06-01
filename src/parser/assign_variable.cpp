@@ -1,4 +1,6 @@
-void assign_variable(const Type& type, const string& from, const string& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false) {
+#include "../def.h"
+
+void Def::assign_variable(const Type& type, const string& from, const string& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives) {
     if(type && type->not_primitive()) {
         if(error_on_non_primitives) imp->error(p, "Failed to resolve "+type->name+" "+pretty_var(to)+" to a primitive");
         if(type->packs.size()==0) return;

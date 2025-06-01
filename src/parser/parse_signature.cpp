@@ -1,4 +1,6 @@
-void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
+int Def::log_depth = 0;
+
+void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
     bool is_as = false;
     if(p>=imp->size()) ERROR("Internal error: parsing "+name+" has misjudged end of file");
     if(imp->at(p)=="as") is_as = true;
@@ -40,7 +42,6 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
         if(argType->lazy_compile && debug) {
             //cout << arg_name<<"\n";
             auto def = make_shared<Def>();
-            def->debug = true;
             size_t p2 = argType->pos;
             def->parse(imp, p2, types);
             argType = def;
@@ -98,7 +99,7 @@ void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types) {
 }
 
 
-void signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current, const Memory& types) {
+void Def::signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current, const Memory& types) {
     unordered_map<string, Type> next(current);
     if(i>=parametric_names.size()) {results.push_back(next);return;}
     // will always have a lazy compilation here
@@ -109,19 +110,19 @@ void signature_until_position(vector<unordered_map<string, Type>>& results, cons
     }
 }
 
-vector<Type> get_options(Memory& types) {
-    //if(debug) return options;
-    vector<Type> newOptions;
-    for(const auto& option : options) if(option->lazy_compile) {for(const auto& parametric_option : option->get_lazy_options(types)) newOptions.push_back(parametric_option);} else newOptions.push_back(option);
-    return newOptions;
+vector<Type> Def::get_options(Memory& types) {
+    if(lazy_compile) {
+        vector<Type> newOptions;
+        for(const auto& option : options) if(option->lazy_compile) {for(const auto& parametric_option : option->get_lazy_options(types)) newOptions.push_back(parametric_option);} else newOptions.push_back(option);
+        options = newOptions;
+        lazy_compile = false;
+    }
+    return options;
 }
 
-const bool log_type_resolution = false;
-void print_depth() {
-    for(int i=0;i<log_depth;++i) cout<<"| "; 
-}
+void Def::print_depth() {for(int i=0;i<log_depth;++i) cout<<"| "; }
 
-vector<Type> get_lazy_options(Memory& types) {
+vector<Type> Def::get_lazy_options(Memory& types) {
     // store prev state
     if(log_type_resolution) print_depth();
     if(log_type_resolution) cout << signature() <<" "<< this << "\n";
@@ -137,7 +138,6 @@ vector<Type> get_lazy_options(Memory& types) {
     unordered_map<string, size_t> positions; // avoids setting again the same parameter and thus creating too many varations
     signature_until_position(argoptions, parametric_names, 0, unordered_map<string, Type>(), types);
     // iterate through variations
-    debug = true;
     vector<Type> newOptions;
 
     std::queue<unordered_map<string, Type>> processingQueue;
@@ -146,6 +146,9 @@ vector<Type> get_lazy_options(Memory& types) {
 
 
     while(!processingQueue.empty()) {
+        types.vars.clear();
+        for(const auto& it : prevTypes.vars) types.vars[it.first] = it.second;
+
         auto argoption = processingQueue.front();
         processingQueue.pop();
         int power = 0;
@@ -154,14 +157,23 @@ vector<Type> get_lazy_options(Memory& types) {
             power = 0;
             retry = false;
             for(const auto& it : argoption) {
-                types.vars[it.first] = it.second;
                 power += (it.second->choice_power+1)/2;
-                if(log_type_resolution) print_depth();
-                if(log_type_resolution) cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature()<<" "<<it.second.get()<<"\n";
+                //if(log_type_resolution) print_depth();
+                //if(log_type_resolution) cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature()<<" "<<it.second.get()<<"\n";
                 if(it.second->lazy_compile) retry = true;
                 //if(it.second->lazy_compile) ERROR("Internal error: not fully resolved\nFailed to resolve "+pretty_runtype(it.first)+" required by "+pretty_runtype(name));
+                types.vars[it.first] = it.second;
+                /*if(types.vars.find(it.first)==types.vars.end() || types.vars[it.first]->lazy_compile) types.vars[it.first] = it.second;
+                else if(types.vars[it.first]!=it.second) {
+                    imp->error(pos, "SKIPPING - Would replace already resolved: "+types.vars[it.first]->signature());
+                    // forcefully stop looping
+                    power = -1;
+                    retry = false;
+                    break;
+                }*/
             }
-            if(retry && log_type_resolution) {print_depth();cout <<"resolving\n";}
+            if(power<0) {continue;}
+            //if(retry && log_type_resolution) {print_depth();cout <<"resolving\n";}
             if(retry) {
                 bool anysuccess = false;
                 for(auto& it : argoption) if(it.second->lazy_compile) {
@@ -170,9 +182,17 @@ vector<Type> get_lazy_options(Memory& types) {
                     log_depth += 1;
                     vector<Type> dependent_options = it.second->get_options(types);
                     log_depth -= 1;
-                    if(dependent_options.size()==0) imp->error(pos, "A call of "+pretty_runtype(name)+" failed to resolve "+pretty_runtype(it.first)+" due to no candidates");
+                    if(dependent_options.size()==0) {
+                        /*if(log_type_resolution) print_depth();
+                        if(log_type_resolution) cout << "SKIPPED\n";
+                        power = -1;
+                        retry = false;
+                        anysuccess = true;
+                        break;*/
+                        imp->error(pos, "Runtype not found: "+pretty_runtype(it.first)+" requested by "+pretty_runtype(name));
+                    }//imp->error(pos, "Runtype not found: "+pretty_runtype(it.first)+" requested by "+pretty_runtype(name));
                     if(dependent_options.size()>1) {
-                        if(log_type_resolution) print_depth();
+                        /*if(log_type_resolution) print_depth();
                         if(log_type_resolution) cout << "SKIPPED & changing resolution of "+pretty_runtype(it.first)+" to be considered once for every option\n";
                         for(const auto& dep : dependent_options) {
                             // replace and copy
@@ -184,16 +204,16 @@ vector<Type> get_lazy_options(Memory& types) {
                         power = -1;
                         retry = false;
                         anysuccess = true;
-                        break;
-                        /*string cand("");
+                        break;*/
+                        string cand("");
                         for(const auto& opt : dependent_options) cand += "\n"+opt->signature(); 
-                        imp->error(pos, "A call of "+pretty_runtype(name)+" failed to resolve "+pretty_runtype(it.first)+" due to multiple candidates:"+cand);*/
+                        imp->error(pos, "A call of "+pretty_runtype(name)+" failed to resolve "+pretty_runtype(it.first)+" due to multiple candidates:"+cand);
                     }
                     size_t p = dependent_options[0]->pos;
                     auto def = make_shared<Def>();
-                    log_depth += 1;
+                    Def::log_depth += 1;
                     def->parse(dependent_options[0]->imp, p, types);
-                    log_depth -= 1;
+                    Def::log_depth -= 1;
                     if(def->args.size() && def->args[0].type->name=="nom") def->alignments[def->args[0].name] = dependent_options[0]->alignments[def->args[0].name];
                     it.second = def;
                     if(!it.second->lazy_compile) anysuccess = true;
@@ -211,8 +231,8 @@ vector<Type> get_lazy_options(Memory& types) {
             if(retry && log_type_resolution) {print_depth();cout <<"RETRY with resolution\n";}
         }
         if(power<0) continue;
-        if(log_type_resolution) print_depth();
-        if(log_type_resolution) cout << "resolving\n";
+        //if(log_type_resolution) print_depth();
+        //if(log_type_resolution) cout << "resolving\n";
         size_t p = pos;
         auto def = make_shared<Def>();
         log_depth += 1;
@@ -224,11 +244,10 @@ vector<Type> get_lazy_options(Memory& types) {
         def->options.push_back(def);
         newOptions.push_back(def);
         if(log_type_resolution) print_depth();
-        if(log_type_resolution) cout <<"OPTION "<< def->signature() <<"\n";
+        if(log_type_resolution) cout << def->signature() <<"\n";
     }
     // restore proper type system
     types.vars = move(prevTypes.vars);
-    debug = false;
     log_depth -= 1;
     return newOptions;
 }

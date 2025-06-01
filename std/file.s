@@ -32,18 +32,18 @@ smo file(str path)
 smo file(cstr path) -> file(path:str)
 
 smo chunks(nom type, file &f, u64 chunk_size, Memory)
-    reader = Memory:allocate(chunk_size)
-    -> type, f, reader, chunk_size, Memory
+    reader = Memory:allocate(chunk_size, char)
+    -> type, f, reader, Memory
 
 smo next(chunks &self, str& value)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        u64 bytes_read = fread((char*)self__reader, 1, self__chunk_size, (FILE*)self__f__contents);
-        if(!bytes_read) ((char*)self__reader)[bytes_read] = '\0'; // Null-terminate for cstr compatibility
-        ptr ret = bytes_read ? (ptr)self__reader : 0;
-        char first = ((char*)self__reader)[0];
+        u64 bytes_read = fread((char*)self__reader__mem, 1, self__reader__size, (FILE*)self__f__contents);
+        if(!bytes_read) ((char*)self__reader__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility
+        ptr ret = bytes_read ? (ptr)self__reader__mem : 0;
+        char first = ((char*)self__reader__mem)[0];
     }
     value = nom:str(ret, bytes_read, first)
     -> ret:bool

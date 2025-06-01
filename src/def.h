@@ -1,0 +1,128 @@
+#ifndef DEF_H
+#define DEF_H
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <stack>
+#include <utility>
+#include <memory>
+#include <unordered_map>
+#include <cctype>
+#include "parser/tokenize.h"
+#include "parser/common.h"
+#include "parser/base64.cpp"
+#include <cctype>
+#include <cstdlib>
+#include <unordered_set>
+#include <set>
+#include <queue>  
+
+using namespace std;
+
+struct Def;
+typedef shared_ptr<Def> Type;
+
+class Memory {
+public:
+    unordered_map<string, Type> vars;
+    unordered_set<string> all_errors;
+    inline bool contains(const string& var) const {return vars.find(var)!=vars.end();}
+    Memory() = default;
+};
+
+class Arg {
+public:
+    string name;
+    Type type;
+    bool mut;
+    Arg(const string& n, const Type& t, bool m):name(n),type(t),mut(m){}
+};
+
+unordered_map<Def*, unsigned long> alignment_labels;
+unordered_map<unsigned long, Def*> reverse_alignment_labels;
+bool log_type_resolution = false;
+
+class Def {
+    static int temp;
+    static int log_depth;
+    static string create_temp() {return "__"+numberToVar(++temp);}
+    unordered_map<string, string> current_renaming;
+    void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memory& types);
+    void assign_variable(const Type& type, const string& from, const string& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false);
+    string recommend_runtype(const Memory& types, const string& candidate);
+    string recommend_variable(const Memory& types, const string& candidate);
+    void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types);
+    void signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current, const Memory& types);
+    vector<Type> get_options(Memory& types);
+    vector<Type> get_lazy_options(Memory& types);
+    static void print_depth();
+    
+    void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory& types);
+    string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="");
+    string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<string>& unpacks, const size_t first_token_pos, const string& first_token, const string& inherit_buffer, Memory& types);
+    string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="");
+public:
+    int choice_power;
+    bool is_service;
+    bool is_union;
+    bool _is_primitive;
+    bool lazy_compile;
+    static bool debug;
+    vector<Type> options;
+    vector<Arg> args;
+    shared_ptr<Import> imp;
+    Memory internalTypes;
+    vector<string> packs;
+    vector<string> ghost_packs;
+    string finals_when_used;
+    string alias_for;
+    size_t pos, start, end;
+    string name, vardecl, implementation, errors;
+    set<string> preample;
+    unordered_map<string, string> finals;
+    unordered_map<string, Type> parametric_types;
+    unordered_map<string, Type> buffer_primitive_associations;
+    unordered_map<string, unsigned long> alignments;
+    vector<string> uplifting_targets;
+    void add_preample(const string& pre) {
+        if(preample.find(pre)==preample.end()) preample.insert(pre);
+    }
+    void coallesce_finals(const string& original) {
+        // TODO: optimize this
+        unordered_set<string> previous;
+        string current = original;
+        previous.insert(current);
+        while(current_renaming.find(current)!=current_renaming.end()) {
+            current = current_renaming[current];
+            if(previous.find(current)!=previous.end()) break;
+            previous.insert(current);
+            if(current==original) break;
+            if(finals.find(current)!=finals.end()) {finals[original] += rename_var(finals[current], current, original);finals[current] = "";}
+        }
+    }
+
+    Def(const string& builtin): choice_power(0), is_service(false), is_union(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors("") {}
+    Def(): choice_power(0), is_service(false), is_union(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors("") {
+        reverse_alignment_labels[alignment_labels.size()+1] = this;
+        alignment_labels[this] = alignment_labels.size()+1;// +1 needed to ensure that zero alignment has no associated type
+    } 
+    vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer, const string& curry);
+    inline bool not_primitive() const {return !_is_primitive;}
+    string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test=true);
+    string signature_like(vector<string> args);
+    string signature();
+    string canonic_name();
+    string raw_signature();
+    string rebase(const string& impl, const string& var);
+    string rename_var(const string& impl, const string& from, const string& to);
+    void parse(const shared_ptr<Import>& _imp, size_t& p, Memory& types, bool with_signature=true);
+    void end_block(const shared_ptr<Import>& i, size_t& p);
+};
+
+int Def::temp = 0;
+bool Def::debug = false;
+
+#endif // DEF_H
