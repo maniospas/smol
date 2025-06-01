@@ -1246,6 +1246,7 @@ it also supports string handling.
 <p><strong>Jump to:</strong>
   <a href="#console">Console</a> ·
   <a href="#strings">Strings</a> ·
+  <a href="#allocators">Allocators</a> ·
   <a href="#files">Files</a> ·
   <a href="#vectors">Vectors</a> ·
   <a href="#math">Math</a>
@@ -1337,35 +1338,35 @@ service main()
     --
 </code></pre>
 
+<h3 id="files">Allocators <a href="#files" class="anchor-link">🔗</a></h3>
 
-<h3 id="files">Files <a href="#files" class="anchor-link">🔗</a></h3>
-
-<p>The next snipper shows how to create a service for reading the
-contents of a file one chunk of 4,096 bytes at a time. Use <i>line</i> instead of 
-<i>chunk</i> to stop reading chunks after new line characters too, 
-but the byte limit will still be used to break long lines. Set a different limit to the number of
-bytes per chunk by passing the number as a second <code class="language-smolambda">u64</code> 
-to the file runtype.
-</p>
-<p>
-Opening a non-existing file creates an error, so use 
-<code class="language-smolambda">isfile</code> if you are
-prepared to handle that scenario. Otherwise, let the current
-service fail.
-</p>
+<p><i>Section under construction.</i></p>
 
 <pre><code class="language-smolambda">@include std.builtins
 @include std.file
-
-service contents(file f)
-    ret = "":str 
-    while f:ended:not 
-        ret = ret+f:chunk
-    ---&gt; ret // -- ends while, then -> returns
+@include std.mem
 
 service main()
-    if "README.md":isfile:not print("Going to fail") --
-    print("README.md":file:contents)
+    f = file("README.md")
+    chunk = "":str
+    nom:chunks(f, 4096, heap):while next(chunk) print(chunk) --
+    --
+</code></pre>
+
+
+
+<h3 id="files">Files <a href="#files" class="anchor-link">🔗</a></h3>
+
+<p><i>Section under construction.</i></p>
+
+<pre><code class="language-smolambda">@include std.builtins
+@include std.file
+@include std.mem
+
+service main()
+    f = file("README.md")
+    chunk = "":str
+    nom:chunks(f, 4096, heap):while next(chunk) print(chunk) --
     --
 </code></pre>
 

@@ -526,10 +526,8 @@ string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const s
                 internalTypes.vars[var+"__"+type->args[i].name] = type->args[i].type;
                 unpacks.push_back(var+"__"+type->args[i].name);
             }
-            else {
-                internalTypes.vars[var] = type;
-                unpacks.push_back(var);
-            }
+            else unpacks.push_back(var);
+            internalTypes.vars[var] = type;
             return var;
         }
         else if(imp->at(p)!="(") {
