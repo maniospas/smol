@@ -16,6 +16,7 @@ const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
 const symbolTable = new Map();  // uri => [{name, line}]
 const includeGraph = new Map(); // uri => Set<includedUri>
+let workspaceRoot = "";
 
 function sendErrorToClient(msg) {
   try { connection.sendNotification('server/error', msg);} 
@@ -39,7 +40,9 @@ function analyzeDocument(uri, text) {
       const includePath = includeMatch[1].replace(/\./g, "/") + ".s";
       const basePath = decodeURIComponent(uri.replace("file://", ""));
       const dir = path.dirname(basePath);
-      const resolvedPath = path.resolve(dir, includePath);
+      let resolvedPath = path.resolve(dir, includePath);
+      if (!fs.existsSync(resolvedPath)) resolvedPath = path.resolve(workspaceRoot, includePath);
+
       const includedUri = "file://" + resolvedPath;
       includes.add(includedUri);
       if(!symbolTable.has(includedUri) && fs.existsSync(resolvedPath)) analyzeDocument(includedUri, fs.readFileSync(resolvedPath, "utf8"));
@@ -67,8 +70,12 @@ function analyzeDocument(uri, text) {
 
 documents.onDidOpen(e => {analyzeDocument(e.document.uri, e.document.getText());});
 documents.onDidChangeContent(e => {analyzeDocument(e.document.uri, e.document.getText());});
-connection.onInitialize(() => {
+connection.onInitialize((params) => {
   connection.console.log("Smoλ language server initialized.");
+  const folders = params.workspaceFolders;
+  if(folders && folders.length > 0) workspaceRoot = decodeURIComponent(folders[0].uri.replace("file://", ""));
+  else if(params.rootUri) workspaceRoot = decodeURIComponent(params.rootUri.replace("file://", ""));
+  else workspaceRoot = process.cwd(); // Fallback to current working dir
   return {
     capabilities: {
       textDocumentSync: documents.syncKind,
@@ -176,7 +183,8 @@ connection.onDefinition((params) => {
     const includePath = includeMatch[1].replace(/\./g, "/") + ".s";
     const basePath = decodeURIComponent(uri.replace("file://", ""));
     const dir = path.dirname(basePath);
-    const resolvedPath = path.resolve(dir, includePath);
+    let resolvedPath = path.resolve(dir, includePath);
+    if (!fs.existsSync(resolvedPath)) resolvedPath = path.resolve(workspaceRoot, includePath);
     if (fs.existsSync(resolvedPath)) {
       const includedUri = "file://" + resolvedPath;
       return Location.create(includedUri, Range.create(0, 0, 0, 0));

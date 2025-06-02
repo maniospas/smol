@@ -5,7 +5,7 @@
 smo zero(u64 n)
     v = heap:allocate(n, f64)
     i = 0 
-    while i<n 
+    while i<n
         @next i = i+1 
         v:put(i, 0.0) 
         --
