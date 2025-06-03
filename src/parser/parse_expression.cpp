@@ -1,6 +1,6 @@
 #include "../def.h"
 
-string Def::parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry) {
+string Def::parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Types& types, string curry) {
     if(first_token=="(") {
         string ret = parse_expression(imp, p, imp->at(p++), types, curry);
         if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
@@ -10,7 +10,7 @@ string Def::parse_expression(const shared_ptr<Import>& imp, size_t& p, const str
 }
 
 
-string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<string>& unpacks, const size_t first_token_pos, const string& first_token, const string& inherit_buffer, Memory& types) {
+string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<string>& unpacks, const size_t first_token_pos, const string& first_token, const string& inherit_buffer, Types& types) {
     string overloading_errors("");
     string var = create_temp();
     Type successfullType = nullptr;
@@ -19,27 +19,28 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     int numberOfErrors = 0;
     Type previousType = type;
     int highest_choice_power = 0;
-    for(size_t i=0;i<unpacks.size();++i) 
-        if(!internalTypes.vars.contains(unpacks[i])) 
-            imp->error(p-3, "Missing symbol: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
+    for(size_t i=0;i<unpacks.size();++i) if(!internalTypes.contains(unpacks[i])) imp->error(p-3, "Missing symbol: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
     
-    for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overload
+    for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
         try {
             //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
             size_t type_args = type->not_primitive()?type->args.size():1;
             if(inherit_buffer.size()) {
-                if(unpacks.size()>type_args) throw runtime_error(type->signature()+": Requires ["+to_string(type_args)+"] but got > ["+to_string(unpacks.size())+"] structural arguments "+signature_like(unpacks)+" (buffers unpack at least one value)");
+                if(unpacks.size()>type_args) throw runtime_error(type->signature(types)+": Requires ["+to_string(type_args)+"] but got > ["+to_string(unpacks.size())+"] structural arguments "+signature_like(types, unpacks)+" (buffers unpack at least one value)");
             }
-            else if(unpacks.size()!=type_args) throw runtime_error(type->signature()+": Requires ["+to_string(type_args)+"] but got ["+to_string(unpacks.size())+"] structural arguments "+signature_like(unpacks));
+            else if(unpacks.size()!=type_args) throw runtime_error(type->signature(types)+": Requires ["+to_string(type_args)+"] but got ["+to_string(unpacks.size())+"] structural arguments "+signature_like(types, unpacks));
             for(size_t i=0;i<unpacks.size();++i) {
                 auto arg_type = type->_is_primitive?type:type->args[i].type;
-                if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature()+": Cannot unpack abstract " + arg_type->signature() + " "+type->args[i].name);
-                if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature()+": No runtype for "+pretty_var(unpacks[i]));
-                if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i]))
-                    throw std::runtime_error(type->signature()+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name);
+                if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i]));
+                if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
-                    if(!alignments[unpacks[i]]) alignments[unpacks[i]] = type->alignments[type->args[i].name];
-                    else throw std::runtime_error(type->signature()+": nom "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" expects data from "+(!type->alignments[type->args[i].name]?"nothing":reverse_alignment_labels[type->alignments[type->args[i].name]]->signature())+" with id "+to_string(type->alignments[type->args[i].name])+" but got "+(alignments[unpacks[i]]?reverse_alignment_labels[alignments[unpacks[i]]]->signature():"nothing")+" with id "+to_string(alignments[unpacks[i]]));
+                    if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name+"."+type->args[i].name)+" within "+signature(types));
+                    if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i]+" argument "+pretty_var(type->name+"."+type->args[i].name)+" within "+signature(types));
+                    if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) {}//REMINDER THAT THIS IS AN ERROR THAT POLUTES NEXT LOOP: alignments[unpacks[i]] = type->alignments[type->args[i].name];
+                    else throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)
+                        +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
+                        +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
                 }
             }
             if(type->choice_power>highest_choice_power) {
@@ -56,7 +57,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
             if(equivalentTypes) continue;
             */
             successfullType = type;
-            multipleFound += "\n- "+type->signature();
+            multipleFound += "\n- "+type->signature(types);
             numberOfFound++;
         }
         catch (const std::runtime_error& e) {
@@ -68,6 +69,25 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     type = successfullType;
     if(!type && numberOfErrors) imp->error(first_token_pos, "Runtype not found among "+to_string(numberOfErrors)+" candidates"+overloading_errors);
     if(!type) imp->error(first_token_pos, "Runtype not found: "+first_token+recommend_runtype(types, first_token));
+    if(type->lazy_compile) imp->error(pos, "Internal error: Runtype has not been compiled");
+
+    // repeat here to properly handle alignment (which we couldn't previously)
+    for(size_t i=0;i<unpacks.size();++i) {
+        auto arg_type = type->_is_primitive?type:type->args[i].type;
+        if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name);
+        if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i]));
+        if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+        if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
+            if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name+"."+type->args[i].name)+" within "+signature(types));
+            if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i]+" argument "+pretty_var(type->name+"."+type->args[i].name)+" within "+signature(types));
+            if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) alignments[unpacks[i]] = type->alignments[type->args[i].name];
+            else throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)
+                +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
+                +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
+        }
+    }
+
+
     if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of "+to_string(numberOfFound)+" acceptable runtypes"+multipleFound);
     if(inherit_buffer.size()) { // unpack buffer
         string arg = inherit_buffer;
@@ -170,7 +190,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
 }
 
 
-string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry) {
+string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Types& types, string curry) {
     size_t first_token_pos = p-1;
     if(first_token=="." || first_token==":" || first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
 
@@ -266,7 +286,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             end_block(imp, p);
             next = imp->at(p++);
         }
-        if(next!="else") imp->error(with_start, "Need at least one `else` statement");
+        if(next!="else") imp->error(with_start, "\033[33mNeed at least one `else` statement to complement `with`");
         while(next=="else") {
             if(!numberOfCandidates) {
                 try {
@@ -492,7 +512,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
                 if(option->choice_power<highest_choice_power) continue;
                 num_choices ++;
                 type = option;
-                candidates += "\n"+option->signature();
+                candidates += "\n"+option->signature(types);
             }
             if(num_choices!=1) imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@new return\nto break the priority stalemate.\nCandidates:"+candidates);
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
@@ -522,7 +542,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
                 if(option->choice_power<highest_choice_power) continue;
                 num_choices ++;
                 type = option;
-                candidates += "\n"+option->signature();
+                candidates += "\n"+option->signature(types);
             }
             if(num_choices!=1) imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@new return\nto break the priority stalemate.\nCandidates:"+candidates);
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
@@ -531,7 +551,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
                 
             }
             else unpacks.push_back(var);
-            if(type->args.size() && type->args[0].type->name=="nom") alignments[var+"__"+type->args[0].name] = alignment_labels[type.get()];
+            if(type->args.size() && type->args[0].type->name=="nom") alignments[var+"__"+type->args[0].name] = types.alignment_labels[type.get()];
             internalTypes.vars[var] = type;
             return var;
         }
@@ -539,7 +559,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             string var = create_temp();
             internalTypes.vars[var] = type;
             for(const string& pack : type->packs) assign_variable(type->internalTypes.vars[pack], var+"__"+pack, "0", imp, p);
-            if(type->args.size() && type->args[0].type->name=="nom") alignments[var+"__"+type->args[0].name] = alignment_labels[type.get()];
+            if(type->args.size() && type->args[0].type->name=="nom") alignments[var+"__"+type->args[0].name] = types.alignment_labels[type.get()];
             return next_var(imp, p, var, types);
         }
         else {

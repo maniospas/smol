@@ -1,36 +1,36 @@
 #include "../def.h"
 
-string Def::signature_like(vector<string> args) {
+string Def::signature_like(Types& types, vector<string> args) {
     string ret("");
     for(size_t i=0;i<args.size();++i) {
         if(ret.size()) ret += ",";
-        if(alignments[args[i]] && reverse_alignment_labels[alignments[args[i]]]!=this && reverse_alignment_labels[alignments[args[i]]]->packs.size()>=1) {
-            ret += pretty_runtype(reverse_alignment_labels[alignments[args[i]]]->name)+""+"["+to_string(reverse_alignment_labels[alignments[args[i]]]->packs.size())+"]";//+pretty_var(args[i].name)+"["+to_string(reverse_alignment_labels[alignments[args[i].name]]->packs.size())+" args]";
-            i += reverse_alignment_labels[alignments[args[i]]]->packs.size()-1;
+        if(alignments[args[i]] && types.reverse_alignment_labels[alignments[args[i]]]!=this && types.reverse_alignment_labels[alignments[args[i]]]->packs.size()>=1) {
+            ret += pretty_runtype(types.reverse_alignment_labels[alignments[args[i]]]->name)+""+"["+to_string(types.reverse_alignment_labels[alignments[args[i]]]->packs.size())+"]";
+            i += types.reverse_alignment_labels[alignments[args[i]]]->packs.size()-1;
         }
         else ret += ""+pretty_runtype(internalTypes.vars[args[i]]->name);
     }
     return "("+ret+")";
 }
 
-string Def::signature() {
+string Def::signature(Types& types) {
     if(_is_primitive) return pretty_runtype(name);
-    //if(!args.size()) return name;
     string ret("");
     for(size_t i=0;i<args.size();++i) {
         if(ret.size()) ret += ",";
-        if(alignments[args[i].name] && reverse_alignment_labels[alignments[args[i].name]]!=this && reverse_alignment_labels[alignments[args[i].name]]->packs.size()>=1) {
-            ret += pretty_runtype(reverse_alignment_labels[alignments[args[i].name]]->name)+""+(args[i].mut?"\033[31m&\033[0m":"")+"["+to_string(reverse_alignment_labels[alignments[args[i].name]]->packs.size())+"]";//+pretty_var(args[i].name)+"["+to_string(reverse_alignment_labels[alignments[args[i].name]]->packs.size())+" args]";
-            i += reverse_alignment_labels[alignments[args[i].name]]->packs.size()-1;
+        if(alignments[args[i].name] && !types.reverse_alignment_labels[alignments[args[i].name]]) ERROR("Internal error: variable type does not exist with id "+to_string(alignments[args[i].name])+" in type of "+pretty_var(name+"."+args[i].name));
+        if(alignments[args[i].name] && types.reverse_alignment_labels[alignments[args[i].name]]!=this && types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()>=1) {
+            ret += pretty_runtype(types.reverse_alignment_labels[alignments[args[i].name]]->name)+""+(args[i].mut?"\033[31m&\033[0m":"")+"["+to_string(types.reverse_alignment_labels[alignments[args[i].name]]->packs.size())+"]";
+            i += types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()-1;
         }
-        else if(args[i].type->name=="nom" && reverse_alignment_labels[alignments[args[i].name]]!=this && args[i].type->packs.size()>=1) {
-            ret += pretty_runtype(args[i].type->name)+""+(args[i].mut?"\033[31m&\033[0m":"")+"["+to_string(args[i].type->packs.size())+"]";//+pretty_var(args[i].name)+"["+to_string(reverse_alignment_labels[alignments[args[i].name]]->packs.size())+" args]";
+        else if(args[i].type->name=="nom" && types.reverse_alignment_labels[alignments[args[i].name]]!=this && args[i].type->packs.size()>=1) {
+            ret += pretty_runtype(args[i].type->name)+""+(args[i].mut?"\033[31m&\033[0m":"")+"["+to_string(args[i].type->packs.size())+"]";
             i += args[i].type->packs.size()-1;
         }
-        else ret += ""+pretty_runtype(args[i].type->name)+""+(args[i].mut?"\033[31m&\033[0m":"");//+pretty_var(args[i].name);
+        else ret += ""+pretty_runtype(args[i].type->name)+""+(args[i].mut?"\033[31m&\033[0m":"");
     }
     if(lazy_compile) return "\033[32m:"+name+"\033[0m("+ret+")->\033[31munresolved\033[0m";
-    return "\033[32m:"+name+"\033[0m("+ret+")->"+pretty_runtype(name)+signature_like(packs);
+    return "\033[32m:"+name+"\033[0m("+ret+")->"+pretty_runtype(name)+signature_like(types, packs);
 }
 
 
@@ -41,7 +41,6 @@ string Def::canonic_name() {
 }
 
 string Def::raw_signature() {
-    //if(!args.size()) return name;
     string ret("");
     if(is_service) for(size_t i=1;i<packs.size();++i) {
         if(i>=2) ret += ", ";

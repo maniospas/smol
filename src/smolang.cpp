@@ -29,9 +29,9 @@ Task parse_task(const string& arg) {
     throw invalid_argument("Unknown task: " + arg);
 }
 
-void codegen(unordered_map<string, Memory>& files, string file, const Memory& builtins) {
+void codegen(unordered_map<string, Types>& files, string file, const Memory& builtins) {
     auto imp = tokenize(file);
-    Memory& types = files[file];
+    Types& types = files[file];
     for(const auto& it : builtins.vars) types.vars[it.first] = it.second;
 
     stack<pair<string, int>> brackets;
@@ -66,20 +66,37 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
                     else {
                         bool found = false;
                         for(const auto& option : types.vars[name]->options) if(option==impl) {found=true;break;}
-                        if(!found) types.vars[name]->options.push_back(impl);
+                        if(!found && types.vars[name]!=impl && !impl->lazy_compile) types.vars[name]->options.push_back(impl);
                     }
                 }
+                for(const auto& it : files[path].alignment_labels) types.alignment_labels[it.first] = it.second;
+                for(const auto& it : files[path].reverse_alignment_labels) types.reverse_alignment_labels[it.first] = it.second;
                 if(files[path].all_errors.size()) imp->error(p, "Errors in included file: "+path);
                 p++;
                 continue;
             }
             else if(imp->at(p)=="smo" || imp->at(p)=="service") {
-                auto def = make_shared<Def>();
+                auto def = make_shared<Def>(types);
+                all_types.push_back(def);
                 def->imp = imp;
                 def->parse(imp, p, types);
                 if(!types.contains(def->name)) types.vars[def->name] = def;
-                types.vars[def->name]->options.push_back(def);
                 if(def->lazy_compile) {
+                    if(!types.vars[def->name]->lazy_compile) {
+                        // if it was a normal implementation move to a union
+                        auto prev = types.vars[def->name];
+                        types.vars[def->name] = make_shared<Def>(types);
+                        all_types.push_back(types.vars[def->name]);
+                        types.vars[def->name]->imp = imp;
+                        types.vars[def->name]->lazy_compile = true;
+                        types.vars[def->name]->name = prev->name;
+                        types.vars[def->name]->options.push_back(prev);
+                    }
+                    Def::log_depth = 0;
+                    for(const auto& d : def->get_lazy_options(types)) {
+                        if(d->lazy_compile) imp->error(--p, "Internal error: failed to compile "+d->signature(types));
+                        types.vars[def->name]->options.push_back(d);
+                    }
                     p--;
                     while(p<imp->size()-1) {
                         p++;
@@ -88,34 +105,32 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
                     }
                     --p;
                 }
+                else types.vars[def->name]->options.push_back(def);
             }
             else if(imp->at(p)=="union") {
-                auto def = make_shared<Def>();
+                string name = imp->at(++p);
+                if(types.contains(name)) imp->error(--p, "Union is already defined as a runtype or union");
+                auto def = make_shared<Def>(types);
+                all_types.push_back(def);
                 def->imp = imp;
-                def->is_union = true;
                 def->lazy_compile = true;
-                ++p;
-                def->name = imp->at(p++);
-                if(types.contains(def->name)) imp->error(--p, "Union is already defined as a runtype or union");
+                def->name = name;
                 p++;
+                if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
                 while(true) {
                     string next = imp->at(p++);
                     const auto& found_type = types.vars.find(next);
-                    if(found_type!=types.vars.end()) for(const Type& option : found_type->second->options) def->options.push_back(option);
-                    else imp->error(--p, "Undefined runtype");
+                    if(found_type==types.vars.end()) imp->error(--p, "Undefined runtype");
+                    for(const Type& option : found_type->second->options) {
+                        if(option->lazy_compile) imp->error(--p, "Internal error: failed to compile runtype "+option->signature(types));
+                        def->options.push_back(option);
+                    }
                     next = imp->at(p++);
-                    if(next==")") {break;}
+                    if(next==")") break;
                     if(next!=",") imp->error(--p, "Missing comma");
                 }
                 --p;
-                types.vars[def->name] = def;
-                /*if(def->lazy_compile) {
-                    while(p<imp->size()-1) {
-                        if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
-                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
-                        p++;
-                    }
-                }*/
+                types.vars[name] = def;
             }
             else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union` or `@include` allowed");
             p++;
@@ -141,8 +156,8 @@ void codegen(unordered_map<string, Memory>& files, string file, const Memory& bu
 int main(int argc, char* argv[]) {
     Task selected_task = Task::Run;
     vector<string> files;
-    unordered_map<string, Memory> included;
-    Memory builtins;
+    unordered_map<string, Types> included;
+    Types builtins;
 
     builtins.vars["u64"] = make_shared<Def>("u64");
     builtins.vars["i64"] = make_shared<Def>("i64");
@@ -167,6 +182,7 @@ int main(int argc, char* argv[]) {
     builtins.vars["buffer"]->internalTypes.vars["__offset"] = builtins.vars["u64"];
     builtins.vars["buffer"]->_is_primitive = false;
     for(const auto& it : builtins.vars) it.second->options.push_back(it.second);
+    for(const auto& it : builtins.vars) all_types.push_back(it.second);
 
 
     for (int i = 1; i < argc; ++i) {
@@ -272,10 +288,10 @@ int main(int argc, char* argv[]) {
                 it.second->internalTypes.vars.clear();
                 it.second->options.clear();
             }
-            if(selected_task==Task::Run) {int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" && ./"+file.substr(0, file.size()-2)).c_str()); if (run_status != 0) return run_status;}
-            else if(selected_task==Task::Assemble) {int run_status = system(("g++ -O3 -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -S -masm=intel -fverbose-asm ").c_str()); if (run_status != 0) return run_status;}
+            if(selected_task==Task::Run) {int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -std=c++23 -o "+file.substr(0, file.size()-2)+" && ./"+file.substr(0, file.size()-2)).c_str()); if (run_status != 0) return run_status;}
+            else if(selected_task==Task::Assemble) {int run_status = system(("g++ -O3 -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -S -masm=intel -fverbose-asm -std=c++23").c_str()); if (run_status != 0) return run_status;}
             else {
-                int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -nodefaultlibs -lc").c_str());
+                int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -nodefaultlibs -lc -std=c++23").c_str());
                 if (run_status != 0) return run_status;
                 cout << "\033[30;42m ./ \033[0m " + file.substr(0, file.size()-2) + "\n";
             }
@@ -287,5 +303,8 @@ int main(int argc, char* argv[]) {
         std::remove("__smolambda__temp__main.cpp");
         included.clear();
     }
+
+    for(const auto& def : all_types) if(def && def->imp) def->imp->tokens.clear();
+    all_types.clear();
     return 0;
 }

@@ -1,4 +1,4 @@
-vector<string> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer, const string& curry) {
+vector<string> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, string& inherit_buffer, const string& curry) {
     vector<string> ret;
     if(curry.size()) {
         string var = curry;

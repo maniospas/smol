@@ -32,8 +32,8 @@ smo file(str path)
 smo file(cstr path) -> file(path:str)
 
 smo chunks(nom type, file &f, u64 chunk_size, Memory)
-    reader = Memory:allocate(chunk_size, char)
-    -> type, f, reader, Memory
+    reader = nom:allocate(Memory, chunk_size, char)
+    -> type, f, reader
 
 smo next(chunks &self, str& value)
     @head{#include <stdio.h>}

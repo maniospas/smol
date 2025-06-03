@@ -1,4 +1,6 @@
-string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test) {
+#include "../def.h"
+
+string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Types& types, bool test) {
     if(first_token.size()==0) return "";
     size_t n = i->size();
     if(p>=n) return first_token;

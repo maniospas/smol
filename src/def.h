@@ -41,33 +41,39 @@ public:
     Arg(const string& n, const Type& t, bool m):name(n),type(t),mut(m){}
 };
 
-unordered_map<Def*, unsigned long> alignment_labels;
-unordered_map<unsigned long, Def*> reverse_alignment_labels;
+class Types: public Memory {
+public:
+    static unsigned long last_type_id;
+    Types() = default;
+    unordered_map<Def*, unsigned long> alignment_labels;
+    unordered_map<unsigned long, Def*> reverse_alignment_labels;
+};
+unsigned long Types::last_type_id = 0;
 bool log_type_resolution = false;
+
+
+vector<Type> all_types;
 
 class Def {
     static int temp;
-    static int log_depth;
     static string create_temp() {return "__"+numberToVar(++temp);}
     unordered_map<string, string> current_renaming;
-    void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Memory& types);
+    void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
     void assign_variable(const Type& type, const string& from, const string& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false);
-    string recommend_runtype(const Memory& types, const string& candidate);
-    string recommend_variable(const Memory& types, const string& candidate);
-    void parse_signature(const shared_ptr<Import>& imp, size_t& p, Memory& types);
-    void signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current, const Memory& types);
-    vector<Type> get_options(Memory& types);
-    vector<Type> get_lazy_options(Memory& types);
+    string recommend_runtype(const Types& types, const string& candidate);
+    string recommend_variable(const Types& types, const string& candidate);
+    void parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types);
+    void signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current, const Types& types);
     static void print_depth();
     
-    void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Memory& types);
-    string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="");
-    string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<string>& unpacks, const size_t first_token_pos, const string& first_token, const string& inherit_buffer, Memory& types);
-    string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Memory& types, string curry="");
+    void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
+    string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Types& types, string curry="");
+    string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<string>& unpacks, const size_t first_token_pos, const string& first_token, const string& inherit_buffer, Types& types);
+    string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Types& types, string curry="");
 public:
+    static int log_depth;
     int choice_power;
     bool is_service;
-    bool is_union;
     bool _is_primitive;
     bool lazy_compile;
     static bool debug;
@@ -87,6 +93,8 @@ public:
     unordered_map<string, Type> buffer_primitive_associations;
     unordered_map<string, unsigned long> alignments;
     vector<string> uplifting_targets;
+    vector<Type> get_options(Types& types);
+    vector<Type> get_lazy_options(Types& types);
     void add_preample(const string& pre) {
         if(preample.find(pre)==preample.end()) preample.insert(pre);
     }
@@ -104,21 +112,22 @@ public:
         }
     }
 
-    Def(const string& builtin): choice_power(0), is_service(false), is_union(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors("") {}
-    Def(): choice_power(0), is_service(false), is_union(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors("") {
-        reverse_alignment_labels[alignment_labels.size()+1] = this;
-        alignment_labels[this] = alignment_labels.size()+1;// +1 needed to ensure that zero alignment has no associated type
+    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors("") {}
+    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors("") {
+        Types::last_type_id++;//  ensure that zero alignment has no associated type
+        types.reverse_alignment_labels[Types::last_type_id] = this;
+        types.alignment_labels[this] = Types::last_type_id;
     } 
-    vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Memory& types, string& inherit_buffer, const string& curry);
+    vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, string& inherit_buffer, const string& curry);
     inline bool not_primitive() const {return !_is_primitive;}
-    string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Memory& types, bool test=true);
-    string signature_like(vector<string> args);
-    string signature();
+    string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Types& types, bool test=true);
+    string signature_like(Types& types, vector<string> args);
+    string signature(Types &types);
     string canonic_name();
     string raw_signature();
     string rebase(const string& impl, const string& var);
     string rename_var(const string& impl, const string& from, const string& to);
-    void parse(const shared_ptr<Import>& _imp, size_t& p, Memory& types, bool with_signature=true);
+    void parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
     void end_block(const shared_ptr<Import>& i, size_t& p);
 };
 

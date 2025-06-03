@@ -43,4 +43,9 @@ smo print(errcode error)
         else if(error)printf("Unknown error\n");
         else printf("No error\n");
     }
-    --
+    -- 
+
+smo assert(bool condition, cstr error)
+    // prefer using this function as in the future constant evaluation of certain conditions will occur
+    if condition:not fail(error)
+    ----

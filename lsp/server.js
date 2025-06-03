@@ -47,21 +47,39 @@ function analyzeDocument(uri, text) {
       includes.add(includedUri);
       if(!symbolTable.has(includedUri) && fs.existsSync(resolvedPath)) analyzeDocument(includedUri, fs.readFileSync(resolvedPath, "utf8"));
     }
+    const arrowOrDashRegex = /--|->/g;
     let match;
-    const arrowRegex = /->/g;
-    while ((match = arrowRegex.exec(line)) !== null) {
-      decorations_arrow.push({
-        range: {start: { line: i, character: match.index }, end: { line: i, character: match.index + 2 }},
-        text: "⟶"
-      });
+    const consumed = new Set();
+
+    while ((match = arrowOrDashRegex.exec(line)) !== null) {
+      const startIdx = match.index;
+
+      // If already consumed, skip
+      if (consumed.has(startIdx)) continue;
+
+      if (match[0] === '--') {
+        decorations_dash.push({
+          range: {
+            start: { line: i, character: startIdx },
+            end: { line: i, character: startIdx + 2 }
+          },
+          text: "--"
+        });
+        consumed.add(startIdx);
+        consumed.add(startIdx + 1);
+      } else if (match[0] === '->') {
+        decorations_arrow.push({
+          range: {
+            start: { line: i, character: startIdx },
+            end: { line: i, character: startIdx + 2 }
+          },
+          text: "->"
+        });
+        consumed.add(startIdx);
+        consumed.add(startIdx + 1);
+      }
     }
-    const dashRegex = /--/g;
-    while ((match = dashRegex.exec(line)) !== null) {
-      decorations_dash.push({
-        range: {start: { line: i, character: match.index }, end: { line: i, character: match.index + 2 }},
-        text: "—"
-      });
-    }
+
   }
   symbolTable.set(uri, symbols);
   includeGraph.set(uri, includes);
@@ -226,7 +244,7 @@ connection.languages.semanticTokens.on((params) => {
       }
   
       //if(textLine.startsWith("->", pos) || textLine.startsWith("--", pos) || textLine.startsWith("-->", pos) || textLine.startsWith("->>", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
-      if(textLine.startsWith("-->", pos) || textLine.startsWith("->>", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
+      //if(textLine.startsWith("-->", pos) || textLine.startsWith("->>", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
       if(textLine[pos] === ':') {builder.push(line, pos, 1, 3, 0);pos += 1;continue;}
       const match = textLine.slice(pos).match(/^@?[A-Za-z_][A-Za-z0-9_.]*/);
       if(match) {
