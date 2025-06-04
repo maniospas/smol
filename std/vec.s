@@ -38,8 +38,7 @@ smo rand(vec, u64 size)
     i=0:u64 while i<size @next i = i+1:u64 
         value = rand()
         @body{((f64*)contents)[i] = value;}
-        --
-    -> nom:vec(contents, size)
+    ---> nom:vec(contents, size)
 
 smo at(vec v, u64 pos) 
     if pos>=v.size -> fail("Vec out of bounds")
@@ -59,9 +58,7 @@ smo dot(vec x1, vec x2)
         sum = x1:at(i)
                 :mul(x2:at(i))
                 :add(sum)
-        --
-    //@body{for(u64 i=0;i<x1__size;++i) sum += ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
-    -> sum 
+    ---> sum 
 
 smo add(vec x1, vec x2)
     if x1.size!=x2.size -> fail("Incompatible vec sizes")

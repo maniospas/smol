@@ -49,7 +49,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
 
     unordered_set<string> imported;
     size_t p = 0;
-    while(p<imp->tokens.size()) {
+    while(p<imp->tokens.size()-1) {
         try {
             if (imp->at(p) == "@" && imp->at(p + 1) == "include") {
                 p += 2;

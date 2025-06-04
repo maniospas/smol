@@ -40,12 +40,28 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             next = prev;
         }
         else if(imp->at(p)==".") {
-            //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
-            next += "__";
             ++p;
-            next += imp->at(p++);
-            if(p>=n) return first_token;
-            if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "MIssing symbol2: "+pretty_var(next)+recommend_variable(types, next));
+            const string& next_token = imp->at(p++);
+            if(next.size() && internalTypes.contains(next) && internalTypes.vars[next]->retrievable_parameters.find(next_token)!=internalTypes.vars[next]->retrievable_parameters.end()) {
+                Type type = internalTypes.vars[next]->retrievable_parameters[next_token];
+                if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
+                    next = create_temp();
+                    assign_variable(type->args[i].type, next+"__"+type->args[i].name, "0", imp, p, true);
+                    type_trackers.insert(next);
+                }
+                else {
+                    next = create_temp();
+                    assign_variable(type, next, "0", imp, p, true);
+                    type_trackers.insert(next);
+                }
+            } 
+            else {
+                if(type_trackers.find(next)!=type_trackers.end())imp->error(--p, "Cannot retrieve fields from variables that reference runtypes (not values): "+pretty_var(next));
+                //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
+                next += "__"+next_token;
+                if(p>=n) return first_token;
+                if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Missing symbol: "+pretty_var(next)+recommend_variable(types, next));
+            }
         }
         else if(imp->at(p)=="[") {
             if(!internalTypes.contains(next)) imp->error(--p, "Missing symbol: "+pretty_var(next)+recommend_variable(types, next));

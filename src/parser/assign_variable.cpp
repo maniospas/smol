@@ -1,6 +1,8 @@
 #include "../def.h"
 
 void Def::assign_variable(const Type& type, const string& from, const string& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives) {
+    if(type_trackers.find(to)!=type_trackers.end()) type_trackers.insert(from);
+    else if(type_trackers.find(from)!=type_trackers.end()) i->error(p-2, "Cannot assign a value on internal variable referencing a runtype: "+pretty_var(to));
     if(type && type->not_primitive()) {
         if(error_on_non_primitives) imp->error(p, "Failed to resolve "+type->name+" "+pretty_var(to)+" to a primitive");
         if(type->packs.size()==0) return;

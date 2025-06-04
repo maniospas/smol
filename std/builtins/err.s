@@ -26,12 +26,12 @@ smo ok(errcode error)
 
 smo fail(cstr error)
     @head{#include <stdio.h>}
-    @fail {printf("%s", error);printf("\n");}
+    @fail {printf("%s\n", error);}
     --
 
 smo fail(str error)
     @head{#include <stdio.h>}
-    @fail {printf("%s", (char*)error____contents);printf("\n");}
+    @fail {printf("%s\n", (char*)error____contents);}
     --
 
 smo print(errcode error)

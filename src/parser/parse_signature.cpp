@@ -155,6 +155,7 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         if(power<0) continue;
         size_t p = pos;
         auto def = make_shared<Def>(types);
+        def->retrievable_parameters = argoption;
         all_types.push_back(def);
         log_depth += 1;
         def->parse(imp, p, types);

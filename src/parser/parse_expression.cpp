@@ -518,11 +518,13 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
                 string var = create_temp();
                 assign_variable(type->args[i].type, var+"__"+type->args[i].name, "0", imp, p, true);
+                type_trackers.insert(var);
                 unpacks.push_back(var+"__"+type->args[i].name);
             }
             else {
                 string var = create_temp();
                 assign_variable(type, var, "0", imp, p, true);
+                type_trackers.insert(var);
                 unpacks.push_back(var);
             }
         }
@@ -558,6 +560,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         else if(imp->at(p)!="(") {
             string var = create_temp();
             internalTypes.vars[var] = type;
+            type_trackers.insert(var);
             for(const string& pack : type->packs) assign_variable(type->internalTypes.vars[pack], var+"__"+pack, "0", imp, p);
             if(type->args.size() && type->args[0].type->name=="nom") alignments[var+"__"+type->args[0].name] = types.alignment_labels[type.get()];
             return next_var(imp, p, var, types);

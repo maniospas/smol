@@ -65,12 +65,12 @@ smo neq(u64 x, u64 y) @body{bool z=(x!=y);} -> z
 
 smo eq(bool x, bool y)  @body{bool z=(x==y);} -> z
 smo neq(bool x, bool y) @body{bool z=(x!=y);} -> z
-smo not(bool x)         @body{bool z=(!x);} -> z
+smo not(bool x)         @body{bool z=(!x);}   -> z
 
-smo exists(ptr x)     @body{bool z=(x);}    -> z
+smo exists(ptr x) @body{bool z=(x);} -> z
 
-smo add(u64 x, u64 y) @body{u64 z=x+y;}     -> z
-smo mul(u64 x, u64 y) @body{u64 z=x*y;}     -> z
+smo add(u64 x, u64 y) @body{u64 z=x+y;} -> z
+smo mul(u64 x, u64 y) @body{u64 z=x*y;} -> z
 smo div(u64 x, u64 y)
     if y==0:u64 @fail{printf("Division by zero\n");} --
     @head{#include <stdio.h>}
