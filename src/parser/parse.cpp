@@ -32,10 +32,11 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
         }
         if(next=="-") {parse_return(imp, p, next, types);end = p--; break;}
         string var = imp->at(p);
+        if(var=="=" && p<imp->size()-1 && imp->at(p+1)=="=") var = "";
         if(var=="." || var=="=") {
             var = next_var(imp, p, next, types, false);
             int assignment_start = p;
-            if(imp->at(p++)!="=") imp->error(p, "Missing assignment");
+            if(imp->at(p++)!="=") {--p;continue;}//imp->error(--p, "Missing assignment");
             next = imp->at(p++);
             string expression_outcome = parse_expression(imp, p, next, types);
             if(!expression_outcome.size()) imp->error(assignment_start, "The right-hand-side expression computes to no value");

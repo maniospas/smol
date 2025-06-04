@@ -13,7 +13,7 @@
 
 // g++ src/smolang.cpp -o smol -O2 -std=c++23 -Wall
 // g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
-// g++ main.cpp -o main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
+// g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
 enum class Task {
     Assemble,
@@ -64,9 +64,16 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                     if(impl->_is_primitive) continue;
                     if(!types.contains(name)) types.vars[name] = impl;
                     else {
-                        bool found = false;
-                        for(const auto& option : types.vars[name]->options) if(option==impl) {found=true;break;}
-                        if(!found && types.vars[name]!=impl && !impl->lazy_compile) types.vars[name]->options.push_back(impl);
+                        unordered_set<Type> options;
+                        for(const auto& option : types.vars[name]->options) options.insert(option);
+                        for(const auto& option : impl->options) options.insert(option);
+                        auto def = make_shared<Def>(types);
+                        all_types.push_back(def);
+                        def->imp = imp;
+                        def->lazy_compile = true;
+                        def->name = name;
+                        def->options = move(options);
+                        types.vars[name]  = def;
                     }
                 }
                 for(const auto& it : files[path].alignment_labels) types.alignment_labels[it.first] = it.second;
@@ -90,12 +97,12 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                         types.vars[def->name]->imp = imp;
                         types.vars[def->name]->lazy_compile = true;
                         types.vars[def->name]->name = prev->name;
-                        types.vars[def->name]->options.push_back(prev);
+                        types.vars[def->name]->options.insert(prev);
                     }
                     Def::log_depth = 0;
                     for(const auto& d : def->get_lazy_options(types)) {
                         if(d->lazy_compile) imp->error(--p, "Internal error: failed to compile "+d->signature(types));
-                        types.vars[def->name]->options.push_back(d);
+                        types.vars[def->name]->options.insert(d);
                     }
                     p--;
                     while(p<imp->size()-1) {
@@ -105,7 +112,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                     }
                     --p;
                 }
-                else types.vars[def->name]->options.push_back(def);
+                else types.vars[def->name]->options.insert(def);
             }
             else if(imp->at(p)=="union") {
                 string name = imp->at(++p);
@@ -123,7 +130,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                     if(found_type==types.vars.end()) imp->error(--p, "Undefined runtype");
                     for(const Type& option : found_type->second->options) {
                         if(option->lazy_compile) imp->error(--p, "Internal error: failed to compile runtype "+option->signature(types));
-                        def->options.push_back(option);
+                        def->options.insert(option);
                     }
                     next = imp->at(p++);
                     if(next==")") break;
@@ -181,7 +188,7 @@ int main(int argc, char* argv[]) {
     builtins.vars["buffer"]->internalTypes.vars["__size"] = builtins.vars["u64"];
     builtins.vars["buffer"]->internalTypes.vars["__offset"] = builtins.vars["u64"];
     builtins.vars["buffer"]->_is_primitive = false;
-    for(const auto& it : builtins.vars) it.second->options.push_back(it.second);
+    for(const auto& it : builtins.vars) it.second->options.insert(it.second);
     for(const auto& it : builtins.vars) all_types.push_back(it.second);
 
 

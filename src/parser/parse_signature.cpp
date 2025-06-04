@@ -33,20 +33,21 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         string arg_name = imp->at(p++);
         if(arg_name=="&") {mut = true;arg_name = imp->at(p++);}
         if(mut && is_service) imp->error(p-2, "Services do not accept values by reference\nThis ensures failsafe-compliant extensibility.\nDid you mean to declare a runtype instead?");
+        
+        if(!types.contains(next)) imp->error(--p, "Missing runtype: "+next);
+        if(next=="nom" && args.size()) imp->error(--p, "Misplaced align\nCan only be the first argument of a runtype\nor the argument of dependent runtypes");
+        Type argType = types.vars[next];
         if(arg_name=="," || arg_name==")") {
             arg_name = create_temp();
             --p;
         }
         if(!accepted_var_name(arg_name)) imp->error(--p, "Not a valid name");
         if(types.vars.find(arg_name)!=types.vars.end()) imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
-        if(next=="nom" && args.size()) imp->error(--p, "Misplaced align\nCan only be the first argument of a runtype\nor the argument of dependent runtypes");
-        if(!types.contains(next)) imp->error(--p, "Missing runtype: "+next);
-        Type argType = types.vars[next];
         if(argType->lazy_compile) {
             args.emplace_back(arg_name, argType, mut);
             internalTypes.vars[arg_name] = argType;
             parametric_types[argType->name] = argType;
-            for(const auto& it : argType->parametric_types) parametric_types[it.first] = it.second;
+            //for(const auto& it : argType->parametric_types) parametric_types[it.first] = it.second;
             this->lazy_compile = true; // indicate that we want to compile lazily with a second pass across all
         }
         else if(argType->not_primitive()) {
@@ -92,14 +93,14 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
     }
 }
 
-
 void Def::print_depth() {for(int i=0;i<log_depth;++i) cout<<"| "; }
-vector<Type> Def::get_options(Types& types) {return options;}
+unordered_set<Type> Def::get_options(Types& types) {return options;}
 void Def::signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current, const Types& types) {
     unordered_map<string, Type> next(current);
     if(i>=parametric_names.size()) {results.push_back(next);return;}
     // will always have a lazy compilation here
     string parametric_name = parametric_names[i];
+    //cout << "for name "<<parametric_name<<" will consider "<<types.vars.find(parametric_name)->second->options.size() << " options\n";
     if(current.find(parametric_name)!=current.end()) return signature_until_position(results, parametric_names, i+1, current, types);
     for(const Type& option : types.vars.find(parametric_name)->second->options) {
         if(!option) imp->error(pos, "Internal error: null option for "+parametric_name);
@@ -114,18 +115,12 @@ vector<Type> Def::get_lazy_options(Types& _types) {
     log_depth += 1;
 
     vector<string> parametric_names;
-    for(const auto& it : parametric_types) parametric_names.push_back(it.first);
-    // gather variations
+    for(const auto& it : parametric_types) {parametric_names.push_back(it.first);}
     vector<unordered_map<string, Type>> argoptions;
-    unordered_map<string, size_t> positions; // avoids setting again the same parameter and thus creating too many varations
     signature_until_position(argoptions, parametric_names, 0, unordered_map<string, Type>(), _types);
-    // iterate through variations
-    vector<Type> newOptions;
-    std::queue<unordered_map<string, Type>> processingQueue;
-    for (auto& opt : argoptions) processingQueue.push(opt);
-    argoptions.clear();
 
-    while(!processingQueue.empty()) {
+    vector<Type> newOptions;
+    for(const unordered_map<string, Type>& argoption : argoptions) {
         // create a copy of types
         Types types;
         types.vars.reserve(_types.vars.size());
@@ -135,19 +130,16 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         for(const auto& it : _types.alignment_labels) types.alignment_labels[it.first] = it.second;
         for(const auto& it : _types.reverse_alignment_labels) types.reverse_alignment_labels[it.first] = it.second;
 
-        // pop next option and apply it in the local types
-        auto argoption = processingQueue.front();
-        processingQueue.pop();
         int power = 0;
         for(const auto& it : argoption) {
             power += (it.second->choice_power+1)/2;
             if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first);
             if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first);
-            if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
+            //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
             if(it.second->lazy_compile) imp->error(pos, "Failed to previously compile type: "+types.vars[it.first]->signature(_types));
             if(!types.vars[it.first]->lazy_compile && types.vars[it.first]!=it.second) {
                 power = -1;
-                if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
+                //if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
                 break;
             }
             types.vars[it.first] = it.second;
@@ -156,9 +148,17 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         size_t p = pos;
         auto def = make_shared<Def>(types);
         def->retrievable_parameters = argoption;
-        all_types.push_back(def);
         log_depth += 1;
-        def->parse(imp, p, types);
+        try {def->parse(imp, p, types);}
+        catch(const runtime_error& e) {
+            string what = e.what();
+            log_depth -= 1;
+            const std::string expected = "\033[33m`with` with no `else`";
+            if(what.compare(0, expected.size(), expected) != 0) throw e;
+            //if(log_type_resolution) {print_depth();cout << "Skipped due to unprocessable `with` with no `else`\n";}
+            continue;
+        }
+        all_types.push_back(def);
         log_depth -= 1;
         if(args.size() && args[0].type && args[0].type->name=="nom") def->alignments[def->args[0].name] = types.alignment_labels[def.get()];
         if(def->lazy_compile) def->imp->error(def->pos, "Failed resolved all dependent types");
@@ -171,5 +171,6 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         _types.reverse_alignment_labels[_types.alignment_labels[def.get()]] = def.get();
     }
     log_depth -= 1;
+    if(newOptions.size()==0) imp->error(pos, "Failed to resolve to any valid version - check your `with` statements that have no `else`");
     return newOptions;
 }

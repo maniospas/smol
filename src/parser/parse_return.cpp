@@ -56,7 +56,7 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
         }
         p++;
         if(p>=imp->size()) {p=imp->size();return;}
-        if(imp->at(p)!=",") {--p;return;}
+        if(imp->at(p-1)!=",") {--p;return;}
         hasComma = true;
         p++;
     }

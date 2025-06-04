@@ -11,13 +11,14 @@ smo zero(Memory, u64 n)
  
 smo dot(allocate x, allocate y)
     if x.size!=y.size -> fail("Mismatching size")
-    with
-        i = 0
-        sum = x.Primitive:zero
-        while i<x.size
-            @next i = i+1 
-            sum = sum + x[i]*y[i]
-    -- else -----> sum // all closing statements
+    sum = x.Primitive:zero
+    i = 0
+    print(x[0])
+    while i<x.size
+        @next i = i+1 
+        with sum = sum + x[i]*y[i]
+        -- else --
+    ---> sum // all closing statements
 
 service main()
     n = 10000

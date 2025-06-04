@@ -278,15 +278,15 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             implementation += "goto "+finally_var+";\n";
             if(numberOfCandidates) competing = "\n"+imp->tokens[with_start].show();
         }
-        catch (const std::runtime_error& e) {
+        catch (const runtime_error& e) {
             string what = e.what();
             if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
             overloading_errors += "\n- ";
             overloading_errors += what;
             end_block(imp, p);
             next = imp->at(p++);
+            if(next!="else") imp->error(with_start, "`with` with no `else`\nCan guard parametric types but is a code smell otherwise");
         }
-        if(next!="else") imp->error(with_start, "\033[33mNeed at least one `else` statement to complement `with`");
         while(next=="else") {
             if(!numberOfCandidates) {
                 try {
@@ -502,8 +502,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             int num_choices = 0;
             int highest_choice_power = 0;
             string candidates("");
-            if(type->options.size()==1) {type = type->options[0];num_choices=1;}
-            else for(const auto& option : type->options) {
+            for(const auto& option : type->options) {
                 if(option->choice_power>highest_choice_power) {
                     highest_choice_power = option->choice_power;
                     num_choices = 0;
@@ -534,8 +533,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             int num_choices = 0;
             int highest_choice_power = 0;
             string candidates("");
-            if(type->options.size()==1) {type = type->options[0];num_choices=1;}
-            else for(const auto& option : type->options) {
+            for(const auto& option : type->options) {
                 if(option->choice_power>highest_choice_power) {
                     highest_choice_power = option->choice_power;
                     num_choices = 0;

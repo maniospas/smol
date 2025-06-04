@@ -78,7 +78,7 @@ public:
     bool _is_primitive;
     bool lazy_compile;
     static bool debug;
-    vector<Type> options;
+    unordered_set<Type> options;
     vector<Arg> args;
     shared_ptr<Import> imp;
     Memory internalTypes;
@@ -94,7 +94,7 @@ public:
     unordered_map<string, Type> buffer_primitive_associations;
     unordered_map<string, unsigned long> alignments;
     vector<string> uplifting_targets;
-    vector<Type> get_options(Types& types);
+    unordered_set<Type> get_options(Types& types);
     vector<Type> get_lazy_options(Types& types);
     unordered_set<string> type_trackers;
     void add_preample(const string& pre) {
