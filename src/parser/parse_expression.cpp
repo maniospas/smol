@@ -283,8 +283,9 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         }
         catch (const runtime_error& e) {
             string what = e.what();
-            if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
-            overloading_errors += "\n- ";
+            if(what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found") throw e;
+            if(Def::markdown_errors) overloading_errors += "\n";
+            else overloading_errors += "\n- ";
             overloading_errors += what;
             end_block(imp, p);
             next = imp->at(p++);
@@ -302,8 +303,9 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
                 }
                 catch (const std::runtime_error& e) {
                     string what = e.what();
-                    if(what.substr(0, string("\033[33mRuntype not found").size())!="\033[33mRuntype not found") throw e;
-                    overloading_errors += "\n- ";
+                    if(what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found") throw e;
+                    if(Def::markdown_errors) overloading_errors += "\n";
+                    else overloading_errors += "\n- ";
                     overloading_errors += what;
                     end_block(imp, p);
                 }
@@ -314,7 +316,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         }
         p--;
         if(numberOfCandidates>1) ERROR("Competes with previous branch of `with`"+competing);
-        if(numberOfCandidates==0) imp->error(with_start, "No valid branch of `with`"+overloading_errors);
+        if(numberOfCandidates==0) imp->error(with_start, "No valid branch of `with`"+string(Def::markdown_errors?"\n```rust":"")+overloading_errors+(Def::markdown_errors?"\n```\n":""));
 
         implementation += finally_var+":\n";
         uplifting_targets.pop_back();
