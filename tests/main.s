@@ -5,5 +5,8 @@
 
 service main()
     f = file("README.md")
-    nom:chunks(f, 4096, stack):while next(str chunk) print(chunk)
+    nom
+    :chunks(f, 4096, stack)
+    :while next(str chunk)
+        print(chunk)
     ----

@@ -70,8 +70,8 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
         }
     }
     type = successfullType;
-    if(!type && numberOfErrors) imp->error(first_token_pos, "Runtype not found among "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
-    if(!type) imp->error(first_token_pos, "Runtype not found: "+first_token+recommend_runtype(types, first_token));
+    if(!type && numberOfErrors) imp->error(first_token_pos, "Not found among "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
+    if(!type) imp->error(first_token_pos, "Not found: "+first_token+recommend_runtype(types, first_token));
     if(type->lazy_compile) imp->error(pos, "Internal error: Runtype has not been compiled");
 
     // repeat here to properly handle alignment (which we couldn't previously)
@@ -91,7 +91,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     }
 
 
-    if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of "+to_string(numberOfFound)+" acceptable runtypes with ["+to_string(unpacks.size())+"] structural arguments"+(markdown_errors?"\n```rust":"")+multipleFound+(markdown_errors?"\n```\n":""));
+    if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of ["+to_string(unpacks.size())+"] structural arguments - they match "+to_string(numberOfFound)+" candidates"+(markdown_errors?"\n```rust":"")+multipleFound+(markdown_errors?"\n```\n":""));
     if(inherit_buffer.size()) { // unpack buffer
         string arg = inherit_buffer;
         int remaining = (int)(type->args.size()-unpacks.size());
