@@ -45,8 +45,8 @@ smo next(chunks &self, str& value)
         ptr ret = bytes_read ? (ptr)self__reader__mem : 0;
         char first = ((char*)self__reader__mem)[0];
     }
-    value = nom:str(ret, bytes_read, first)
-    -> ret:bool
+    with value = nom:str(ret, bytes_read, first)
+    ---> ret:bool
 
 smo ended(file f)
     @head{#include <stdio.h>}

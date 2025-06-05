@@ -24,14 +24,16 @@ enum class Task {
 Task parse_task(const string& arg) {
     if (arg == "compile") return Task::Compile;
     if (arg == "verify") return Task::Verify;
+    if (arg == "lsp") {Def::markdown_errors=true; return Task::Verify;}
     if (arg == "run") return Task::Run;
     if (arg == "assemble") return Task::Assemble;
     throw invalid_argument("Unknown task: " + arg);
 }
 
 void codegen(unordered_map<string, Types>& files, string file, const Memory& builtins) {
-    auto imp = tokenize(file);
     Types& types = files[file];
+    if(types.vars.size()) return;
+    auto imp = tokenize(file);
     for(const auto& it : builtins.vars) types.vars[it.first] = it.second;
 
     stack<pair<string, int>> brackets;
@@ -57,22 +59,20 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                 while(p<imp->size()-1 && imp->at(p+1)==".") {p += 2;path += "/"+imp->at(p);}
                 path += ".s";
                 if(path==file) imp->error(p, "Circular include");
-                if(files.find(path)==files.end()) codegen(files, path, builtins);
+                codegen(files, path, builtins);
                 for(const auto& it : files[path].vars) {
                     const string& name = it.first;
                     Type impl = it.second;
                     if(impl->_is_primitive) continue;
                     if(!types.contains(name)) types.vars[name] = impl;
                     else {
-                        unordered_set<Type> options;
-                        for(const auto& option : types.vars[name]->options) options.insert(option);
-                        for(const auto& option : impl->options) options.insert(option);
                         auto def = make_shared<Def>(types);
+                        for(const auto& option : types.vars[name]->options) def->options.insert(option);
+                        for(const auto& option : impl->options) def->options.insert(option);
                         all_types.push_back(def);
                         def->imp = imp;
                         def->lazy_compile = true;
                         def->name = name;
-                        def->options = move(options);
                         types.vars[name]  = def;
                     }
                 }
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
         string arg = argv[i];
         if (arg == "--log") log_type_resolution = true;
         else if (arg == "--task") {
-            if(i + 1 >= argc) {cerr << "Error: --task requires an argument (compile, verify, run)" << endl;return 1;}
+            if(i + 1 >= argc) {cerr << "Error: --task requires an argument (compile, verify, run, lsp)" << endl;return 1;}
             try {selected_task = parse_task(argv[++i]); } 
             catch (const invalid_argument& e) {cerr << "Error: " << e.what() << endl; return 1;}
         } 

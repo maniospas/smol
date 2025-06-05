@@ -279,12 +279,13 @@ function runCompilerAndSendDiagnostics(document) {
     state.debounceTimer = null;
     const tempFilePath = path.join(os.tmpdir(), `smol_${randomUUID()}.s`);
     fs.writeFileSync(tempFilePath, text, "utf8");
-    const proc = spawn("./smol", [tempFilePath, "--task", "verify"]);
+    const proc = spawn("./smol", [tempFilePath, "--task", "lsp"]);
     let stderr = "";
     proc.stderr.on("data", chunk => {stderr += chunk.toString();});
     proc.on("close", () => {
       const lines = stderr.split(/\r?\n/);
       const diagnostics = [];
+      const diagnostics_no_text = [];
       let messageLines = [];
       for(let i = 0; i < lines.length - 2; i++) {
         const line = lines[i].trim();
@@ -307,6 +308,15 @@ function runCompilerAndSendDiagnostics(document) {
             message,
             source: "smol"
           });
+          diagnostics_no_text.push({
+            severity: 1,
+            range: {
+              start: { line: lineNum, character: colNum },
+              end: { line: lineNum, character: colNum + tokenLength }
+            },
+            message: "ERROR",
+            source: "smol"
+          });
           i += 2;
           messageLines = [];
         } 
@@ -314,7 +324,8 @@ function runCompilerAndSendDiagnostics(document) {
       }
       try {fs.unlinkSync(tempFilePath);} 
       catch(e) {console.error("Failed to remove temp file:", tempFilePath);}
-      connection.sendDiagnostics({ uri, diagnostics });
+      connection.sendNotification("smolambda/htmlNotification", { uri, diagnostics });
+      connection.sendDiagnostics({ uri, diagnostics: diagnostics_no_text });
       if(state.rerunRequested) {
         state.rerunRequested = false;
         state.running = false;
@@ -324,14 +335,14 @@ function runCompilerAndSendDiagnostics(document) {
     });
   }, 300);
   function stripAnsi(line) {
-    return line
-      .replace(/\x1b\[31m/g, "")
-      .replace(/\x1b\[32m/g, "")
-      .replace(/\x1b\[33m/g, "")
-      .replace(/\x1b\[34m/g, "")
-      .replace(/\x1b\[35m/g, "")
-      .replace(/\x1b\[36m/g, "")
-      .replace(/\x1b\[0m/g, "");
+    return line 
+      .replace(/\x1b\[31m/g, '')
+      .replace(/\x1b\[32m/g, '')
+      .replace(/\x1b\[33m/g, '')
+      .replace(/\x1b\[34m/g, '')
+      .replace(/\x1b\[35m/g, '')
+      .replace(/\x1b\[36m/g, '')
+      .replace(/\x1b\[0m/g, '');
   }
 }
 

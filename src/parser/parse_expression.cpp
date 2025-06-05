@@ -57,17 +57,20 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
             if(equivalentTypes) continue;
             */
             successfullType = type;
-            multipleFound += "\n- "+type->signature(types);
+            if(markdown_errors) multipleFound += "\n";
+            else multipleFound += "\n- ";
+            multipleFound += type->signature(types);
             numberOfFound++;
         }
         catch (const std::runtime_error& e) {
-            overloading_errors += "\n- ";
+            if(markdown_errors) overloading_errors += "\n";
+            else overloading_errors += "\n- ";
             overloading_errors += e.what();
             numberOfErrors++;
         }
     }
     type = successfullType;
-    if(!type && numberOfErrors) imp->error(first_token_pos, "Runtype not found among "+to_string(numberOfErrors)+" candidates"+overloading_errors);
+    if(!type && numberOfErrors) imp->error(first_token_pos, "Runtype not found among "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
     if(!type) imp->error(first_token_pos, "Runtype not found: "+first_token+recommend_runtype(types, first_token));
     if(type->lazy_compile) imp->error(pos, "Internal error: Runtype has not been compiled");
 
@@ -88,7 +91,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     }
 
 
-    if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of "+to_string(numberOfFound)+" acceptable runtypes"+multipleFound);
+    if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of "+to_string(numberOfFound)+" acceptable runtypes with ["+to_string(unpacks.size())+"] structural arguments"+(markdown_errors?"\n```rust":"")+multipleFound+(markdown_errors?"\n```\n":""));
     if(inherit_buffer.size()) { // unpack buffer
         string arg = inherit_buffer;
         int remaining = (int)(type->args.size()-unpacks.size());

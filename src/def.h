@@ -72,6 +72,7 @@ class Def {
     string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Types& types, string curry="");
     unordered_map<string, Type> retrievable_parameters;
 public:
+    static bool markdown_errors;
     static int log_depth;
     int choice_power;
     bool is_service;
@@ -135,5 +136,6 @@ public:
 
 int Def::temp = 0;
 bool Def::debug = false;
+bool Def::markdown_errors = false;
 
 #endif // DEF_H

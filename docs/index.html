@@ -1345,9 +1345,30 @@ service main()
 <pre><code class="language-smolambda">@include std.builtins
 @include std.mem
 
+smo zero(Memory, u64 n)
+    v = nom:allocate(Memory, n, f64)
+    i = 0 
+    while i&lt;n
+        @next i = i+1
+        v:put(i, 0.0)
+    ---&gt; v
+ 
+smo dot(allocate x, allocate y)
+    if x.size!=y.size -> fail("Mismatching size")
+    sum = x.Primitive:zero
+    i = 0
+    while i<x.size
+        @next i = i+1 
+        with sum = sum + x[i]*y[i]
+    -- else -----&gt; sum // all closing statements
+
 service main()
-    p = heap:allocate(1024, char) // allocates 1024 bytes
-    @delete p
+    n = 10000
+    x = heap:zero(n)
+    y = heap:zero(n)
+    x:put(0, 0.1)
+    y:put(0, 0.2)
+    print(dot(x,y))
     --
 </code></pre>
 

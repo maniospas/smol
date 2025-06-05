@@ -31,6 +31,8 @@ let dashDecoration2 = vscode.window.createTextEditorDecorationType({
   rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
 });
 
+const fileDiagnostics = new Map();
+
 let client = null;
 async function activate(context) {
   // vscode.window.showInformationMessage("Starting smoλ language server.");
@@ -65,6 +67,9 @@ async function activate(context) {
       editor.setDecorations(arrowDecoration, arrowRanges);
       //editor.setDecorations(dashDecoration2, dashRanges);
     });
+
+
+    client.onNotification("smolambda/htmlNotification", ({ uri, diagnostics }) => {fileDiagnostics.set(uri, diagnostics);});
   } 
   catch (err) {
     vscode.window.showErrorMessage(`Smoλ language server failed to start: ${err.message}`);
@@ -72,6 +77,29 @@ async function activate(context) {
   }
   context.subscriptions.push({ dispose: () => client?.stop() });
 }
+
+
+vscode.languages.registerHoverProvider("smolambda", {
+  provideHover(document, position, token) {
+    const line = position.line;
+    const text = document.lineAt(line).text;
+    const uri = document.uri.toString();
+    const diagnostic = (fileDiagnostics.get(uri) || []).find(d => {
+      const start = d.range.start;
+      const end = d.range.end;
+      return (
+        (position.line > start.line || (position.line === start.line && position.character >= start.character)) &&
+        (position.line < end.line || (position.line === end.line && position.character <= end.character))
+      );
+    });
+    const markdown = new vscode.MarkdownString();
+    markdown.appendCodeblock(text.trim(), "rust");
+    if (diagnostic) markdown.appendMarkdown("\n\n---\n\n" + diagnostic.message);
+    markdown.isTrusted = true;
+    return new vscode.Hover(markdown);
+  }
+});
+
 
 function deactivate() { return client?.stop();}
 module.exports = {activate,deactivate};
