@@ -102,8 +102,9 @@ void Def::signature_until_position(vector<unordered_map<string, Type>>& results,
     string parametric_name = parametric_names[i];
     //cout << "for name "<<parametric_name<<" will consider "<<types.vars.find(parametric_name)->second->options.size() << " options\n";
     if(current.find(parametric_name)!=current.end()) return signature_until_position(results, parametric_names, i+1, current, types);
-    for(const Type& option : types.vars.find(parametric_name)->second->options) {
-        if(!option) imp->error(pos, "Internal error: null option for "+parametric_name);
+    auto& arg_options = types.vars.find(parametric_name)->second->options;
+    for(const Type& option : arg_options) {
+        if(option->alias_for.size() && arg_options.find(option->internalTypes.vars[option->alias_for])!=arg_options.end()) continue;
         next[parametric_name] = option;
         signature_until_position(results, parametric_names, i+1, next, types);
     }
@@ -132,14 +133,14 @@ vector<Type> Def::get_lazy_options(Types& _types) {
 
         int power = 0;
         for(const auto& it : argoption) {
-            power += (it.second->choice_power+1)/2;
+            if(power<it.second->choice_power) power = it.second->choice_power;
             if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first);
             if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first);
-            //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
+            if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
             if(it.second->lazy_compile) imp->error(pos, "Failed to previously compile type: "+types.vars[it.first]->signature(_types));
             if(!types.vars[it.first]->lazy_compile && types.vars[it.first]!=it.second) {
                 power = -1;
-                //if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
+                if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
                 break;
             }
             types.vars[it.first] = it.second;
@@ -155,7 +156,7 @@ vector<Type> Def::get_lazy_options(Types& _types) {
             log_depth -= 1;
             const std::string expected = "\033[33m`with` with no `else`";
             if(what.compare(0, expected.size(), expected) != 0) throw e;
-            //if(log_type_resolution) {print_depth();cout << "Skipped due to unprocessable `with` with no `else`\n";}
+            if(log_type_resolution) {print_depth();cout << "Skipped due to unprocessable `with` with no `else`\n";}
             continue;
         }
         all_types.push_back(def);
@@ -171,6 +172,6 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         _types.reverse_alignment_labels[_types.alignment_labels[def.get()]] = def.get();
     }
     log_depth -= 1;
-    if(newOptions.size()==0) imp->error(pos, "Failed to resolve to any valid version - check your `with` statements that have no `else`");
+    if(newOptions.size()==0) imp->error(pos, "Failed to resolve to any valid version\nCheck your `with` statements that have no `else`\nor if you have runtypes with the same name that do not wrap each other");
     return newOptions;
 }
