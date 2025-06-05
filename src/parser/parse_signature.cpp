@@ -172,6 +172,6 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         _types.reverse_alignment_labels[_types.alignment_labels[def.get()]] = def.get();
     }
     log_depth -= 1;
-    if(newOptions.size()==0) imp->error(pos, "Failed to resolve to any valid version\nCheck your `with` statements that have no `else`\nor if you have runtypes with the same name that do not wrap each other");
+    if(newOptions.size()==0) imp->error(pos, "Failed to resolve to any valid version\nCheck your `with` statements that have no `else`\nor if you have runtypes that serve as constructors of others with the same name or in the same union");
     return newOptions;
 }
