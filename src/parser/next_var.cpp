@@ -88,7 +88,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 type_trackers.insert(next);
             }*/
             else {
-                if(type_trackers.find(next)!=type_trackers.end())imp->error(--p, "Cannot retrieve fields or non-dependent runtypes from "+internalTypes.vars[next]->signature(types));
+                if(type_trackers.find(next)!=type_trackers.end())imp->error(--p, "Not found "+next_token+" in "+internalTypes.vars[next]->signature(types));
                 //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
                 next += "__"+next_token;
                 if(p>=n) return first_token;

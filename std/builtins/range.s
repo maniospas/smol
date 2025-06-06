@@ -16,7 +16,12 @@
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
 @include std.builtins.num
-@include std.builtins.str
-@include std.builtins.err
-@include std.builtins.range
+
+smo range(u64 start, u64 end, u64 step) -> @new
+smo range(u64 start, u64 end) -> range(start,end,1)
+smo range(u64 end) -> range(0,end,1)
+smo next(range& self, u64& value) 
+    value = self.start 
+    self.start = self.start+1
+    -> (self.start)<=(self.end) 
 

@@ -506,6 +506,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             //|| types.vars.find(imp->at(p))!=types.vars.end() || (imp->at(p)=="-" && p<imp->size()-1 && (imp->at(p+1)=="-" || imp->at(p+1)==">"))) {
             int num_choices = 0;
             int highest_choice_power = 0;
+            if(parametric_types.find(type->name)!=parametric_types.end()) type = parametric_types[type->name];
             string candidates("");
             for(const auto& option : type->options) {
                 if(option->choice_power>highest_choice_power) {
@@ -535,6 +536,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         else if(p<imp->size()-1 && (imp->at(p+1)==")" || imp->at(p+1)==",") && imp->at(p)!="("){
             string var = imp->at(p++);
             if(internalTypes.contains(var)) imp->error(--p, "Cannot redeclare local variable "+internalTypes.vars[var]->name+" "+pretty_var(var));
+            if(parametric_types.find(type->name)!=parametric_types.end()) type = parametric_types[type->name];
             int num_choices = 0;
             int highest_choice_power = 0;
             string candidates("");
