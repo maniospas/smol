@@ -59,6 +59,11 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                 while(p<imp->size()-1 && imp->at(p+1)==".") {p += 2;path += "/"+imp->at(p);}
                 path += ".s";
                 if(path==file) imp->error(p, "Circular include");
+                {
+                    ifstream file(path);
+                    if (!file) imp->error(p, "Could not open file: " + path);
+                }
+
                 codegen(files, path, builtins);
 
                 unordered_set<string> filter;
@@ -93,7 +98,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                 }
                 for(const auto& it : files[path].alignment_labels) types.alignment_labels[it.first] = it.second;
                 for(const auto& it : files[path].reverse_alignment_labels) types.reverse_alignment_labels[it.first] = it.second;
-                if(files[path].all_errors.size()) imp->error(p, "Errors in included file: "+path);
+                if(files[path].all_errors.size()) if(Def::markdown_errors) imp->error(p, "Errors in included file: "+path);
                 p++;
                 continue;
             }

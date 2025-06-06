@@ -31,7 +31,7 @@ smo fail(cstr error)
 
 smo fail(str error)
     @head{#include <stdio.h>}
-    @fail {printf("%s\n", (char*)error____contents);}
+    @fail {printf("%s\n", (char*)error__contents);}
     --
 
 smo print(errcode error)

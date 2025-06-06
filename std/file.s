@@ -17,7 +17,7 @@
 
 @include std.builtins.num
 @include std.builtins.str
-@include std.builtins.err
+@include std.builtins.err 
 @include std.mem
 
 smo file(nom, ptr contents) -> @new
@@ -47,6 +47,23 @@ smo next(chunks &self, str& value)
     }
     with value = nom:str(ret, bytes_read, first)
     ---> ret:bool
+
+smo lines(nom type, file &f, u64 max_line_length, Memory)
+    reader = nom:allocate(Memory, max_line_length, char)
+    -> type, f, reader
+    
+smo next(lines &self, str& value)
+    @head{#include <stdio.h>}
+    @head{#include <string.h>}
+    @head{#include <stdlib.h>}
+    @body{
+        ptr ret = (ptr)fgets((char*)self__reader__mem, self__reader__size, (FILE*)self__f__contents);
+        u64 bytes_read = ret ? strlen((char*)ret) : 0;
+        char first = ((char*)self__reader__mem)[0];
+    }
+    with value = nom:str(ret, bytes_read, first)
+    ---> ret:bool
+
 
 smo ended(file f)
     @head{#include <stdio.h>}

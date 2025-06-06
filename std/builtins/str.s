@@ -106,6 +106,16 @@ smo print(str message)
     @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
     --
 
+smo printin(cstr message)
+    @head{#include <stdio.h>}
+    @body{printf("%s", message);}
+    --
+
+smo printin(str message)
+    @head{#include <stdio.h>}
+    @body{printf("%.*s", (int)message__length, (char*)message__contents);}
+    --
+
 smo null_terminated(str s)
     @body{
         ptr scstr = malloc(s__length+1);

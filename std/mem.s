@@ -1,12 +1,12 @@
 @include std.builtins.num
 @include std.builtins.err
 
-smo stack(nom) -> @new
+smo stack(nom) -> @new 
 smo heap(nom) -> @new
-union Memory (stack, heap)
-smo memory(stack,heap) --
+smo memory(stack,heap) -- // provides memory.stack and memory.heap
+union Memory(stack, heap)
 
-union Primitive (char, u64, f64, i64)
+union Primitive(char, u64, f64, i64)
 smo zero(Primitive) -> 0:Primitive // basically Primitive(0)
 
 // Create parametetric calls with unions or overloaded types.
