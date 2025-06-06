@@ -4,6 +4,8 @@
 smo stack(nom) -> @new
 smo heap(nom) -> @new
 union Memory (stack, heap)
+smo memory(stack,heap) --
+
 union Primitive (char, u64, f64, i64)
 smo zero(Primitive) -> 0:Primitive // basically Primitive(0)
 

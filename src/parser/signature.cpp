@@ -29,7 +29,7 @@ string Def::signature(Types& types) {
         }
         else ret += ""+pretty_runtype(args[i].type->name)+""+(args[i].mut?"\033[31m&\033[0m":"");
     }
-    if(lazy_compile) return "\033[32m:"+name+"\033[0m("+ret+")->\033[31munresolved\033[0m";
+    if(lazy_compile) return "\033[32m:"+name+"\033[0m("+ret+")->\033[31munresolved (overload or union)\033[0m";
     return "\033[32m:"+name+"\033[0m("+ret+")->"+pretty_runtype(name)+signature_like(types, packs)+"";
 }
 

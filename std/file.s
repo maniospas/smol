@@ -41,7 +41,7 @@ smo next(chunks &self, str& value)
     @head{#include <stdlib.h>}
     @body{
         u64 bytes_read = fread((char*)self__reader__mem, 1, self__reader__size, (FILE*)self__f__contents);
-        if(!bytes_read) ((char*)self__reader__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility
+        if(!bytes_read) ((char*)self__reader__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
         ptr ret = bytes_read ? (ptr)self__reader__mem : 0;
         char first = ((char*)self__reader__mem)[0];
     }

@@ -51,6 +51,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             this->lazy_compile = true; // indicate that we want to compile lazily with a second pass across all
         }
         else if(argType->not_primitive()) {
+            retrievable_parameters[argType->name] = argType;
             internalTypes.vars[arg_name] = argType;
             if(autoconstruct) for(const auto& it : argType->args) {
                 args.emplace_back(arg_name+"__"+it.name, it.type, mut);
@@ -81,6 +82,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             }
         }
         else {
+            retrievable_parameters[argType->name] = argType;
             args.emplace_back(arg_name, argType, mut);
             internalTypes.vars[arg_name] = argType;
             if(argType->name=="nom") {
@@ -136,11 +138,11 @@ vector<Type> Def::get_lazy_options(Types& _types) {
             if(power<it.second->choice_power) power = it.second->choice_power;
             if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first);
             if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first);
-            if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
+            //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
             if(it.second->lazy_compile) imp->error(pos, "Failed to previously compile type: "+types.vars[it.first]->signature(_types));
             if(!types.vars[it.first]->lazy_compile && types.vars[it.first]!=it.second) {
                 power = -1;
-                if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
+                //if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
                 break;
             }
             types.vars[it.first] = it.second;
@@ -156,7 +158,7 @@ vector<Type> Def::get_lazy_options(Types& _types) {
             log_depth -= 1;
             const std::string expected = "\033[33m`with` with no `else`";
             if(what.compare(0, expected.size(), expected) != 0) throw e;
-            if(log_type_resolution) {print_depth();cout << "Skipped due to unprocessable `with` with no `else`\n";}
+            //if(log_type_resolution) {print_depth();cout << "Skipped due to unprocessable `with` with no `else`\n";}
             continue;
         }
         all_types.push_back(def);
@@ -165,7 +167,10 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         if(def->lazy_compile) def->imp->error(def->pos, "Failed resolved all dependent types");
         def->choice_power += power;
         newOptions.push_back(def);
-        if(log_type_resolution) {print_depth();cout << def->signature(types) <<"\n";}
+        if(log_type_resolution) {
+            print_depth();cout << def->signature(types) <<"\n";
+            for(const auto& it : argoption) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" is "<<it.second->signature(_types)<<"\n";}
+        }
 
         // get back the alignment labels to the real type
         _types.alignment_labels[def.get()] = types.alignment_labels[def.get()];

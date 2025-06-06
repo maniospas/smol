@@ -60,11 +60,26 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                 path += ".s";
                 if(path==file) imp->error(p, "Circular include");
                 codegen(files, path, builtins);
+
+                unordered_set<string> filter;
+                if(p<imp->size()-1 && imp->at(p+1)=="-") {
+                    p += 2;
+                    if(imp->at(p++)!=">") imp->error(--p, "Expecting -> to import specific symbols");
+                    while(p<imp->size()-1) {
+                        if(files[path].vars.find(imp->at(p))==files[path].vars.end()) imp->error(p, "Could not import "+imp->at(p)+" from "+path);
+                        filter.insert(imp->at(p++));
+                        if(imp->at(p)!=",") {--p;break;}
+                        p++;
+                    }
+                }
+
                 for(const auto& it : files[path].vars) {
                     const string& name = it.first;
+                    if(filter.size() && filter.find(name)==filter.end()) continue;
                     Type impl = it.second;
                     if(impl->_is_primitive) continue;
                     if(!types.contains(name)) types.vars[name] = impl;
+                    else if(types.vars[name]==impl) {}
                     else {
                         auto def = make_shared<Def>(types);
                         for(const auto& option : types.vars[name]->options) def->options.insert(option);
@@ -214,6 +229,7 @@ int main(int argc, char* argv[]) {
             if(included[file].all_errors.size()) ERROR("Aborted due to the above errors\n");
             if(selected_task==Task::Verify) {cout << "\033[30;42m OK \033[0m " + file + "\n"; continue;}
             string globals = 
+                //"#undef _FORTIFY_SOURCE"
                 "#include <cstring>\n"
                 "#define __IS_i64 1\n"
                 "#define __IS_f64 2\n"
