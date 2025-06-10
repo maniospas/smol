@@ -95,6 +95,8 @@ public:
     unordered_map<string, Type> buffer_primitive_associations;
     unordered_map<string, unsigned long> alignments;
     vector<string> uplifting_targets;
+    vector<bool> uplifiting_is_loop;
+    unordered_map<string, string> invalidators;
     unordered_set<Type> get_options(Types& types);
     vector<Type> get_lazy_options(Types& types);
     unordered_set<string> type_trackers;

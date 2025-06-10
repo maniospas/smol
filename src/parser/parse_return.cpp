@@ -86,6 +86,7 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
                     packs.push_back(pack);
                     if(internalTypes.contains(pack) && internalTypes.vars[pack]->name=="nom" && !alignments[pack]) imp->error(--p, "You are returning an unset align "+pretty_var(pack)+"\nAdd an align first variable to the signature and return that instead");
                 }
+                for(const auto& it : internalTypes.vars[next]->finals) finals[it.first] += it.second;
             }
             else {
                 if(internalTypes.vars[next]->name=="buffer") imp->error(--p, "Cannot return a buffer alongside other values");

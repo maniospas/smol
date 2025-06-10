@@ -50,5 +50,9 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
         else parse_expression(imp, p, next, types);
     }
     for(const string& var : next_assignments) assign_variable(internalTypes.vars["__next__"+var], var, "__next__"+var, imp, p);
-    if(with_signature) {internalTypes.vars["__end"] = types.vars["__label"];implementation += "__end:\n";}
+    if(with_signature) {
+        internalTypes.vars["__end"] = types.vars["__label"];implementation += "__end:\n";
+        for(const auto& it : invalidators) if(it.second.size()) finals[it.first] = it.second;
+        invalidators.clear();
+    }
 }

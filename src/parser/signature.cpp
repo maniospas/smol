@@ -4,11 +4,11 @@ string Def::signature_like(Types& types, vector<string> args) {
     string ret("");
     for(size_t i=0;i<args.size();++i) {
         if(ret.size()) ret += ",";
-        if(alignments[args[i]] && types.reverse_alignment_labels[alignments[args[i]]]!=this && types.reverse_alignment_labels[alignments[args[i]]]->packs.size()>=1) {
+        /*if(alignments[args[i]] && types.reverse_alignment_labels[alignments[args[i]]]!=this && types.reverse_alignment_labels[alignments[args[i]]]->packs.size()>=1) {
             ret += pretty_runtype(types.reverse_alignment_labels[alignments[args[i]]]->name)+""+"["+to_string(types.reverse_alignment_labels[alignments[args[i]]]->packs.size())+"]";
             i += types.reverse_alignment_labels[alignments[args[i]]]->packs.size()-1;
         }
-        else ret += ""+pretty_runtype(internalTypes.vars[args[i]]->name);
+        else*/ ret += ""+pretty_runtype(internalTypes.vars[args[i]]->name);
     }
     return "("+ret+")";
 }

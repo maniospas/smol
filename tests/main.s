@@ -7,8 +7,8 @@ service main()
     endl = "\n":str.first
     nom
     :lines(f, 4096, memory.heap)
-    :while next(str line) 
-        if line:len:bool and (line[line:len-1]!=endl) and f:ended:not-> fail("Line exceeded character limit")
+    :while next(str line)
+        if line:len:bool and (line[line:len-1]!=endl) and f:ended:not -> fail("Line exceeded character limit")
         printin("line: ")
         printin(line)
         --

@@ -22,6 +22,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     for(size_t i=0;i<unpacks.size();++i) if(!internalTypes.contains(unpacks[i])) imp->error(p-3, "Missing symbol: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
     
     for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
+        if(!type) imp->error(--p, "Internal error: obained a null option for "+previousType->name);
         try {
             //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
             size_t type_args = type->not_primitive()?type->args.size():1;
@@ -121,6 +122,51 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
         }
         implementation += arg+"____offset += "+to_string(remaining)+";\n";
     }
+
+
+    for(const string& pack : type->packs) type->coallesce_finals(pack);
+    auto transfer_finals = type->finals;
+    unordered_map<string, string> transferring;
+    for(const string& pack : type->packs) if(type->finals[pack].size()) {
+        finals[var+"__"+pack] += type->rebase(type->finals[pack], var);
+        transferring[var+"__"+pack] = finals[var+"__"+pack];
+        transfer_finals[pack] = "";
+    }
+    for(const auto& arg : type->args) if(arg.mut && type->finals[arg.name].size()) {
+        finals[var+"__"+arg.name] += type->rebase(type->finals[arg.name], var);
+        transferring[var+"__"+arg.name] = finals[var+"__"+arg.name];
+        transfer_finals[arg.name] = "";
+    }
+
+    // prevent memory leaks in loops
+    if(uplifiting_is_loop.size() && uplifiting_is_loop.back() && type->finals.size()) {
+        string desc("");
+        /*for(const string& final_name : type->packs) if(type->internalTypes.contains(final_name) &&  type->finals.find(final_name)!=type->finals.end()){
+            bool unpacks_ptr = type->internalTypes.vars[final_name]->name=="ptr";
+            if(unpacks_ptr) 
+                for(const string& pack : type->internalTypes.vars[final_name]->packs) 
+                    if(type->internalTypes.vars[final_name]->internalTypes.contains(pack)) {
+                        if(type->internalTypes.vars[final_name]->internalTypes.vars[pack]->name=="ptr") {unpacks_ptr=true;break;}
+                    }
+            if(unpacks_ptr) desc += "\n- in teturn value "+pretty_var(type->name+"."+final_name);
+        }
+        for(const auto& arg : type->args) if(arg.mut) {
+            const string& final_name = arg.name;
+            if(type->internalTypes.contains(final_name) &&  type->finals.find(final_name)!=type->finals.end()){
+                bool unpacks_ptr = type->internalTypes.vars[final_name]->name=="ptr";
+                if(unpacks_ptr) 
+                    for(const string& pack : type->internalTypes.vars[final_name]->packs) 
+                        if(type->internalTypes.vars[final_name]->internalTypes.contains(pack)) {
+                            if(type->internalTypes.vars[final_name]->internalTypes.vars[pack]->name=="ptr") {unpacks_ptr=true;break;}
+                        }
+                if(unpacks_ptr) desc += "\n- in argument by reference "+pretty_var(type->name+"."+final_name);
+            }
+        }*/
+        for(const auto& it : transferring) if(it.first.size() && it.second.size()) desc += "\n- "+pretty_var(type->name+"."+it.first);
+        if(desc.size()) imp->error(--p, "Loop cannot call: "+type->signature(types)+"\nThis could leak the following resources:"+desc);
+    }
+
+    // make actual call
     if(type->is_service) {
         var = create_temp();
         // vardecl += "errcode "+var+"__err = 0;\n";
@@ -172,12 +218,14 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
             buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[var+"__"+type->args[i].name];
         }
     }
+    for(const auto& final : transfer_finals) immediate_finals += type->rebase(final.second, var);
+
     internalTypes.vars[var] = type->alias_for.size()?type->internalTypes.vars[type->alias_for]:type;
     implementation += type->rebase(type->implementation, var);
     implementation += immediate_finals;
     for(const string& pre : type->preample) add_preample(type->rebase(pre, var));
 
-    for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); 
+    //for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); // splt into immediate and delayed finals
     //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
     errors = errors+type->rebase(type->errors, var);
     for(const auto& it : type->current_renaming) current_renaming[var+"__"+it.first] = var+"__"+it.second;
@@ -202,6 +250,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         string finally_var = temp+"__if";
         string closeif_var = temp+"__fi";
         uplifting_targets.push_back(finally_var);
+        uplifiting_is_loop.push_back(false);
         internalTypes.vars[finally_var] = types.vars["__label"];
         internalTypes.vars[closeif_var] = types.vars["__label"];
         string next = imp->at(p++);
@@ -236,6 +285,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         }
         else implementation += finally_var+":\n"+closeif_var+":\n";
         uplifting_targets.pop_back();
+        uplifiting_is_loop.pop_back();
         if(internalTypes.contains(finally_var+"r")) {
             if(else_var.size()==0) imp->error(first_token_pos, "There was a non-empty return "+internalTypes.vars[finally_var+"r"]->name+" `if` but no `else` statement for the alternative"); 
             return finally_var+"r";
@@ -246,6 +296,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         string temp = create_temp();
         string finally_var = temp+"__while";
         uplifting_targets.push_back(finally_var);
+        uplifiting_is_loop.push_back(true);
         string start_var = temp+"__loop";
         internalTypes.vars[start_var] = types.vars["__label"];
         internalTypes.vars[finally_var] = types.vars["__label"];
@@ -260,6 +311,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         implementation += "goto "+start_var+";\n";
         implementation += finally_var+":\n";
         uplifting_targets.pop_back();
+        uplifiting_is_loop.pop_back();
         return "";
     }
     if(first_token=="with") { // TODO: this implementation does not account for nesting
@@ -270,6 +322,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         string competing = "";
         int with_start = p-1;
         uplifting_targets.push_back(finally_var);
+        uplifiting_is_loop.push_back(false);
         internalTypes.vars[finally_var] = types.vars["__label"];
         string next;
         try {
@@ -283,7 +336,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         }
         catch (const runtime_error& e) {
             string what = e.what();
-            if(what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found") throw e;
+            if(what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found" && (what.substr(0, string("\033[33mMissing symbol").size())!="\033[33mMissing symbol")) throw e;
             if(Def::markdown_errors) overloading_errors += "\n";
             else overloading_errors += "\n- ";
             overloading_errors += what;
@@ -320,6 +373,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
 
         implementation += finally_var+":\n";
         uplifting_targets.pop_back();
+        uplifiting_is_loop.pop_back();
         return "";
     }
 

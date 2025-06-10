@@ -15,6 +15,8 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
+union Number (u64, f64, i64)
+
 smo print(f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f\n", message);}
@@ -78,8 +80,8 @@ smo div(u64 x, u64 y)
     -> z
 smo sub(u64 x, u64 y)
     if y>x  @fail{printf("Unsigned substraction yielded a negative\n");} --
-     @body{u64 z=x-y;}
-     -> z
+    @body{u64 z=x-y;}
+    -> z
 smo mod(u64 x, u64 y) @body{u64 z=x%y;} -> z
 
 smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z

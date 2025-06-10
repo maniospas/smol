@@ -163,7 +163,7 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         }
         all_types.push_back(def);
         log_depth -= 1;
-        if(args.size() && args[0].type && args[0].type->name=="nom") def->alignments[def->args[0].name] = types.alignment_labels[def.get()];
+        //if(args.size() && args[0].type && args[0].type->name=="nom") def->alignments[def->args[0].name] = types.alignment_labels[def.get()];
         if(def->lazy_compile) def->imp->error(def->pos, "Failed resolved all dependent types");
         def->choice_power += power;
         newOptions.push_back(def);

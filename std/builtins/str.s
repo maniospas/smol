@@ -95,6 +95,12 @@ smo str(cstr raw)
         char first=raw[0];
     }
     -> nom:str(contents, length, first)
+smo str(bool value) 
+    @head{cstr __truestr = "true";}
+    @head{cstr __falsestr = "false";}
+    if value @body{cstr _contents=__truestr;} --
+    else @body{cstr _contents=__falsestr;} --
+    -> str(_contents)
 
 smo print(cstr message)
     @head{#include <stdio.h>}
@@ -137,7 +143,6 @@ smo slice(str s, u64 from, u64 to)
         char first = from==to?'\0':((char*)s__contents)[from];
     }
     -> nom:str(contents, to-from, first)
-smo slice(cstr s, u64 from, u64 to) -> s:str:slice(from, to)
 smo slice(str s, u64 from) 
     if from>=s.length @fail{printf("String slice start is out of bounds\n");} --
     @body{
@@ -145,7 +150,6 @@ smo slice(str s, u64 from)
         char first = from+1==s__length?'\0':((char*)contents)[from];
     }
     -> nom:str(contents, s.length-from, first)
-smo slice(cstr s, u64 from) -> s:str:slice(from)
 
 smo eq(char x, char y)  @body{bool z=(x==y);} -> z
 smo neq(char x, char y) @body{bool z=(x!=y);} -> z
@@ -177,14 +181,13 @@ smo add(str x, str y)
         u64 len_x = x__length;
         u64 len_y = y__length;
         u64 total_len = len_x + len_y;
-        ptr dealloc = _contents;
         ptr _contents = malloc(total_len);
         if(_contents) {
             memcpy((char*)_contents, (char*)x__contents, len_x);
             memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
         }
-        if(dealloc) free(dealloc);
     }
+    if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
     @finally _contents {if(_contents)free(_contents);_contents=0;}
     -> nom:str(_contents, len_x + len_y, x.first)
 
@@ -195,14 +198,13 @@ smo add(str x, cstr y)
         u64 len_x = x__length;
         u64 len_y = strlen(y);
         u64 total_len = len_x + len_y;
-        ptr dealloc = _contents;
         ptr _contents = malloc(total_len);
         if(_contents) {
             memcpy((char*)_contents, (char*)x__contents, len_x);
             memcpy((char*)_contents + len_x, (const char*)y, len_y);
         }
-        if(dealloc) free(dealloc);
     }
+    if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
     @finally _contents {if(_contents)free(_contents);_contents=0;}
     -> nom:str(_contents, len_x + len_y, x.first)
 
@@ -214,7 +216,6 @@ smo add(cstr x, str y)
         u64 len_y = y__length;
         u64 total_len = len_x + len_y;
 
-        ptr dealloc = _contents;
         ptr _contents = malloc(total_len);
         char first = 0;
         if(_contents) {
@@ -222,7 +223,6 @@ smo add(cstr x, str y)
             memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
             first = ((char*)_contents)[0];
         }
-        if(dealloc) free(dealloc);
     }
     if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
     @finally _contents {if (_contents) free(_contents); _contents = 0;}
@@ -248,28 +248,21 @@ smo read(str)
 
 smo split(nom type, str query, str sep, u64 pos) -> @new
 smo split(str query, str sep) -> nom:split(query, sep, 0)
-smo split(cstr query, str sep) -> nom:split(query:str, sep, 0)
-smo split(str query, cstr sep) -> nom:split(query, sep:str, 0)
-smo split(cstr query, cstr sep) -> nom:split(query:str, sep:str, 0)
-smo split(str query, str sep, u64 start_from) -> nom:split(query, sep, start_from)
-smo split(cstr query, str sep, u64 start_from) -> nom:split(query:str, sep, start_from)
-smo split(str query, cstr sep, u64 start_from) -> nom:split(query, sep:str, start_from)
-smo split(cstr query, cstr sep, u64 start_from) -> nom:split(query:str, sep:str, start_from)
-smo next(split &self, str &next)
+smo next(split &self, str &value)
     ret = self.pos<self.query:len
     if ret 
         searching = true
         prev = self.pos
         while (searching==true) and (self.pos<self.query:len-self.sep:len)
             if self.sep==self.query[self.pos to self.pos+self.sep:len] 
-                if self.pos>prev next = self.query[prev to self.pos] searching = false --
+                if self.pos>prev value = self.query[prev to self.pos] searching = false --
                 self.pos = self.pos+self.sep:len
                 --
             else self.pos = self.pos+1 --
             --
         if searching
             self.pos = self.query:len
-            next = self.query[prev to self.pos] 
+            value = self.query[prev to self.pos] 
             --
         --
     -> ret

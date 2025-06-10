@@ -1,6 +1,7 @@
 @include std.builtins.num
 @include std.builtins.err
 
+
 smo stack(nom) -> @new 
 smo heap(nom) -> @new
 smo memory(stack,heap) -- // provides memory.stack and memory.heap

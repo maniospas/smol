@@ -107,20 +107,23 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                 all_types.push_back(def);
                 def->imp = imp;
                 def->parse(imp, p, types);
+                vector<Type> lazy_options;
+                if(def->lazy_compile) lazy_options = def->get_lazy_options(types);
                 if(!types.contains(def->name)) types.vars[def->name] = def;
+                else if(!types.vars[def->name]->lazy_compile) {
+                    // if it was a normal implementation move to a union
+                    auto prev = types.vars[def->name];
+                    types.vars[def->name] = make_shared<Def>(types);
+                    all_types.push_back(types.vars[def->name]);
+                    types.vars[def->name]->imp = imp;
+                    types.vars[def->name]->lazy_compile = true;
+                    types.vars[def->name]->name = prev->name;
+                    for(const auto& d : prev->options) types.vars[def->name]->options.insert(d);
+                }
+
                 if(def->lazy_compile) {
-                    if(!types.vars[def->name]->lazy_compile) {
-                        // if it was a normal implementation move to a union
-                        auto prev = types.vars[def->name];
-                        types.vars[def->name] = make_shared<Def>(types);
-                        all_types.push_back(types.vars[def->name]);
-                        types.vars[def->name]->imp = imp;
-                        types.vars[def->name]->lazy_compile = true;
-                        types.vars[def->name]->name = prev->name;
-                        types.vars[def->name]->options.insert(prev);
-                    }
                     Def::log_depth = 0;
-                    for(const auto& d : def->get_lazy_options(types)) {
+                    for(const auto& d : lazy_options) {
                         if(d->lazy_compile) imp->error(--p, "Internal error: failed to compile "+d->signature(types));
                         types.vars[def->name]->options.insert(d);
                     }
@@ -136,7 +139,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
             }
             else if(imp->at(p)=="union") {
                 string name = imp->at(++p);
-                if(types.contains(name)) imp->error(--p, "Union is already defined as a runtype or union");
+                if(types.contains(name)) imp->error(--p, "Already defined: "+name);
                 auto def = make_shared<Def>(types);
                 all_types.push_back(def);
                 def->imp = imp;
