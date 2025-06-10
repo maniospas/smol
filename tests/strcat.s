@@ -9,7 +9,7 @@ service main()
 
     range(n):while next(u64 i)
         builder:push(i)
-        builder:push(" ")
+        builder:push(" ":str)
         --
     print(builder:str)
     --
