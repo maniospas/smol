@@ -24,7 +24,7 @@ string pretty_var(const string& name) {
     size_t i = 0;
     while (i < name.size()) {
         if(i && name[i]=='_' && i+1<name.size() && name[i+1]=='_' && name[i - 1] != '_') {result += '.';i += 2;}
-        else if(i && name[i]=='_' && i+1<name.size() && name[i+1]=='_') {result += '?';while(i<name.size() && name[i]!='.')i++;i++;}
+        else if(i && name[i]=='_' && i+1<name.size() && name[i+1]=='_') {result += '?';i+=2;while(i<name.size() && name[i]=='_')i++;while(i<name.size() && name[i]!='_')i++;}
         else result += name[i++];
     }
     return result;

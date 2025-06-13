@@ -122,7 +122,8 @@ smo printin(str message)
     @body{printf("%.*s", (int)message__length, (char*)message__contents);}
     --
 
-smo null_terminated(str s)
+smo copy(str s)
+    // strings fresh out from the copy operation are null terminated
     @body{
         ptr scstr = malloc(s__length+1);
         if(scstr) {

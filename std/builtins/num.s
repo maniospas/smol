@@ -37,6 +37,26 @@ smo print(char message)
     @head{#include <stdio.h>}
     @body{printf("%c\n", message);}
     --
+smo printin(f64 message)
+    @head{#include <stdio.h>}
+    @body{printf("%.6f", message);}
+    --
+smo printin(i64 message)
+    @head{#include <stdio.h>}
+    @body{printf("%ld", message);}
+    --
+smo printin(u64 message)
+    @head{#include <stdio.h>}
+    @body{printf("%lu", message);}
+    --
+smo printin(bool message)
+    @head{#include <stdio.h>}
+    @body{message?printf("true"):printf("false");}
+    --
+smo printin(char message)
+    @head{#include <stdio.h>}
+    @body{printf("%c", message);}
+    --
 
 smo le(i64 x, i64 y)  @body{bool z=x<=y;}   -> z
 smo ge(i64 x, i64 y)  @body{bool z=x>=y;}   -> z

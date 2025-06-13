@@ -20,8 +20,8 @@
 
 smo vec(nom, ptr contents, u64 size) -> @new
 smo vec(u64 size)
-    @body{ptr previous = contents; ptr contents = new f64[size](); if(previous)delete (f64*)previous; }
-    @finally contents {if(contents)delete (f64*)contents; contents=0;}
+    @body{ptr previous = contents; ptr contents = new f64[size](); if(previous)delete[] (f64*)previous; }
+    @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
     -> nom:vec(contents, size)
 
 smo len(vec v) -> v.size
@@ -33,8 +33,8 @@ smo slice(vec v, u64 from, u64 to)
     -> nom:vec(contents, to-from)
 
 smo rand(vec, u64 size)
-    @body{ptr previous = contents; ptr contents = new f64[size]; if(previous)delete (f64*)previous; }
-    @finally contents {if(contents)delete (f64*)contents; contents=0;}
+    @body{ptr previous = contents; ptr contents = new f64[size]; if(previous)delete[] (f64*)previous; }
+    @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
     i=0:u64 while i<size @next i = i+1:u64 
         value = rand()
         @body{((f64*)contents)[i] = value;}
@@ -67,8 +67,8 @@ smo add(vec x1, vec x2)
     @body{ptr previous = contents;}
     @body{ptr contents = new f64[size];}
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];}
-    @body{if(previous)delete (f64*)previous;}
-    @finally contents {if(contents)delete (f64*)contents; contents=0;}
+    @body{if(previous)delete[] (f64*)previous;}
+    @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
     -> nom:vec(contents, size)
 
 smo sub(vec x1, vec x2)
@@ -78,8 +78,8 @@ smo sub(vec x1, vec x2)
     @body{ptr previous = contents;}
     @body{ptr contents = new f64[size];}
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];}
-    @body{if(previous)delete (f64*)previous;}
-    @finally contents {if(contents)delete (f64*)contents; contents=0;}
+    @body{if(previous)delete[] (f64*)previous;}
+    @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
     -> nom:vec(contents, size)
 
 smo mul(vec x1, vec x2)
@@ -89,6 +89,18 @@ smo mul(vec x1, vec x2)
     @body{ptr previous = contents;}
     @body{ptr contents = new f64[size];}
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
-    @body{if(previous)delete (f64*)previous;}
-    @finally contents {if(contents)delete (f64*)contents; contents=0;}
+    @body{if(previous)delete[] (f64*)previous;}
+    @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
     -> nom:vec(contents, size)
+
+smo print(vec v)
+    size = if v.size>10 -> 10 else -> v.size
+    printin("[")
+    range(size)
+    :while next(u64 pos)
+        if pos:bool -> printin(" ")
+        printin(v[pos])
+        --
+    if size!=v.size -> printin(" ...")
+    print("]")
+    --

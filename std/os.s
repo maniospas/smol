@@ -7,4 +7,4 @@ smo system(cstr command)
     if result != 0 fail("System call failed")
     ----
 
-smo system(str command) -> system(command:null_terminated)
+smo system(str command) -> system(command:copy)

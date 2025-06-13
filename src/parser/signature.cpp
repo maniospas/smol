@@ -18,7 +18,7 @@ string Def::signature(Types& types) {
     string ret("");
     for(size_t i=0;i<args.size();++i) {
         if(ret.size()) ret += ",";
-        if(alignments[args[i].name] && !types.reverse_alignment_labels[alignments[args[i].name]]) ERROR("Internal error: variable type does not exist with id "+to_string(alignments[args[i].name])+" in type of "+pretty_var(name+"."+args[i].name));
+        if(alignments[args[i].name] && !types.reverse_alignment_labels[alignments[args[i].name]]) ERROR("Internal error: variable type does not exist with id "+to_string(alignments[args[i].name])+" in type of "+pretty_var(name+"__"+args[i].name));
         if(alignments[args[i].name] && types.reverse_alignment_labels[alignments[args[i].name]]!=this && types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()>=1) {
             ret += pretty_runtype(types.reverse_alignment_labels[alignments[args[i].name]]->name)+""+(args[i].mut?"\033[31m&\033[0m":"")+"["+to_string(types.reverse_alignment_labels[alignments[args[i].name]]->packs.size())+"]";
             i += types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()-1;

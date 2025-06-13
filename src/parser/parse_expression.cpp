@@ -34,12 +34,12 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
                 auto arg_type = type->_is_primitive?type:type->args[i].type;
                 if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name);
                 if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i]));
-                if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
-                    if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name+"."+type->args[i].name)+" within "+signature(types));
-                    if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i]+" argument "+pretty_var(type->name+"."+type->args[i].name)+" within "+signature(types));
+                    if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
+                    if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i]+" argument "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
                     if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) {}//REMINDER THAT THIS IS AN ERROR THAT POLUTES NEXT LOOP: alignments[unpacks[i]] = type->alignments[type->args[i].name];
-                    else throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)
+                    else throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name)+"__"+ pretty_var(type->args[i].name)
                         +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
                         +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
                 }
@@ -80,12 +80,12 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
         auto arg_type = type->_is_primitive?type:type->args[i].type;
         if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name);
         if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i]));
-        if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+        if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
         if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
-            if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name+"."+type->args[i].name)+" within "+signature(types));
-            if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i]+" argument "+pretty_var(type->name+"."+type->args[i].name)+" within "+signature(types));
+            if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
+            if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i]+" argument "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
             if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) alignments[unpacks[i]] = type->alignments[type->args[i].name];
-            else throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name)+"."+ pretty_var(type->args[i].name)
+            else throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name+"__"+type->args[i].name)
                 +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
                 +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
         }
@@ -162,7 +162,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
                 if(unpacks_ptr) desc += "\n- in argument by reference "+pretty_var(type->name+"."+final_name);
             }
         }*/
-        for(const auto& it : transferring) if(it.first.size() && it.second.size()) desc += "\n- "+pretty_var(type->name+"."+it.first);
+        for(const auto& it : transferring) if(it.first.size() && it.second.size()) desc += "\n- "+pretty_var(type->name+"__"+it.first);
         if(desc.size()) imp->error(--p, "Loop cannot call: "+type->signature(types)+"\nThis could leak the following resources:"+desc);
     }
 
@@ -250,7 +250,8 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         string finally_var = temp+"__if";
         string closeif_var = temp+"__fi";
         uplifting_targets.push_back(finally_var);
-        uplifiting_is_loop.push_back(false);
+        if(uplifiting_is_loop.size()) uplifiting_is_loop.push_back(uplifiting_is_loop.back());
+        else uplifiting_is_loop.push_back(false);
         internalTypes.vars[finally_var] = types.vars["__label"];
         internalTypes.vars[closeif_var] = types.vars["__label"];
         string next = imp->at(p++);
@@ -322,7 +323,8 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         string competing = "";
         int with_start = p-1;
         uplifting_targets.push_back(finally_var);
-        uplifiting_is_loop.push_back(false);
+        if(uplifiting_is_loop.size()) uplifiting_is_loop.push_back(uplifiting_is_loop.back());
+        else uplifiting_is_loop.push_back(false);
         internalTypes.vars[finally_var] = types.vars["__label"];
         string next;
         try {
@@ -342,7 +344,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             overloading_errors += what;
             end_block(imp, p);
             next = imp->at(p++);
-            if(next!="else") imp->error(with_start, "`with` with no `else`\nCan guard parametric types but is a code smell otherwise");
+            if(next!="else") imp->error(with_start, "`with` with no `else`\nCan guard parametric types but is a code smell otherwise\nHere it is redundant as enclosed code always succeeds");
         }
         while(next=="else") {
             if(!numberOfCandidates) {

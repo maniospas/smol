@@ -248,17 +248,17 @@ int main(int argc, char* argv[]) {
                 "#define __IS_cstr 7\n"
                 "#define __IS_bool 8\n"
                 "#define __IS_nom 9\n"
-                "#define __NULL void*\n"
+                "#define __NULL nullptr\n"
                 "#define __USER__ERROR 1\n"
                 "#define __BUFFER__ERROR 2\n"
                 "#define __UNHANDLED__ERROR 3\n"
-                "#define ptr void*\n"
-                "#define errcode int\n"
-                "#define cstr const char*\n"
-                "#define u64 unsigned long\n"
-                "#define i64 long\n"
-                "#define nom unsigned long\n"
-                "#define f64 double\n\n";
+                "using ptr = void*;\n"
+                "using errcode = int;\n"
+                "using cstr = const char*;\n"
+                "using u64 = unsigned long;\n"
+                "using i64 = long;\n"
+                "using nom = unsigned long;\n"
+                "using f64 = double;\n\n";
             std::ofstream out("__smolambda__temp__main.cpp");
             // globals & define services
             out << globals;
