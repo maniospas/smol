@@ -141,30 +141,11 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     // prevent memory leaks in loops
     if(uplifiting_is_loop.size() && uplifiting_is_loop.back() && type->finals.size()) {
         string desc("");
-        /*for(const string& final_name : type->packs) if(type->internalTypes.contains(final_name) &&  type->finals.find(final_name)!=type->finals.end()){
-            bool unpacks_ptr = type->internalTypes.vars[final_name]->name=="ptr";
-            if(unpacks_ptr) 
-                for(const string& pack : type->internalTypes.vars[final_name]->packs) 
-                    if(type->internalTypes.vars[final_name]->internalTypes.contains(pack)) {
-                        if(type->internalTypes.vars[final_name]->internalTypes.vars[pack]->name=="ptr") {unpacks_ptr=true;break;}
-                    }
-            if(unpacks_ptr) desc += "\n- in teturn value "+pretty_var(type->name+"."+final_name);
-        }
-        for(const auto& arg : type->args) if(arg.mut) {
-            const string& final_name = arg.name;
-            if(type->internalTypes.contains(final_name) &&  type->finals.find(final_name)!=type->finals.end()){
-                bool unpacks_ptr = type->internalTypes.vars[final_name]->name=="ptr";
-                if(unpacks_ptr) 
-                    for(const string& pack : type->internalTypes.vars[final_name]->packs) 
-                        if(type->internalTypes.vars[final_name]->internalTypes.contains(pack)) {
-                            if(type->internalTypes.vars[final_name]->internalTypes.vars[pack]->name=="ptr") {unpacks_ptr=true;break;}
-                        }
-                if(unpacks_ptr) desc += "\n- in argument by reference "+pretty_var(type->name+"."+final_name);
-            }
-        }*/
         for(const auto& it : transferring) if(it.first.size() && it.second.size()) desc += "\n- "+pretty_var(type->name+"__"+it.first);
         if(desc.size()) imp->error(--p, "Loop cannot call: "+type->signature(types)+"\nThis could leak the following resources:"+desc);
     }
+
+    for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
 
     // make actual call
     if(type->is_service) {

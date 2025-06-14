@@ -16,6 +16,10 @@ void Def::assign_variable(const Type& type, const string& from, const string& to
             const auto& it = type->internalTypes.vars.find(var);
             assign_variable(it==type->internalTypes.vars.end()?nullptr:it->second, from+"__"+var, to+"__"+var, i, p, true);
         }
+        for(const auto& it : type->internalTypes.vars) {
+            const string& var = it.first;
+            internalTypes.vars[from+"__"+var] = internalTypes.vars[to+"__"+var];
+        }
         return;
     }
     const auto& it = internalTypes.vars.find(from);

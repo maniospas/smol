@@ -92,7 +92,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
                 next += "__"+next_token;
                 if(p>=n) return first_token;
-                if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Missing symbol: "+pretty_var(next)+recommend_variable(types, next));
+                if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Missing symbol2: "+pretty_var(next)+recommend_variable(types, next));
             }
         }
         else if(imp->at(p)=="[") {

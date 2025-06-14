@@ -20,7 +20,7 @@
 
 smo vec(nom, ptr contents, u64 size) -> @new
 smo vec(u64 size)
-    @body{ptr previous = contents; ptr contents = new f64[size](); if(previous)delete[] (f64*)previous; }
+    @body{ptr contents = new f64[size]();}
     @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
     -> nom:vec(contents, size)
 
@@ -33,7 +33,7 @@ smo slice(vec v, u64 from, u64 to)
     -> nom:vec(contents, to-from)
 
 smo rand(vec, u64 size)
-    @body{ptr previous = contents; ptr contents = new f64[size]; if(previous)delete[] (f64*)previous; }
+    @body{ptr contents = new f64[size];}
     @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
     i=0:u64 while i<size @next i = i+1:u64 
         value = rand()
@@ -45,7 +45,7 @@ smo at(vec v, u64 pos)
     @body{f64 value = ((f64*)v__contents)[pos];} 
     -> value
 
-smo put(vec v, u64 pos, f64 value)
+smo put(vec& v, u64 pos, f64 value)
     if pos>=v.size -> fail("Vec out of bounds")
     @body{((f64*)v__contents)[pos] = value;}
     -> v
@@ -64,10 +64,8 @@ smo add(vec x1, vec x2)
     if x1.size!=x2.size -> fail("Incompatible vec sizes")
     x2.size = x1.size // this helps the optimizer
     size = x1.size
-    @body{ptr previous = contents;}
     @body{ptr contents = new f64[size];}
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];}
-    @body{if(previous)delete[] (f64*)previous;}
     @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
     -> nom:vec(contents, size)
 
