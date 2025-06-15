@@ -145,7 +145,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
         if(desc.size()) imp->error(--p, "Loop cannot call: "+type->signature(types)+"\nThis could leak the following resources:"+desc);
     }
 
-    for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
+    for(const string& mut : type->mutables) mutables.insert(var+"__"+mut);
 
     // make actual call
     if(type->is_service) {
@@ -158,7 +158,8 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
         bool toadd = false;
         for(size_t i=1;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
             const string& ret = type->packs[i];
-            assign_variable(type->internalTypes.vars[ret], var+"__"+ret, "0", imp, p);
+            size_t fp = first_token_pos;
+            assign_variable(type->internalTypes.vars[ret], var+"__"+ret, "0", imp, fp);
             if(toadd) impl += ",";
             impl += var+"__"+ret;
             toadd = true;
@@ -166,6 +167,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
             finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
             if(type->internalTypes.vars[ret]->name=="buffer") buffer_primitive_associations[var+"__"+ret] = type->buffer_primitive_associations[ret];
         }
+        for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
         for(size_t i=0;i<unpacks.size();++i) {
             if(toadd) impl += ",";
             impl += unpacks[i];
@@ -186,19 +188,23 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     }
     if(type->_is_primitive) {
         if(unpacks.size()!=1) imp->error(--p, "Primitive types only accept one argument");
-        assign_variable(type, var, unpacks[0], imp, p);
+        size_t fp = first_token_pos;
+        assign_variable(type, var, unpacks[0], imp, fp);
         return next_var(imp, p, var, types);
     }
     for(const auto& it : type->alignments) if(it.second) alignments[var+"__"+it.first] = it.second; 
     string immediate_finals("");
     for(size_t i=0;i<unpacks.size();++i) {
-        assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, p);
+        size_t fp = first_token_pos;
+        assign_variable(type->args[i].type, var+"__"+type->args[i].name, unpacks[i], imp, fp);
         if(type->args[i].mut) {
             immediate_finals += unpacks[i]+ " = "+var+"__"+type->args[i].name+";\n";
             current_renaming[unpacks[i]] = var+"__"+type->args[i].name;
             buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[var+"__"+type->args[i].name];
         }
     }
+
+    for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
     for(const auto& final : transfer_finals) immediate_finals += type->rebase(final.second, var);
 
     internalTypes.vars[var] = type->alias_for.size()?type->internalTypes.vars[type->alias_for]:type;
@@ -261,7 +267,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             if(!internalTypes.contains(else_var+"r") && internalTypes.contains(finally_var+"r")) imp->error(first_token_pos, "There was a non-empty return "+internalTypes.vars[finally_var+"r"]->name+" `if` but no such value from `else`");
             if(internalTypes.contains(else_var+"r")&& internalTypes.contains(finally_var+"r")) {
                 if(internalTypes.vars[finally_var+"r"]!=internalTypes.vars[else_var+"r"]) imp->error(first_token_pos, "There were mismatching return "+internalTypes.vars[finally_var+"r"]->name+" `if` and "+internalTypes.vars[else_var+"r"]->name+" `else`");
-                assign_variable(internalTypes.vars[finally_var+"r"],finally_var+"r", else_var+"r", imp, first_token_pos);
+                assign_variable(internalTypes.vars[finally_var+"r"],finally_var+"r", else_var+"r", imp, first_token_pos, false, false);
             }
             implementation += else_skip+":\n";
         }
@@ -557,15 +563,18 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
                 candidates += "\n"+option->signature(types);
             }
             if(num_choices!=1) imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@new return\nto break the priority stalemate.\nCandidates:"+candidates);
+            
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
                 string var = create_temp();
-                assign_variable(type->args[i].type, var+"__"+type->args[i].name, "0", imp, p, true);
+                if(p<imp->size()-1 && imp->at(p+1)=="&") mutables.insert(var);
+                assign_variable(type->args[i].type, var+"__"+type->args[i].name, "0", imp, first_token_pos, true);
                 type_trackers.insert(var);
                 unpacks.push_back(var+"__"+type->args[i].name);
             }
             else {
                 string var = create_temp();
-                assign_variable(type, var, "0", imp, p, true);
+                if(p<imp->size()-1 && imp->at(p+1)=="&") mutables.insert(var);
+                assign_variable(type, var, "0", imp, first_token_pos, true);
                 type_trackers.insert(var);
                 unpacks.push_back(var);
             }
@@ -603,7 +612,8 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             string var = create_temp();
             internalTypes.vars[var] = type;
             type_trackers.insert(var);
-            for(const string& pack : type->packs) assign_variable(type->internalTypes.vars[pack], var+"__"+pack, "0", imp, p);
+            if(p<imp->size()-1 && imp->at(p+1)=="&") mutables.insert(var);
+            for(const string& pack : type->packs) assign_variable(type->internalTypes.vars[pack], var+"__"+pack, "0", imp, first_token_pos);
             if(type->args.size() && type->args[0].type->name=="nom") alignments[var+"__"+type->args[0].name] = types.alignment_labels[type.get()];
             return next_var(imp, p, var, types);
         }

@@ -133,7 +133,7 @@ smo copy(str s)
         cstr rcstr = (char*)scstr;
     }
     if scstr:exists:not @fail{printf("Failed to allocate str\n");} --
-    @finally scstr {if(scstr) free((char*)scstr);scstr=0;}
+    @finally rcstr {if(rcstr) free((char*)rcstr);rcstr=0;}
     -> rcstr
 
 smo slice(str s, u64 from, u64 to) 
@@ -247,23 +247,20 @@ smo read(str)
     if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
     -> nom:str(_contents, length, first)
 
-smo split(nom type, str query, str sep, u64 pos) -> @new
+smo split(nom type, str query, str sep, u64& pos) -> @new
 smo split(str query, str sep) -> nom:split(query, sep, 0)
 smo next(split &self, str &value)
     ret = self.pos<self.query:len
     if ret 
-        searching = true
+        &searching = true
         prev = self.pos
         while (searching==true) and (self.pos<self.query:len-self.sep:len)
             if self.sep==self.query[self.pos to self.pos+self.sep:len] 
                 if self.pos>prev value = self.query[prev to self.pos] searching = false --
                 self.pos = self.pos+self.sep:len
-                --
-            else self.pos = self.pos+1 --
-            --
+            -- else self.pos = self.pos+1
+            ----
         if searching
             self.pos = self.query:len
             value = self.query[prev to self.pos] 
-            --
-        --
-    -> ret
+    -----> ret

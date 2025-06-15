@@ -82,10 +82,15 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
             if(!hasComma && p<imp->size() && imp->at(p)!=",") {
                 alias_for = next;
                 for(const string& pack : internalTypes.vars[next]->packs) {
-                    assign_variable(internalTypes.vars[next]->internalTypes.vars[pack], pack, next+"__"+pack, imp, p);
+                    if(internalTypes.contains(pack)) {
+                        if(internalTypes.vars[pack]!=internalTypes.vars[next]->internalTypes.vars[pack]) imp->error(--p, "Mismatching types for: "+pretty_var(next+"__"+pack)+" vs "+pretty_var(pack)+"\nYou are wrapping a base runtype that declares the same name under a different type");
+                    }
+                    assign_variable(internalTypes.vars[next]->internalTypes.vars[pack], pack, next+"__"+pack, imp, p, false, false);
                     packs.push_back(pack);
                     if(internalTypes.contains(pack) && internalTypes.vars[pack]->name=="nom" && !alignments[pack]) imp->error(--p, "You are returning an unset align "+pretty_var(pack)+"\nAdd an align first variable to the signature and return that instead");
                 }
+                mutables.clear();
+                for(const string& mut : internalTypes.vars[next]->mutables) mutables.insert(mut);
                 for(const auto& it : internalTypes.vars[next]->finals) finals[it.first] += it.second;
             }
             else {

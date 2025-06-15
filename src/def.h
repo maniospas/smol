@@ -13,6 +13,7 @@
 #include <cctype>
 #include "parser/tokenize.h"
 #include "parser/common.h"
+#include "parser/faststring.h"
 #include "parser/base64.cpp"
 #include <cctype>
 #include <cstdlib>
@@ -32,6 +33,7 @@ public:
     inline bool contains(const string& var) const {return vars.find(var)!=vars.end();}
     Memory() = default;
 };
+
 
 class Arg {
 public:
@@ -59,7 +61,7 @@ class Def {
     static string create_temp() {return "__"+numberToVar(++temp);}
     unordered_map<string, string> current_renaming;
     void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
-    void assign_variable(const Type& type, const string& from, const string& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false);
+    void assign_variable(const Type& type, const string& from, const string& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false, bool check_mutables=true);
     string recommend_runtype(const Types& types, const string& candidate);
     string recommend_variable(const Types& types, const string& candidate);
     void parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types);
@@ -84,25 +86,23 @@ public:
     shared_ptr<Import> imp;
     Memory internalTypes;
     vector<string> packs;
-    vector<string> ghost_packs;
     string finals_when_used;
     string alias_for;
     size_t pos, start, end;
     string name, vardecl, implementation, errors;
     set<string> preample;
-    unordered_map<string, string> finals;
-    unordered_map<string, Type> parametric_types;
-    unordered_map<string, Type> buffer_primitive_associations;
-    unordered_map<string, unsigned long> alignments;
+    unordered_map<string, string> finals;         // resource closing code (transferred around)
+    unordered_map<string, string> invalidators;   // also resource closing code (may happen at end of loop)
+    unordered_map<string, Type> parametric_types; // type name resolution in signature (all argument types - even those not overloaded)
+    unordered_map<string, Type> buffer_primitive_associations; // the type associated with buffers, nullptr if typecheck is needed
+    unordered_map<string, unsigned long> alignments; // the type id nom vlues represent
+    unordered_set<string> mutables;
     vector<string> uplifting_targets;
     vector<bool> uplifiting_is_loop;
-    unordered_map<string, string> invalidators;
     unordered_set<Type> get_options(Types& types);
     vector<Type> get_lazy_options(Types& types);
     unordered_set<string> type_trackers;
-    void add_preample(const string& pre) {
-        if(preample.find(pre)==preample.end()) preample.insert(pre);
-    }
+    void add_preample(const string& pre) {if(preample.find(pre)==preample.end()) preample.insert(pre);}
     void coallesce_finals(const string& original) {
         // TODO: optimize this
         unordered_set<string> previous;

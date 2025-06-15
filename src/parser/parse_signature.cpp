@@ -45,6 +45,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         if(types.vars.find(arg_name)!=types.vars.end()) imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
         if(argType->lazy_compile) {
             args.emplace_back(arg_name, argType, mut);
+            mutables.insert(arg_name);
             internalTypes.vars[arg_name] = argType;
             parametric_types[argType->name] = argType;
             //for(const auto& it : argType->parametric_types) parametric_types[it.first] = it.second;
@@ -70,8 +71,10 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             }
             else {
                 internalTypes.vars[arg_name] = argType;
+                if(mut) mutables.insert(arg_name);
                 for(const auto& itarg : argType->packs) {
                     args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut);
+                    //if(mut) mutables.insert(arg_name+"__"+itarg);
                     internalTypes.vars[arg_name+"__"+itarg] = argType->internalTypes.vars[itarg];
                     for(const auto& it : argType->alignments) if(it.second) alignments[arg_name+"__"+it.first] = it.second;
                 }
@@ -82,6 +85,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             }
         }
         else {
+            if(mut) mutables.insert(arg_name);
             retrievable_parameters[argType->name] = argType;
             args.emplace_back(arg_name, argType, mut);
             internalTypes.vars[arg_name] = argType;

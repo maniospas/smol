@@ -25,16 +25,19 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
     unordered_set<string> next_assignments;
     while(p<imp->size()) {
         bool is_next_assignment = false;
+        bool is_mutable_assignment = false;
         string next = imp->at(p++);
         if(next=="@") {
             if(p<imp->size() && imp->at(p)=="next"){is_next_assignment=true;p++;next = imp->at(p++);}
             else {parse_directive(imp, p, next, types);continue;}
         }
+        if(next=="&") {next = imp->at(p++);is_mutable_assignment=true;}
         if(next=="-") {parse_return(imp, p, next, types);end = p--; break;}
         string var = imp->at(p);
         if(var=="=" && p<imp->size()-1 && imp->at(p+1)=="=") var = "";
         if(var=="." || var=="=") {
             var = next_var(imp, p, next, types, false);
+            if(is_mutable_assignment) mutables.insert(var);
             int assignment_start = p;
             if(imp->at(p++)!="=") {--p;continue;}//imp->error(--p, "Missing assignment");
             next = imp->at(p++);
@@ -47,6 +50,7 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
             assign_variable(it->second, var, expression_outcome, imp, p);
         }
         else if(is_next_assignment) imp->error(p, "Expecting assignment to variable after @next");
+        else if(is_mutable_assignment) imp->error(p, "Expecting assignment to variable after &");
         else parse_expression(imp, p, next, types);
     }
     for(const string& var : next_assignments) assign_variable(internalTypes.vars["__next__"+var], var, "__next__"+var, imp, p);
