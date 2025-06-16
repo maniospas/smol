@@ -3,7 +3,7 @@
 
 smo buildstr(nom type, u64 size)
     contents = nom:allocate(memory.heap, size, char)
-    length = 0
+    &length = 0
     first = 0:char
     -> type, contents, length
 smo push(buildstr& self, str other)

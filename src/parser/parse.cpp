@@ -37,7 +37,7 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
         if(var=="=" && p<imp->size()-1 && imp->at(p+1)=="=") var = "";
         if(var=="." || var=="=") {
             var = next_var(imp, p, next, types, false);
-            if(is_mutable_assignment) mutables.insert(var);
+            if(is_mutable_assignment) {if(internalTypes.contains(var)) imp->error(--p, "Cannot set as mutable an existing variable: "+var+"\nMutability is declared by prepending & to the first occurence"); mutables.insert(var);}
             int assignment_start = p;
             if(imp->at(p++)!="=") {--p;continue;}//imp->error(--p, "Missing assignment");
             next = imp->at(p++);

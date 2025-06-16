@@ -105,6 +105,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         }
         errors += "\n__result__errocode=__USER__ERROR;\ngoto __failsafe;\n";
         implementation += "goto "+fail_label+";\n";
+        implementation += "__builtin_unreachable();\n";
     }
     else imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally are allowed here for injecting C++ code.");
 }

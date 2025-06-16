@@ -31,7 +31,7 @@ smo file(str path)
     -> nom:file(contents)
 smo file(cstr path) -> file(path:str)
 
-smo chunks(nom type, file &f, u64 chunk_size, Memory)
+smo chunks(nom type, file f, u64 chunk_size, Memory)
     reader = nom:allocate(Memory, chunk_size, char)
     -> type, f, reader
 
@@ -48,7 +48,7 @@ smo next(chunks &self, str& value)
     with value = nom:str(ret, bytes_read, first)
     ---> ret:bool
 
-smo lines(nom type, file &f, u64 max_line_length, Memory)
+smo lines(nom type, file f, u64 max_line_length, Memory)
     reader = nom:allocate(Memory, max_line_length, char)
     -> type, f, reader
     

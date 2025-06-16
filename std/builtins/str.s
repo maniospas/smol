@@ -247,8 +247,8 @@ smo read(str)
     if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
     -> nom:str(_contents, length, first)
 
-smo split(nom type, str query, str sep, u64& pos) -> @new
-smo split(str query, str sep) -> nom:split(query, sep, 0)
+smo split(nom, str query, str sep, u64 &pos) -> @new
+smo split(str query, str sep) -> nom:split(query, sep, u64& pos)
 smo next(split &self, str &value)
     ret = self.pos<self.query:len
     if ret 

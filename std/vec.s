@@ -53,7 +53,7 @@ smo set(vec& v, u64 pos, f64 value)
 smo dot(vec x1, vec x2)
     if x1.size!=x2.size -> fail("Incompatible vec sizes")
     &sum = 0.0
-    &i=0:u64 while i<x1.size @next i = i+1:u64
+    &i=0 while i<x1.size @next i = i+1
         sum = x1:at(i)
                 :mul(x2:at(i))
                 :add(sum)
@@ -61,12 +61,14 @@ smo dot(vec x1, vec x2)
 
 smo set(vec& x1, vec x2)
     if x1.size!=x2.size -> fail("Incompatible vec sizes")
+    @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     @body{for(u64 i=0;i<size;++i) ((f64*)x1__contents)[i] = ((f64*)x2__contents)[i];}
     --
 
 smo add(vec x1, vec x2)
     if x1.size!=x2.size -> fail("Incompatible vec sizes")
+    @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     @body{ptr contents = new f64[size];}
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];}
@@ -75,6 +77,7 @@ smo add(vec x1, vec x2)
 
 smo sub(vec x1, vec x2)
     if x1.size!=x2.size -> fail("Incompatible vec sizes")
+    @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     @body{ptr previous = contents;}
     @body{ptr contents = new f64[size];}
@@ -85,6 +88,7 @@ smo sub(vec x1, vec x2)
 
 smo mul(vec x1, vec x2)
     if x1.size!=x2.size -> fail("Incompatible vec sizes")
+    @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     @body{ptr previous = contents;}
     @body{ptr contents = new f64[size];}

@@ -36,13 +36,14 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
                 if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i]));
                 if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
-                    if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
-                    if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i]+" argument "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
+                    if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
+                    if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i]+" argument "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
                     if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) {}//REMINDER THAT THIS IS AN ERROR THAT POLUTES NEXT LOOP: alignments[unpacks[i]] = type->alignments[type->args[i].name];
                     else throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name)+"__"+ pretty_var(type->args[i].name)
                         +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
                         +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
                 }
+                if(type->not_primitive() && type->args[i].mut && type->mutables.find(type->args[i].name)!=type->mutables.end() && mutables.find(unpacks[i])==mutables.end()) throw runtime_error(type->signature(types)+": Expects mutable " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got immutable "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
             }
             if(type->choice_power>highest_choice_power) {
                 highest_choice_power = type->choice_power;
@@ -383,6 +384,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         internalTypes.vars[var] = types.vars[vartype];
         // vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
         implementation += var+" = "+first_token+";\n";
+        //mutables.insert(var);
         return next_var(imp, p, var, types);
     }
     if(first_token == "len" && curry.size() && internalTypes.contains(curry) && internalTypes.vars[curry]->name=="buffer") {
@@ -427,7 +429,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         return next_var(imp, p, arg, types);
     }
     if(internalTypes.contains(first_token)) {
-        if(curry.size()) imp->error(p, "Expecting runtype (not variable): "+first_token);
+        if(curry.size()) imp->error(p, "Expecting runtype but got variable: "+first_token);
         return next_var(imp, p, first_token, types); //ASSIGNMENT TO ALREADY EXISTING VARIABLE
     }
     if(first_token=="buffer") {
@@ -579,8 +581,12 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
                 unpacks.push_back(var);
             }
         }
-        else if(p<imp->size()-1 && (imp->at(p+1)==")" || imp->at(p+1)==",") && imp->at(p)!="("){
+        else if(((p<imp->size()-1 && imp->at(p)!="(" && (imp->at(p+1)==")" || imp->at(p+1)==",")) || (p<imp->size()-2 && imp->at(p)=="&" && imp->at(p+1)!="(" && (imp->at(p+2)==")" || imp->at(p+2)==",")))){
             string var = imp->at(p++);
+            if(var=="&") {
+                var = imp->at(p++);
+                mutables.insert(var);
+            }
             if(internalTypes.contains(var)) imp->error(--p, "Cannot redeclare local variable "+internalTypes.vars[var]->name+" "+pretty_var(var));
             if(parametric_types.find(type->name)!=parametric_types.end()) type = parametric_types[type->name];
             int num_choices = 0;
