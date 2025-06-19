@@ -40,9 +40,9 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
     for(size_t p=0;p<imp->size();++p) {
         string next = imp->at(p);
         if(next=="(" || next=="{" || next=="[") brackets.push(make_pair(next, p));
-        if(next==")") {if(!brackets.size() || brackets.top().first!="(") imp->error(brackets.top().second, "Never closed parenthesis");brackets.pop();continue;}
-        if(next=="}") {if(!brackets.size() || brackets.top().first!="{") imp->error(brackets.top().second, "Never closed bracket");brackets.pop();continue;}
-        if(next=="]") {if(!brackets.size() || brackets.top().first!="[") imp->error(brackets.top().second, "Never closed square bracket");brackets.pop();continue;}
+        if(next==")") {if(!brackets.size()) imp->error(p, "Never opened parenthesis"); if(brackets.top().first!="(") imp->error(brackets.top().second, "Never closed parenthesis");brackets.pop();continue;}
+        if(next=="}") {if(!brackets.size()) imp->error(p, "Never opened bracket "); if(brackets.top().first!="{") imp->error(brackets.top().second, "Never closed bracket");brackets.pop();continue;}
+        if(next=="]") {if(!brackets.size()) imp->error(p, "Never opened square bracket"); if(brackets.top().first!="[") imp->error(brackets.top().second, "Never closed square bracket");brackets.pop();continue;}
     }
     if(brackets.size() && brackets.top().first=="(") imp->error(brackets.top().second, "Never closed parenthesis");
     if(brackets.size() && brackets.top().first=="{") imp->error(brackets.top().second, "Never closed bracket");
@@ -252,6 +252,7 @@ int main(int argc, char* argv[]) {
                 "#define __USER__ERROR 1\n"
                 "#define __BUFFER__ERROR 2\n"
                 "#define __UNHANDLED__ERROR 3\n"
+                "#define __TRANSIENT(message)\n" // empty
                 "using ptr = void*;\n"
                 "using errcode = int;\n"
                 "using cstr = const char*;\n"

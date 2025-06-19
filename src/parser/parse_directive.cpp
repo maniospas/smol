@@ -45,6 +45,10 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         }
         implementation += "\n";
     }
+    else if(next=="noshare") {
+        next = imp->at(p++);
+        this->finals[next] += "__TRANSIENT("+next+")\n";
+    }
     else if(next=="finally") {
         string finals("");
         string conditioned("");
@@ -107,5 +111,5 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         implementation += "goto "+fail_label+";\n";
         implementation += "__builtin_unreachable();\n";
     }
-    else imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally are allowed here for injecting C++ code.");
+    else imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally, @noshare are allowed here for injecting C++ code.");
 }

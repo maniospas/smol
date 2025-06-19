@@ -66,8 +66,10 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
     while(true) {
         next = parse_expression(imp, p, imp->at(p++), types);
         if(!internalTypes.contains(next)) break;
+        if(is_service && finals.find(next)!=finals.end() && finals[next].find("__TRANSIENT") != std::string::npos) imp->error(--p, "You are returning @noshare data from a"+pretty_var(next)+"\nThose can only be returned from smo runtypes");
+
         if(!internalTypes.vars[next]->not_primitive()) {
-            if(internalTypes.contains(next) && internalTypes.vars[next]->name=="nom" && !alignments[next]) imp->error(--p, "You are returning an unset align "+pretty_var(next)+"\nAdd an align first variable to the signature and return that instead");
+            if(internalTypes.contains(next) && internalTypes.vars[next]->name=="nom" && !alignments[next]) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next)+"\nAdd an align first variable to the signature and return that instead");
             if(is_service && !uplifting_targets.size()) {
                 implementation += "__value = "+next+";\n";
                 if(internalTypes.contains("__value") && internalTypes.vars["__value"]!=internalTypes.vars[next]) imp->error(--p, "Returning single value of multple types "+internalTypes.vars["__value"]->name+" and "+internalTypes.vars[next]->name);
@@ -86,6 +88,10 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
                         if(internalTypes.vars[pack]!=internalTypes.vars[next]->internalTypes.vars[pack]) imp->error(--p, "Mismatching types for: "+pretty_var(next+"__"+pack)+" vs "+pretty_var(pack)+"\nYou are wrapping a base runtype that declares the same name under a different type");
                     }
                     assign_variable(internalTypes.vars[next]->internalTypes.vars[pack], pack, next+"__"+pack, imp, p, false, false);
+                    if(is_service) {
+                        coallesce_finals(next+"__"+pack);
+                        if(finals.find(next+"__"+pack)!=finals.end() && finals[next+"__"+pack].find("__TRANSIENT") != std::string::npos) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next+"__"+pack)+"\nThose can only be returned from smo runtypes");
+                    }
                     packs.push_back(pack);
                     if(internalTypes.contains(pack) && internalTypes.vars[pack]->name=="nom" && !alignments[pack]) imp->error(--p, "You are returning an unset align "+pretty_var(pack)+"\nAdd an align first variable to the signature and return that instead");
                 }
@@ -97,6 +103,10 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
                 if(internalTypes.vars[next]->name=="buffer") imp->error(--p, "Cannot return a buffer alongside other values");
                 for(const string& pack : internalTypes.vars[next]->packs) {
                     packs.push_back(next+"__"+pack);
+                    if(is_service) {
+                        coallesce_finals(next+"__"+pack);
+                        if(finals.find(next+"__"+pack)!=finals.end() && finals[next+"__"+pack].find("__TRANSIENT") != std::string::npos) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next+"__"+pack)+"\nThose can only be returned from smo runtypes");
+                    }
                     if(internalTypes.contains(next+"__"+pack) && internalTypes.vars[next+"__"+pack]->name=="nom" && !alignments[next+"__"+pack]) imp->error(--p, "You are returning an unset align "+pretty_var(next+"__"+pack)+"\nAdd an align first variable to the signature and return that instead");
                 }
             }

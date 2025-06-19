@@ -17,6 +17,7 @@ smo allocate(nom, stack, u64 size, Primitive)
     primitive = Primitive
     @body{ptr mem=alloca(size*sizeof(primitive));}
     if mem:bool:not -> fail("Failed to allocate stack memory")
+    @noshare mem
     -> @new, mem
 
 smo allocate(nom, heap, u64 size, Primitive)
