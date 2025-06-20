@@ -1,10 +1,15 @@
 @include std.builtins
 @include std.mem
+@include std.file
 
 smo test()
-    allocated = nom:allocate(stack, 128, f64)
-    -> allocated
+    f = file("README.md")
+    -> nom:chunks(f, 4096, heap)
+
+service test2()
+    s = test()
+    -> s,1 
 
 service main()
-    s = test()
+    s = test2()
     --

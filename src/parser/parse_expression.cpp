@@ -129,11 +129,13 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     auto transfer_finals = type->finals;
     unordered_map<string, string> transferring;
     for(const string& pack : type->packs) if(type->finals[pack].size()) {
+        type->coallesce_finals(pack);
         finals[var+"__"+pack] += type->rebase(type->finals[pack], var);
         transferring[var+"__"+pack] = finals[var+"__"+pack];
         transfer_finals[pack] = "";
     }
     for(const auto& arg : type->args) if(arg.mut && type->finals[arg.name].size()) {
+        type->coallesce_finals(arg.name);
         finals[var+"__"+arg.name] += type->rebase(type->finals[arg.name], var);
         transferring[var+"__"+arg.name] = finals[var+"__"+arg.name];
         transfer_finals[arg.name] = "";
@@ -150,7 +152,6 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
 
     // make actual call
     if(type->is_service) {
-        var = create_temp();
         // vardecl += "errcode "+var+"__err = 0;\n";
         string impl = var+"__err = "+type->name+"(";
         internalTypes.vars[var+"__err"] = types.vars["errcode"];
@@ -164,8 +165,8 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
             if(toadd) impl += ",";
             impl += var+"__"+ret;
             toadd = true;
-            type->coallesce_finals(ret);
-            finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
+            //type->coallesce_finals(ret);
+            //finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
             if(type->internalTypes.vars[ret]->name=="buffer") buffer_primitive_associations[var+"__"+ret] = type->buffer_primitive_associations[ret];
         }
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+"__"+it.first] = it.second;
