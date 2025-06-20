@@ -47,7 +47,7 @@ function analyzeDocument(uri, text) {
       includes.add(includedUri);
       if(!symbolTable.has(includedUri) && fs.existsSync(resolvedPath)) analyzeDocument(includedUri, fs.readFileSync(resolvedPath, "utf8"));
     }
-    const arrowOrDashRegex = /--|->/g;
+    /*const arrowOrDashRegex = /--|->/g;
     let match;
     const consumed = new Set();
 
@@ -78,7 +78,7 @@ function analyzeDocument(uri, text) {
         consumed.add(startIdx);
         consumed.add(startIdx + 1);
       }
-    }
+    }*/
 
   }
   symbolTable.set(uri, symbols);
@@ -243,8 +243,8 @@ connection.languages.semanticTokens.on((params) => {
         continue;
       }
   
-      //if(textLine.startsWith("->", pos) || textLine.startsWith("--", pos) || textLine.startsWith("-->", pos) || textLine.startsWith("->>", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
-      //if(textLine.startsWith("-->", pos) || textLine.startsWith("->>", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
+      if(textLine.startsWith("->", pos) || textLine.startsWith("--", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
+      if(textLine.startsWith("|", pos)) {builder.push(line, pos, 1, 3, 0);pos += 1;continue;}
       if(textLine[pos] === ':') {builder.push(line, pos, 1, 3, 0);pos += 1;continue;}
       const match = textLine.slice(pos).match(/^@?[A-Za-z_][A-Za-z0-9_.]*/);
       if(match) {

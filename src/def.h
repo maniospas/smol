@@ -58,6 +58,7 @@ vector<Type> all_types;
 
 class Def {
     static int temp;
+    vector<string> map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types);
     static string create_temp() {return "__"+numberToVar(++temp);}
     unordered_map<string, string> current_renaming;
     void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
@@ -90,6 +91,7 @@ public:
     string alias_for;
     size_t pos, start, end;
     string name, vardecl, implementation, errors;
+    size_t number_of_calls;
     set<string> preample;
     unordered_map<string, string> finals;         // resource closing code (transferred around)
     unordered_map<string, string> invalidators;   // also resource closing code (may happen at end of loop)
@@ -102,6 +104,7 @@ public:
     unordered_set<Type> get_options(Types& types);
     vector<Type> get_lazy_options(Types& types);
     unordered_set<string> type_trackers;
+    bool has_returned;
     void add_preample(const string& pre) {if(preample.find(pre)==preample.end()) preample.insert(pre);}
     void coallesce_finals(const string& original) {
         // TODO: optimize this
@@ -117,8 +120,8 @@ public:
         }
     }
 
-    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors("") {}
-    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors("") {
+    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors(""), number_of_calls(0), has_returned(false) {}
+    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors(""), number_of_calls(0), has_returned(false) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;

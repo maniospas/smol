@@ -20,7 +20,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     Type previousType = type;
     int highest_choice_power = 0;
     for(size_t i=0;i<unpacks.size();++i) if(!internalTypes.contains(unpacks[i])) imp->error(p-3, "Missing symbol: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
-    
+    type->number_of_calls++;
     for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
         if(!type) imp->error(--p, "Internal error: obained a null option for "+previousType->name);
         try {
@@ -72,6 +72,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
         }
     }
     type = successfullType;
+    if(type.get()!=successfullType.get()) type->number_of_calls++;
     if(!type && numberOfErrors) imp->error(first_token_pos, "Not found among "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
     if(!type) imp->error(first_token_pos, "Not found: "+first_token+recommend_runtype(types, first_token));
     if(type->lazy_compile) imp->error(pos, "Internal error: Runtype has not been compiled");

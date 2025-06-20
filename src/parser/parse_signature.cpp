@@ -9,10 +9,10 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
     else if(imp->at(p)!="smo") imp->error(--p, "Missing `service` or `smo` to declare runtype");
     p++;
     if(!is_as) name = imp->at(p++); else name = create_temp();
-    if(types.contains(name)) {
-        if(is_service) imp->error(--p, "A service cannot overload a runtype or service with the same name");
-        else if(types.vars[name]->is_service) imp->error(--p, "A runtype cannot overload a service with the same name");
-    }
+    /*if(types.contains(name)) {
+        if(is_service && types.vars[name]->is_service) imp->error(--p, "A service cannot overload a runtype with the same name");
+        if(!is_service && types.vars[name]->is_service) imp->error(--p, "A runtype cannot overload a service with the same name");
+    }*/
     if(imp->at(p++)!="(") imp->error(--p, "Missing left parenthesis");
     while(true) {
         bool autoconstruct = false;

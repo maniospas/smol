@@ -196,17 +196,17 @@ available in the standard library.
       <td>No return value, is an explicit terminator</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">->-</code></td>
+      <td><code class="language-smolambda">|--</code></td>
       <td>Uplift one level</td>
       <td>Break from a loop or if-block</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">->></code></td>
+      <td><code class="language-smolambda">|-></code></td>
       <td>Uplift return one level</td>
       <td>Break from nested blocks</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">->>></code></td>
+      <td><code class="language-smolambda">||-></code></td>
       <td>Uplift return two levels</td>
       <td>E.g., escape from loops inside conditions</td>
     </tr>
@@ -488,11 +488,12 @@ body but instead put the end condition's and loop's ending together. An example 
 <p>
 The example also demonstrates how to break loops by returning multiple
 steps back. This operation is called <i>uplifting</i> and its syntax 
-is to insert <code class="language-smolambda">></code> in the middle of returns.
+is to prepend <code class="language-smolambda">|</code> to returns.
 You can uplift several times to escape from nested control flow.
-For example, <code class="language-smolambda">->-</code> breaks
-from a condition within a loop and <code class="language-smolambda">->>></code>
-to return a runtype result from a condition within a loop.
+For example, <code class="language-smolambda">|--</code> breaks
+from a condition within a loop and <code class="language-smolambda">||-></code>
+to return a runtype result from a condition within a loop. Here is 
+a full example.
 </p>
 
 
@@ -500,13 +501,13 @@ to return a runtype result from a condition within a loop.
 
 service main()
     i = 511 while i&lt;10 @next i = i+1
-        if i%7==0 ->- // break
+        if i%7==0 |-- // break
         if i%2==0 -> print(i)
     ---- // ends `while`, then `main`
 </code></pre>
 
 <p>
-Below is an example where uplifting returns even more steps back.
+Below is another example, in which uplifting returns even more steps back.
 Note that print returns no value, which would only create an error if
 one tried to assign the value returned by the top loop to a variable.
 </p>
@@ -518,7 +519,7 @@ service main()
     i=0 while i&lt;10 @next i = i+1
     j=0 while j&lt;10 @next j = j+1
         print(i:str+" "+j:str)
-        if 5==i+j ->>>> print("done") 
+        if 5==i+j |||-> print("done") 
     ------
 </code></pre>
 
@@ -1453,7 +1454,7 @@ Prism.languages.smolambda = {
       greedy: true
     },
     {
-      pattern: /(?:-->|->-|->>>>|->>>|->>-|->>|->|--|\:|\=)/,
+      pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/,
       greedy: true
     }
   ],

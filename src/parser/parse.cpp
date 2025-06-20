@@ -32,6 +32,7 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
             else {parse_directive(imp, p, next, types);continue;}
         }
         if(next=="&") {next = imp->at(p++);is_mutable_assignment=true;}
+        if(next=="|") {parse_return(imp, p, next, types);end = p--; break;}
         if(next=="-") {parse_return(imp, p, next, types);end = p--; break;}
         string var = imp->at(p);
         if(var=="=" && p<imp->size()-1 && imp->at(p+1)=="=") var = "";

@@ -63,8 +63,8 @@ async function activate(context) {
       if(!editor) return;
       const arrowRanges = (arrows || []).map(d => ({range: new vscode.Range(d.range.start.line, d.range.start.character,d.range.end.line, d.range.end.character)}));
       const dashRanges = (dashes || []).map(d => ({range: new vscode.Range(d.range.start.line, d.range.start.character,d.range.end.line, d.range.end.character)}));
-      editor.setDecorations(dashDecoration, dashRanges);
-      editor.setDecorations(arrowDecoration, arrowRanges);
+      //editor.setDecorations(dashDecoration, dashRanges);
+      //editor.setDecorations(arrowDecoration, arrowRanges);
       //editor.setDecorations(dashDecoration2, dashRanges);
     });
 
