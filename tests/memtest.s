@@ -2,13 +2,12 @@
 @include std.mem
 @include std.file
 
-service test()
-    path = "README.md":str
+smo test(String path)
     // this will fail if we create a chunk on the stack
     -> nom:chunks(path:file, 4096, heap)
 
 service main()
-    test()
+    test("README.md")
     :while next(str& chunk)
         print(chunk)
     ----

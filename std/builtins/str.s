@@ -264,3 +264,6 @@ smo next(split &self, str &value)
             self.pos = self.query:len
             value = self.query[prev to self.pos] 
     -----> ret
+
+
+union String(cstr, str)
