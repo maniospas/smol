@@ -140,6 +140,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
         transferring[var+"__"+arg.name] = finals[var+"__"+arg.name];
         transfer_finals[arg.name] = "";
     }
+    for(const auto& it : type->current_renaming) current_renaming[var+"__"+it.first] = var+"__"+it.second;
 
     // prevent memory leaks in loops
     if(uplifiting_is_loop.size() && uplifiting_is_loop.back() && type->finals.size()) {
