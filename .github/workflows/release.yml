@@ -64,6 +64,11 @@ jobs:
     needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
       - name: Download Linux artifacts
         uses: actions/download-artifact@v4
         with:
@@ -81,11 +86,37 @@ jobs:
           zip -r smol-linux.zip smol-linux
           zip -r smol-windows.zip smol-windows
 
+      - name: Generate changelog from commits since last tag
+        id: changelog
+        run: |
+          current_tag="${GITHUB_REF##*/}"
+          latest_tag=$(git describe --tags --abbrev=0 HEAD^)
+
+          # Parse semver numbers
+          IFS='.' read -r cur_major cur_minor cur_patch <<<"${current_tag#v}"
+          IFS='.' read -r old_major old_minor old_patch <<<"${latest_tag#v}"
+
+          # Decide title
+          if [[ "$cur_major" == "$old_major" && "$cur_minor" == "$old_minor" ]]; then
+            title="### 🐛 Bugfixes"
+          else
+            title="### ⚡ Updates"
+          fi
+
+          echo "Generating changelog from $latest_tag to $current_tag"
+
+          changelog=$(git log ${latest_tag}..HEAD --pretty=format:"- %s")
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$title\n\n$changelog" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             smol-linux.zip
             smol-windows.zip
+          body: ${{ steps.changelog.outputs.changelog }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
