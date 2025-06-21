@@ -75,6 +75,8 @@ smo leq(f64 x, f64 y) @body{bool z=x<=y;}   -> z
 smo geq(f64 x, f64 y) @body{bool z=x>=y;}   -> z
 smo eq(f64 x, f64 y)  @body{bool z=(x==y);} -> z
 smo neq(f64 x, f64 y) @body{bool z=(x!=y);} -> z
+smo isnan(f64 x)      @body{bool z=(x!=x);} -> z
+smo isinf(f64 x)      @head{#include <cmath>} @body{bool z=std::isinf(x);} -> z
 
 smo le(u64 x, u64 y)  @body{bool z=x<=y;}   -> z
 smo ge(u64 x, u64 y)  @body{bool z=x>=y;}   -> z
@@ -94,23 +96,29 @@ smo exists(ptr x) @body{bool z=(x);} -> z
 smo add(u64 x, u64 y) @body{u64 z=x+y;} -> z
 smo mul(u64 x, u64 y) @body{u64 z=x*y;} -> z
 smo div(u64 x, u64 y)
-    if y==0:u64 @fail{printf("Division by zero\n");} --
+    if y==0 @fail{printf("Error: division by zero\n");} --
     @head{#include <stdio.h>}
     @body{u64 z=x/y;}
     -> z
 smo sub(u64 x, u64 y)
-    if y>x  @fail{printf("Unsigned substraction yielded a negative\n");} --
+    if y>x  @fail{printf("Error: unsigned substraction yielded a negative\n");} --
     @body{u64 z=x-y;}
     -> z
-smo mod(u64 x, u64 y) @body{u64 z=x%y;} -> z
+smo mod(u64 x, u64 y) 
+    if y==0 @fail{printf("Error: modulo by zero\n");} --
+    @head{#include <stdio.h>}
+    @body{u64 z=x%y;} -> z
 
 smo add(i64 x, i64 y) @body{i64 z=x+y;} -> z
-smo mod(i64 x, i64 y) @body{i64 z=x%y;} -> z
+smo mod(i64 x, i64 y) 
+    if y<=0:i64 @fail{printf("Error: modulo by non-positive\n");} --
+    @head{#include <stdio.h>}
+    @body{i64 z=x%y;} -> z
 smo sub(i64 x, i64 y) @body{i64 z=x-y;} -> z
 smo negative(i64 x) -> sub(0:i64, x)
 smo mul(i64 x, i64 y) @body{i64 z=x*y;} -> z
 smo div(i64 x, i64 y)
-    if y==0:i64 @fail{printf("Division by zero\n");} --
+    if y==0:i64 @fail{printf("Error: division by zero\n");} --
     @head{#include <stdio.h>}
     @body{i64 z=x/y;}
     -> z
@@ -119,11 +127,7 @@ smo add(f64 x, f64 y) @body{f64 z=x+y;} -> z
 smo sub(f64 x, f64 y) @body{f64 z=x-y;} -> z
 smo mul(f64 x, f64 y) @body{f64 z=x*y;} -> z
 smo negative(f64 x) -> sub(0.0, x)
-smo div(f64 x, f64 y)
-    if y==0.0 @fail{printf("Division by zero\n");}--
-    @head{#include <stdio.h>}
-    @body{f64 z=x/y;}
-    -> z
+smo div(f64 x, f64 y) @body{f64 z=x/y;} -> z
 
 smo read(i64)
     @head{#include <stdio.h>}
@@ -133,7 +137,7 @@ smo read(i64)
         i64 result = scanf("%ld%c", &number, &ch);
         bool success = (result == 2 && ch == '\n');
     }
-    if success:not @fail{printf("Invalid integer\n");} --
+    if success:not @fail{printf("Error: invalid integer read\n");} --
     -> number
 
 smo read(u64)
@@ -149,7 +153,7 @@ smo read(u64)
             success = (result == 2 && ch == '\n');
         }
     }
-    if success:not @fail{printf("Invalid unsigned integer\n");} --
+    if success:not @fail{printf("Error: invalid unsigned integer read\n");} --
     -> number
 
 smo read(f64)
@@ -160,6 +164,6 @@ smo read(f64)
         i64 result = scanf("%lf%c", &number, &ch);
         bool success = (result == 2 && ch == '\n');
     }
-    if success:not @fail{printf("Invalid number\n");} --
+    if success:not @fail{printf("Error: invalid number read\n");} --
     -> number
 

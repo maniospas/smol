@@ -44,7 +44,7 @@
 <div class="navbar">
   <a href="index.html">Smoλ home</a>
   <a href="#hello-world">Hello world</a>
-  <a href="#flow">Flow</a>
+  <a href="#variables">Variables</a>
   <a href="#smo">Runtypes</a>
   <a href="#service">Services</a>
   <a href="#buffers">Buffers</a>
@@ -59,7 +59,7 @@
 Let's take our first steps into programming with <i>smoλ</i> (pronounced like "small" but with "o" instead of "a"). 
 I must mention that the language
 is a bit atypical in that it simplifies a lot of traditional programming concepts while keeping the ability
-to write very fast yet safe code. A small level of control is sacrificed in the process, but this means
+to write very fast yet safe code. Some level of control is sacrificed in the process, but this means
 that you do not need to worry too much about technical details.
 </p>
 
@@ -138,7 +138,161 @@ marks the end of our service's implementation.
 </p>
 
 
-<h1 id="primitives">Primitives <a href="#primitives" class="anchor-link">🔗</a></h1>
+<h1 id="variables">Variables <a href="#variables" class="anchor-link">🔗</a></h1>
+
+<p>Many programming languages are centered around the concept of variables that keep track of specific values.
+For example, when computing the circumference of a circule as <code>2πr</code> the radius of the circule
+<code>r</code> may be stored in a variable and the result in yet another one.</p>
+
+<p>Contrary to math, programming variables represent a specific outcome of computations:
+their values remain set once computed and do not change automatically upon each other's changes. 
+In <i>smoλ</i>, declaring a variable
+is as simple as starting from a name that consists of some combination of letters, numbers, or underscores and
+and using the equality symbol <code class="language-smolambda">=</code> to assign the outcome of some expression 
+or constant. Variable names cannot start with a number and may not contain two concecutive underscores (this is reserved
+for some special cases and the language will complain if you use it arbitrarily). 
+An example of setting and using a variable is shown below.</p>
+
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    message = "Hello world!"
+    print(message)
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+Hello world!
+</pre>
+
+<p>Normally, you cannot reassign a new value to already set variables in <i>smoλ</i>. 
+In many languages we say that such variables are <i>immutable</i>. To be able to
+modify set values you need to prepend the name with the <code class="language-smolambda">&</code>
+symbol the first time you assing a value to it. It seems a bit bothersome to explicitly
+declare which variables can be modified, but the reasons will become more obvious as we
+progress through this tutorial; immutability brings logic safety and helps prevent many errors. 
+Conversely, you need to pay special attention to variables marked for modification 
+as they could be modified by called functions. An example of mofifying set values shown below.</p>
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    &message = "hello"
+    print(message)
+    message = "world"
+    print(message)
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+hello
+world
+</pre>
+
+
+<p>So far we only worked with printing some strings. But there are more types of
+values built in the language And its standard library. You will also be able to 
+define more types of variables later to give structure to complicated data. For 
+now, let us see some other basic types.
+</p>
+
+<p>
+First are integers, which are represented by writing some digits, like <code>0,42,128</code>.
+These can be subject of arithmetic operations like <code>+-*/%</code>, where the last one is the
+modulo operator. By default, integers in <i>smoλ</i> are represented with 64 bits and are <i>unsigned</i> in that
+the representation maps them to non-negative ones. For example <code>...0010</code> in the binary
+representation corresponds to the number <code>2</code>.</p>
+
+<p>This type is commonly known as <code class="language-smolambda">u64</code>
+and being the default makes it convenient to work with memory
+while avoiding a whole host of errors. If an operation is invalid, for example if a larger integer
+is subtracted from a smaller one like <code class="language-smolambda">0-1</code>
+or if there is a division by zero, it makes the current service fail. Below is an 
+example of working with unsigned integers.
+</p>
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    x = 2
+    y = 3
+    print("Integer division of 2/3")
+    print(x/y)
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+Integer division of 2/3
+1
+</pre>
+
+<p>In many applications you will need to work with negative integers too, which in <i>smoλ</i> are often
+reprsented with <i>signed</i> 64-bit representations referred to as <code class="language-smolambda">i64</code>; 
+the sign is indicated by first bit, but negative numbers
+are stored in what is known as two's complement, explaining which is perhaps too much detail for this tutorial. The
+important point is that unsigned integers can represent numbers 
+<code class="language-smolambda">0 upto 2^65-1</code> but signed ones
+can represent numbers <code class="language-smolambda">-2^64 upto 2^64-1</code>.</p>
+
+<p>
+Signed integers have the same available operations as assigned ones, with the bonus that any subtraction is valid.
+However, you can not natively represent them. Instead, you need to convert to unsigned counterparts to signed ones
+by calling <code class="language-smolambda">i64(value)</code> or, with an equivalent notation that we will expalin
+later <code class="language-smolambda">value:i64</code>. A similar call can convert back the representation per 
+<code class="language-smolambda">u64(value)</code>. Below is an example of how to yield minus one. It is deliberately
+a bit harder to work with negative numbers in this language by making it very explicit because they can be
+very hard to debug if we are not careful. For example, you might accidentally add a negative number in some computation
+where you would not consider that possible.
+</p>
+
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    minus_one = 0:i64-1:i64
+    print(minus_one)
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+-1
+</pre>
+
+<p>
+We last visit floating point numbers. Raw numbers are designated by adding
+a dot to separate between the integer and decimal part. For example, <code>3.14159</code> is a floating point
+number. Again, 64 bits are used ot hold the repsentation, this time following the IEEE 754 standard, which
+is typically accurate to 15-17 significant digits and <i>smoλ</i>. 
+</p>
+<p>
+The float type is called <code class="language-smolambda">f64</code>
+and there exist similar conversions between that and signed and unsigned integers. These conversions may lose
+information. Importantly, <code>0</code> is an unsigned integer and <i>not</i> a float; 
+its float counterpart is <code>0.0</code>. Furthermore, the IEEE 754 standard allows invalid operations like
+division by zero and lets them yield positive infinity, negative infinity, or <code>NaN</code> (not a number) values.
+Lack of error checking results of very performant floating point code.
+</p>
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    x = 2.0
+    y = 3.0
+    print("Float division of 2/3")
+    print(x/y)
+    print("Is float division of 2/0 an infinity?")
+    print(isinf(1.0/0.0))
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+Float division of 2/3
+1.5
+Is float division of 2/0 an infinity?
+true
+</pre>
+
 
 
 
@@ -157,7 +311,7 @@ Prism.languages.smolambda = {
       greedy: true
     },
     {
-      pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/,
+      pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|&|=)/,
       greedy: true
     }
   ],
