@@ -1,17 +1,13 @@
 #include "../def.h"
 
 
-vector<string> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types) {
+vector<string> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types, bool is_zero_level) {
     vector<string> packs;
     string next = imp->at(p++);
     bool hasComma = false;
-    if(is_service && uplifting_targets.size()<=1) {
-        bool found = false;
-        for(const string& pack : packs) if(pack=="err") {found=true;break;}
-        if(!found) {
-            packs.push_back("err");
-            internalTypes.vars["err"] = types.vars["errcode"];
-        }
+    if(is_service && is_zero_level) {
+        packs.push_back("err");
+        internalTypes.vars["err"] = types.vars["errcode"];
     }
     if(next=="@") {
         next = imp->at(p++);
@@ -126,12 +122,12 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
         return;
     }
 
-    vector<string> tentative = map_to_return(imp, p, types);
+    vector<string> tentative = map_to_return(imp, p, types, true);
     if(!has_returned) packs = tentative;
-    else if(packs.size()!=tentative.size()) imp->error(--p, "Incompatible returns\nprevious "+signature_like(types, tentative)+" vs last "+signature_like(types, packs));
+    else if(packs.size()!=tentative.size()) imp->error(--p, "Incompatible returns\nprevious "+signature_like(types, packs)+" vs last "+signature_like(types, tentative));
     else {
         for(size_t i=0;i<packs.size();++i) {
-            if(internalTypes.vars[packs[i]]!=internalTypes.vars[tentative[i]]) imp->error(--p, "Incompatible returns\nprevious "+signature_like(types, tentative)+" vs last "+signature_like(types, packs));
+            if(internalTypes.vars[packs[i]]!=internalTypes.vars[tentative[i]]) imp->error(--p, "Incompatible returns\nprevious "+signature_like(types, packs)+" vs last "+signature_like(types, tentative));
             assign_variable(internalTypes.vars[packs[i]], tentative[i], packs[i], imp, p, false, false);
         }
         implementation += "goto "+uplifting_targets[0]+";\n";

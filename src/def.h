@@ -58,7 +58,7 @@ vector<Type> all_types;
 
 class Def {
     static int temp;
-    vector<string> map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types);
+    vector<string> map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types,  bool is_zero_level);
     static string create_temp() {return "__"+numberToVar(++temp);}
     unordered_map<string, string> current_renaming;
     void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
