@@ -13,18 +13,8 @@ smo test(String path)
     // within calling services.
     -> nom:chunks(path:file, 4096, heap)
 
-smo main2()
+service main()
     test("README.md")
     :while next(str& chunk)
         print(chunk)
     ----
-
-smo abs(f64 x)
-    if x<0.0 print("negative") |-> 0.0-x
-    -> x
-
-
-service main()
-    x = f64:read:abs
-    print(x)
-    --

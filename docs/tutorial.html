@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Smoλ is a low-level language with fast zero-cost abstractions that are organized into failsafe services.">
+  <meta name="keywords" content="smolambda, low-level language, smoλ, programming language, runtype, safe language, systems programming, DSL">
+  <meta name="author" content="Emmanouil (Manios) Krasanakis">
+  <meta name="robots" content="index, follow">
+
+
+  <title>smoλ</title>
+  <link href="vendor/prism/prism.min.css" rel="stylesheet" />
+  <style>
+    html {scroll-behavior: smooth;}
+    h1 {scroll-margin-top: 60px;}
+    h2 {scroll-margin-top: 60px;}
+    h3 {scroll-margin-top: 60px;}
+    h1[id], h2[id], h3[id] { position: relative; }
+    .anchor-link {text-decoration: none;font-size: 0.9em;margin-left: 8px;opacity: 0;transition: opacity 0.2s;}
+    h1:hover .anchor-link,
+    h2:hover .anchor-link,
+    h3:hover .anchor-link { opacity: 1; }
+
+    body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
+    .navbar {background-color: #333;padding: 2px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
+    .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
+    .navbar a:hover {background-color: #555;}
+    .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
+    h1, h2, h3 {color: #222;}
+    table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
+    th, td {border: 1px solid #ccc;padding: 10px;text-align: left;vertical-align: top;}
+    th {background-color: #eee;}
+    code {background: #eee;padding: 2px 0px;border-radius: 4px;font-family: 'Courier New', Courier, monospace;font-size: 95%;}
+    pre {background: #272822;padding: 15px;border-radius: 8px;overflow-x: auto;font-size: 90%;margin-bottom: 2em;}
+    pre code {background: none;font-family: 'Courier New', Courier, monospace;font-size: 90%;}
+    p strong {color: #444;}
+    .section-header {background-color: #eeb;font-weight: bold;color: #000;}
+  </style>
+</head>
+<body>
+
+
+<div class="navbar">
+  <a href="index.html">Smoλ home</a>
+  <a href="#hello-world">Hello world</a>
+  <a href="#flow">Flow</a>
+  <a href="#smo">Runtypes</a>
+  <a href="#service">Services</a>
+  <a href="#buffers">Buffers</a>
+  <a href="#std">Std</a>
+</div>
+
+<div class="container">
+
+<h1 id="hello-world">Hello world <a href="#hello-world" class="anchor-link">🔗</a></h1>
+
+<p>
+Let's take our first steps into programming with <i>smoλ</i> (pronounced like "small" but with "o" instead of "a"). 
+I must mention that the language
+is a bit atypical in that it simplifies a lot of traditional programming concepts while keeping the ability
+to write very fast yet safe code. A small level of control is sacrificed in the process, but this means
+that you do not need to worry too much about technical details.
+</p>
+
+<p>
+To start using <i>smoλ</i>, download it from its <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>.
+Ensure that both the <i>smol</i> executable and GCC are in your system path. As an editing environment, start with VSCode
+and install the smoλ (smolambda) extension to help with syntax highlighting. Once this is all set, we are ready to create and
+run our first program! This tutorial will have source code followed by some terminal commands and outputs - you can run these
+in the operating system terminal or one provided by VSCode.
+</p>
+
+
+<p>Save the file below as <i>main.s</i>. Then run <i>smol main.s</i>. This 
+creates an executable file named <i>main</i> or <i>main.exe</i>; the name matches the source file
+and the extension depends on your operating system. The command also runs the program right away,
+so you can easily test it. Assuming that everything was set up correctly, you will see "Hello world!" print on the console.
+To only create an executable, an act that is called <i>compiling</i> in all languages that support it,
+run <i>smol main.s --task compile</i>. </p>
+
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    print("Hello world!")
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+Hello world!
+</pre>
+
+<p>
+We will now look at the anatomy of this first program. To begin with,
+we have a line comment <code class="language-smolambda">// main.s</code>.
+This starts with double slash and ignores the remainder of the line. In
+general, it is useful to comment code so that we can remember what we
+had in mind. But take care not to write too trivial comments that would
+require a lot of effort to keep up to date as your code evolves.</p>
+
+<p>
+Next, we have the <code class="language-smolambda">@include std.builtins</code>
+statement. This includes the contents of the file <i>std/builtins.s</i>
+in our code. If the file cannot be found in your project, it is sought out among the files accompanying
+the <i>smol</i> executable. By the way, <i>std</i> is a common naming convention
+to refer to the standard library of programming languages. This has a lot of common
+functionalities; in our case we import some builtin operations for printing and reading
+from the console, and performing basic math (additions, multiplications, etc). The
+word <code class="language-smolambda">print</code> encountered later is declared
+in the builtins we just imported.
+</p>
+
+<p>Now we get to the mysterious <code class="language-smolambda">service main()</code>
+declaration. In <i>smoλ</i>, services are basically chunks of code that perform a designated
+task. Other services can ask them to run again for some inputs.
+They roughly correspond to normal functions of other programming languages, though 
+they also handle certain safety details like memory and errors for you, so you do not have to 
+worry about them right away (more on this stuff later).
+</p>
+
+<p>After telling the language that we want to create a service with the
+<code class="language-smolambda">service</code> keyword, we set a name as
+well as comma-separated arguments inside parentheses <code class="language-smolambda">()</code>. 
+We will talk about arguments in a bit, but our first service has none of them. By
+convention, in most languages the entry point of programs is the service/function
+called <i>main</i>. In other words, our program is just a call to the <i>main</i> service, 
+which executes all the commands found there.</p>
+
+<p>Now we get to the juicy part; the actual code we are running inside our services!
+Basically everything else is preparation for allowing us to write said code.
+We have two lines of code. Of these, <code class="language-smolambda">print("Hello world!")</code> 
+calls <code class="language-smolambda">print</code> with a string (that is, text inside quotation marks)
+argument. You will notice that I deliberately avoided calling <i>print</i> a service; it could be but
+it's something a bit different and even more lightweight: something that the language calls <i>runtype</i>. 
+For now, let's skip the specifics and focus on the last line of code: <code class="language-smolambda">--</code>
+marks the end of our service's implementation.
+</p>
+
+
+<h1 id="primitives">Primitives <a href="#primitives" class="anchor-link">🔗</a></h1>
+
+
+
+</div>
+<script src="vendor/prism/prism.min.js"></script>
+<script>
+Prism.languages.smolambda = {
+  'comment': /\/\/.*/,
+  'directive': {
+    pattern: /@\w+/,
+    alias: 'important'
+  },
+  'keyword': [
+    {
+      pattern: /\b(?:smo|service|if|else|elif|with|include|do|while|union|to|upto|lento|len|and|or)\b/,
+      greedy: true
+    },
+    {
+      pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/,
+      greedy: true
+    }
+  ],
+  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\b/,
+  'punctuation': /[{}();,\[\]]/,
+  'number': /\b\d+\b/,
+  'string': {
+    pattern: /"(?:\\.|[^"\\])*"/,
+    greedy: true
+  }
+};
+</script>
+<script>
+  document.querySelectorAll('a.anchor-link').forEach(a =>
+    a.addEventListener('click', e => {
+      if (location.hash === a.getAttribute('href')) e.preventDefault()
+    })
+  )
+</script>
+
+
+</body>
+</html>
