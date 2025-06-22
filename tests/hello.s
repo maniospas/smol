@@ -1,11 +1,8 @@
-// main.s
 @include std.builtins
 
+service affine(u64 x, u64 y, u64 z) -> (x+y)/z
 service main()
-    x = 2.0
-    y = 3.0
-    print("Float division of 2/3")
-    print(x/y)
-    print("Is float division of 2/0 an infinity?")
-    print(isinf(1.0/0.0))
+    result = affine(1, 2, 0)
+    if result.err:bool print("We failed to execute the code") |--
+    print(result)
     --

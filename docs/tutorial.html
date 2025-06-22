@@ -45,10 +45,9 @@
   <a href="index.html">Smoλ home</a>
   <a href="#hello-world">Hello world</a>
   <a href="#variables">Variables</a>
-  <a href="#smo">Runtypes</a>
-  <a href="#service">Services</a>
-  <a href="#buffers">Buffers</a>
-  <a href="#std">Std</a>
+  <a href="#conditions">Conditions</a>
+  <a href="#arguments">Arguments</a>
+  <a href="#returns">Returns</a>
 </div>
 
 <div class="container">
@@ -65,15 +64,15 @@ that you do not need to worry too much about technical details.
 
 <p>
 To start using <i>smoλ</i>, download it from its <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>.
-Ensure that both the <i>smol</i> executable and GCC are in your system path. As an editing environment, start with VSCode
-and install the smoλ (smolambda) extension to help with syntax highlighting. Once this is all set, we are ready to create and
-run our first program! This tutorial will have source code followed by some terminal commands and outputs - you can run these
-in the operating system terminal or one provided by VSCode.
+Ensure that both the <i>smol</i> executable and GCC are in your system path. For code writing prefer VSCode
+and install the smoλ (smolambda) extension to help with syntax highlighting. We are now ready to create and
+run a first program! This tutorial will have source code followed by terminal commands to run it and outputs - execute those
+commands in your operating system's terminal/console or on the terminal provided by VSCode.
 </p>
 
 
-<p>Save the file below as <i>main.s</i>. Then run <i>smol main.s</i>. This 
-creates an executable file named <i>main</i> or <i>main.exe</i>; the name matches the source file
+<p>Save the source code file below as <i>main.s</i> and run the command <code>smol main.s</code>. This 
+creates an executable file named <i>main</i> or <i>main.exe</i> whose name depends on the source file
 and the extension depends on your operating system. The command also runs the program right away,
 so you can easily test it. Assuming that everything was set up correctly, you will see "Hello world!" print on the console.
 To only create an executable, an act that is called <i>compiling</i> in all languages that support it,
@@ -114,9 +113,8 @@ in the builtins we just imported.
 <p>Now we get to the mysterious <code class="language-smolambda">service main()</code>
 declaration. In <i>smoλ</i>, services are basically chunks of code that perform a designated
 task. Other services can ask them to run again for some inputs.
-They roughly correspond to normal functions of other programming languages, though 
-they also handle certain safety details like memory and errors for you, so you do not have to 
-worry about them right away (more on this stuff later).
+They are like normal functions of other programming languages, but also 
+automatically handle safety details like memory and errors for you (more on this stuff later).
 </p>
 
 <p>After telling the language that we want to create a service with the
@@ -131,8 +129,9 @@ which executes all the commands found there.</p>
 Basically everything else is preparation for allowing us to write said code.
 We have two lines of code. Of these, <code class="language-smolambda">print("Hello world!")</code> 
 calls <code class="language-smolambda">print</code> with a string (that is, text inside quotation marks)
-argument. You will notice that I deliberately avoided calling <i>print</i> a service; it could be but
-it's something a bit different and even more lightweight: something that the language calls <i>runtype</i>. 
+argument. You may wonder whether print is also a service. 
+It's actually a bit more lightweight - something we call a <i>runtype</i>. 
+We'll explain what that means in more detail later.
 For now, let's skip the specifics and focus on the last line of code: <code class="language-smolambda">--</code>
 marks the end of our service's implementation.
 </p>
@@ -141,7 +140,7 @@ marks the end of our service's implementation.
 <h1 id="variables">Variables <a href="#variables" class="anchor-link">🔗</a></h1>
 
 <p>Many programming languages are centered around the concept of variables that keep track of specific values.
-For example, when computing the circumference of a circule as <code>2πr</code> the radius of the circule
+For example, when computing the circumference of a circle as <code>2πr</code> the radius of the circle
 <code>r</code> may be stored in a variable and the result in yet another one.</p>
 
 <p>Contrary to math, programming variables represent a specific outcome of computations:
@@ -149,7 +148,7 @@ their values remain set once computed and do not change automatically upon each 
 In <i>smoλ</i>, declaring a variable
 is as simple as starting from a name that consists of some combination of letters, numbers, or underscores and
 and using the equality symbol <code class="language-smolambda">=</code> to assign the outcome of some expression 
-or constant. Variable names cannot start with a number and may not contain two concecutive underscores (this is reserved
+or constant. Variable names cannot start with a number and may not contain two consecutive underscores (this is reserved
 for some special cases and the language will complain if you use it arbitrarily). 
 An example of setting and using a variable is shown below.</p>
 
@@ -169,7 +168,7 @@ Hello world!
 <p>Normally, you cannot reassign a new value to already set variables in <i>smoλ</i>. 
 In many languages we say that such variables are <i>immutable</i>. To be able to
 modify set values you need to prepend the name with the <code class="language-smolambda">&</code>
-symbol the first time you assing a value to it. It seems a bit bothersome to explicitly
+symbol the first time you assign a value to it. It seems a bit bothersome to explicitly
 declare which variables can be modified, but the reasons will become more obvious as we
 progress through this tutorial; immutability brings logic safety and helps prevent many errors. 
 Conversely, you need to pay special attention to variables marked for modification 
@@ -192,16 +191,17 @@ world
 
 
 <p>So far we only worked with printing some strings. But there are more types of
-values built in the language And its standard library. You will also be able to 
+values built in the language and its standard library - the standard library is a collection
+of helper implementations that usually comes alongside languages. You will also be able to 
 define more types of variables later to give structure to complicated data. For 
-now, let us see some other basic types.
+now, let us see some basic types.
 </p>
 
 <p>
 First are integers, which are represented by writing some digits, like <code>0,42,128</code>.
 These can be subject of arithmetic operations like <code>+-*/%</code>, where the last one is the
 modulo operator. By default, integers in <i>smoλ</i> are represented with 64 bits and are <i>unsigned</i> in that
-the representation maps them to non-negative ones. For example <code>...0010</code> in the binary
+they are non-negative. For example <code>...0010</code> in the binary
 representation corresponds to the number <code>2</code>.</p>
 
 <p>This type is commonly known as <code class="language-smolambda">u64</code>
@@ -228,7 +228,7 @@ Integer division of 2/3
 </pre>
 
 <p>In many applications you will need to work with negative integers too, which in <i>smoλ</i> are often
-reprsented with <i>signed</i> 64-bit representations referred to as <code class="language-smolambda">i64</code>; 
+represented with <i>signed</i> 64-bit representations referred to as <code class="language-smolambda">i64</code>; 
 the sign is indicated by first bit, but negative numbers
 are stored in what is known as two's complement, explaining which is perhaps too much detail for this tutorial. The
 important point is that unsigned integers can represent numbers 
@@ -236,9 +236,9 @@ important point is that unsigned integers can represent numbers
 can represent numbers <code class="language-smolambda">-2^64 upto 2^64-1</code>.</p>
 
 <p>
-Signed integers have the same available operations as assigned ones, with the bonus that any subtraction is valid.
+Signed integers have the same available operations as unsigned ones, with the bonus that any subtraction is valid.
 However, you can not natively represent them. Instead, you need to convert to unsigned counterparts to signed ones
-by calling <code class="language-smolambda">i64(value)</code> or, with an equivalent notation that we will expalin
+by calling <code class="language-smolambda">i64(value)</code> or, with an equivalent notation that we will explain
 later <code class="language-smolambda">value:i64</code>. A similar call can convert back the representation per 
 <code class="language-smolambda">u64(value)</code>. Below is an example of how to yield minus one. It is deliberately
 a bit harder to work with negative numbers in this language by making it very explicit because they can be
@@ -260,18 +260,22 @@ service main()
 </pre>
 
 <p>
-We last visit floating point numbers. Raw numbers are designated by adding
+We next visit floating point numbers. Raw numbers are designated by adding
 a dot to separate between the integer and decimal part. For example, <code>3.14159</code> is a floating point
-number. Again, 64 bits are used ot hold the repsentation, this time following the IEEE 754 standard, which
+number. Again, 64 bits are used to hold the repsentation, this time following the IEEE 754 standard, which
 is typically accurate to 15-17 significant digits and <i>smoλ</i>. 
-</p>
-<p>
 The float type is called <code class="language-smolambda">f64</code>
 and there exist similar conversions between that and signed and unsigned integers. These conversions may lose
 information. Importantly, <code>0</code> is an unsigned integer and <i>not</i> a float; 
-its float counterpart is <code>0.0</code>. Furthermore, the IEEE 754 standard allows invalid operations like
+its float counterpart is <code>0.0</code>. 
+</p>
+<p>
+Notably, the IEEE 754 standard allows invalid operations like
 division by zero and lets them yield positive infinity, negative infinity, or <code>NaN</code> (not a number) values.
-Lack of error checking results of very performant floating point code.
+You can check for those properties by calling <code class="language-smolambda">isnan,isinf</code>.
+Lack of native error checking from the standard results of very performant floating point code. 
+Of course, nothing stops you from creating
+safe variations of the type that are as fast as possible while failing when computing NaN results.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -292,6 +296,290 @@ Float division of 2/3
 Is float division of 2/0 an infinity?
 true
 </pre>
+
+<h1 id="conditions">Conditions <a href="#conditions" class="anchor-link">🔗</a></h1>
+
+<p>
+The last example also contains a check of whether some property is <code class="language-smolambda">true</code>
+or <code class="language-smolambda">false</code>. This is a called a boolean value, or <code class="language-smolambda">bool</code> 
+for short. Boolean values usually hold comparisons. Numeric types also implement 
+comparisons like <code>&gt;</code> (greater than), <code>&lt;</code> (less than), 
+<code>&gt;=</code> (greater than or equal to), <code>&lt;=</code> (less than or equal to), 
+<code>==</code> (equal to), and <code>!=</code> (not equal to). These evaluate to boolean values.
+
+
+The last two are also implemented for boolean values themselves. Below is an example
+</p>
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    print("Is 2 less than 3?")
+    answer = 2&lt;3
+    print(answer)
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+Is 2 less than 3?
+true
+</pre>
+
+
+<p>
+In programming you can change the sequence in which your command run, also known as the <i>control flow</i> of your program.
+The most common -and default- control flow in most languages is to just call one command after the other. But you can also
+have conditional execution that changes which program segment is executed, depending on some boolean value. The syntax takes
+the form of <code class="language-smolambda">if condition case_true --</code> 
+or, to also consider the alternative, <code class="language-smolambda">if condition case_true -- else case_false --</code>. Notice that each
+case is terminated with the same <code class="language-smolambda">--</code> symbol as the service's ending. In general, this symbol
+declares the end of the current block of code so that previous control flow can resume. Increase the indentation of each code block
+to make it easy to visually recognize them.
+</p>
+
+<p>
+Below is an example that prints yes/no depending on some boolean condition. For fewer lines of code, merge <code class="language-smolambda">--</code> 
+with other statements of control flow syntax, such as more copies of the same symbol or <code class="language-smolambda">else</code>. 
+Look how multiple copies of the symbol forms a nice visual barrier at the end of the <i>main</i> service. This is a unique
+feature of this language with an added bonus for good code writing: if you cannot easily tell how many blocks are ending,
+you have probably created overcomplicaed code that should be simplified, for example by being split into more manageable segments.
+</p>
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    print("Is 2 less than 3?")
+    if 2&lt;3
+      print("yes")
+    ----
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+Is 2 less than 3?
+yes
+</pre>
+
+<p>
+Conditions are also language expressions in that they may compute to a value.
+The syntax mentioned above does not compute any such value, but you can replace 
+<code class="language-smolambda">--</code> with <code class="language-smolambda">-></code>
+followed by an expression to return the latter's outcome. In this case, the 
+<code class="language-smolambda">else</code> segment is mandatory, and both
+segments should return the same type of value. This is needed because <i>smoλ</i>
+follows the so-called <i>static typing</i> paradigm, in which the type of every value
+needs to be known at compile time. There are some dynamic features, like buffers
+that hold data whose type changes while programs run, but this introductory tutorial
+is not the proper place to learn about those.
+</p>
+
+<p>
+An example of returning from a conditional statement is presented below. That also
+demonstrates usage of the <code class="language-smolambda">elif</code> keyword, which
+basically translates to the sequence <code class="language-smolambda">else->if</code>.
+All cases return a string, otherwise the language would complain that they
+do no return the same type.
+</p>
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    x = 1.0-2.0
+    sgn = if   x&gt;0.0 -> "positive"
+          elif x&lt;0.0 -> "negative"
+          else       -> "zero"
+    print(sgn)
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+negative
+</pre>
+
+<p>
+As a final note on conditions, and to keep code easy-to-read, 
+it is fine to return the outcomes of computations that do not yield any value, 
+as long as you do not assign the outcome to a variable. For example, the pattern  
+<code class="language-smolambda">if x&gt;0.0 -> print("positive")</code> is acceptable. Read that as 
+<i>if x is greater than zero end the statement with the outcome of printing "positive"</i>.
+</p>
+
+
+<p>A variation of conditions are loops. Those keep executing a code block as long
+a condition, which is re-evaluated on each loop, stays <code>true</code>. They take
+the form <code class="language-smolambda">while condition case_true --</code> but 
+they cannot have a return value. Below is a simple loop that prints the integers <code>0,1,2,3,4</code>
+by starting from a zero-valued variable and continuously incrementing it. Recall that <code>&</code>
+before a variable's first assignment allows its value to be modified. Again, the closing
+<code class="language-smolambda">--</code> are merged in one line to create compact code. 
+</p>
+
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    &i = 0
+    while i&lt;5
+        print(i)
+        i = i+1
+    ----
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+0
+1
+2
+3
+4
+</pre>
+
+<p>
+There is often the need for control flow to also terminate its parent
+flow. In typical languages you can do this with <code>break</code> statements
+or ways to pre-emptively stop functions/services. In <i>smoλ</i> there is 
+a mechanism called <i>uplifting</i> that proives a lot of control but is not completely
+free so that it is easy to recognize the exit point of each block. 
+</p>
+<p>This mechanism
+consists of prepending <code class="language-smolambda">|</code> to the return statements
+of code blocks, for example in the form of <code class="language-smolambda">|--</code> 
+or <code class="language-smolambda">|-&gt;</code>. An eaxmple of uplifting that prematurely
+end a loop if a certain condition is satisfied is shown below. You can have multiple
+levels of uplifting to end/return from a block further upwards in the nested block hierarchy.
+</p>
+
+
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service main()
+    &i = 0
+    while true
+        print(i)
+        if i==5 |--
+        i = i+1
+    ----
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+0
+1
+2
+3
+4
+5
+</pre>
+
+
+
+
+<h1 id="arguments">Arguments <a href="#arguments" class="anchor-link">🔗</a></h1>
+
+<p>Moving on, let's see how we can declare
+and call services. The same interface will be used for
+runtypes that will be declared later, which are more lightweight counterparts, that is,
+zero-cost abstractions over performant machine instructions.
+</p>
+
+<p>Adding arguments to a service is as simple as adding a list of comma-separated
+variable names. However, those variable names need to be prepended by their type
+so that the service can know what inputs to expect. 
+For example, <code class="language-smolambda">f64 x</code> denotes a service input
+variable that is a float named <code>x</code>.
+</p>
+<p>
+To call a service, you need a comma-separated list of input arguments, which are matched to variables in its arguments
+based on the order in which they are provided.
+Place inputs in a parenthesis next to the service name, and the latter will run and give you back a result, if any.
+Below is an example that adds two floats and multiplies the result with a third one.
+Since the return statement is very simple and does not require any intermediate computations, we
+put it at the same line as the service. Otherwise, for visual clarity, indent the contents of 
+services as we have done so far.
+</p>
+
+<p>
+Services can return no value to their caller, in which case they end with <code class="language-smolambda">--</code>,
+or they can return a value, in which case they end with <code class="language-smolambda">-></code> followed by an 
+expression that computes the value to be returned. This corresponds to return statements of other languages,
+but is also the same notation for all other code blocks in control flow.
+</p>
+
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service affine(f64 x, f64 y, f64 z) -> (x+y)*z
+service main()
+    result = affine(1.0, 2.0, 3.0)
+    print(result)
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+9.0
+</pre>
+
+
+<p><b>Under construction: smo definitions</b></p>
+
+
+<h1 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h1>
+
+<p>
+Uplifting also works when returning from services. Below is an example where the absolute value
+is computed by the programming pattern of returning early from running code.
+</p>
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service abs(f64 x)
+  if x&lt;0.0 |-> 0.0-x
+  -> x
+service main()
+    x = 0.0-1.0
+    absx = abs(x)
+    print(x)
+    print(absx)
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+-1.0
+1.0
+</pre>
+
+
+<p><b>Under construction: field access and runtypes</b></p></b></p>
+
+
+<p>A final feature of services is that they compartmenize code to execute safely; any errors do not immediately
+stop execution but leave you the opportunity to handle what happens in the event of failure; they will cascade
+into the calling service's errors (for example, so that the whole program terminates on the first error if you do not
+do any error checking) only if you do not handle them. Handling errors consists of checking whether
+<code class="language-smolambda">result.err:bool</code> is <code>true</code>, in which case you should avoid using
+the result variable further down the line. The field <code>.err</code> is automatically added to all runtypes.
+</p>
+
+<p>
+Error messages are printed in the console, and typically start with <code>Error:</code>. You may trigger an error
+manually with a string message per <code class="language-smolambda">if condition -> fail("Error: custom message here")</code>.
+Errors immediately interupt the calling service, though any resources like open files or memory in use are automatically
+released. This is what makes <i>smoλ</i>'s services to execute, even in long-running programs.
+</p>
+
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+
+service affine(u64 x, u64 y, u64 z) -> (x+y)/z
+service main()
+    result = affine(1, 2, 0)
+    if result.err:bool |-> print("We failed to execute the code")
+    print(result)
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+Error: division by zero
+We failed to execute the code
+</pre>
+
 
 
 

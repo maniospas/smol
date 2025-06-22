@@ -125,7 +125,7 @@ smo len(file f)
     :chunks(f, 1024, memory.stack)
     :while next(str& chunk)
         length = length+chunk:len
-    ---&gt; length // end `while` then return from `len`
+    ---&gt; length  // end `while` then return from `len`
 
 service main()
     print("Give a file:")

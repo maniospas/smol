@@ -103,11 +103,15 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
         p += uplifting;
         if(imp->at(p++)!="-") imp->error(--p, "Expecting `--` or `->` after uplifting operator `|`");
     }
-    if(imp->at(p)=="-") {++p;return;}
+    if(imp->at(p)=="-") {
+        ++p;
+        if(uplifting) implementation += "goto "+uplifting_targets[0]+";\n"; 
+        return;
+    }
     if(imp->at(p++)!=">") imp->error(p-2, "Expecting return.\nUse `->` to return a value or `--` (or end of file) to return without a value for expressions starting with `-`");
+    if(uplifting>=uplifting_targets.size()) imp->error(p-3, "Too many levels of uplifting.\nYou are currently on "+to_string(uplifting_targets.size()-1)+" nested blocks in.");
     if(p<imp->size() && imp->at(p)=="-") {
         p++;
-        if(uplifting>=uplifting_targets.size()) imp->error(p-3, "Too many levels of uplifting.\nYou are currently on "+to_string(uplifting_targets.size()-1)+" nested blocks in.");
         implementation += "goto "+uplifting_targets[uplifting_targets.size()-uplifting-1]+";\n";
         if(has_returned && uplifting_targets.size()-uplifting==1 && packs.size()) imp->error(p-1, "Cannot mix a no-return and a return");
         if(uplifting_targets.size()==1+uplifting) has_returned = true;
@@ -130,7 +134,7 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
             if(internalTypes.vars[packs[i]]!=internalTypes.vars[tentative[i]]) imp->error(--p, "Incompatible returns\nprevious "+signature_like(types, packs)+" vs last "+signature_like(types, tentative));
             assign_variable(internalTypes.vars[packs[i]], tentative[i], packs[i], imp, p, false, false);
         }
-        implementation += "goto "+uplifting_targets[0]+";\n";
     }
+    implementation += "goto "+uplifting_targets[0]+";\n";
     has_returned = true;
 }
