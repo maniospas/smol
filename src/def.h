@@ -137,6 +137,10 @@ public:
     string rename_var(const string& impl, const string& from, const string& to);
     void parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
     void end_block(const shared_ptr<Import>& i, size_t& p);
+    Def* canonic_type() {
+        if(alias_for.size()) return internalTypes.vars[alias_for]->canonic_type();
+        return this;
+    }
 };
 
 int Def::temp = 0;

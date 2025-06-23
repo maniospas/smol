@@ -1,26 +1,25 @@
 @include std.builtins.num
 @include std.builtins.err
 @include std.builtins.str
-@include std.mem -> allocate, memory
+@include std.mem -> allocate, memory, Memory, Primitive
 
-smo buildstr(nom type, u64 size)
-    contents = nom:allocate(memory.heap, size, char)
+smo arena(nom type, Memory, u64 size)
+    contents = nom:allocate(Memory, size, char)
     length = 0
     first = 0:char
     -> type, contents, length
-smo buildstr(u64 size) -> nom:buildstr(size)
-smo len(buildstr self) -> self.length
-smo push(buildstr& self, str other)
+smo arena(Memory, u64 size) -> nom:arena(Memory, size)
+smo len(arena self) -> self.length
+smo push(arena& self, str other)
     if self.contents.size <= self.length + other.length -> fail("String builder ran out of space")
     if self.length==0 first = other.first --
     @body{std::memcpy((char*)self__contents__mem+self__length, (char*)other__contents, sizeof(char)*other__length);}
     @body{self__length = self__length + other__length;}
     --
-smo push(buildstr& self, Number other) -> self:push(other:str)
-smo push(buildstr& self, cstr other) -> self:push(other:str)
-smo str(buildstr& self) -> nom:str(self.contents.mem, self.length, self.first, self.contents.mem)
+smo push(arena& self, Number other) -> self:push(other:str)
+smo push(arena& self, cstr other) -> self:push(other:str)   
 
-smo read(buildstr& self)
+smo read(arena& self)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @body{
@@ -31,10 +30,12 @@ smo read(buildstr& self)
                 length -= 1;
                 ((char*)_contents)[length] = '\0';
                 char first = ((char*)_contents)[0];
+                self__length = self__length+length;
             }
-            self__length = self__length+length;
+            else if(length) {_contents = 0;}
         }
-        else {_contents = 0;}
     }
-    if _contents:exists:not -> fail("Did not have enough memory to read on buildstr")
-    --
+    if _contents:exists:not -> fail("Tried to read more elements than arena size")
+    -> nom:str(_contents, length, first, self__contents__mem)
+
+smo str(arena& self) -> nom:str(self.contents.mem, self.length, self.first, self.contents.mem)

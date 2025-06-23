@@ -11,7 +11,7 @@ void Def::assign_variable(const Type& type, const string& from, const string& to
         if(type->packs.size()==0) return;
         if(internalTypes.contains(from)) {
             if(!internalTypes.contains(to)) imp->error(p, "Not found\nFailed to re-assign "+internalTypes.vars[from]->name+" "+pretty_var(from)+" from no-type"+pretty_var(to));
-            if(internalTypes.vars[from]!=internalTypes.vars[to]) imp->error(p-1, "Not found\nFailed to re-assign "+internalTypes.vars[from]->name+" "+pretty_var(from)+" from different type "+internalTypes.vars[to]->name+" "+pretty_var(to));
+            if(internalTypes.vars[from]->canonic_type()!=internalTypes.vars[to]->canonic_type()) imp->error(p-1, "Not found\nFailed to re-assign "+internalTypes.vars[from]->canonic_type()->name+" "+pretty_var(from)+" from different type "+internalTypes.vars[to]->canonic_type()->name+" "+pretty_var(to));
         }
         internalTypes.vars[from] = type;
         for(const string& var : type->packs) {

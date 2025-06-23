@@ -37,8 +37,8 @@ smo str(i64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally contents {if(contents)free(contents);}
-    @finally readbuf {if(readbuf)free(readbuf);}
+    @finally contents {if(contents)free(contents);contents=0;}
+    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
     -> nom:str(contents, length, first, contents)
 
 smo str(u64 number)
@@ -60,8 +60,8 @@ smo str(u64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally contents {if(contents)free(contents);}
-    @finally readbuf {if(readbuf)free(readbuf);}
+    @finally contents {if(contents)free(contents);contents=0;}
+    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
     -> nom:str(contents, length, first, contents)
 
 smo str(f64 number)
@@ -83,8 +83,8 @@ smo str(f64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally contents {if(contents)free(contents);}
-    @finally readbuf {if(readbuf)free(readbuf);}
+    @finally contents {if(contents)free(contents);contents=0;}
+    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
     -> nom:str(contents, length, first, contents)
 
 smo str(cstr raw)
@@ -244,7 +244,7 @@ smo read(str)
         }
         else if(_contents) {free(_contents);_contents=0;}
     }
-    @finally _contents {if(_contents)free(_contents);}
+    @finally _contents {if(_contents)free(_contents);_contents=0;}
     if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
     -> nom:str(_contents, length, first, _contents)
 
