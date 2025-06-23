@@ -130,9 +130,9 @@ Basically everything else is preparation for allowing us to write said code.
 We have two lines of code. Of these, <code class="language-smolambda">print("Hello world!")</code> 
 calls <code class="language-smolambda">print</code> with a string (that is, text inside quotation marks)
 argument. You may wonder whether print is also a service. 
-It's actually a bit more lightweight - something we call a <i>runtype</i>. 
-We'll explain what that means in more detail later.
-For now, let's skip the specifics and focus on the last line of code: <code class="language-smolambda">--</code>
+It is actually a bit more lightweight - something we call a <i>runtype</i>. 
+I will explain what that means in more detail later.
+For now, let us skip the specifics and focus on the last line of code: <code class="language-smolambda">--</code>
 marks the end of our service's implementation.
 </p>
 
@@ -199,16 +199,16 @@ now, let us see some basic types.
 
 <p>
 First are integers, which are represented by writing some digits, like <code>0,42,128</code>.
-These can be subject of arithmetic operations like <code>+-*/%</code>, where the last one is the
+These can be the subject of binary arithmetic operations like <code>+-*/%</code>, where the last one is the
 modulo operator. By default, integers in <i>smoλ</i> are represented with 64 bits and are <i>unsigned</i> in that
-they are non-negative. For example <code>...0010</code> in the binary
-representation corresponds to the number <code>2</code>.</p>
+they are non-negative. For example <code>...0010</code> in binary corresponds to the number <code>2</code>.</p>
 
 <p>This type is commonly known as <code class="language-smolambda">u64</code>
 and being the default makes it convenient to work with memory
-while avoiding a whole host of errors. If an operation is invalid, for example if a larger integer
+while avoiding a whole host of errors that arise when considering signs. 
+If an operation is invalid, for example if a larger unsigned integer
 is subtracted from a smaller one like <code class="language-smolambda">0-1</code>
-or if there is a division by zero, it makes the current service fail. Below is an 
+or if there is a division by zero, the current service immediately fails. Below is an 
 example of working with unsigned integers.
 </p>
 
@@ -229,15 +229,16 @@ Integer division of 2/3
 
 <p>In many applications you will need to work with negative integers too, which in <i>smoλ</i> are often
 represented with <i>signed</i> 64-bit representations referred to as <code class="language-smolambda">i64</code>; 
-the sign is indicated by first bit, but negative numbers
-are stored in what is known as two's complement, explaining which is perhaps too much detail for this tutorial. The
-important point is that unsigned integers can represent numbers 
+the sign is indicated by the first bit, but negative numbers
+are stored in what is known as two's complement. Explaining this is perhaps too much detail for this tutorial, but if
+interested in details you can visit the Wikipedia entry <a href="https://en.wikipedia.org/wiki/Two%27s_complement">here</a>. 
+Unsigned integers can represent numbers 
 <code class="language-smolambda">0 upto 2^65-1</code> but signed ones
 can represent numbers <code class="language-smolambda">-2^64 upto 2^64-1</code>.</p>
 
 <p>
 Signed integers have the same available operations as unsigned ones, with the bonus that any subtraction is valid.
-However, you can not natively represent them. Instead, you need to convert to unsigned counterparts to signed ones
+However, you can not natively represent them. Instead, convert to unsigned counterparts to signed ones
 by calling <code class="language-smolambda">i64(value)</code> or, with an equivalent notation that we will explain
 later <code class="language-smolambda">value:i64</code>. A similar call can convert back the representation per 
 <code class="language-smolambda">u64(value)</code>. Below is an example of how to yield minus one. It is deliberately
@@ -441,9 +442,9 @@ free so that it is easy to recognize the exit point of each block.
 <p>This mechanism
 consists of prepending <code class="language-smolambda">|</code> to the return statements
 of code blocks, for example in the form of <code class="language-smolambda">|--</code> 
-or <code class="language-smolambda">|-&gt;</code>. An eaxmple of uplifting that prematurely
-end a loop if a certain condition is satisfied is shown below. You can have multiple
-levels of uplifting to end/return from a block further upwards in the nested block hierarchy.
+or <code class="language-smolambda">|-&gt;</code>. Below is an example of uplifting that prematurely
+ends a loop under a certain condition. You can have multiple
+levels of uplifting to end/return further upwards in the nested block hierarchy.
 </p>
 
 
@@ -474,19 +475,34 @@ service main()
 <h1 id="arguments">Arguments <a href="#arguments" class="anchor-link">🔗</a></h1>
 
 <p>Moving on, let's see how we can declare
-and call services. The same interface will be used for
-runtypes that will be declared later, which are more lightweight counterparts, that is,
-zero-cost abstractions over performant machine instructions.
+and call services and the more lightweight runtypes. 
+The two share most of the interface, with runtypes being more lightweight by
+zero-cost abstractions over performant machine instructions. But they do need
+to be enclosed in larger services that create clear compartmenization of where
+error messages can be intercepted. The reason why <i>smoλ</i> uses the term
+<i>runtypes</i> instead of declaring that these are simple inlineed functions 
+(that is, whose code is "copy-pasted" by the language when called) will be presented later.
+</p>
+<p>
+As a glimpse on safety, memory that is reserved for operation outcomes, such as keeping
+a vector of numbers, is automatically deallocated only at points when services come at an end,
+but not when runtypes conclude. There are ways to control deallocation, but these are
+too advanced to tackle in this tutorial. Controlling where memory is allocated and deallocated
+is required by security-critical software, where milliseconds of overhead while waiting for
+the operating system to grant the memory could incur huge penalties (delayed responses by 
+vehicle safety systems or medilcal equiment malfunctions).
 </p>
 
 <p>Adding arguments to a service is as simple as adding a list of comma-separated
 variable names. However, those variable names need to be prepended by their type
 so that the service can know what inputs to expect. 
 For example, <code class="language-smolambda">f64 x</code> denotes a service input
-variable that is a float named <code>x</code>.
+variable that is a float named <code>x</code>. To declared a runtype, change the 
+<code class="language-smolambda">service</code> keyword to <code class="language-smolambda">smo</code>.
 </p>
+
 <p>
-To call a service, you need a comma-separated list of input arguments, which are matched to variables in its arguments
+To call a service or runtype, you need a comma-separated list of input arguments, which are matched to variables in its arguments
 based on the order in which they are provided.
 Place inputs in a parenthesis next to the service name, and the latter will run and give you back a result, if any.
 Below is an example that adds two floats and multiplies the result with a third one.
@@ -496,17 +512,18 @@ services as we have done so far.
 </p>
 
 <p>
-Services can return no value to their caller, in which case they end with <code class="language-smolambda">--</code>,
+Services and runtypes may return no value to their caller, in which case they end with <code class="language-smolambda">--</code>,
 or they can return a value, in which case they end with <code class="language-smolambda">-></code> followed by an 
 expression that computes the value to be returned. This corresponds to return statements of other languages,
-but is also the same notation for all other code blocks in control flow.
+but is also the same notation for all other code blocks in control flow. Returns can declare and return types, but returning
+will be addresse in the next section.
 </p>
 
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
 
-service affine(f64 x, f64 y, f64 z) -> (x+y)*z
+smo affine(f64 x, f64 y, f64 z) -> (x+y)*z
 service main()
     result = affine(1.0, 2.0, 3.0)
     print(result)
@@ -516,8 +533,82 @@ service main()
 9.0
 </pre>
 
+<p> Up until now, arguments have been passed by value. This means that they cannot be
+modified inside the service. However, <i>smoλ</i> 
+also allows passing arguments by reference, making modifications to propagate back to the caller. 
+To do so, prepend the argument name with an <code class="language-smolambda">&</code> in the parameter 
+list of the service. This makes the internal variable mutable, and must be matched by mutable inputs, 
+since they would not be modifiable otherwise. Below is an example, where
+the variable <code>x</code> in <i>main</i> must also be marked as mutable - the language
+would complain otherwise.</p> 
 
-<p><b>Under construction: smo definitions</b></p>
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+  
+smo update(f64 &x) 
+    x = x + 1.0 
+    -- 
+service main() 
+    &x = 2.0 
+    update(x) 
+    print(x) 
+    -- 
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+3.0
+</pre>
+<p>You can also provide types (instead of values) as arguments, without attaching them to variables or values. 
+This is useful when you want to operate on a family of types generically, for example when you want a specific output. 
+To pass a type, just use its name as an argument. Below is an example that creates a different </p> 
+
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+  
+smo zero(f64) -> 0.0
+smo zero(u64) -> 0
+service main() 
+    x = zero(f64) 
+    y = zero(u64) 
+    print(x) 
+    print(y)
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+0.0
+0
+</pre>
+
+<p>
+This is an oportune moment to learn how you can read from the console too; the standard library implements a <code>read</code>
+runtype.
+</p>
+
+<p> Currying allows for chaining runtype and service calls in a way that mimics method dispatch. When using the
+<code class="language-smolambda">:</code> operator, the left-hand-side becomes the first argument of the next runtype or service. 
+This keeps code compact and easy to read, especially when chaining operations. Below is an example, which demonstrate
+the advantage of currying in chaining service or runtype calls.</p> 
+<pre><code class="language-smolambda">// main.s
+@include std.builtins
+  
+smo triple(f64 x) -> x * 3.0 
+service main() 
+  print(2:f64:triple) 
+  --
+</code></pre> 
+<pre style="background-color: #222; color: white;">> smol main.s
+6.0
+</pre>
+
+<p>The currying notation also extends naturally to loops. If you curry into <code>while</code>, this is transferred as the 
+first argument of the condition, enabling a pattern like <code class="language-smolambda">range(n):while next(u64 &i)</code>, 
+where the variable <code>i</code> is defined and incremented according to the standard lbirar'y implementation
+<code class="language-smolambda">smo next(range self, u64& i)</code>, 
+where the state holding the current progress and ending condition is provided by <code>range</code>.
+Getting the next state also returns a boolean value of whether the loop goes on.</p>
+
+<p>Currying into loops is an expressive yet safe pattern of iterating through values. This is why constructs like <code>range</code>
+are commonly known as <i>iterators</i> across programming languages. Importantly, iterators do not allocate memory for each element, 
+but are responsible from generating a next state from the current one.</p>
 
 
 <h1 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h1>
@@ -530,7 +621,7 @@ is computed by the programming pattern of returning early from running code.
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
 
-service abs(f64 x)
+smo abs(f64 x)
   if x&lt;0.0 |-> 0.0-x
   -> x
 service main()
@@ -545,16 +636,14 @@ service main()
 1.0
 </pre>
 
-
-<p><b>Under construction: field access and runtypes</b></p></b></p>
-
-
 <p>A final feature of services is that they compartmenize code to execute safely; any errors do not immediately
-stop execution but leave you the opportunity to handle what happens in the event of failure; they will cascade
-into the calling service's errors (for example, so that the whole program terminates on the first error if you do not
-do any error checking) only if you do not handle them. Handling errors consists of checking whether
+stop execution at the place where services are called, but leave you the opportunity to handle what happens in the event of failure.
+Errors will cascade into becoming the calling service's errors only if you do not handle them.
+For example, if there are no error checks, the whole program terminates on the first error. 
+Handling errors consists of checking whether
 <code class="language-smolambda">result.err:bool</code> is <code>true</code>, in which case you should avoid using
-the result variable further down the line. The field <code>.err</code> is automatically added to all runtypes.
+the result variable further down the line. The field <code>.err</code> is automatically added to all services, but 
+is ignored (after a check that they have not failed) when treating them as tuples.
 </p>
 
 <p>
@@ -563,7 +652,6 @@ manually with a string message per <code class="language-smolambda">if condition
 Errors immediately interupt the calling service, though any resources like open files or memory in use are automatically
 released. This is what makes <i>smoλ</i>'s services to execute, even in long-running programs.
 </p>
-
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
@@ -579,8 +667,6 @@ service main()
 Error: division by zero
 We failed to execute the code
 </pre>
-
-
 
 
 

@@ -17,7 +17,7 @@
 
 @include std.builtins.num
 
-smo str(nom, ptr contents, u64 length, char first) -> @new
+smo str(nom, ptr contents, u64 length, char first, ptr memory) -> @new
 smo str(i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
@@ -39,7 +39,7 @@ smo str(i64 number)
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
     @finally contents {if(contents)free(contents);}
     @finally readbuf {if(readbuf)free(readbuf);}
-    -> nom:str(contents, length, first)
+    -> nom:str(contents, length, first, contents)
 
 smo str(u64 number)
     @head{#include <stdio.h>}
@@ -62,7 +62,7 @@ smo str(u64 number)
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
     @finally contents {if(contents)free(contents);}
     @finally readbuf {if(readbuf)free(readbuf);}
-    -> nom:str(contents, length, first)
+    -> nom:str(contents, length, first, contents)
 
 smo str(f64 number)
     @head{#include <stdio.h>}
@@ -85,7 +85,7 @@ smo str(f64 number)
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
     @finally contents {if(contents)free(contents);}
     @finally readbuf {if(readbuf)free(readbuf);}
-    -> nom:str(contents, length, first)
+    -> nom:str(contents, length, first, contents)
 
 smo str(cstr raw)
     @head{#include <string.h>}
@@ -94,7 +94,7 @@ smo str(cstr raw)
         ptr contents=(ptr)raw;
         char first=raw[0];
     }
-    -> nom:str(contents, length, first)
+    -> nom:str(contents, length, first, contents)
 smo str(bool value) 
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
@@ -143,14 +143,14 @@ smo slice(str s, u64 from, u64 to)
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from==to?'\0':((char*)s__contents)[from];
     }
-    -> nom:str(contents, to-from, first)
+    -> nom:str(contents, to-from, first, s.contents)
 smo slice(str s, u64 from) 
     if from>=s.length @fail{printf("String slice start is out of bounds\n");} --
     @body{
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from+1==s__length?'\0':((char*)contents)[from];
     }
-    -> nom:str(contents, s.length-from, first)
+    -> nom:str(contents, s.length-from, first, s.contents)
 
 smo eq(char x, char y)  @body{bool z=(x==y);} -> z
 smo neq(char x, char y) @body{bool z=(x!=y);} -> z
@@ -190,7 +190,7 @@ smo add(str x, str y)
     }
     if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
     @finally _contents {if(_contents)free(_contents);_contents=0;}
-    -> nom:str(_contents, len_x + len_y, x.first)
+    -> nom:str(_contents, len_x + len_y, x.first, _contents)
 
 smo add(str x, cstr y)
     @head{#include <string.h>}
@@ -207,7 +207,7 @@ smo add(str x, cstr y)
     }
     if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
     @finally _contents {if(_contents)free(_contents);_contents=0;}
-    -> nom:str(_contents, len_x + len_y, x.first)
+    -> nom:str(_contents, len_x + len_y, x.first, _contents)
 
 smo add(cstr x, str y)
     @head{#include <string.h>}
@@ -227,7 +227,7 @@ smo add(cstr x, str y)
     }
     if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
     @finally _contents {if (_contents) free(_contents); _contents = 0;}
-    -> nom:str(_contents, len_x + len_y, first)
+    -> nom:str(_contents, len_x + len_y, first, _contents)
 
 smo read(str)
     @head{#include <stdio.h>}
@@ -242,10 +242,11 @@ smo read(str)
                 char first = ((char*)_contents)[0];
             }
         }
+        else if(_contents) {free(_contents);_contents=0;}
     }
     @finally _contents {if(_contents)free(_contents);}
     if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
-    -> nom:str(_contents, length, first)
+    -> nom:str(_contents, length, first, _contents)
 
 smo split(nom, str query, str sep, u64 &pos) -> @new
 smo split(str query, str sep) -> nom:split(query, sep, u64& pos)

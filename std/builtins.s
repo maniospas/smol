@@ -19,3 +19,4 @@
 @include std.builtins.str
 @include std.builtins.err
 @include std.builtins.range
+@include std.builtins.buildstr
