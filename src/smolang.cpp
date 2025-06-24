@@ -263,12 +263,12 @@ int main(int argc, char* argv[]) {
             std::ofstream out("__smolambda__temp__main.cpp");
             // globals & define services
             out << globals;
-            for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) if(service->number_of_calls || service->name=="main") {
+            for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
                 for(const string& pre : service->preample) out << pre << "\n";
                 out << "errcode "+service->raw_signature()+";\n";
             }
             // implement services
-            for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) if(service->number_of_calls || service->name=="main") {
+            for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
                 out << "\n";
                 out << "errcode ";
                 out << service->raw_signature()+"{\nerrcode __result__errocode=0;\n";

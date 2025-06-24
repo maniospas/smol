@@ -220,7 +220,8 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
     errors = errors+type->rebase(type->errors, var);
     for(const auto& it : type->current_renaming) current_renaming[var+"__"+it.first] = var+"__"+it.second;
-    for(const auto& it : type->internalTypes.vars) {
+    for(const auto& it : type->internalTypes.vars) if(it.second) { // TODO: remove this if (currently it guards against some leftover labels)
+        if(!it.second) imp->error(--p, type->name+"."+pretty_var(it.first)+" is undefined");
         internalTypes.vars[var+"__"+it.first] = it.second;
         if(it.second->name=="buffer") buffer_primitive_associations[var+"__"+it.first] = type->buffer_primitive_associations[it.first];
     }

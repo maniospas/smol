@@ -2,6 +2,7 @@
 
 void Def::assign_variable(const Type& type, const string& from, const string& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives, bool check_mutables) {
     current_renaming[from] = to;
+    current_renaming[to] = from;
     if(check_mutables && internalTypes.contains(from) && mutables.find(from)==mutables.end()) imp->error(--p, "Cannot reassign to non-mutable: "+pretty_var(from)+"\nMutables are prepended by & in their first declaration");
     //if(invalidators.find(from)!=invalidators.end() && invalidators[from].size()) {implementation += invalidators[from]; invalidators[from] = "";}
     if(type_trackers.find(to)!=type_trackers.end()) type_trackers.insert(from);

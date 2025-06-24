@@ -35,7 +35,7 @@ smo read(arena& self)
             else if(length) {_contents = 0;}
         }
     }
-    if _contents:exists:not -> fail("Tried to read more elements than arena size")
+    if _contents:exists:not -> fail("Tried to read more elements than remaining arena size")
     -> nom:str(_contents, length, first, self__contents__mem)
 
 smo str(arena& self) -> nom:str(self.contents.mem, self.length, self.first, self.contents.mem)

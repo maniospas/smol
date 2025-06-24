@@ -107,18 +107,28 @@ public:
     bool has_returned;
     void add_preample(const string& pre) {if(preample.find(pre)==preample.end()) preample.insert(pre);}
     void coallesce_finals(const string& original) {
-        // TODO: optimize this
-        unordered_set<string> previous;
-        string current = original;
-        previous.insert(current);
-        while(current_renaming.find(current)!=current_renaming.end()) {
-            current = current_renaming[current];
-            if(previous.find(current)!=previous.end()) break;
-            previous.insert(current);
-            if(current==original) break;
-            if(finals.find(current)!=finals.end()) {finals[original] += rename_var(finals[current], current, original);finals[current] = "";}
+        unordered_set<string> visited;
+        queue<string> q;
+        unordered_set<string> group;
+        q.push(original);
+        visited.insert(original);
+        while (!q.empty()) {
+            string var = q.front();
+            q.pop();
+            group.insert(var);
+            if(current_renaming.count(var)) {
+                string next = current_renaming[var];
+                if(visited.insert(next).second) q.push(next);
+            }
+            for(const auto& [k, v] : current_renaming) if(v == var && visited.insert(k).second) q.push(k);
+        }
+        // Coalesce all finals into the original
+        for(const string& name : group) if(name != original && finals.count(name)) {
+            finals[original] += rename_var(finals[name], name, original);
+            finals[name] = "";
         }
     }
+
 
     Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors(""), number_of_calls(0), has_returned(false) {}
     Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors(""), number_of_calls(0), has_returned(false) {
