@@ -5,7 +5,7 @@ vector<string> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types
     vector<string> ret;
     if(curry.size()) {
         string var = curry;
-        if(!internalTypes.contains(var)) imp->error(p, "Missing symbol: "+pretty_var(var)+recommend_variable(types, var));
+        if(!internalTypes.contains(var)) imp->error(p, "Not found: "+pretty_var(var)+recommend_variable(types, var));
         const auto& type = internalTypes.vars.find(var)->second;
         if(type->name=="buffer") inherit_buffer = var;
         else {

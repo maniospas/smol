@@ -1,14 +1,14 @@
 @include std.builtins
-@include std.mem  -> memory
-@include std.file -> file, next, lines, ended
+@include std.mem
+@include std.file
 
 service main()
-    f = file("README.md")
+    file = File("README.md")
     endl = "\n":str.first
-    nom
-    :lines(f, 4096, memory.heap)
-    :while next(str line)
-        if line:len:bool and (line[line:len-1]!=endl) and f:ended:not -> fail("Line exceeded character limit")
+    file
+    :read(4096, Heap:allocate_arena(1024))
+    :while next_line(str &line)
+        if line:len:bool and (line[line:len-1]!=endl) and file:ended:not -> fail("Line exceeded character limit")
         printin("line: ")
         printin(line)
         --

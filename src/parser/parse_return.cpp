@@ -54,7 +54,7 @@ vector<string> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Type
         }
         else {
             // not primitives here
-            if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Missing symbol: "+pretty_var(next)+recommend_variable(types, next));
+            if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Not found: "+pretty_var(next)+recommend_variable(types, next));
             if(!hasComma && p<imp->size() && imp->at(p)!=",") {
                 alias_for = next;
                 for(const string& pack : internalTypes.vars[next]->packs) {

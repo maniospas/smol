@@ -91,7 +91,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                         for(const auto& option : impl->options) def->options.insert(option);
                         all_types.push_back(def);
                         def->imp = imp;
-                        def->lazy_compile = false;  // TODO: Check if this needs to be true
+                        def->lazy_compile = true;  // TODO: Check if this needs to be true
                         def->name = name;
                         types.vars[name]  = def;
                     }

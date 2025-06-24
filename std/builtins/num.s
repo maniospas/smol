@@ -75,8 +75,6 @@ smo leq(f64 x, f64 y) @body{bool z=x<=y;}   -> z
 smo geq(f64 x, f64 y) @body{bool z=x>=y;}   -> z
 smo eq(f64 x, f64 y)  @body{bool z=(x==y);} -> z
 smo neq(f64 x, f64 y) @body{bool z=(x!=y);} -> z
-smo isnan(f64 x)      @body{bool z=(x!=x);} -> z
-smo isinf(f64 x)      @head{#include <cmath>} @body{bool z=std::isinf(x);} -> z
 
 smo le(u64 x, u64 y)  @body{bool z=x<=y;}   -> z
 smo ge(u64 x, u64 y)  @body{bool z=x>=y;}   -> z

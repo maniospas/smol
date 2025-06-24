@@ -20,7 +20,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     if(!type) imp->error(first_token_pos, "Not found runtype: "+first_token+recommend_runtype(types, first_token));
     Type previousType = type;
     int highest_choice_power = 0;
-    for(size_t i=0;i<unpacks.size();++i) if(!internalTypes.contains(unpacks[i])) imp->error(p-3, "Missing symbol: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
+    for(size_t i=0;i<unpacks.size();++i) if(!internalTypes.contains(unpacks[i])) imp->error(p-3, "Not found: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
     type->number_of_calls++;
     for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
         if(!type) imp->error(--p, "Internal error: obained a null option for "+previousType->name);
@@ -331,7 +331,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         }
         catch (const runtime_error& e) {
             string what = e.what();
-            if(what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found" && (what.substr(0, string("\033[33mMissing symbol").size())!="\033[33mMissing symbol")) throw e;
+            if(what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found" && (what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found")) throw e;
             if(Def::markdown_errors) overloading_errors += "\n";
             else overloading_errors += "\n- ";
             overloading_errors += what;
@@ -521,7 +521,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         vector<string> unpacks;
         if(imp->at(p)=="__consume") {
             if(!curry.size()) imp->error(p-2, "Unexpected usage of operator\nThere is no left-hand-side");
-            if(!internalTypes.contains(curry)) imp->error(first_token_pos-2, "Missing symbol: "+pretty_var(curry)+recommend_runtype(types, curry));
+            if(!internalTypes.contains(curry)) imp->error(first_token_pos-2, "Not found: "+pretty_var(curry)+recommend_runtype(types, curry));
             else if(internalTypes.vars.find(curry)->second==types.vars["buffer"]) imp->error(p-2, "Operator does not accept buffer as the first input");
             else if(internalTypes.vars.find(curry)->second->not_primitive()) {
                 for(const string& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry+"__"+pack);
@@ -544,7 +544,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
             else for(const string& pack : rhsType->packs) unpacks.push_back(rhs+"__"+pack);
         }
         else if(imp->at(p)!="(" && curry.size()) {
-            if(!internalTypes.contains(curry)) imp->error(first_token_pos-2, "Missing symbol: "+pretty_var(curry)+recommend_runtype(types, curry));
+            if(!internalTypes.contains(curry)) imp->error(first_token_pos-2, "Not found: "+pretty_var(curry)+recommend_runtype(types, curry));
             else if(internalTypes.vars.find(curry)->second==types.vars["buffer"]) inherit_buffer = curry;
             else if(internalTypes.vars.find(curry)->second->not_primitive()) {
                 for(const string& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry+"__"+pack);

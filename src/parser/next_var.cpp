@@ -92,15 +92,15 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
                 next += "__"+next_token;
                 if(p>=n) return first_token;
-                if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Missing symbol2: "+pretty_var(next)+recommend_variable(types, next));
+                if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Not found: "+pretty_var(next)+recommend_variable(types, next));
             }
         }
         else if(imp->at(p)=="[") {
-            if(!internalTypes.contains(next)) imp->error(--p, "Missing symbol: "+pretty_var(next)+recommend_variable(types, next));
+            if(!internalTypes.contains(next)) imp->error(--p, "Not found: "+pretty_var(next)+recommend_variable(types, next));
             if(internalTypes.vars[next]->name!="buffer") {
                 ++p;
                 string arg = parse_expression(i, p, imp->at(p++), types);
-                if(!internalTypes.contains(arg)) imp->error(--p, "Missing symbol: "+pretty_var(arg)+recommend_variable(types, next));
+                if(!internalTypes.contains(arg)) imp->error(--p, "Not found: "+pretty_var(arg)+recommend_variable(types, next));
                 if(internalTypes.vars[arg]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(arg)->second->name+" "+pretty_var(arg));
                 string end("");
                 string method("at");
@@ -108,13 +108,13 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                     p++;
                     method = "slice";
                     end = parse_expression(i, p, imp->at(p++), types);
-                    if(!internalTypes.contains(end)) imp->error(--p, "Missing symbol: "+pretty_var(end)+recommend_variable(types, next));
+                    if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
                     if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
                 }
                 else if(imp->at(p)=="upto") {
                     p++;
                     end = parse_expression(i, p, imp->at(p++), types);
-                    if(!internalTypes.contains(end)) imp->error(--p, "Missing symbol: "+pretty_var(end)+recommend_variable(types, next));
+                    if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
                     if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
                     method = "slice";
                     string tmp = create_temp();
@@ -125,7 +125,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 else if(imp->at(p)=="lento") {
                     p++;
                     end = parse_expression(i, p, imp->at(p++), types);
-                    if(!internalTypes.contains(end)) imp->error(--p, "Missing symbol: "+pretty_var(end)+recommend_variable(types, next));
+                    if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
                     if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
                     method = "slice";
                     string tmp = create_temp();
@@ -149,26 +149,26 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             //if(internalTypes.vars[next]->name!="buffer") imp->error(--p, "Expected buffer but found: "+internalTypes.vars.find(next)->second->name+" "+pretty_var(next));
             ++p;
             string arg = parse_expression(i, p, imp->at(p++), types);
-            if(!internalTypes.contains(arg)) imp->error(--p, "Missing symbol: "+pretty_var(arg)+recommend_variable(types, next));
+            if(!internalTypes.contains(arg)) imp->error(--p, "Not found: "+pretty_var(arg)+recommend_variable(types, next));
             if(internalTypes.vars[arg]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(arg)->second->name+" "+pretty_var(arg));
             string end("");
             if(imp->at(p)=="to") {
                 p++;
                 end = parse_expression(i, p, imp->at(p++), types);
-                if(!internalTypes.contains(end)) imp->error(--p, "Missing symbol: "+pretty_var(end)+recommend_variable(types, next));
+                if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
                 if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
             }
             else if(imp->at(p)=="upto") {
                 p++;
                 end = parse_expression(i, p, imp->at(p++), types);
-                if(!internalTypes.contains(end)) imp->error(--p, "Missing symbol: "+pretty_var(end)+recommend_variable(types, next));
+                if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
                 if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
                 end += " + 1";
             }
             else if(imp->at(p)=="lento") {
                 p++;
                 end = parse_expression(i, p, imp->at(p++), types);
-                if(!internalTypes.contains(end)) imp->error(--p, "Missing symbol: "+pretty_var(end)+recommend_variable(types, next));
+                if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
                 if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
                 end += " - "+next+"____offset";
             }
@@ -201,6 +201,6 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
         }
         else break;
     }
-    if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Missing symbol: "+pretty_var(next)+recommend_variable(types, next));
+    if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Not found: "+pretty_var(next)+recommend_variable(types, next));
     return next;
 }

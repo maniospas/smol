@@ -20,22 +20,18 @@
 @include std.builtins.err 
 @include std.mem
 
-smo file(nom, ptr contents) -> @new
-smo file(str path) 
+smo File(nom, ptr contents) -> @new
+smo File(String _path) 
+    path = _path:str
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{ptr contents = fopen((char*)path__contents, "r");}
     if contents:exists:not @fail{printf("Unable to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
-    -> nom:file(contents)
-smo file(cstr path) -> file(path:str)
-
-smo chunks(nom type, file f, u64 chunk_size, Memory)
-    reader = nom:allocate(Memory, chunk_size, char)
-    -> type, f, reader
-
-smo next(chunks &self, str& value)
+    -> nom:File(contents)
+smo read(File f, u64 chunk_size, Memory memory) reader = memory:allocate(chunk_size) -> f, reader
+smo next_chunk(read &self, str& value)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -45,14 +41,9 @@ smo next(chunks &self, str& value)
         ptr ret = bytes_read ? (ptr)self__reader__mem : 0;
         char first = ((char*)self__reader__mem)[0];
     }
-    with value = nom:str(ret, bytes_read, first)
-    ---> ret:bool
-
-smo lines(nom type, file f, u64 max_line_length, Memory)
-    reader = nom:allocate(Memory, max_line_length, char)
-    -> type, f, reader
-    
-smo next(lines &self, str& value)
+    value = nom:str(ret, bytes_read, first, ret)
+    -> ret:bool
+smo next_line(read &self, str& value)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -61,11 +52,9 @@ smo next(lines &self, str& value)
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)self__reader__mem)[0];
     }
-    with value = nom:str(ret, bytes_read, first)
+    with value = nom:str(ret, bytes_read, first, ret)
     ---> ret:bool
-
-
-smo ended(file f)
+smo ended(File f)
     @head{#include <stdio.h>}
     @body{
         char c = fgetc((FILE*)f__contents);
@@ -73,8 +62,8 @@ smo ended(file f)
         if(!has_ended) ungetc(c, (FILE*)f__contents); 
     }
     -> has_ended
-
-smo isfile(str path)
+smo is_file(String _path)
+    path = _path:str
     @head{#include <stdio.h>}
     @body{
         ptr f = fopen((char*)path__contents, "r");
@@ -82,9 +71,8 @@ smo isfile(str path)
         if(f) fclose((FILE*)f);
     }
     -> exists
-smo isfile(cstr path) -> isfile(path:str)
-
-smo isdir(str path)
+smo is_dir(String _path)
+    path = _path:str
     @head{#include <sys/stat.h> #ifdef _WIN32 #define stat _stat #endif}
     @body{
         ptr info = (ptr)malloc(sizeof(struct stat));
@@ -93,11 +81,9 @@ smo isdir(str path)
         free(info);
     }
     -> is_dir
-smo isdir(cstr path) -> isdir(path:str)
-
-smo removefile(str path)
+smo remove_file(String _path)
+    path = _path:str
     @head{#include <stdio.h>}
     @body{u64 status = remove((char*)path__contents);}
     if status:bool @fail{printf("Failed to remove file: %.*s\n", (int)path__length, (char*)path__contents);} 
     ----
-smo removefile(cstr path) -> removefile(path:str)
