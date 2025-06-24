@@ -48,28 +48,28 @@ smo at(allocate v, u64 pos)
     -- else v.Primitive:is(char) @body{char value = ((char*)v__mem)[pos];}
     ---> value
 smo put(allocate v, u64 pos, Primitive value)
-    with v.Primitive==Primitive --
+    with v.Primitive:is(Primitive) --
     if pos>=v.size -> fail("Out of bounds")
-    with value:u64==value @body{((u64*)v__mem)[pos] = value;}
-    -- else value:i64==value @body{((i64*)v__mem)[pos] = value;}
-    -- else value:f64==value @body{((f64*)v__mem)[pos] = value;} 
-    -- else value:char==value @body{((char*)v__mem)[pos] = value;}
+    with value:is(u64) @body{((u64*)v__mem)[pos] = value;}
+    -- else value:is(i64) @body{((i64*)v__mem)[pos] = value;}
+    -- else value:is(f64) @body{((f64*)v__mem)[pos] = value;} 
+    -- else value:is(char) @body{((char*)v__mem)[pos] = value;}
     ---> v
 smo allocate(MemoryDevice, u64 size) -> allocate(MemoryDevice, size, char)
 
 smo Arena(nom type, ContiguousMemory contents)
-    with contents.Primitive:is(char)
+    with contents.Primitive:is(char) --
     length = 0 
-    ---> type, contents, length
+    -> type, contents, length
 smo len(Arena self) -> self.length
 smo reserved(Arena self) -> self.contents.size
 smo allocate_arena(MemoryDevice, u64 size) -> nom:Arena(MemoryDevice:allocate(size, char))
+smo _arena(ContiguousMemory mem) with ret = nom:Arena(mem) ---> ret  // TODO: Fix the reason this is needed
 smo allocate(Arena &self, u64 size) 
     if (self.length+size)>=self.contents.size -> fail("Out of bounds")
-    ret = Heap:allocate_arena(0)
-    @body{ret__contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
-    @body{ret__size=size;}
-    -> ret
+    @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
+    @body{self__length = self__length+size;}
+    -> _arena(nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents))
 smo read(Arena &self)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}

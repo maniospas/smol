@@ -92,10 +92,12 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
                 +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
                 +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
         }
+        if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) throw runtime_error(type->signature(types)+": Expects mutable " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got immutable "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+           
     }
 
-
-    if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of ["+to_string(unpacks.size())+"] structural arguments - they match "+to_string(numberOfFound)+" candidates"+(markdown_errors?"\n```rust":"")+multipleFound+(markdown_errors?"\n```\n":""));
+    // TODO: reinstate this but improve inference
+    //if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of ["+to_string(unpacks.size())+"] structural arguments - they match "+to_string(numberOfFound)+" candidates"+(markdown_errors?"\n```rust":"")+multipleFound+(markdown_errors?"\n```\n":""));
     if(inherit_buffer.size()) { // unpack buffer
         string arg = inherit_buffer;
         int remaining = (int)(type->args.size()-unpacks.size());
@@ -152,6 +154,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     }
 
     for(const string& mut : type->mutables) mutables.insert(var+"__"+mut);
+    mutables.insert(var); // MAKE ALL CALL OUTCOMES MUTABLE BY DEFAULT
 
     // make actual call
     if(type->is_service) {
@@ -371,10 +374,6 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         uplifiting_is_loop.pop_back();
         return "";
     }
-
-    
-
-
 
     if(is_primitive(first_token)) {
         string vartype = type_primitive(first_token);

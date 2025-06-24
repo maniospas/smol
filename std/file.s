@@ -30,27 +30,33 @@ smo File(String _path)
     if contents:exists:not @fail{printf("Unable to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
     -> nom:File(contents)
-smo read(File f, u64 chunk_size, Memory memory) reader = memory:allocate(chunk_size) -> f, reader
+smo read(Memory &memory, File f, u64 chunk_size) 
+    reader = memory:allocate(chunk_size) 
+    -> f, reader
+smo read(Arena &memory, File f)
+    reader = memory:allocate((memory.contents.size-memory.length)-1)
+    -> f, reader
 smo next_chunk(read &self, str& value)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        u64 bytes_read = fread((char*)self__reader__mem, 1, self__reader__size, (FILE*)self__f__contents);
-        if(!bytes_read) ((char*)self__reader__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
-        ptr ret = bytes_read ? (ptr)self__reader__mem : 0;
-        char first = ((char*)self__reader__mem)[0];
+        u64 bytes_read = fread((char*)self__reader__contents__mem, 1, self__reader__contents__size, (FILE*)self__f__contents);
+        if(!bytes_read) ((char*)self__reader__contents__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
+        ptr ret = bytes_read ? (ptr)self__reader__contents__mem : 0;
+        char first = ((char*)self__reader__contents__mem)[0];
     }
     value = nom:str(ret, bytes_read, first, ret)
     -> ret:bool
 smo next_line(read &self, str& value)
+    with self.f.contents:exists -- // verify that we're using the correct read
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        ptr ret = (ptr)fgets((char*)self__reader__mem, self__reader__size, (FILE*)self__f__contents);
+        ptr ret = (ptr)fgets((char*)self__reader__contents__mem, self__reader__contents__size, (FILE*)self__f__contents);
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
-        char first = ((char*)self__reader__mem)[0];
+        char first = ((char*)self__reader__contents__mem)[0];
     }
     with value = nom:str(ret, bytes_read, first, ret)
     ---> ret:bool
