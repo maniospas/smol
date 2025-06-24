@@ -61,6 +61,8 @@ smo Arena(nom type, ContiguousMemory contents)
     with contents.Primitive:is(char)
     length = 0 
     ---> type, contents, length
+smo len(Arena self) -> self.length
+smo reserved(Arena self) -> self.contents.size
 smo allocate_arena(MemoryDevice, u64 size) -> nom:Arena(MemoryDevice:allocate(size, char))
 smo allocate(Arena &self, u64 size) 
     if (self.length+size)>=self.contents.size -> fail("Out of bounds")
@@ -68,8 +70,6 @@ smo allocate(Arena &self, u64 size)
     @body{ret__contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{ret__size=size;}
     -> ret
-
-smo len(Arena self) -> self.length
 smo read(Arena &self)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}

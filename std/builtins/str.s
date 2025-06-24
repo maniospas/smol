@@ -163,13 +163,11 @@ smo neq(str x, str y)
     @body{bool z = x__first!=y__first || (x__length != y__length) || memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) != 0;} 
     -> z
 smo len(str x) -> x.length
-
 smo len(cstr x)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{u64 z = strlen(x);}
     -> z
-
 smo at(str x, u64 pos) 
     if x__length<=pos @fail{printf("String index out of bounds\n");} --
     @body{char z=((char*)x__contents)[pos];} 
@@ -248,9 +246,10 @@ smo read(str)
     if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
     -> nom:str(_contents, length, first, _contents)
 
-smo split(nom, str query, str sep, u64 &pos) -> @new
-smo split(str query, str sep) -> nom:split(query, sep, u64& pos)
-smo next(split &self, str &value)
+union String(cstr, str)
+smo Split(nom, str query, str sep, u64 &pos) -> @new
+smo Split(String _query, String _sep) -> nom:Split(_query:str, _sep:str, u64 &pos)
+smo next(Split &self, str &value)
     ret = self.pos<self.query:len
     if ret 
         &searching = true
@@ -266,5 +265,3 @@ smo next(split &self, str &value)
             value = self.query[prev to self.pos] 
     -----> ret
 
-
-union String(cstr, str)

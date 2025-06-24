@@ -75,7 +75,6 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 for(const string& mut : argType->mutables) mutables.insert(arg_name+"__"+mut);
                 for(const auto& itarg : argType->packs) {
                     args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut);
-                    //if(mut) mutables.insert(arg_name+"__"+itarg);
                     internalTypes.vars[arg_name+"__"+itarg] = argType->internalTypes.vars[itarg];
                     for(const auto& it : argType->alignments) if(it.second) alignments[arg_name+"__"+it.first] = it.second;
                 }

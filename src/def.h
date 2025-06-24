@@ -74,6 +74,16 @@ class Def {
     string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<string>& unpacks, const size_t first_token_pos, const string& first_token, const string& inherit_buffer, Types& types);
     string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Types& types, string curry="");
     unordered_map<string, Type> retrievable_parameters;
+    bool can_mutate(const string& text) {
+        if(mutables.find(text)!=mutables.end()) return true;
+        size_t pos = 0;
+        while((pos = text.find("__", pos)) != std::string::npos) {
+            std::string part = text.substr(0, pos);
+            if (mutables.find(part) != mutables.end())  return true;
+            pos += 2; // Move past the current "__"
+        }
+        return false;
+    }
 public:
     static bool markdown_errors;
     static int log_depth;
