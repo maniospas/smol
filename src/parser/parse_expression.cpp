@@ -17,6 +17,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     string multipleFound("");
     int numberOfFound = 0;
     int numberOfErrors = 0;
+    if(!type) imp->error(first_token_pos, "Not found runtype: "+first_token+recommend_runtype(types, first_token));
     Type previousType = type;
     int highest_choice_power = 0;
     for(size_t i=0;i<unpacks.size();++i) if(!internalTypes.contains(unpacks[i])) imp->error(p-3, "Missing symbol: "+pretty_var(unpacks[i])+recommend_variable(types, unpacks[i]));
@@ -74,7 +75,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     type = successfullType;
     if(type.get()!=successfullType.get()) type->number_of_calls++;
     if(!type && numberOfErrors) imp->error(first_token_pos, "Not found among "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
-    if(!type) imp->error(first_token_pos, "Not found: "+first_token+recommend_runtype(types, first_token));
+    if(!type) imp->error(first_token_pos, "Not found runtype version: "+first_token+" among "+to_string(previousType->options.size())+" candidates");
     if(type->lazy_compile) imp->error(pos, "Internal error: Runtype has not been compiled");
 
     // repeat here to properly handle alignment (which we couldn't previously)

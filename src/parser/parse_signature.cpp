@@ -143,11 +143,11 @@ vector<Type> Def::get_lazy_options(Types& _types) {
             if(power<it.second->choice_power) power = it.second->choice_power;
             if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first);
             if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first);
-            if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
+            //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
             if(it.second->lazy_compile) imp->error(pos, "Failed to previously compile type: "+types.vars[it.first]->signature(_types));
             if(!types.vars[it.first]->lazy_compile && types.vars[it.first]!=it.second) {
                 power = -1;
-                if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
+                //if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
                 break;
             }
             types.vars[it.first] = it.second;
@@ -163,7 +163,7 @@ vector<Type> Def::get_lazy_options(Types& _types) {
             log_depth -= 1;
             const std::string expected = "\033[33m`with` with no `else`";
             if(what.compare(0, expected.size(), expected) != 0) throw e;
-            if(log_type_resolution) {print_depth();cout << "Skipped due to unprocessable `with` with no `else`\n";}
+            if(log_type_resolution) {print_depth();cout << "Skipped: caught an error using `with` without `else`\n";}
             continue;
         }
         all_types.push_back(def);
