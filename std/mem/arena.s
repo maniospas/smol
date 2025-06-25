@@ -33,13 +33,16 @@ smo allocate_arena(MemoryDevice, u64 size)
 
 smo _arena(ContiguousMemory mem) 
     with ret = nom:Arena(mem) 
-    ---> ret  // TODO: Fix the reason this is needed
+    ---> ret  // TODO: Fix the reason this runtype is needed
 
-smo allocate(Arena &self, u64 size) 
+smo allocate(Arena &self, u64 size)
     if (self.length+size)>=self.contents.size -> fail("Out of bounds")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    -> _arena(nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents))
+    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents)
+
+smo allocate_arena(Arena &self, u64 size) 
+    -> _arena(allocate(self, size))
 
 smo allocate(Arena &self, u64 _size, Primitive) 
     Primitive = Primitive

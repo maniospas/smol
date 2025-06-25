@@ -1,21 +1,25 @@
 @include std.builtins
-@include std.mem
+@include std.mem -> Memory, allocate_arena
 @include std.file
 
-service main()
-    file = File("README.md")
+smo file_reader(String path, Memory &memory)
+    file = File(path)
     endl = "\n":str.first
-
-    Stack
+    memory
     :allocate_arena(1024)
     :read(file)
     :while next_line(str &line)
         if line:len:bool 
         and (line[line:len-1]!=endl) 
         and file:ended:not 
-            -> fail("Line exceeded character limit")
+            -> fail("Line size exceeded character limit")
         printin("line: ")
         printin(line)
         --
     print("")
+    --
+
+service main()
+    &memory = Stack:allocate_arena(1000000)
+    file_reader("README.md", memory)
     --

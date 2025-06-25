@@ -102,6 +102,7 @@ public:
     size_t pos, start, end;
     string name, vardecl, implementation, errors;
     size_t number_of_calls;
+    string active_context;
     set<string> preample;
     unordered_map<string, string> finals;         // resource closing code (transferred around)
     unordered_map<string, string> invalidators;   // also resource closing code (may happen at end of loop)

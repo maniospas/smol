@@ -77,8 +77,76 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
         }
     }
     type = successfullType;
+    string prev_errors("");
+    if(!type && active_context.size()) { // 
+        vector<string> new_unpacks;
+        if(internalTypes.vars[active_context]->_is_primitive) new_unpacks.push_back(active_context);
+        else for(const string& pack : internalTypes.vars[active_context]->packs) new_unpacks.push_back(active_context+"__"+pack);
+        for(const string& pack : unpacks) new_unpacks.push_back(pack);
+        prev_errors = string(markdown_errors?"```rust\n":"")+previousType->name+signature_like(types, unpacks)+(inherit_buffer.size()?" followed by a buffer (unpacks at least one value)":"")+(markdown_errors?"\n```\n":"")+"\namong "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":"")+"\nand not found `on` context\n  ";
+        overloading_errors = "";
+        unpacks = new_unpacks;
+
+        // COPY OF ABOVE CODE HERE TO RETRY
+        for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
+            if(!type) imp->error(--p, "Internal error: obained a null option for "+previousType->name);
+            try {
+                //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
+                size_t type_args = type->not_primitive()?type->args.size():1;
+                if(inherit_buffer.size()) {
+                    if(unpacks.size()>type_args) throw runtime_error(type->signature(types));
+                }
+                else if(unpacks.size()!=type_args) throw runtime_error(type->signature(types));
+                for(size_t i=0;i<unpacks.size();++i) {
+                    auto arg_type = type->_is_primitive?type:type->args[i].type;
+                    if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name);
+                    if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i]));
+                    if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) 
+                        throw runtime_error(type->signature(types));
+                        //throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                    if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
+                        if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
+                        if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i]+" argument "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
+                        if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) {}//REMINDER THAT THIS IS AN ERROR THAT POLUTES NEXT LOOP: alignments[unpacks[i]] = type->alignments[type->args[i].name];
+                        else throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name)+"__"+ pretty_var(type->args[i].name)
+                            +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
+                            +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
+                    }
+                    if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 
+                        throw runtime_error(type->signature(types));
+                        //throw runtime_error(type->signature(types)+": Expects mutable " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got immutable "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                }
+                if(type->choice_power>highest_choice_power) {
+                    highest_choice_power = type->choice_power;
+                    numberOfFound = 0;
+                    multipleFound = "";
+                }
+                if(type->choice_power<highest_choice_power) continue;
+                /*bool equivalentTypes = true;
+                if(!successfullType) equivalentTypes = false;
+                else if(successfullType->name!=type->name) equivalentTypes = false;
+                else if(successfullType->args.size()!=type->args.size()) equivalentTypes = false;
+                else for(size_t i=0;i<type->args.size();++i) if(type->args[i].name!=successfullType->args[i].name || type->args[i].type!=successfullType->args[i].type) {equivalentTypes=false;break;}
+                if(equivalentTypes) continue;
+                */
+                successfullType = type;
+                if(markdown_errors) multipleFound += "\n";
+                else multipleFound += "\n- ";
+                multipleFound += type->signature(types);
+                numberOfFound++;
+            }
+            catch (const std::runtime_error& e) {
+                if(markdown_errors) overloading_errors += "\n";
+                else overloading_errors += "\n- ";
+                overloading_errors += e.what();
+                numberOfErrors++;
+            }
+        }
+    }
+    type = successfullType;
+
     if(type.get()!=successfullType.get()) type->number_of_calls++;
-    if(!type && numberOfErrors) imp->error(first_token_pos, "Not found\n  "+string(markdown_errors?"```rust":"")+previousType->name+signature_like(types, unpacks)+(inherit_buffer.size()?" followed by a buffer (unpacks at least one value)":"")+(markdown_errors?"\n```\n":"")+"\namong "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
+    if(!type && numberOfErrors) imp->error(first_token_pos, "Not found\n  "+prev_errors+string(markdown_errors?"```rust\n":"")+previousType->name+signature_like(types, unpacks)+(inherit_buffer.size()?" followed by a buffer (unpacks at least one value)":"")+(markdown_errors?"\n```\n":"")+"\namong "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
     if(!type) imp->error(first_token_pos, "Not found runtype version: "+first_token+" among "+to_string(previousType->options.size())+" candidates");
     if(type->lazy_compile) imp->error(pos, "Internal error: Runtype has not been compiled");
 
@@ -315,6 +383,26 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         uplifiting_is_loop.pop_back();
         return "";
     }
+    if(first_token=="on") {
+        if(curry.size()) imp->error(p, "Cannot curry onto `on`");
+        if(active_context.size()) imp->error(p, "There is already an active context in this implementation\nEnd its code block to enter a new context with `on`.");
+        string next = imp->at(p++);
+        active_context = parse_expression(imp,p,next,types,curry);
+        if(!active_context.size() || !internalTypes.contains(active_context)) imp->error(--p, "Expression does not evaluate to a variable to use as `on` context");
+        string temp = create_temp();
+        string finally_var = temp+"__on";
+        int on_start = p-1;
+        uplifting_targets.push_back(finally_var);
+        if(uplifiting_is_loop.size()) uplifiting_is_loop.push_back(uplifiting_is_loop.back());
+        else uplifiting_is_loop.push_back(false);
+        parse(imp, p, types, false);
+        uplifting_targets.pop_back();
+        uplifiting_is_loop.pop_back();
+        p++;
+        string var = active_context;
+        active_context = "";
+        return var;
+    }
     if(first_token=="with") { // TODO: this implementation does not account for nesting
         string temp = create_temp();
         string finally_var = temp+"__with";
@@ -328,7 +416,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         internalTypes.vars[finally_var] = types.vars["__label"];
         string next;
         try {
-            if(curry.size()) imp->error(--p, "Cannot have a curry in `with`.");
+            if(curry.size()) imp->error(--p, "Cannot have a curry onto `with`.");
             parse(imp, p, types, false);
             p++;
             next = imp->at(p++);

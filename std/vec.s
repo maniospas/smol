@@ -19,11 +19,13 @@
 @include std.rand
 @include std.mem
 
-smo Vec(nom, ptr contents, u64 size) -> @new
-smo Vec(u64 size)
-    @body{ptr contents = new f64[size]();}
-    @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
-    -> nom:Vec(contents, size)
+smo Vec(nom, ptr contents, u64 size, ptr surface) -> @new
+smo Vec(Memory &memory, u64 size)
+    mem = memory:allocate(size,f64)
+    range(size):while next(u64 &i) 
+        @body{((f64*)mem__mem)[i] = 0;}
+    --
+    -> nom:Vec(mem.mem, size, mem.mem)
 
 smo len(Vec v) -> v.size
 smo slice(Vec v, u64 from, u64 to) 
@@ -31,15 +33,15 @@ smo slice(Vec v, u64 from, u64 to)
     if to > v.size -> fail("Vec out of bounds")
     // so we have 0<=from < to <= v.size
     @body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
-    -> nom:Vec(contents, to-from)
+    -> nom:Vec(contents, to-from, v.surface)
 
-smo rand(Vec, u64 size)
-    @body{ptr contents = new f64[size];}
-    @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
-    &i=0:u64 while i<size @next i = i+1:u64 
+smo rand(Memory &memory, u64 size)
+    mem = memory:allocate(size,f64)
+    range(size)
+    :while next(u64 &i)
         value = rand()
-        @body{((f64*)contents)[i] = value;}
-    ---> nom:Vec(contents, size)
+        @body{((f64*)mem__mem)[i] = value;}
+    ---> nom:Vec(mem.mem, size, mem.mem)
 
 smo at(Vec v, u64 pos) 
     if pos>=v.size -> fail("Vec out of bounds")
@@ -67,36 +69,29 @@ smo set(Vec& x1, Vec x2)
     @body{for(u64 i=0;i<size;++i) ((f64*)x1__contents)[i] = ((f64*)x2__contents)[i];}
     --
 
-smo add(Vec x1, Vec x2)
+smo add(Memory &memory, Vec x1, Vec x2)
     if x1.size!=x2.size -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    @body{ptr contents = new f64[size];}
-    @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];}
-    @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
-    -> nom:Vec(contents, size)
+    mem = memory:allocate(size,f64)
+    @body{for(u64 i=0;i<size;++i) ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];}
+    -> nom:Vec(mem.mem, size, mem.mem)
 
-smo sub(Vec x1, Vec x2)
+smo sub(Memory &memory, Vec x1, Vec x2)
     if x1.size!=x2.size -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    @body{ptr previous = contents;}
-    @body{ptr contents = new f64[size];}
+    mem = memory:allocate(size,f64)
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];}
-    @body{if(previous)delete[] (f64*)previous;}
-    @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
-    -> nom:Vec(contents, size)
+    -> nom:Vec(mem.mem, size, mem.mem)
 
-smo mul(Vec x1, Vec x2)
+smo mul(Memory &memory, Vec x1, Vec x2)
     if x1.size!=x2.size -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    @body{ptr previous = contents;}
-    @body{ptr contents = new f64[size];}
+    mem = memory:allocate(size,f64)
     @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
-    @body{if(previous)delete[] (f64*)previous;}
-    @finally contents {if(contents)delete[] (f64*)contents; contents=0;}
-    -> nom:Vec(contents, size)
+    -> nom:Vec(mem.mem, size, mem.mem)
 
 smo print(Vec v)
     size = if v.size>10 -> 10 else -> v.size

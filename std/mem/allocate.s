@@ -30,7 +30,7 @@ smo allocate(Stack, u64 size, Primitive)
     @head{#include <cstdlib>}
     Primitive = Primitive
     @body{ptr mem=alloca(size*sizeof(Primitive));}
-    if mem:bool:not -> fail("Failed to allocate Stack MemoryDevice")
+    if mem:bool:not -> fail("Failed to allocate Stack")
     @noshare mem
     -> nom:ContiguousMemory(Stack, size, Primitive, mem)
 
@@ -38,7 +38,7 @@ smo allocate(Heap, u64 size, Primitive)
     @head{#include <cstdlib>}
     Primitive = Primitive
     @body{ptr mem=malloc(size*sizeof(Primitive));}
-    if mem:bool:not -> fail("Failed to allocate Heap MemoryDevice")
+    if mem:bool:not -> fail("Failed to allocate Heap")
     @finally mem {if(mem)free(mem);mem=0;}
     -> nom:ContiguousMemory(Heap, size, Primitive, mem)
 
@@ -46,7 +46,7 @@ smo allocate(MemoryDevice, u64 size)
     -> allocate(MemoryDevice, size, char)
 
 smo at(ContiguousMemory v, u64 pos) 
-    if pos>=v.size -> fail("Out of bounds")
+    if pos>=v.size -> fail("ContiguousMemory of bounds")
     with v.Primitive:is(u64) @body{u64 value = ((u64*)v__mem)[pos];}
     -- else v.Primitive:is(i64) @body{i64 value = ((i64*)v__mem)[pos];}
     -- else v.Primitive:is(f64) @body{f64 value = ((f64*)v__mem)[pos];}
@@ -55,7 +55,7 @@ smo at(ContiguousMemory v, u64 pos)
     
 smo put(ContiguousMemory v, u64 pos, Primitive value)
     with v.Primitive:is(Primitive) --
-    if pos>=v.size -> fail("Out of bounds")
+    if pos>=v.size -> fail("ContiguousMemory of bounds")
     with value:is(u64) @body{((u64*)v__mem)[pos] = value;}
     -- else value:is(i64) @body{((i64*)v__mem)[pos] = value;}
     -- else value:is(f64) @body{((f64*)v__mem)[pos] = value;} 
