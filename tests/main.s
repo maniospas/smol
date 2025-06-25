@@ -10,7 +10,10 @@ service main()
     :allocate_arena(1024)
     :read(file)
     :while next_line(str &line)
-        if line:len:bool and (line[line:len-1]!=endl) and file:ended:not -> fail("Line exceeded character limit")
+        if line:len:bool 
+        and (line[line:len-1]!=endl) 
+        and file:ended:not 
+            -> fail("Line exceeded character limit")
         printin("line: ")
         printin(line)
         --
