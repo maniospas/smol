@@ -36,29 +36,58 @@ smo read(Memory &memory, File f, u64 chunk_size)
 smo read(Arena &memory, File f)
     reader = memory:allocate((memory.contents.size-memory.length)-1)
     -> f, reader
-smo next_chunk(read &self, str& value)
+
+smo next_chunk(read &self, File f, str& value)
+    with self.f.contents:exists -- // verify that we're using the correct read
+    with contents = self.reader --
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        u64 bytes_read = fread((char*)self__reader__contents__mem, 1, self__reader__contents__size, (FILE*)self__f__contents);
-        if(!bytes_read) ((char*)self__reader__contents__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
-        ptr ret = bytes_read ? (ptr)self__reader__contents__mem : 0;
-        char first = ((char*)self__reader__contents__mem)[0];
+        u64 bytes_read = fread((char*)contents__mem, 1, contents__size, (FILE*)self__f__contents);
+        if(!bytes_read) ((char*)contents__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
+        ptr ret = bytes_read ? (ptr)contents__mem : 0;
+        char first = ((char*)contents__mem)[0];
     }
-    value = nom:str(ret, bytes_read, first, ret)
-    -> ret:bool
+    with value = nom:str(ret, bytes_read, first, contents.mem)
+    ---> ret:bool
 smo next_line(read &self, str& value)
     with self.f.contents:exists -- // verify that we're using the correct read
+    with contents = self.reader --
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        ptr ret = (ptr)fgets((char*)self__reader__contents__mem, self__reader__contents__size, (FILE*)self__f__contents);
+        ptr ret = (ptr)fgets((char*)contents__mem, contents__size, (FILE*)self__f__contents);
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
-        char first = ((char*)self__reader__contents__mem)[0];
+        char first = ((char*)contents__mem)[0];
     }
-    with value = nom:str(ret, bytes_read, first, ret)
+    with value = nom:str(ret, bytes_read, first, contents.mem)
+    ---> ret:bool
+smo next_chunk(File f, Arena &reader, str& value)
+    with f.contents:exists -- // verify that we're using the correct read
+    @head{#include <stdio.h>}
+    @head{#include <string.h>}
+    @head{#include <stdlib.h>}
+    @body{
+        u64 bytes_read = fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)f__contents);
+        if(!bytes_read) ((char*)reader__contents__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
+        ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
+        char first = ((char*)reader__contents__mem)[0];
+    }
+    value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
+    -> ret:bool
+smo next_line(File f, Arena &reader, str& value)
+    with f.contents:exists -- // verify that we're using the correct read
+    @head{#include <stdio.h>}
+    @head{#include <string.h>}
+    @head{#include <stdlib.h>}
+    @body{
+        ptr ret = (ptr)fgets((char*)reader__contents__mem, reader__contents__size, (FILE*)f__contents);
+        u64 bytes_read = ret ? strlen((char*)ret) : 0;
+        char first = ((char*)reader__contents__mem)[0];
+    }
+    with value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
     ---> ret:bool
 smo ended(File f)
     @head{#include <stdio.h>}

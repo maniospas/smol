@@ -28,14 +28,16 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
             //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
             size_t type_args = type->not_primitive()?type->args.size():1;
             if(inherit_buffer.size()) {
-                if(unpacks.size()>type_args) throw runtime_error(type->signature(types)+": Requires ["+to_string(type_args)+"] but got > ["+to_string(unpacks.size())+"] structural arguments "+signature_like(types, unpacks)+" (buffers unpack at least one value)");
+                if(unpacks.size()>type_args) throw runtime_error(type->signature(types));
             }
-            else if(unpacks.size()!=type_args) throw runtime_error(type->signature(types)+": Requires ["+to_string(type_args)+"] but got ["+to_string(unpacks.size())+"] structural arguments "+signature_like(types, unpacks));
+            else if(unpacks.size()!=type_args) throw runtime_error(type->signature(types));
             for(size_t i=0;i<unpacks.size();++i) {
                 auto arg_type = type->_is_primitive?type:type->args[i].type;
                 if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name);
                 if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i]));
-                if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i])) 
+                    throw runtime_error(type->signature(types));
+                    //throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
                     if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
                     if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i]+" argument "+pretty_var(type->name+"__"+type->args[i].name)+" within "+signature(types));
@@ -44,7 +46,9 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
                         +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
                         +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
                 }
-                if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) throw runtime_error(type->signature(types)+": Expects mutable " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got immutable "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 
+                    throw runtime_error(type->signature(types));
+                    //throw runtime_error(type->signature(types)+": Expects mutable " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got immutable "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
             }
             if(type->choice_power>highest_choice_power) {
                 highest_choice_power = type->choice_power;
@@ -74,7 +78,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
     }
     type = successfullType;
     if(type.get()!=successfullType.get()) type->number_of_calls++;
-    if(!type && numberOfErrors) imp->error(first_token_pos, "Not found among "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
+    if(!type && numberOfErrors) imp->error(first_token_pos, "Not found\n  "+string(markdown_errors?"```rust":"")+previousType->name+signature_like(types, unpacks)+(inherit_buffer.size()?" followed by a buffer (unpacks at least one value)":"")+(markdown_errors?"\n```\n":"")+"\namong "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
     if(!type) imp->error(first_token_pos, "Not found runtype version: "+first_token+" among "+to_string(previousType->options.size())+" candidates");
     if(type->lazy_compile) imp->error(pos, "Internal error: Runtype has not been compiled");
 

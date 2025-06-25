@@ -6,7 +6,7 @@ service main()
     file = File("README.md")
     endl = "\n":str.first
 
-    Heap
+    Stack
     :allocate_arena(1024)
     :read(file)
     :while next_line(str &line)

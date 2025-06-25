@@ -28,7 +28,7 @@ void Def::assign_variable(const Type& type, const string& from, const string& to
         return;
     }
     const auto& it = internalTypes.vars.find(from);
-    if(!type) {if(it==internalTypes.vars.end() || !it->second)imp->error(p, "No runtype for either "+pretty_var(from)+" or "+pretty_var(to));}
+    if(!type) {if(it==internalTypes.vars.end() || !it->second)imp->error(p, "Not found runtype for either "+pretty_var(from)+" or "+pretty_var(to));}
     else if(it==internalTypes.vars.end()) internalTypes.vars[from] = type;
     else if(it->second!=type) imp->error(--p, "Cannot assign to "+it->second->name+" "+pretty_var(from)+" from "+type->name+" "+pretty_var(to));
     if(type->name=="nom" && to!="0") {

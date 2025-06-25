@@ -47,7 +47,7 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
             const auto& it = internalTypes.vars.find(expression_outcome);
             if(it==internalTypes.vars.end()) imp->error(assignment_start, "Failed to parse expression");
             if(is_next_assignment) {next_assignments.insert(var);var = "__next__"+var;}
-            if(it->second->name=="buffer") buffer_primitive_associations[var] = buffer_primitive_associations[expression_outcome];
+            if(it->second && it->second->name=="buffer") buffer_primitive_associations[var] = buffer_primitive_associations[expression_outcome];
             assign_variable(it->second, var, expression_outcome, imp, p);
         }
         else if(is_next_assignment) imp->error(p, "Expecting assignment to variable after @next");
