@@ -13,15 +13,15 @@ smo one_hot(Memory &memory, u64 pos, u64 size)
         // into the next call's first argument.
         // But we also have the vector context,
         // so `set(Vec&, u64, f64)` is called.
-        // This return returns the intermediate 
+        // The latter returns the intermediate 
         // vector and we return that from `on` 
         // whose outcome is in turn returned 
         // by `one_hot`.
-        -> pos:set(1.0)    
+        -> pos:set(1.0)
 
 service main() 
     &memory = Stack:allocate_arena(1024)
-    // `on` context adds a first argument as needed
+    // `on` context adds a first argument as needed (e.g. could use `on nom:Heap`)
     on memory 
         a = one_hot(1, 10)
         b = one_hot(1, 10)

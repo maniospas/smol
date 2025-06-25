@@ -93,6 +93,54 @@ smo mul(Memory &memory, Vec x1, Vec x2)
     @body{for(u64 i=0;i<size;++i) ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
     -> nom:Vec(mem.mem, size, mem.mem)
 
+smo div(Memory &memory, Vec x1, Vec x2)
+    if x1.size!=x2.size -> fail("Incompatible Vec sizes")
+    @body{__builtin_assume(x1__size==x2__size);}
+    size = x1.size
+    mem = memory:allocate(size,f64)
+    @body{for(u64 i=0;i<size;++i) ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]/((f64*)x2__contents)[i];}
+    -> nom:Vec(mem.mem, size, mem.mem)
+
+smo add(Vec& result, Vec x1, Vec x2)
+    if result.size!=x1.size -> fail("Incompatible Vec sizes")
+    if x1.size!=x2.size -> fail("Incompatible Vec sizes")
+    @body{__builtin_assume(result__size==x1__size);}
+    @body{__builtin_assume(x1__size==x2__size);}
+    size = x1.size
+    mem = result.contents
+    @body{for(u64 i=0;i<size;++i) ((f64*)mem)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];}
+    -> result
+
+smo sub(Vec& result, Vec x1, Vec x2)
+    if result.size!=x1.size -> fail("Incompatible Vec sizes")
+    if x1.size!=x2.size -> fail("Incompatible Vec sizes")
+    @body{__builtin_assume(result__size==x1__size);}
+    @body{__builtin_assume(x1__size==x2__size);}
+    size = x1.size
+    mem = result.contents
+    @body{for(u64 i=0;i<size;++i) ((f64*)mem)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];}
+    -> result
+
+smo mul(Vec& result, Vec x1, Vec x2)
+    if result.size!=x1.size -> fail("Incompatible Vec sizes")
+    if x1.size!=x2.size -> fail("Incompatible Vec sizes")
+    @body{__builtin_assume(result__size==x1__size);}
+    @body{__builtin_assume(x1__size==x2__size);}
+    size = x1.size
+    mem = result.contents
+    @body{for(u64 i=0;i<size;++i) ((f64*)mem)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
+    -> result
+
+smo div(Vec& result, Vec x1, Vec x2)
+    if result.size!=x1.size -> fail("Incompatible Vec sizes")
+    if x1.size!=x2.size -> fail("Incompatible Vec sizes")
+    @body{__builtin_assume(result__size==x1__size);}
+    @body{__builtin_assume(x1__size==x2__size);}
+    size = x1.size
+    mem = result.contents
+    @body{for(u64 i=0;i<size;++i) ((f64*)mem)[i] = ((f64*)x1__contents)[i]/((f64*)x2__contents)[i];}
+    -> result
+
 smo print(Vec v)
     size = if v.size>10 -> 10 else -> v.size
     printin("[")
