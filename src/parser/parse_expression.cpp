@@ -391,6 +391,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         if(!active_context.size() || !internalTypes.contains(active_context)) imp->error(--p, "Expression does not evaluate to a variable to use as `on` context");
         string temp = create_temp();
         string finally_var = temp+"__on";
+        internalTypes.vars[finally_var] = types.vars["__label"];
         int on_start = p-1;
         uplifting_targets.push_back(finally_var);
         if(uplifiting_is_loop.size()) uplifiting_is_loop.push_back(uplifiting_is_loop.back());
@@ -399,7 +400,9 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         uplifting_targets.pop_back();
         uplifiting_is_loop.pop_back();
         p++;
-        string var = active_context;
+        string var = finally_var+"r";
+        if(!internalTypes.contains(var)) var = "";
+        implementation += finally_var+":\n";
         active_context = "";
         return var;
     }

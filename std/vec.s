@@ -48,7 +48,7 @@ smo at(Vec v, u64 pos)
     @body{f64 value = ((f64*)v__contents)[pos];} 
     -> value
 
-smo set(Vec& v, u64 pos, f64 value)
+smo set(Vec &v, u64 pos, f64 value)
     if pos>=v.size -> fail("Vec out of bounds")
     @body{((f64*)v__contents)[pos] = value;}
     -> v
@@ -62,7 +62,7 @@ smo dot(Vec x1, Vec x2)
                 :add(sum)
     ---> sum 
 
-smo set(Vec& x1, Vec x2)
+smo set(Vec &x1, Vec x2)
     if x1.size!=x2.size -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
@@ -82,7 +82,7 @@ smo sub(Memory &memory, Vec x1, Vec x2)
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = memory:allocate(size,f64)
-    @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];}
+    @body{for(u64 i=0;i<size;++i) ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];}
     -> nom:Vec(mem.mem, size, mem.mem)
 
 smo mul(Memory &memory, Vec x1, Vec x2)
@@ -90,7 +90,7 @@ smo mul(Memory &memory, Vec x1, Vec x2)
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = memory:allocate(size,f64)
-    @body{for(u64 i=0;i<size;++i) ((f64*)contents)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
+    @body{for(u64 i=0;i<size;++i) ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];}
     -> nom:Vec(mem.mem, size, mem.mem)
 
 smo print(Vec v)

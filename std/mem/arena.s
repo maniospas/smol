@@ -36,7 +36,7 @@ smo _arena(ContiguousMemory mem)
     ---> ret  // TODO: Fix the reason this runtype is needed
 
 smo allocate(Arena &self, u64 size)
-    if (self.length+size)>=self.contents.size -> fail("Out of bounds")
+    if (self.length+size)>self.contents.size -> fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     -> nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents)
@@ -65,7 +65,7 @@ smo read(Arena &self)
             else if(length) {_contents = 0;}
         }
     }
-    if _contents:exists:not -> fail("Tried to read more elements than remaining arena size")
+    if _contents:exists:not -> fail("Tried to read more elements than remaining Arena size")
     -> nom:str(_contents, length, first, self__contents__mem)
 
 union Memory(MemoryDevice, Arena)
