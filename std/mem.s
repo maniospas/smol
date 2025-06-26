@@ -17,3 +17,4 @@
 
 @include std.mem.allocate
 @include std.mem.arena
+@include std.mem.str

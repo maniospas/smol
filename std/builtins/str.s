@@ -122,20 +122,6 @@ smo printin(str message)
     @body{printf("%.*s", (int)message__length, (char*)message__contents);}
     --
 
-smo copy(str s)
-    // strings fresh out from the copy operation are null terminated
-    @body{
-        ptr scstr = malloc(s__length+1);
-        if(scstr) {
-            memcpy((char*)scstr, command__contents, command__length);
-            ((char*)scstr)[s__length] = '\0';
-        }
-        cstr rcstr = (char*)scstr;
-    }
-    if scstr:exists:not @fail{printf("Failed to allocate str\n");} --
-    @finally rcstr {if(rcstr) free((char*)rcstr);rcstr=0;}
-    -> rcstr
-
 smo slice(str s, u64 from, u64 to) 
     if to<from @fail{printf("String slice cannot end before it starts\n");} --
     if to>s.length @fail{printf("String slice must end at most at the length of the base string\n");} --
@@ -152,13 +138,18 @@ smo slice(str s, u64 from)
     }
     -> nom:str(contents, s.length-from, first, s.contents)
 
+union String(cstr, str)
 smo eq(char x, char y)  @body{bool z=(x==y);} -> z
 smo neq(char x, char y) @body{bool z=(x!=y);} -> z
-smo eq(str x, str y)
+smo eq(String _x, String _y)
+    x = _x:str
+    y = _y:str
     @head{#include <string.h>}
     @body{bool z = x__first==y__first && (x__length == y__length) && memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) == 0;}
     -> z
-smo neq(str x, str y)
+smo neq(String _x, String _y)
+    x = _x:str
+    y = _y:str
     @head{#include <string.h>}
     @body{bool z = x__first!=y__first || (x__length != y__length) || memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) != 0;} 
     -> z
@@ -172,60 +163,7 @@ smo at(str x, u64 pos)
     if x__length<=pos @fail{printf("String index out of bounds\n");} --
     @body{char z=((char*)x__contents)[pos];} 
     -> z
-
-smo add(str x, str y)
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
-        u64 len_x = x__length;
-        u64 len_y = y__length;
-        u64 total_len = len_x + len_y;
-        ptr _contents = malloc(total_len);
-        if(_contents) {
-            memcpy((char*)_contents, (char*)x__contents, len_x);
-            memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
-        }
-    }
-    if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
-    @finally _contents {if(_contents)free(_contents);_contents=0;}
-    -> nom:str(_contents, len_x + len_y, x.first, _contents)
-
-smo add(str x, cstr y)
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
-        u64 len_x = x__length;
-        u64 len_y = strlen(y);
-        u64 total_len = len_x + len_y;
-        ptr _contents = malloc(total_len);
-        if(_contents) {
-            memcpy((char*)_contents, (char*)x__contents, len_x);
-            memcpy((char*)_contents + len_x, (const char*)y, len_y);
-        }
-    }
-    if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
-    @finally _contents {if(_contents)free(_contents);_contents=0;}
-    -> nom:str(_contents, len_x + len_y, x.first, _contents)
-
-smo add(cstr x, str y)
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
-        u64 len_x = strlen(x);
-        u64 len_y = y__length;
-        u64 total_len = len_x + len_y;
-
-        ptr _contents = malloc(total_len);
-        char first = 0;
-        if(_contents) {
-            memcpy((char*)_contents, (const char*)x, len_x);
-            memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
-            first = ((char*)_contents)[0];
-        }
-    }
-    if (_contents:exists:not()) @fail{printf("Failed to allocate str\n");} --
-    @finally _contents {if (_contents) free(_contents); _contents = 0;}
-    -> nom:str(_contents, len_x + len_y, first, _contents)
+    
 
 smo read(str)
     @head{#include <stdio.h>}
@@ -246,7 +184,6 @@ smo read(str)
     if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
     -> nom:str(_contents, length, first, _contents)
 
-union String(cstr, str)
 smo Split(nom, str query, str sep, u64 &pos) -> @new
 smo Split(String _query, String _sep) -> nom:Split(_query:str, _sep:str, u64 &pos)
 smo next(Split &self, str &value)

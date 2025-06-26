@@ -280,6 +280,9 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
         if(type->args[i].mut) {
             immediate_finals += unpacks[i]+ " = "+var+"__"+type->args[i].name+";\n";
             current_renaming[unpacks[i]] = var+"__"+type->args[i].name;
+            current_renaming[var+"__"+type->args[i].name] = unpacks[i];
+
+            current_renaming[unpacks[i]] = var+"__"+type->args[i].name;
             buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[var+"__"+type->args[i].name];
         }
     }

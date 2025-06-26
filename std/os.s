@@ -1,4 +1,5 @@
 @include std.builtins
+@include std.mem
 
 
 smo system(cstr command)
@@ -7,4 +8,6 @@ smo system(cstr command)
     if result!=0 -> fail("System call failed")
     --
 
-smo system(str command) -> system(command:copy)
+smo system(str command) 
+    system(Stack:copy(command).memory:cstr)
+    --

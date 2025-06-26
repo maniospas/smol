@@ -17,6 +17,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             ++p;
             string prev = next;
             string tmp = create_temp();
+            internalTypes.vars[tmp] = types.vars["__label"];
             implementation += "if(!"+next+")"+" goto "+tmp+";\n";
             next = parse_expression(i, p, imp->at(p++), types);
             if(!internalTypes.contains(next)) imp->error(--p, "Unknown symbol "+pretty_var(next));
@@ -31,6 +32,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             ++p;
             string prev = next;
             string tmp = create_temp();
+            internalTypes.vars[tmp] = types.vars["__label"];
             implementation += "if("+next+")"+" goto "+tmp+";\n";
             next = parse_expression(i, p, imp->at(p++), types);
             if(!internalTypes.contains(next)) imp->error(--p, "Unknown symbol "+pretty_var(next));

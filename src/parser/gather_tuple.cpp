@@ -12,6 +12,7 @@ vector<string> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types
             if(!type->not_primitive()) ret.push_back(var);
             else if(type->is_service) {
                 string fail_var = create_temp();
+                internalTypes.vars[fail_var] = types.vars["__label"];
                 implementation += "if("+var+"__err) goto "+fail_var+";\n";
                 errors += fail_var+":\nprintf(\"Runtime error from "+type->name+" "+pretty_var(var)+"\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n";
                 add_preample("#include <stdio.h>");
@@ -35,6 +36,7 @@ vector<string> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types
             if(!type->not_primitive()) ret.push_back(var);
             else if(type->is_service) {
                 string fail_var = create_temp();
+                internalTypes.vars[fail_var] = types.vars["__label"];
                 implementation += "if("+var+"__err) goto "+fail_var+";\n";
                 errors += fail_var+":\nprintf(\"Runtime error from "+type->name+" "+pretty_var(var)+"\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n";
                 add_preample("#include <stdio.h>");

@@ -59,7 +59,7 @@ vector<string> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Type
                 alias_for = next;
                 for(const string& pack : internalTypes.vars[next]->packs) {
                     if(internalTypes.contains(pack)) {
-                        if(internalTypes.vars[pack]!=internalTypes.vars[next]->internalTypes.vars[pack]) imp->error(--p, "Mismatching types for: "+pretty_var(next+"__"+pack)+" vs "+pretty_var(pack)+"\nYou are wrapping a base runtype that declares the same name under a different type");
+                        if(internalTypes.vars[pack]!=internalTypes.vars[next]->internalTypes.vars[pack]) imp->error(--p, "Mismatching types for: "+pretty_var(pack)+"\nYou are wrapping a base runtype that declares the same internal variable name under a different type");
                     }
                     assign_variable(internalTypes.vars[next]->internalTypes.vars[pack], pack, next+"__"+pack, imp, p, false, false);
                     if(is_service) {
