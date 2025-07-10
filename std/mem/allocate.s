@@ -22,7 +22,7 @@ smo Stack(nom) -> @new
 smo Heap(nom) -> @new
 union MemoryDevice(Stack, Heap)
 union Primitive(char, u64, f64, i64)
-smo ContiguousMemory(nom, MemoryDevice, u64 size, Primitive, ptr mem) -> @new
+smo ContiguousMemory(nom, MemoryDevice, u64 size, Primitive, ptr mem, ptr underlying) -> @new
 smo is(Primitive value, Primitive) --
 smo is(MemoryDevice, MemoryDevice) --
 
@@ -32,7 +32,7 @@ smo allocate(Stack, u64 size, Primitive)
     @body{ptr mem=alloca(size*sizeof(Primitive));}
     if mem:bool:not -> fail("Failed a Stack allocation")
     @noshare mem
-    -> nom:ContiguousMemory(Stack, size, Primitive, mem)
+    -> nom:ContiguousMemory(Stack, size, Primitive, mem, mem)
 
 smo allocate(Heap, u64 size, Primitive)
     @head{#include <cstdlib>}
@@ -40,7 +40,7 @@ smo allocate(Heap, u64 size, Primitive)
     @body{ptr mem=malloc(size*sizeof(Primitive));}
     if mem:bool:not -> fail("Failed a Heap allocation")
     @finally mem {if(mem)free(mem);mem=0;}
-    -> nom:ContiguousMemory(Heap, size, Primitive, mem)
+    -> nom:ContiguousMemory(Heap, size, Primitive, mem, mem)
 
 smo allocate(MemoryDevice, u64 size) 
     -> allocate(MemoryDevice, size, char)

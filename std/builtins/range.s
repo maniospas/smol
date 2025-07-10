@@ -26,4 +26,3 @@ smo next(range &self, u64 &value)
     value = self.pos 
     self.pos = self.pos+1
     -> (self.pos)<=(self.end) 
-

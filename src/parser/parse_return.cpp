@@ -57,6 +57,7 @@ vector<string> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Type
             if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Not found: "+pretty_var(next)+recommend_variable(types, next));
             if(!hasComma && p<imp->size() && imp->at(p)!=",") {
                 alias_for = next;
+                if(internalTypes.vars[alias_for]->alias_for.size()) alias_for = next+"__"+internalTypes.vars[alias_for]->alias_for;
                 for(const string& pack : internalTypes.vars[next]->packs) {
                     if(internalTypes.contains(pack)) {
                         if(internalTypes.vars[pack]!=internalTypes.vars[next]->internalTypes.vars[pack]) imp->error(--p, "Mismatching types for: "+pretty_var(pack)+"\nYou are wrapping a base runtype that declares the same internal variable name under a different type");

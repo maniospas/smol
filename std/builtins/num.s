@@ -127,41 +127,5 @@ smo mul(f64 x, f64 y) @body{f64 z=x*y;} -> z
 smo negative(f64 x) -> sub(0.0, x)
 smo div(f64 x, f64 y) @body{f64 z=x/y;} -> z
 
-smo read(i64)
-    @head{#include <stdio.h>}
-    @body{
-        i64 number = 0;
-        char ch = 0;
-        i64 result = scanf("%ld%c", &number, &ch);
-        bool success = (result == 2 && ch == '\n');
-    }
-    if success:not @fail{printf("Error: invalid integer read\n");} --
-    -> number
-
-smo read(u64)
-    @head{#include <stdio.h>}
-    @body{
-        u64 number = 0;
-        char ch = 0;
-        bool success = false;
-        char first = getchar();
-        if (first != '-' && first != EOF) {
-            ungetc(first, stdin);
-            i64 result = scanf("%lu%c", &number, &ch);
-            success = (result == 2 && ch == '\n');
-        }
-    }
-    if success:not @fail{printf("Error: invalid unsigned integer read\n");} --
-    -> number
-
-smo read(f64)
-    @head{#include <stdio.h>}
-    @body{
-        f64 number = 0;
-        char ch = 0;
-        i64 result = scanf("%lf%c", &number, &ch);
-        bool success = (result == 2 && ch == '\n');
-    }
-    if success:not @fail{printf("Error: invalid number read\n");} --
-    -> number
-
+smo eq(ptr x, ptr y) @body{bool z=(x==y);} -> z
+smo neq(ptr x, ptr y) @body{bool z=(x!=y);} -> z

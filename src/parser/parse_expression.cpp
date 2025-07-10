@@ -147,7 +147,7 @@ string Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vect
 
     if(type.get()!=successfullType.get()) type->number_of_calls++;
     if(!type && numberOfErrors) imp->error(first_token_pos, "Not found\n  "+prev_errors+string(markdown_errors?"```rust\n":"")+previousType->name+signature_like(types, unpacks)+(inherit_buffer.size()?" followed by a buffer (unpacks at least one value)":"")+(markdown_errors?"\n```\n":"")+"\namong "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
-    if(!type) imp->error(first_token_pos, "Not found runtype version: "+first_token+" among "+to_string(previousType->options.size())+" candidates");
+    if(!type) imp->error(first_token_pos, "Not found runtype version: "+first_token+" among "+to_string(previousType->options.size())+" candidates of "+previousType->signature(types));
     if(type->lazy_compile) imp->error(pos, "Internal error: Runtype has not been compiled");
 
     // repeat here to properly handle alignment (which we couldn't previously)
@@ -666,6 +666,8 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
                 type = option;
                 candidates += "\n"+option->signature(types);
             }
+
+            if(num_choices==0) imp->error(--p, "Overloaded or union runtype has no alternative");
             if(num_choices!=1) imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@new return\nto break the priority stalemate.\nCandidates:"+candidates);
             
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {

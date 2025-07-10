@@ -18,19 +18,18 @@
 @include std.builtins
 @include std.mem.arena
 
-
-smo copy(Memory &allocator, str s)
+smo copy(Memory &allocator, str _s)
+    s = _s:str
     // strings fresh out from the copy operation are null terminated
-    mem = allocator:allocate(s.length, char)
+    mem = allocator:allocate(s.length+1, char)
     @body{
         char first = 0;
         if(mem__mem) {
             memcpy((char*)mem__mem, s__contents, s__length);
             ((char*)mem__mem)[s__length] = '\0';
-            first = mem__mem[s__length-1];
         }
     }
-    -> nom:str(mem.mem, s.length, first, mem.mem)
+    -> nom:str(mem.mem, s.length, first, mem.underlying)
 
 smo add(Memory &allocator, str x, str y)
     @head{#include <string.h>}
@@ -48,7 +47,7 @@ smo add(Memory &allocator, str x, str y)
             memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
         }
     }
-    -> nom:str(_contents, len_x + len_y, x.first, _contents)
+    -> nom:str(_contents, len_x + len_y, x.first, mem.underlying)
 
 smo add(Memory &allocator, str x, cstr y)
     @head{#include <string.h>}
@@ -66,7 +65,7 @@ smo add(Memory &allocator, str x, cstr y)
             memcpy((char*)_contents + len_x, (const char*)y, len_y);
         }
     }
-    -> nom:str(_contents, len_x + len_y, x.first, _contents)
+    -> nom:str(_contents, len_x + len_y, x.first, mem.underlying)
 
 smo add(Memory &allocator, cstr x, str y)
     @head{#include <string.h>}
@@ -86,4 +85,74 @@ smo add(Memory &allocator, cstr x, str y)
             first = ((char*)_contents)[0];
         }
     }
-    -> nom:str(_contents, len_x + len_y, first, _contents)
+    -> nom:str(_contents, len_x + len_y, first, mem.underlying)
+
+
+smo str(i64 number)
+    @head{#include <stdio.h>}
+    @head{#include <stdlib.h>}
+    @head{#include <string.h>}
+    @body{
+        ptr readbuf = (ptr)malloc(32);
+        if(readbuf) {
+            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%ld", number);
+            if (length < 32) {
+                ptr contents = malloc(length + 1);
+                if(contents) {
+                    memcpy(contents, (char*)readbuf, length);
+                    ((char*)contents)[length] = '\0';
+                    char first = ((char*)contents)[0];
+                }
+            }
+        }
+    }
+    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
+    @finally contents {if(contents)free(contents);contents=0;}
+    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
+    -> nom:str(contents, length, first, contents)
+
+smo tostr(u64 number)
+    @head{#include <stdio.h>}
+    @head{#include <stdlib.h>}
+    @head{#include <string.h>}
+    @body{
+        ptr readbuf = (ptr)malloc(32);
+        if(readbuf) {
+            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%lu", number);
+            if (length < 32) {
+                ptr contents = malloc(length + 1);
+                if(contents) {
+                    memcpy(contents, (char*)readbuf, length);
+                    ((char*)contents)[length] = '\0';
+                    char first = ((char*)contents)[0];
+                }
+            }
+        }
+    }
+    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
+    @finally contents {if(contents)free(contents);contents=0;}
+    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
+    -> nom:str(contents, length, first, contents)
+
+smo tostr(f64 number)
+    @head{#include <stdio.h>}
+    @head{#include <stdlib.h>}
+    @head{#include <string.h>}
+    @body{
+        ptr readbuf = (ptr)malloc(32);
+        if(readbuf) {
+            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%.6f", number);
+            if(length < 32) {
+                ptr contents = malloc(length + 1);
+                if(contents) {
+                    memcpy(contents, (char*)readbuf, length);
+                    ((char*)contents)[length] = '\0';
+                    char first = ((char*)contents)[0];
+                }
+            }
+        }
+    }
+    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
+    @finally contents {if(contents)free(contents);contents=0;}
+    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
+    -> nom:str(contents, length, first, contents)

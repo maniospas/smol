@@ -59,5 +59,6 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
         internalTypes.vars["__end"] = types.vars["__label"];implementation += "__end:\n";
         for(const auto& it : invalidators) if(it.second.size()) finals[it.first] = it.second;
         invalidators.clear();
+        simplify();
     }
 }

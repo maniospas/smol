@@ -39,7 +39,7 @@ smo allocate(Arena &self, u64 size)
     if (self.length+size)>self.contents.size -> fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents)
+    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
 
 smo allocate_arena(Arena &self, u64 size) 
     -> _arena(allocate(self, size))
@@ -50,7 +50,7 @@ smo allocate(Arena &self, u64 _size, Primitive)
     if (self.length+size)>self.contents.size -> fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents)
+    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
 smo read(Arena &self)
     @head{#include <stdio.h>}

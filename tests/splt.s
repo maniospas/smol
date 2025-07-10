@@ -1,8 +1,8 @@
 @include std.builtins
 
 smo split(str query, str sep)
-    pos = 0
-    prev = 0
+    &pos = 0
+    &prev = 0
     while pos<query:len-sep:len
         if sep==query[pos to pos+sep:len] 
             if pos>prev -> query[prev to pos]:print

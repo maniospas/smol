@@ -137,9 +137,9 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         for(const auto& it : _types.alignment_labels) types.alignment_labels[it.first] = it.second;
         for(const auto& it : _types.reverse_alignment_labels) types.reverse_alignment_labels[it.first] = it.second;
 
-        int power = 0;
+        double power = 0;
         for(const auto& it : argoption) {
-            if(power<it.second->choice_power) power = it.second->choice_power;
+            power += (1+it.second->choice_power)*0.5;
             if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first);
             if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first);
             //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
@@ -162,7 +162,7 @@ vector<Type> Def::get_lazy_options(Types& _types) {
             log_depth -= 1;
             const std::string expected = "\033[33m`with` with no `else`";
             if(what.compare(0, expected.size(), expected) != 0) throw e;
-            if(log_type_resolution) {print_depth();cout << "Skipped: caught an error using `with` without `else`\n";}
+            //if(log_type_resolution) {print_depth();cout << "Skipped: caught an error using `with` without `else`\n";}
             continue;
         }
         all_types.push_back(def);

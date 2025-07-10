@@ -18,111 +18,44 @@
 @include std.builtins.num
 
 smo str(nom, ptr contents, u64 length, char first, ptr memory) -> @new
-smo str(i64 number)
-    @head{#include <stdio.h>}
-    @head{#include <stdlib.h>}
-    @head{#include <string.h>}
-    @body{
-        ptr readbuf = (ptr)malloc(32);
-        if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%ld", number);
-            if (length < 32) {
-                ptr contents = malloc(length + 1);
-                if(contents) {
-                    memcpy(contents, (char*)readbuf, length);
-                    ((char*)contents)[length] = '\0';
-                    char first = ((char*)contents)[0];
-                }
-            }
-        }
-    }
-    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally contents {if(contents)free(contents);contents=0;}
-    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
-    -> nom:str(contents, length, first, contents)
-
-smo str(u64 number)
-    @head{#include <stdio.h>}
-    @head{#include <stdlib.h>}
-    @head{#include <string.h>}
-    @body{
-        ptr readbuf = (ptr)malloc(32);
-        if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%lu", number);
-            if (length < 32) {
-                ptr contents = malloc(length + 1);
-                if(contents) {
-                    memcpy(contents, (char*)readbuf, length);
-                    ((char*)contents)[length] = '\0';
-                    char first = ((char*)contents)[0];
-                }
-            }
-        }
-    }
-    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally contents {if(contents)free(contents);contents=0;}
-    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
-    -> nom:str(contents, length, first, contents)
-
-smo str(f64 number)
-    @head{#include <stdio.h>}
-    @head{#include <stdlib.h>}
-    @head{#include <string.h>}
-    @body{
-        ptr readbuf = (ptr)malloc(32);
-        if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%.6f", number);
-            if(length < 32) {
-                ptr contents = malloc(length + 1);
-                if(contents) {
-                    memcpy(contents, (char*)readbuf, length);
-                    ((char*)contents)[length] = '\0';
-                    char first = ((char*)contents)[0];
-                }
-            }
-        }
-    }
-    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally contents {if(contents)free(contents);contents=0;}
-    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
-    -> nom:str(contents, length, first, contents)
-
 smo str(cstr raw)
     @head{#include <string.h>}
     @body{
         u64 length=strlen(raw);
         ptr contents=(ptr)raw;
         char first=raw[0];
+        ptr noptr = (ptr)noptr; // use this to indicate a cstr
     }
-    -> nom:str(contents, length, first, contents)
+    -> nom:str(contents, length, first, noptr)
 smo str(bool value) 
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
     if value @body{cstr _contents=__truestr;} --
     else @body{cstr _contents=__falsestr;} --
     -> str(_contents)
-
 smo print(cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", message);}
     --
-
 smo print(str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
     --
-
 smo printin(cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s", message);}
     --
-
 smo printin(str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s", (int)message__length, (char*)message__contents);}
     --
+union String(cstr, str)
+smo is(String, String) --
+smo eq(char x, char y)  @body{bool z=(x==y);} -> z
+smo neq(char x, char y) @body{bool z=(x!=y);} -> z
 
-smo slice(str s, u64 from, u64 to) 
+smo slice(String self, u64 from, u64 to) 
+    s = self:str
     if to<from @fail{printf("String slice cannot end before it starts\n");} --
     if to>s.length @fail{printf("String slice must end at most at the length of the base string\n");} --
     @body{
@@ -130,17 +63,8 @@ smo slice(str s, u64 from, u64 to)
         char first = from==to?'\0':((char*)s__contents)[from];
     }
     -> nom:str(contents, to-from, first, s.contents)
-smo slice(str s, u64 from) 
-    if from>=s.length @fail{printf("String slice start is out of bounds\n");} --
-    @body{
-        ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
-        char first = from+1==s__length?'\0':((char*)contents)[from];
-    }
-    -> nom:str(contents, s.length-from, first, s.contents)
+smo slice(String self, u64 from) -> slice(self, from, 0)
 
-union String(cstr, str)
-smo eq(char x, char y)  @body{bool z=(x==y);} -> z
-smo neq(char x, char y) @body{bool z=(x!=y);} -> z
 smo eq(String _x, String _y)
     x = _x:str
     y = _y:str
@@ -163,26 +87,6 @@ smo at(str x, u64 pos)
     if x__length<=pos @fail{printf("String index out of bounds\n");} --
     @body{char z=((char*)x__contents)[pos];} 
     -> z
-    
-
-smo read(str)
-    @head{#include <stdio.h>}
-    @head{#include <stdlib.h>}
-    @body{
-        ptr _contents = malloc(1024);
-        if(_contents && fgets((char*)_contents, 1024, stdin)) {
-            u64 length = strlen((char*)_contents);
-            if(length > 0 && ((char*)_contents)[length - 1] == '\n') {
-                length -= 1;
-                ((char*)_contents)[length] = '\0';
-                char first = ((char*)_contents)[0];
-            }
-        }
-        else if(_contents) {free(_contents);_contents=0;}
-    }
-    @finally _contents {if(_contents)free(_contents);_contents=0;}
-    if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
-    -> nom:str(_contents, length, first, _contents)
 
 smo Split(nom, str query, str sep, u64 &pos) -> @new
 smo Split(String _query, String _sep) -> nom:Split(_query:str, _sep:str, u64 &pos)

@@ -10,6 +10,7 @@
 #include "parser/rebase.cpp"
 #include "parser/parse.cpp"
 #include "parser/parse_return.cpp"
+#include "parser/simplify.cpp"
 
 // g++ src/smolang.cpp -o smol -O2 -std=c++23 -Wall
 // g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
@@ -82,6 +83,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                     const string& name = it.first;
                     if(filter.size() && filter.find(name)==filter.end()) continue;
                     Type impl = it.second;
+                    //cout<<file<<" imports "<<path<<" "<<impl->signature(types) << "\n";
                     if(impl->_is_primitive) continue;
                     if(!types.contains(name)) types.vars[name] = impl;
                     else if(types.vars[name]==impl) {}
@@ -91,8 +93,9 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                         for(const auto& option : impl->options) def->options.insert(option);
                         all_types.push_back(def);
                         def->imp = imp;
-                        def->lazy_compile = true;  // TODO: Check if this needs to be true
+                        def->lazy_compile = true;//treat as union
                         def->name = name;
+                        types.vars[def->name]->pos = p;
                         types.vars[name]  = def;
                     }
                 }
@@ -111,11 +114,12 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                 if(def->lazy_compile) lazy_options = def->get_lazy_options(types);
                 if(!types.contains(def->name)) types.vars[def->name] = def;
                 else if(!types.vars[def->name]->lazy_compile) {
-                    // if it was a normal implementation move to a union
+                    // if the previous was a normal implementation move that to a union
                     auto prev = types.vars[def->name];
                     types.vars[def->name] = make_shared<Def>(types);
                     all_types.push_back(types.vars[def->name]);
                     types.vars[def->name]->imp = imp;
+                    types.vars[def->name]->pos = p;
                     types.vars[def->name]->lazy_compile = true;
                     types.vars[def->name]->name = prev->name;
                     for(const auto& d : prev->options) types.vars[def->name]->options.insert(d);
@@ -143,8 +147,10 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                 auto def = make_shared<Def>(types);
                 all_types.push_back(def);
                 def->imp = imp;
+                def->pos = p;
                 def->lazy_compile = true;
                 def->name = name;
+                types.vars[name] = def;
                 p++;
                 if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
                 while(true) {
@@ -160,7 +166,6 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                     if(next!=",") imp->error(--p, "Missing comma");
                 }
                 --p;
-                types.vars[name] = def;
             }
             else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union` or `@include` allowed");
             p++;
