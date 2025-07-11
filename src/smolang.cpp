@@ -197,7 +197,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
         }
     }
 
-    if(imp->allow_unsafe && imp->about.size()==0) imp->about = imp->path;
+    if(imp->allow_unsafe && imp->about.size()==0) imp->about = "\""+imp->path+"\"";
 
     //imp->tokens.clear();  // DO NOT CLEAR HERE BECAUSE IT PREVENTS LAZY DEFS FROM PARSING
 }
