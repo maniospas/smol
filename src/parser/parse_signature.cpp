@@ -72,6 +72,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             else {
                 internalTypes.vars[arg_name] = argType;
                 if(mut) mutables.insert(arg_name);
+                if(!mut && argType->noborrow) imp->error(--p, "Argument's "+arg_name+" runtype has been set as @noborrow\nThis means that arguments and variables of it can only be mutable\nand therefore it becomes impossible to share it\n(mutables cannot be assinged anywhere).\nAdd & before the argument name to make it mutable");
                 for(const string& mut : argType->mutables) mutables.insert(arg_name+"__"+mut);
                 for(const auto& itarg : argType->packs) {
                     args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut);

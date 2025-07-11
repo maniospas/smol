@@ -91,6 +91,7 @@ public:
     bool is_service;
     bool _is_primitive;
     bool lazy_compile;
+    bool noborrow;
     static bool debug;
     unordered_set<Type> options;
     vector<Arg> args;
@@ -141,8 +142,8 @@ public:
     }
 
 
-    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), name(builtin), vardecl(""), implementation(""), errors(""), number_of_calls(0), has_returned(false) {}
-    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), name(""), vardecl(""), implementation(""), errors(""), number_of_calls(0), has_returned(false) {
+    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), name(builtin), vardecl(""), implementation(""), errors(""), number_of_calls(0), has_returned(false) {}
+    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), name(""), vardecl(""), implementation(""), errors(""), number_of_calls(0), has_returned(false) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;

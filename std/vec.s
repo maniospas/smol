@@ -15,6 +15,9 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
+@unsafe
+@about "Standard library implementation of vectors allocated with its memory management but using C pointers for element access."
+
 @include std.builtins
 @include std.rand
 @include std.mem

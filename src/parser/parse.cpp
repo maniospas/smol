@@ -9,11 +9,11 @@ void Def::end_block(const shared_ptr<Import>& i, size_t& p) {
         if(next=="-" && p<imp->size()-1) {
             ++p; next = imp->at(p);
             if(next=="-") {if(depth==0){++p;break;} --depth;}
-            if(next==">") imp->error(p, "Currently unimplemented nesting that ends in symbol other than -");
+            if(next==">") imp->error(p, "Currently unimplemented nesting that ends in symbol other than `--` or `else`");
         }
         ++p;
     }
-} 
+}
 
 void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature) {
     if(!imp) imp = _imp;
@@ -34,6 +34,7 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
         if(next=="&") {next = imp->at(p++);is_mutable_assignment=true;}
         if(next=="|") {parse_return(imp, p, next, types);end = p--; break;}
         if(next=="-") {parse_return(imp, p, next, types);end = p--; break;}
+        if(next=="else") {--p;end = p--; break;}
         string var = imp->at(p);
         if(var=="=" && p<imp->size()-1 && imp->at(p+1)=="=") var = "";
         if(var=="." || var=="=") {

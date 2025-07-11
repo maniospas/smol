@@ -15,7 +15,8 @@ service main()
     // that is eventually returned (only one 
     // allocation but we need operations to apply
     // sequentially)
-    result = on Stack:Vec(10) -> (a*b*c)+a+b+c
+    result = on Stack:Vec(10) 
+        -> (a*b*c)+a+b+c
     print(result)
     --
 

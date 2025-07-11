@@ -16,6 +16,8 @@
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
 @include std.builtins.num
+@unsafe
+@about "Standard library wrapping of C math operations."
 
 smo cos(f64 x)          @head{#include <math.h>} @body{f64 z = cos(x);}      -> z
 smo acos(f64 x)         @head{#include <math.h>} @body{f64 z = acos(x);}     -> z

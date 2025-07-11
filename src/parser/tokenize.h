@@ -17,7 +17,9 @@ class Import {
 public:
     string path;
     size_t pair;
-    Import(const string& p): path(p) {}
+    bool allow_unsafe;
+    string about;
+    Import(const string& p): path(p), allow_unsafe(false) {}
     vector<Token> tokens;
     string& at(size_t pos);
     void error(size_t pos, const string& message);

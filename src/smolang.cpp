@@ -54,7 +54,15 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
     size_t p = 0;
     while(p<imp->tokens.size()-1) {
         try {
-            if (imp->at(p) == "@" && imp->at(p + 1) == "include") {
+            if (imp->at(p) == "@" && imp->at(p + 1) == "unsafe") {
+                imp->allow_unsafe = true;
+                p++;
+            }
+            else if (imp->at(p) == "@" && imp->at(p + 1) == "about") {
+                p += 2;
+                imp->about = imp->at(p);
+            }
+            else if (imp->at(p) == "@" && imp->at(p + 1) == "include") {
                 p += 2;
                 string path = imp->at(p);
                 while(p<imp->size()-1 && imp->at(p+1)==".") {p += 2;path += "/"+imp->at(p);}
@@ -136,6 +144,8 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                         p++;
                         if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
                         if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
+                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="unsafe") break;
+                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="about") break;
                     }
                     --p;
                 }
@@ -167,7 +177,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                 }
                 --p;
             }
-            else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union` or `@include` allowed");
+            else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union`, `@include`, `@about`, or `@unsafe` allowed");
             p++;
         }
         catch (const std::runtime_error& e) {
@@ -180,10 +190,14 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                 p++;
                 if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
                 if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
+                if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="unsafe") break;
+                if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="about") break;
             }
             if(p>=imp->size()-1) break;
         }
     }
+
+    if(imp->allow_unsafe && imp->about.size()==0) imp->about = imp->path;
 
     //imp->tokens.clear();  // DO NOT CLEAR HERE BECAUSE IT PREVENTS LAZY DEFS FROM PARSING
 }
@@ -340,6 +354,14 @@ int main(int argc, char* argv[]) {
         included.clear();
     }
 
+    if(selected_task==Task::Verify) {
+        cout << "\n\033[30;43m @unsafe \033[0m \n";
+        for(const auto& def : all_types) if(def && def->imp && def->imp->allow_unsafe && def->imp->about.size()) {
+            //cout << "[ "<< def->imp->path << "] ";
+            cout << def->imp->about.substr(1, def->imp->about.size()-2) << "\n";
+            def->imp->about = "";
+        }
+    }
     for(const auto& def : all_types) if(def && def->imp) def->imp->tokens.clear();
     all_types.clear();
     return 0;

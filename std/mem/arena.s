@@ -16,23 +16,26 @@
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
 @include std.mem.allocate
+@unsafe
+@about "Standard library implementation of arena allocation, which is marked as @noborrow but still unsafely returned from runtypes serving as constructors. Pointer arithmetics are also used to obtain offsets within arenas."
 
-smo Arena(nom type, ContiguousMemory contents)
+smo Arena (nom type, ContiguousMemory contents)
+    @noborrow
     with contents.Primitive:is(char) --
-    length = 0 
+    length = 0
     -> type, contents, length
 
-smo len(Arena self) 
+smo len(Arena &self) 
     -> self.length
 
-smo reserved(Arena self) 
+smo reserved(Arena &self) 
     -> self.contents.size
 
-smo allocate_arena(MemoryDevice, u64 size) 
+smo allocate_arena(MemoryDevice, u64 size)
     -> nom:Arena(MemoryDevice:allocate(size, char))
 
 smo _arena(ContiguousMemory mem) 
-    with ret = nom:Arena(mem) 
+    with &ret = nom:Arena(mem) 
     ---> ret  // TODO: Fix the reason this runtype is needed
 
 smo allocate(Arena &self, u64 size)
@@ -72,4 +75,4 @@ smo read(Arena &self)
     -> nom:str(_contents, length, first, self__contents__mem)
 
 union Memory(MemoryDevice, Arena)
-smo is(Arena, Arena) --
+smo is(Arena&, Arena&) --

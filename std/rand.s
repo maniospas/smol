@@ -15,6 +15,9 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
+@unsafe
+@about "Standard library wrapping of C++ Xoshiro256plusInitializer random numbers. These and are NOT cryptographically secure."
+
 smo rand() 
     // https://prng.di.unimi.it/
     // the version used here is only suitable for floating point generation

@@ -57,6 +57,8 @@ vector<string> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Type
             if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Not found: "+pretty_var(next)+recommend_variable(types, next));
             if(!hasComma && p<imp->size() && imp->at(p)!=",") {
                 alias_for = next;
+                noborrow = internalTypes.vars[alias_for]->noborrow;
+                if(noborrow && !imp->allow_unsafe) imp->error(--p, "Rerurning a @noborrow type for variable "+pretty_var(alias_for)+" is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
                 if(internalTypes.vars[alias_for]->alias_for.size()) alias_for = next+"__"+internalTypes.vars[alias_for]->alias_for;
                 for(const string& pack : internalTypes.vars[next]->packs) {
                     if(internalTypes.contains(pack)) {
@@ -77,6 +79,7 @@ vector<string> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Type
             else {
                 if(internalTypes.vars[next]->name=="buffer") imp->error(--p, "Cannot return a buffer alongside other values");
                 for(const string& pack : internalTypes.vars[next]->packs) {
+                    if(internalTypes.contains(next+"__"+pack) && internalTypes.vars[next+"__"+pack]->noborrow) imp->error(--p, "Rerurning a @noborrow type for variable "+pretty_var(next+"__"+pack)+" is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
                     packs.push_back(next+"__"+pack);
                     if(is_service) {
                         coallesce_finals(next+"__"+pack);

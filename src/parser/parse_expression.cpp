@@ -395,7 +395,7 @@ string Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, co
         string temp = create_temp();
         string finally_var = temp+"__on";
         internalTypes.vars[finally_var] = types.vars["__label"];
-        int on_start = p-1;
+        //int on_start = p-1;
         uplifting_targets.push_back(finally_var);
         if(uplifiting_is_loop.size()) uplifiting_is_loop.push_back(uplifiting_is_loop.back());
         else uplifiting_is_loop.push_back(false);

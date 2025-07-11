@@ -19,6 +19,8 @@
 @include std.builtins.str
 @include std.builtins.err 
 @include std.mem
+@unsafe
+@about "Standard library implementation of file management that uses the C filesystem."
 
 smo File(nom, ptr contents) -> @new
 smo File(String _path) 

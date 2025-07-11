@@ -2,7 +2,9 @@
 
 void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types) {
     next = imp->at(p++);
+    if(next=="noborrow") {noborrow=true;return;}
     if(next=="head") {
+        if(!imp->allow_unsafe) imp->error(--p, "@head is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         next = imp->at(p++);
         if(next!="{") imp->error(--p, "Expected brackets");
         int depth = 1;
@@ -20,6 +22,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         add_preample(preample);
     }
     else if(next=="body") {
+        if(!imp->allow_unsafe) imp->error(--p, "@body is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         next = imp->at(p++);
         if(next!="{") imp->error(--p, "Expected brackets");
         int depth = 1;
@@ -50,6 +53,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         this->finals[next] += "__TRANSIENT("+next+")\n";
     }
     else if(next=="finally") {
+        if(!imp->allow_unsafe) imp->error(--p, "@finally is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         string finals("");
         string conditioned("");
         next = imp->at(p++);
@@ -82,6 +86,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         this->finals[conditioned] += finals;
     }
     else if(next=="fail") {
+        if(!imp->allow_unsafe) imp->error(--p, "@fail is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         string fail_label = create_temp();
         internalTypes.vars[fail_label] = types.vars["__label"];
         errors += fail_label+":\n";

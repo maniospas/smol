@@ -15,6 +15,9 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
+@unsafe
+@about "Standard library wrapping of C++ chrono time."
+
 smo time()
     @head{#include <chrono>}
     @head{auto start = std::chrono::high_resolution_clock::now();}

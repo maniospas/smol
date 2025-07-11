@@ -17,6 +17,8 @@
 
 @include std.builtins
 @include std.mem
+@unsafe
+@about "Standard library implementation of maps that requires unsafe entry casts to u64."
 
 union Keys(str,u64)
 union Values(str,u64,f64,i64)
@@ -42,13 +44,13 @@ smo __unsafe_ret(str, u64 value)
     }
     -> nom:str(contents, length, first, contents)
 
-smo __map_prepare_key(str value, ptr memory) 
-    if(value.memory:bool)and(value.memory!=memory) -> fail("String key is not allocated on the same common memory region as map")
+smo __map_prepare_key(str value, Memory &memory) 
+    copied = memory:copy(value)
     -> value.contents
-smo __map_prepare_key(cstr value, ptr memory) -> value
-smo __map_prepare_key(f64 value, ptr memory) -> value
-smo __map_prepare_key(i64 value, ptr memory) -> value
-smo __map_prepare_key(u64 value, ptr memory) -> value
+smo __map_prepare_key(cstr value, Memory &memory) -> value
+smo __map_prepare_key(f64 value, Memory &memory) -> value
+smo __map_prepare_key(i64 value, Memory &memory) -> value
+smo __map_prepare_key(u64 value, Memory &memory) -> value
 
 smo __map_prepare_key(str value) -> value.contents
 smo __map_prepare_key(cstr value) -> value
@@ -56,13 +58,12 @@ smo __map_prepare_key(f64 value) -> value
 smo __map_prepare_key(i64 value) -> value
 smo __map_prepare_key(u64 value) -> value
 
-smo __map_prepare_value(str value, ptr memory) 
-    if(value.memory:bool)and(value.memory!=memory) -> fail("String key is not allocated on the same common memory region as map")
+smo __map_prepare_value(str value, Memory &memory) 
     -> value.contents
-smo __map_prepare_value(cstr value, ptr memory) -> value
-smo __map_prepare_value(f64 value, ptr memory) -> value
-smo __map_prepare_value(i64 value, ptr memory) -> value
-smo __map_prepare_value(u64 value, ptr memory) -> value
+smo __map_prepare_value(cstr value, Memory &memory) -> value
+smo __map_prepare_value(f64 value, Memory &memory) -> value
+smo __map_prepare_value(i64 value, Memory &memory) -> value
+smo __map_prepare_value(u64 value, Memory &memory) -> value
 
 smo hash(String _s)
     // djb2
@@ -108,8 +109,8 @@ smo put(Map &self, Keys _key, Values _val)
         _key:is(self.Keys)
         _val:is(self.Values)
         --
-    key = _key:__map_prepare_key(self.mem.underlying)
-    val = _val:__map_prepare_value(self.mem.underlying)
+    key = _key:__map_prepare_key(self.memory)
+    val = _val:__map_prepare_value(self.memory)
     &idx = (_key:hash % self.size)*2
     on self.Keys
         while(self.mem[idx]!=0)and((self.mem[idx]:__unsafe_cast)!=(key:__unsafe_cast)) 

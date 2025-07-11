@@ -16,6 +16,8 @@
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
 @include std.builtins.num
+@unsafe
+@about "Standard library implementation of strings using its own memory allocators but C memory operations."
 
 smo str(nom, ptr contents, u64 length, char first, ptr memory) -> @new
 smo str(cstr raw)

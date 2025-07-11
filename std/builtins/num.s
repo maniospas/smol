@@ -15,6 +15,9 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
+@unsafe
+@about "Standard library wrapping of C basic arithmetics and printing."
+
 union Number (u64, f64, i64)
 
 smo print(f64 message)

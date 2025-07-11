@@ -17,6 +17,8 @@
 
 @include std.builtins.num
 @include std.builtins.err
+@unsafe
+@about "Standard library implementation of memory management that accounts for the stack and heap and depends on GCC implementations of malloc and alloca."
 
 smo Stack(nom) -> @new 
 smo Heap(nom) -> @new

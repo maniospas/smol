@@ -1,6 +1,7 @@
 @include std.builtins
 @include std.mem
-
+@unsafe
+@about "Standard library wrapping of C system calls."
 
 smo system(cstr command)
     @head{#include <cstdlib>}
