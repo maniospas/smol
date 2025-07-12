@@ -31,27 +31,15 @@ Task parse_task(const string& arg) {
     throw invalid_argument("Unknown task: " + arg);
 }
 
-void codegen(unordered_map<string, Types>& files, string file, const Memory& builtins) {
+void codegen(unordered_map<string, Types>& files, string file, const Memory& builtins, Task selected_task, string& task_report) {
     Types& types = files[file];
     if(types.vars.size()) return;
     auto imp = tokenize(file);
     for(const auto& it : builtins.vars) types.vars[it.first] = it.second;
 
-    stack<pair<string, int>> brackets;
-    for(size_t p=0;p<imp->size();++p) {
-        string next = imp->at(p);
-        if(next=="(" || next=="{" || next=="[") brackets.push(make_pair(next, p));
-        if(next==")") {if(!brackets.size()) imp->error(p, "Never opened parenthesis"); if(brackets.top().first!="(") imp->error(brackets.top().second, "Never closed parenthesis");brackets.pop();continue;}
-        if(next=="}") {if(!brackets.size()) imp->error(p, "Never opened bracket "); if(brackets.top().first!="{") imp->error(brackets.top().second, "Never closed bracket");brackets.pop();continue;}
-        if(next=="]") {if(!brackets.size()) imp->error(p, "Never opened square bracket"); if(brackets.top().first!="[") imp->error(brackets.top().second, "Never closed square bracket");brackets.pop();continue;}
-    }
-    if(brackets.size() && brackets.top().first=="(") imp->error(brackets.top().second, "Never closed parenthesis");
-    if(brackets.size() && brackets.top().first=="{") imp->error(brackets.top().second, "Never closed bracket");
-    if(brackets.size() && brackets.top().first=="[") imp->error(brackets.top().second, "Never closed square bracket");
-    if(brackets.size()) imp->error(brackets.top().second, "Never closed");
-
     unordered_set<string> imported;
     size_t p = 0;
+    size_t warnings = 0;
     while(p<imp->tokens.size()-1) {
         try {
             if (imp->at(p) == "@" && imp->at(p + 1) == "unsafe") {
@@ -72,9 +60,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                     ifstream file(path);
                     if (!file) imp->error(p, "Could not open file: " + path);
                 }
-
-                codegen(files, path, builtins);
-
+                codegen(files, path, builtins, selected_task, task_report);
                 unordered_set<string> filter;
                 if(p<imp->size()-1 && imp->at(p+1)=="-") {
                     p += 2;
@@ -86,7 +72,6 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                         p++;
                     }
                 }
-
                 for(const auto& it : files[path].vars) {
                     const string& name = it.first;
                     if(filter.size() && filter.find(name)==filter.end()) continue;
@@ -114,6 +99,22 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
                 continue;
             }
             else if(imp->at(p)=="smo" || imp->at(p)=="service") {
+                size_t start_p = p;
+                stack<pair<string, int>> brackets;
+                for(;p<imp->size();++p) {
+                    string next = imp->at(p);
+                    if(next=="(" || next=="{" || next=="[") brackets.push(make_pair(next, p));
+                    if(next==")") {if(!brackets.size()) imp->error(p, "Never opened parenthesis"); if(brackets.top().first!="(") imp->error(brackets.top().second, "Never closed parenthesis");brackets.pop();continue;}
+                    if(next=="}") {if(!brackets.size()) imp->error(p, "Never opened bracket "); if(brackets.top().first!="{") imp->error(brackets.top().second, "Never closed bracket");brackets.pop();continue;}
+                    if(next=="]") {if(!brackets.size()) imp->error(p, "Never opened square bracket"); if(brackets.top().first!="[") imp->error(brackets.top().second, "Never closed square bracket");brackets.pop();continue;}
+                    if(next=="smo" || next=="service") break;
+                }
+                if(brackets.size() && brackets.top().first=="(") imp->error(brackets.top().second, "Never closed parenthesis");
+                if(brackets.size() && brackets.top().first=="{") imp->error(brackets.top().second, "Never closed bracket");
+                if(brackets.size() && brackets.top().first=="[") imp->error(brackets.top().second, "Never closed square bracket");
+                if(brackets.size()) imp->error(brackets.top().second, "Never closed");
+                p = start_p;
+
                 auto def = make_shared<Def>(types);
                 all_types.push_back(def);
                 def->imp = imp;
@@ -181,11 +182,16 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
             p++;
         }
         catch (const std::runtime_error& e) {
+            warnings++;
             string message = e.what();
-            if(types.all_errors.find(message)==types.all_errors.end()) {
-                types.all_errors.insert(message);
-                cerr << message << "\n";
+            string preample = message;
+            if(!Def::markdown_errors) // if not in lsp don't show everything
+                preample = message.substr(0, message.find('\n'));
+            if(types.all_errors.find(preample)==types.all_errors.end()) {
+                types.all_errors[preample] += message.substr(message.find('\n'));
+                //cerr << message << "\n";
             }
+            else types.suppressed[preample] += 1;
             while(p<imp->size()-1) {
                 p++;
                 if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
@@ -197,7 +203,17 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
         }
     }
 
-    if(imp->allow_unsafe && imp->about.size()==0) imp->about = "\""+imp->path+"\"";
+    for(const auto& err : types.all_errors) {
+        cerr << err.first;
+        if(types.suppressed.find(err.first)!=types.suppressed.end()) cerr << "\033[33m -- "<<types.suppressed[err.first]<<" similar errors in this file\033[0m";
+        cerr << err.second << "\n";
+    }
+
+    if(imp->allow_unsafe && imp->about.size()==0) imp->about = "\"Unsafe code without description at "+imp->path+"\"";
+    else if(imp->about.size()==0) imp->about = "\""+imp->path+"\"";
+    if(selected_task==Task::Verify && warnings) task_report += "\033[30;41m "+string(warnings<10?" ":"")+to_string(warnings)+" ERRORS \033[0m " + file + "\n"; 
+    else if(selected_task==Task::Verify) task_report += "\033[30;42m OK \033[0m " + file + "\n"; 
+
 
     //imp->tokens.clear();  // DO NOT CLEAR HERE BECAUSE IT PREVENTS LAZY DEFS FROM PARSING
 }
@@ -246,15 +262,16 @@ int main(int argc, char* argv[]) {
         else files.push_back(arg);
     }
     if(files.size()==0) files.push_back("main.s");
+    string task_report;
     for(string file : files) {
         if(file.size()<2 || file.substr(file.size()-2) != ".s") {cerr << "Error: expecting '.s' extension but got file: " << file << endl; return 1;}
         try {
-            codegen(included, file, builtins);
+            codegen(included, file, builtins, selected_task, task_report);
+            if(selected_task==Task::Verify) {cout << task_report;continue;}
             Type main = included[file].vars["main"];
             if(!main) ERROR("Missing main service at: "+file);
             if(!main->is_service) ERROR("Main was not a service at: "+file);
             if(included[file].all_errors.size()) ERROR("Aborted due to the above errors\n");
-            if(selected_task==Task::Verify) {cout << "\033[30;42m OK \033[0m " + file + "\n"; continue;}
             string globals = 
                 //"#undef _FORTIFY_SOURCE"
                 "#include <cstring>\n"
@@ -354,14 +371,11 @@ int main(int argc, char* argv[]) {
         included.clear();
     }
 
-    if(selected_task==Task::Verify) {
-        
-        for(const auto& def : all_types) if(def && def->imp && def->imp->allow_unsafe && def->imp->about.size()) {
-            //cout << "[ "<< def->imp->path << "] ";
-            cout << "\033[30;43m UNSAFE \033[0m ";
-            cout << def->imp->about.substr(1, def->imp->about.size()-2) << "\n";
-            def->imp->about = "";
-        }
+    if(selected_task==Task::Verify) for(const auto& def : all_types) if(def && def->imp && def->imp->allow_unsafe && def->imp->about.size()) {
+        //cout << "[ "<< def->imp->path << "] ";
+        cout << "\033[30;43m UNSAFE \033[0m ";
+        cout << def->imp->about.substr(1, def->imp->about.size()-2) << "\n";
+        def->imp->about = "";
     }
     for(const auto& def : all_types) if(def && def->imp) def->imp->tokens.clear();
     all_types.clear();

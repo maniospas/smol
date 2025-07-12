@@ -29,7 +29,8 @@ typedef shared_ptr<Def> Type;
 class Memory {
 public:
     unordered_map<string, Type> vars;
-    unordered_set<string> all_errors;
+    unordered_map<string, string> all_errors;
+    unordered_map<string, size_t> suppressed;
     inline bool contains(const string& var) const {return vars.find(var)!=vars.end();}
     Memory() = default;
 };

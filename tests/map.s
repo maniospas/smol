@@ -3,10 +3,10 @@
 
 
 service main() 
-    s = Heap:copy("123":str)      // forcefully move to heap
-    on Heap:allocate_arena(10000) // automatically add the allocator as argument
+    on Heap:allocate_arena(10000) // create an arena, automatically add as first argument
+        s = "123":str:copy
         &map = Map(100, str, u64) // flatmap with 100 slots
-        map:put(s, 1)
         --
-    map["123"]:print
+    map:put(s, 1)
+    print(map["123"])
     --

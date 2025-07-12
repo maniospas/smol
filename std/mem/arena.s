@@ -17,7 +17,7 @@
 
 @include std.mem.allocate
 @unsafe
-@about "Standard library implementation of arena allocation, which is marked as @noborrow but still unsafely returned from runtypes serving as constructors. Pointer arithmetics are also used to obtain offsets within arenas."
+@about "Standard library implementation of arena allocation, marked as @noborrow but unsafely returned from constructors. Pointer arithmetics yield offsets within arenas."
 
 smo Arena (nom type, ContiguousMemory contents)
     @noborrow
