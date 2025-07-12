@@ -22,7 +22,9 @@
 @unsafe
 @about "Standard library implementation of file management that uses the C filesystem."
 
-smo File(nom, ptr contents) -> @new
+smo File(nom, ptr contents) 
+    -> @new
+
 smo File(String _path) 
     path = _path:str
     @head{#include <stdio.h>}
@@ -32,13 +34,15 @@ smo File(String _path)
     if contents:exists:not @fail{printf("Unable to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
     -> nom:File(contents)
+
 smo read(Memory &memory, File f, u64 chunk_size) 
     reader = memory:allocate(chunk_size) 
     -> f, reader
+
 smo read(Arena &memory, File f)
     reader = memory:allocate((memory.contents.size-memory.length)-1)
     -> f, reader
-
+    
 smo next_chunk(read &self, File f, str& value)
     with self.f.contents:exists -- // verify that we're using the correct read
     with contents = self.reader --
@@ -53,6 +57,7 @@ smo next_chunk(read &self, File f, str& value)
     }
     with value = nom:str(ret, bytes_read, first, contents.mem)
     ---> ret:bool
+
 smo next_line(read &self, str& value)
     with self.f.contents:exists -- // verify that we're using the correct read
     with contents = self.reader --
@@ -66,6 +71,7 @@ smo next_line(read &self, str& value)
     }
     with value = nom:str(ret, bytes_read, first, contents.mem)
     ---> ret:bool
+
 smo next_chunk(File f, Arena &reader, str& value)
     with f.contents:exists -- // verify that we're using the correct read
     @head{#include <stdio.h>}
@@ -79,6 +85,7 @@ smo next_chunk(File f, Arena &reader, str& value)
     }
     value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
     -> ret:bool
+
 smo next_line(File f, Arena &reader, str& value)
     with f.contents:exists -- // verify that we're using the correct read
     @head{#include <stdio.h>}
@@ -91,6 +98,7 @@ smo next_line(File f, Arena &reader, str& value)
     }
     with value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
     ---> ret:bool
+
 smo ended(File f)
     @head{#include <stdio.h>}
     @body{
@@ -99,6 +107,7 @@ smo ended(File f)
         if(!has_ended) ungetc(c, (FILE*)f__contents); 
     }
     -> has_ended
+
 smo is_file(String _path)
     path = _path:str
     @head{#include <stdio.h>}
@@ -108,6 +117,7 @@ smo is_file(String _path)
         if(f) fclose((FILE*)f);
     }
     -> exists
+
 smo is_dir(String _path)
     path = _path:str
     @head{#include <sys/stat.h> #ifdef _WIN32 #define stat _stat #endif}
@@ -118,6 +128,7 @@ smo is_dir(String _path)
         free(info);
     }
     -> is_dir
+
 smo remove_file(String _path)
     path = _path:str
     @head{#include <stdio.h>}

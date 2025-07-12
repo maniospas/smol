@@ -355,9 +355,10 @@ int main(int argc, char* argv[]) {
     }
 
     if(selected_task==Task::Verify) {
-        cout << "\n\033[30;43m @unsafe \033[0m \n";
+        
         for(const auto& def : all_types) if(def && def->imp && def->imp->allow_unsafe && def->imp->about.size()) {
             //cout << "[ "<< def->imp->path << "] ";
+            cout << "\033[30;43m UNSAFE \033[0m ";
             cout << def->imp->about.substr(1, def->imp->about.size()-2) << "\n";
             def->imp->about = "";
         }

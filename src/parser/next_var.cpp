@@ -62,7 +62,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 }
                 else assign_variable(type, next, "0", imp, p, true);
                 type_trackers.insert(next);
-            } 
+            }
             /*else if(type_trackers.find(next)!=type_trackers.end() && internalTypes.contains(next)) {
                 Type prevType = internalTypes.vars[next];
                 if(prevType->options.size()==1) prevType = *prevType->options.begin();
@@ -103,7 +103,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 ++p;
                 string arg = parse_expression(i, p, imp->at(p++), types);
                 if(!internalTypes.contains(arg)) imp->error(--p, "Not found: "+pretty_var(arg)+recommend_variable(types, next));
-                if(internalTypes.vars[arg]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(arg)->second->name+" "+pretty_var(arg));
+                //if(internalTypes.vars[arg]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(arg)->second->name+" "+pretty_var(arg));
                 string end("");
                 string method("at");
                 if(imp->at(p)=="to") {
@@ -111,13 +111,14 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                     method = "slice";
                     end = parse_expression(i, p, imp->at(p++), types);
                     if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
-                    if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
+                    //if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
                 }
                 else if(imp->at(p)=="upto") {
+                    if(internalTypes.vars[arg]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(arg)->second->name+" "+pretty_var(arg)+"\nYou can only use element access [pos] or non-inclusive `to` ranges [pos to end] for non-u64 pos.");
                     p++;
                     end = parse_expression(i, p, imp->at(p++), types);
                     if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
-                    if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
+                    if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end)+"\nYou can only use `upto` with u64. Move to `to` bounds for other end index runtypes.");
                     method = "slice";
                     string tmp = create_temp();
                     assign_variable(internalTypes.vars[end], tmp, end, imp, p);
@@ -125,10 +126,11 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                     end = tmp;
                 }
                 else if(imp->at(p)=="lento") {
+                    if(internalTypes.vars[arg]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(arg)->second->name+" "+pretty_var(arg)+"\nYou can only use element access [pos] or non-inclusive `to` ranges [pos to end] for non-u64 pos.");
                     p++;
                     end = parse_expression(i, p, imp->at(p++), types);
                     if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
-                    if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
+                    if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end)+"\nYou can only use `lento` with u64. Move to `to` bounds for other end index runtypes.");
                     method = "slice";
                     string tmp = create_temp();
                     assign_variable(internalTypes.vars[end], tmp, end, imp, p);
@@ -138,7 +140,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 if(!types.contains(method)) imp->error(--p, "No implementation for "+method);
                 Type type = types.vars[method];
                 vector<string> unpacks;
-                if(internalTypes.vars[next]->is_service) imp->error(--p, "Slicing notation cannot be a service\nIt mus be allowed to be overloaded by various symbols");
+                if(internalTypes.vars[next]->is_service) imp->error(--p, "Slice overloads cannot be a service");
                 if(internalTypes.vars[next]->not_primitive()) for(const string& pack : internalTypes.vars[next]->packs) unpacks.push_back(next+"__"+pack);
                 else unpacks.push_back(next);
                 unpacks.push_back(arg);
@@ -152,26 +154,26 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
             ++p;
             string arg = parse_expression(i, p, imp->at(p++), types);
             if(!internalTypes.contains(arg)) imp->error(--p, "Not found: "+pretty_var(arg)+recommend_variable(types, next));
-            if(internalTypes.vars[arg]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(arg)->second->name+" "+pretty_var(arg));
+            if(internalTypes.vars[arg]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(arg)->second->name+" "+pretty_var(arg)+"\nYou can only use u64 for buffer indexes");
             string end("");
             if(imp->at(p)=="to") {
                 p++;
                 end = parse_expression(i, p, imp->at(p++), types);
                 if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
-                if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
+                //if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
             }
             else if(imp->at(p)=="upto") {
                 p++;
                 end = parse_expression(i, p, imp->at(p++), types);
                 if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
-                if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
+                if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end)+"\nYou can only use u64 for buffer indexes");
                 end += " + 1";
             }
             else if(imp->at(p)=="lento") {
                 p++;
                 end = parse_expression(i, p, imp->at(p++), types);
                 if(!internalTypes.contains(end)) imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
-                if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
+                if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end)+"\nYou can only use u64 for buffer indexes");
                 end += " - "+next+"____offset";
             }
             if(imp->at(p++)!="]") imp->error(--p, "Expecting : or closing square bracket");

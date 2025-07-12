@@ -18,7 +18,7 @@
 @include std.builtins
 @include std.mem.arena
 @unsafe
-@about "Standard library implementation of string operations using allocators and then C memory operations."
+@about "Standard library implementation of string operations using its own allocators and C memory operations."
 
 smo copy(Memory &allocator, str _s)
     s = _s:str

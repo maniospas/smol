@@ -17,7 +17,7 @@
 
 @include std.builtins.num
 @unsafe
-@about "Standard library implementation of strings using its own memory allocators but C memory operations."
+@about "Standard library implementation of the extensible string model based on C pointers and an implementation for const char arrays."
 
 smo str(nom, ptr contents, u64 length, char first, ptr memory) -> @new
 smo str(cstr raw)
@@ -29,32 +29,44 @@ smo str(cstr raw)
         ptr noptr = (ptr)noptr; // use this to indicate a cstr
     }
     -> nom:str(contents, length, first, noptr)
+
 smo str(bool value) 
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
     if value @body{cstr _contents=__truestr;} --
     else @body{cstr _contents=__falsestr;} --
     -> str(_contents)
+
 smo print(cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", message);}
     --
+
 smo print(str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
     --
+
 smo printin(cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s", message);}
     --
+
 smo printin(str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s", (int)message__length, (char*)message__contents);}
     --
+    
 union String(cstr, str)
 smo is(String, String) --
-smo eq(char x, char y)  @body{bool z=(x==y);} -> z
-smo neq(char x, char y) @body{bool z=(x!=y);} -> z
+
+smo eq(char x, char y)  
+    @body{bool z=(x==y);} 
+    -> z
+
+smo neq(char x, char y)
+    @body{bool z=(x!=y);}
+    -> z
 
 smo slice(String self, u64 from, u64 to) 
     s = self:str
@@ -73,25 +85,34 @@ smo eq(String _x, String _y)
     @head{#include <string.h>}
     @body{bool z = x__first==y__first && (x__length == y__length) && memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) == 0;}
     -> z
+
 smo neq(String _x, String _y)
     x = _x:str
     y = _y:str
     @head{#include <string.h>}
     @body{bool z = x__first!=y__first || (x__length != y__length) || memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) != 0;} 
     -> z
-smo len(str x) -> x.length
+
+smo len(str x) 
+    -> x.length
+
 smo len(cstr x)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{u64 z = strlen(x);}
     -> z
+
 smo at(str x, u64 pos) 
     if x__length<=pos @fail{printf("String index out of bounds\n");} --
     @body{char z=((char*)x__contents)[pos];} 
     -> z
 
-smo Split(nom, str query, str sep, u64 &pos) -> @new
-smo Split(String _query, String _sep) -> nom:Split(_query:str, _sep:str, u64 &pos)
+smo Split(nom, str query, str sep, u64 &pos) 
+    -> @new
+    
+smo Split(String _query, String _sep) 
+    -> nom:Split(_query:str, _sep:str, u64 &pos)
+
 smo next(Split &self, str &value)
     ret = self.pos<self.query:len
     if ret 
@@ -101,7 +122,8 @@ smo next(Split &self, str &value)
             if self.sep==self.query[self.pos to self.pos+self.sep:len] 
                 if self.pos>prev value = self.query[prev to self.pos] searching = false --
                 self.pos = self.pos+self.sep:len
-            -- else self.pos = self.pos+1
+            -- else 
+                self.pos = self.pos+1
             ----
         if searching
             self.pos = self.query:len
