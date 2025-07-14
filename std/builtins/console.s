@@ -19,6 +19,7 @@
 @include std.builtins.str
 @unsafe
 @about "Standard library wrapping and simplification of C console commands."
+@about read "Reads several string and primitive types from console text input given by the user; they need to press enter after entering the input. String reading is restricted to 1024 bytes allocated on the heap. You can have more control of string reading on alternatives. Non-string variations of this method are restricted to local variables. Invalid inputs create service failures."
 
 smo read(i64)
     @head{#include <stdio.h>}

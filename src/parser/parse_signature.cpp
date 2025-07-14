@@ -55,7 +55,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             retrievable_parameters[argType->name] = argType;
             internalTypes.vars[arg_name] = argType;
             if(autoconstruct) for(const auto& it : argType->args) {
-                args.emplace_back(arg_name+"__"+it.name, it.type, mut);
+                args.emplace_back(arg_name+"__"+it.name, it.type, mut || it.mut);
                 internalTypes.vars[arg_name+"__"+it.name] = it.type;
                 implementation += it.type->rebase(it.type->implementation, arg_name);
                 for(const string& pre : it.type->preample) add_preample(it.type->rebase(pre, arg_name));
@@ -75,7 +75,8 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 if(!mut && argType->noborrow) imp->error(--p, "Argument's "+arg_name+" runtype has been set as @noborrow\nThis means that arguments and variables of it can only be mutable\nand therefore it becomes impossible to share it\n(mutables cannot be assinged anywhere).\nAdd & before the argument name to make it mutable");
                 for(const string& mut : argType->mutables) mutables.insert(arg_name+"__"+mut);
                 for(const auto& itarg : argType->packs) {
-                    args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut);
+                    //cout << name << " " <<itarg << " " << mut << " "<<(argType->mutables.find(itarg)!=argType->mutables.end())<<"\n";
+                    args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut || (argType->mutables.find(itarg)!=argType->mutables.end()));
                     internalTypes.vars[arg_name+"__"+itarg] = argType->internalTypes.vars[itarg];
                     for(const auto& it : argType->alignments) if(it.second) alignments[arg_name+"__"+it.first] = it.second;
                 }

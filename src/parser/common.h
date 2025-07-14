@@ -19,19 +19,20 @@ inline void ERROR(const string& message) {
 
 
 string pretty_var(const string& name) {
-    if(name.size()>=2 && name[0]=='_' && name[1]=='_') return "?";
+    if(name.size()>=2 && name[0]=='_' && name[1]=='_') return "";
     string result;
     size_t i = 0;
     while (i < name.size()) {
         if(i && name[i]=='_' && i+1<name.size() && name[i+1]=='_' && name[i - 1] != '_') {result += '.';i += 2;}
-        else if(i && name[i]=='_' && i+1<name.size() && name[i+1]=='_') {result += '?';i+=2;while(i<name.size() && name[i]=='_')i++;while(i<name.size() && name[i]!='_')i++;}
+        else if(i && name[i]=='_' && i+1<name.size() && name[i+1]=='_') {result += "";i+=2;while(i<name.size() && name[i]=='_')i++;while(i<name.size() && name[i]!='_')i++;}
         else result += name[i++];
     }
+    while(result.size() && result[result.size()-1]=='.') result = result.substr(0, result.size()-1);
     return result;
 }
 
 string pretty_runtype(const string& name) {
-    if(name=="i64" || name=="f64" || name=="ptr" || name=="nom" || name=="char" || name=="u64" || name=="cstr")return "\033[35m" + name + "\033[0m";
+    if(name=="i64" || name=="f64" || name=="ptr" || name=="bool" || name=="nom" || name=="char" || name=="u64" || name=="cstr")return "\033[35m" + name + "\033[0m";
     return "\033[36m" + name + "\033[0m";
 }
 

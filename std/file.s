@@ -21,6 +21,23 @@
 @include std.mem
 @unsafe
 @about "Standard library implementation of file management that uses the C filesystem."
+@about ReadFile   "An opened file that is meant to be read only."
+@about WriteFile  "An opened file that is meant to be read or write."
+@about File       "A union between file types that allows common reading and positioning operations. It is also used to open files for reading, in which case it may cause service failure due to external factors."
+@about goto_start "Go to the beginning of a File. You can continue read or writing from there. May cause service failure due to external factors."
+@about goto_end   "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. May cause service failure due to external factors."
+@about close      "Closes an open file. This invalidates its internals completely and will make all other operations on it either do nothing or cause service failures."
+@about len        "Computes the size of a File in bytes."
+@about write      "Writes a string on a WriteFile."
+@about allocate_file "Creates a virtual file by of a given size on top of some memory allocator."
+@about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories and argument orders. Example where volatile memory is used to not have the read string take up memory: <code>on Heap:allocate_volatile(1024) File(...): while next_chunk(str& chunk) print(chunk) ----</code>"
+@about next_line  "Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories and argument orders. Example where volatile memory is used to not have the read string take up memory: <code>on Heap:allocate_volatile(1024) File(...): while next_line(str& line) print(line) ----</code>"
+@about ended      "Checks if the ending of the file has been reached. This is normal to be true for WriteFile."
+@about is_file    "Checks if a String path is a file system file."
+@about is_dir     "Checks if a String path is a file system directory."
+@about create_file "Creates a file given a String path and opens it as a WriteFile. May cause service failure due to external factors or if the file already exists - in that case remove it first."
+@about create_dir  "Creates a directory given a String path. May cause service failure due to external factors or if the directory already exists."
+@about remove_file "Deletes a file from the system. May cause service failure due to external factors or if the file is already open."
 
 smo ReadFile(nom, ptr contents)
     @noborrow

@@ -17,6 +17,25 @@
 
 @unsafe
 @about "Standard library wrapping of C basic arithmetics and printing."
+@about print   "Prints a primitive number, character, or boolean to the console."
+@about printin "Prints a primitive number, character, or boolean to the console without changing line."
+@about le      "Checks if the first number is less than or equal to the second. Overloads the <code><</code> symbols for numbers. Example: <code>print(1<2)</code>"
+@about ge      "Checks if the first number is greater than or equal to the second. Overloads the <code><</code> symbols for numbers. Example: <code>print(1>2)</code>"
+@about lt      "Checks if the first number is less than the second. Overloads the <code><</code> symbols for numbers. Example: <code>print(1>=2)</code>"
+@about gt      "Checks if the first number is greater than the second. Overloads the <code><</code> symbols for numbers. Example: <code>print(1>=2)</code>"
+@about leq     "Checks if the first number is less than or equal to the second."
+@about geq     "Checks if the first number is greater than or equal to the second."
+@about eq      "Checks if two primitives are equal. Overloads the <code>==</code> operation. Example: <code>print(1==2)</code>"
+@about neq     "Checks if two primitives are not equal. Overloads the <code>==</code> operation. Example: <code>print(1!=2)</code>"
+@about not     "Boolean negation of a boolean. Example: <code>print(true:not)</code>"
+@about exists  "Checks if a pointer is non-null under-the-hood. Pointer manipulation is inherently unsafe and you should not encounter that in normal code writing."
+@about add     "Addition of two numbers of the same type. Overloads the <code>+</code> operation. Example: <code>print(1+2)</code>"
+@about sub     "Subtraction of two numbers of the same type. Doing so for u64 will create a service failure if the result would be negative. Overloads the <code>+</code> operation. Example that FAILS because the default integer type is u64: <code>print(1-2)</code>"
+@about mul     "Multiplication of two numbers of the same type. Overloads the <code>*</code> operation. Example: <code>print(3*2)</code>"
+@about div     "Division of two numbers of the same type. Division by zero for i64 or u64 creates a service failure, but for f64 it yields NaN. Overloads the <code>+</code> operation. Example that yields zero by performing integer division: <code>print(1/2)</code>"
+@about mod     "Modulo operation for signed or unsigned integers. For i64, only positive divisors are allowed. Fails on zero divisor. Overloads the <code>%</code> operation. Example: <code>print(1%2)</code>"
+@about negative "Returns the additive inverse (negation) of an i64 or f64. Does NOT overload any operation. Example to print -1: <code>print(0:i64-1:i64)</code> or <code>print(1:i64:negative)</code>. Having u64 as the default type helps avoid many spurious negation errors, especially when memory handling is concerned."
+
 
 union Number (u64, f64, i64)
 

@@ -11,12 +11,13 @@
 #include "parser/parse.cpp"
 #include "parser/parse_return.cpp"
 #include "parser/simplify.cpp"
+#include <regex>
+#include <map>
 
 // g++ src/smolang.cpp -o smol -O2 -std=c++23 -Wall
 // g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 // g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
-#include <regex>
 
 // Replace a few basic ANSI codes. Extend as needed.
 std::string ansi_to_html(const std::string& input) {
@@ -32,6 +33,7 @@ std::string ansi_to_html(const std::string& input) {
     output = std::regex_replace(output, std::regex("\033\\[34m"), "</span><span style=\"color:blue\">");
     output = std::regex_replace(output, std::regex("\033\\[36m"), "</span><span style=\"color:blue\">");
     output = std::regex_replace(output, std::regex("\033\\[35m"), "</span><span style=\"color:magenta\">");
+    output = std::regex_replace(output, std::regex("\033\\[38m"), "</span><span style=\"color:black\">");
     output = std::regex_replace(output, std::regex("\033\\[0m"), "</span><span>");
 
     // Add more as needed!
@@ -55,7 +57,7 @@ Task parse_task(const string& arg) {
     throw invalid_argument("Unknown task: " + arg);
 }
 
-void codegen(unordered_map<string, Types>& files, string file, const Memory& builtins, Task selected_task, string& task_report) {
+void codegen(map<string, Types>& files, string file, const Memory& builtins, Task selected_task, string& task_report) {
     Types& types = files[file];
     if(types.vars.size()) return;
     auto imp = tokenize(file);
@@ -73,7 +75,14 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
             }
             else if (imp->at(p) == "@" && imp->at(p + 1) == "about") {
                 p += 2;
-                imp->about = imp->at(p);
+                string next = imp->at(p);
+                if(next[0]=='"') imp->about = next;
+                else {
+                    p++;
+                    string desc = imp->at(p);
+                    if(desc[0]!='"') imp->error(p-2, "Wrong `@about` syntax\nEither `@about \"description\"` or @about name \"description\" are expected");
+                    imp->docs[next] = desc;
+                }
             }
             else if (imp->at(p) == "@" && imp->at(p + 1) == "include") {
                 p += 2;
@@ -246,7 +255,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
 int main(int argc, char* argv[]) {
     Task selected_task = Task::Run;
     vector<string> files;
-    unordered_map<string, Types> included;
+    map<string, Types> included;
     Types builtins;
 
     builtins.vars["u64"] = make_shared<Def>("u64");
@@ -424,14 +433,22 @@ int main(int argc, char* argv[]) {
             "eliminates. By using this file as a direct or indirect dependency you are trusting its implementation. "
             "Given this trust, consider other non-unsafe files using it as safe.</i></p>";
             string overload_docs("");
-            for (const auto& type : include.second.vars) {
+            std::vector<pair<string, Type>> keys;
+            for (const auto& type : include.second.vars) keys.push_back(pair<string,Type>(type.first, type.second));
+            std::sort(keys.begin(), keys.end(), [](pair<string, Type>& lhs, pair<string, Type>& rhs) {
+                return lhs.second->pos < rhs.second->pos;
+            });
+
+            for (const auto& type : keys) {
                 string type_docs("");
                 for (const auto& subtype : type.second->options)
-                    if (subtype->imp.get() == include.second.imp.get()) {
+                    if (/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second.imp.get()==subtype->imp.get()) {
                         try {
                             string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;&nbsp;→&nbsp;&nbsp;";
-                            if(subtype->alias_for.size()) sig = "[non-tuple] "+sig+ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
-                            else sig += ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
+                            if(subtype->alias_for.size()) sig = sig+ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
+                            else if(subtype->packs.size()==1) sig += ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->packs[0]]->name));
+                            else if(subtype->packs.size()==0) sig += "()";
+                            else sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
                             sig +=  "<br>\n";
                             //for(const auto& param : subtype->parametric_types) {
                             //    sig += "&nbsp;&nbsp;&nbsp;&nbsp;"+param.first + " = " + ansi_to_html(param.second->signature(include.second))+"<br>\n";
@@ -440,8 +457,10 @@ int main(int argc, char* argv[]) {
                         } catch (const runtime_error&) {}
                     }
                 if (type_docs.size()) {
-                    if(type.second->options.size()!=1) overload_docs += "<h2>" + type.first + "</h2>\n" + type_docs;
-                    else docs += "<h2>" + type.first + "</h2>\n" + type_docs;
+                    string desc = include.second.imp->docs[type.second->name];
+                    if(desc.size()>=2) desc = "<p>"+desc.substr(1,desc.size()-2)+"</p>";
+                    if(type.second->options.size()!=1) overload_docs += "<h2>" + type.first + "</h2>\n" +desc+ type_docs;
+                    else docs += "<h2>" + type.first + "</h2>\n" +desc+ type_docs;
                 }
             }
             docs += overload_docs;

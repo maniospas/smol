@@ -19,6 +19,7 @@ public:
     size_t pair;
     bool allow_unsafe;
     string about;
+    unordered_map<string, string> docs;
     Import(const string& p): path(p), allow_unsafe(false) {}
     vector<Token> tokens;
     string& at(size_t pos);
