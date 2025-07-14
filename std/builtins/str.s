@@ -19,7 +19,12 @@
 @unsafe
 @about "Standard library implementation of the extensible string model based on C pointers and an implementation for const char arrays."
 
-smo str(nom, ptr contents, u64 length, char first, ptr memory) -> @new
+smo str(nom, ptr contents, u64 length, char first, ptr memory) 
+    //@about "A memory allocated string."
+    -> @new
+union String(cstr, str)
+smo is(String, String) --
+
 smo str(cstr raw)
     @head{#include <string.h>}
     @body{
@@ -56,9 +61,6 @@ smo printin(str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s", (int)message__length, (char*)message__contents);}
     --
-    
-union String(cstr, str)
-smo is(String, String) --
 
 smo eq(char x, char y)  
     @body{bool z=(x==y);} 

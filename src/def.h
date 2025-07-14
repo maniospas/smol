@@ -48,6 +48,7 @@ class Types: public Memory {
 public:
     static unsigned long last_type_id;
     Types() = default;
+    shared_ptr<Import> imp;
     unordered_map<Def*, unsigned long> alignment_labels;
     unordered_map<unsigned long, Def*> reverse_alignment_labels;
 };
@@ -94,6 +95,7 @@ public:
     bool lazy_compile;
     bool noborrow;
     static bool debug;
+    static bool export_docs;
     unordered_set<Type> options;
     vector<Arg> args;
     shared_ptr<Import> imp;
@@ -169,6 +171,7 @@ public:
 
 int Def::temp = 0;
 bool Def::debug = false;
+bool Def::export_docs = false;
 bool Def::markdown_errors = false;
 
 #endif // DEF_H

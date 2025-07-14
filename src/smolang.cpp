@@ -16,6 +16,29 @@
 // g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 // g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
+#include <regex>
+
+// Replace a few basic ANSI codes. Extend as needed.
+std::string ansi_to_html(const std::string& input) {
+    std::string output = input;
+    // Bold: \033[1m ... \033[0m
+    output = std::regex_replace(output, std::regex("\033\\[1m"), "<b>");
+    output = std::regex_replace(output, std::regex("\033\\[0m"), "</b>");
+
+    // Red: \033[31m ... \033[0m
+    output = std::regex_replace(output, std::regex("\033\\[31m"), "</span><span style=\"color:red\">");
+    output = std::regex_replace(output, std::regex("\033\\[32m"), "</span><span style=\"color:green\">");
+    output = std::regex_replace(output, std::regex("\033\\[33m"), "</span><span style=\"color:orange\">");
+    output = std::regex_replace(output, std::regex("\033\\[34m"), "</span><span style=\"color:blue\">");
+    output = std::regex_replace(output, std::regex("\033\\[36m"), "</span><span style=\"color:blue\">");
+    output = std::regex_replace(output, std::regex("\033\\[35m"), "</span><span style=\"color:magenta\">");
+    output = std::regex_replace(output, std::regex("\033\\[0m"), "</span><span>");
+
+    // Add more as needed!
+    return "<span>"+output+"</span>";
+}
+
+
 enum class Task {
     Assemble,
     Compile,
@@ -25,6 +48,7 @@ enum class Task {
 Task parse_task(const string& arg) {
     if (arg == "compile") return Task::Compile;
     if (arg == "verify") return Task::Verify;
+    if (arg == "doc") {Def::export_docs=true; return Task::Verify;}
     if (arg == "lsp") {Def::markdown_errors=true; return Task::Verify;}
     if (arg == "run") return Task::Run;
     if (arg == "assemble") return Task::Assemble;
@@ -35,6 +59,7 @@ void codegen(unordered_map<string, Types>& files, string file, const Memory& bui
     Types& types = files[file];
     if(types.vars.size()) return;
     auto imp = tokenize(file);
+    types.imp = imp;
     for(const auto& it : builtins.vars) types.vars[it.first] = it.second;
 
     unordered_set<string> imported;
@@ -370,6 +395,62 @@ int main(int argc, char* argv[]) {
         std::remove("__smolambda__temp__main.cpp");
         included.clear();
     }
+    
+    if (Def::export_docs) {
+        std::string docs = "<!DOCTYPE html>\n<html>\n<head>\n"
+                        "<meta charset=\"UTF-8\">\n"
+                        "<title>Documentation</title>\n"
+                        "<style>\n"
+                        "body { font-family: sans-serif; max-width: 900px; margin: auto; padding: 2em; background: #fafaff; }\n"
+                        "h1 { border-bottom: 2px solid #ddd; }\n"
+                        "code { background: #eee; border-radius: 4px; padding: 0.2em 0.4em; }\n"
+                        ".notice { color: #888; margin-left:3em; margin-right:3em; }\n"
+                        "pre { background: #f7f7fa; padding: 1em; border-radius: 8px; }\n"
+                        ".unsafe-badge { font-size: 0.65em; height:1emd; color: #fff; background: #d72a2a; border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
+                        ".overload-badge { font-size: 0.65em; height:1emd; color: #fff; background:rgb(126, 123, 149); border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
+                        "</style>\n"
+                        "</head>\n<body>\n";
+        for (auto& include : included) {
+            string display_name = include.first;
+            if (display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  display_name = display_name.substr(0, display_name.size() - 2);
+            display_name = std::regex_replace(display_name, std::regex("[\\\\/]"), ".");
+            string unsafe_html = "";
+            if (include.second.imp->allow_unsafe) unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
+
+            docs += "<h1><span style=\"color:blue;\"></span> " + display_name + unsafe_html + "</h1>\n";
+            docs += "<p>" + include.second.imp->about.substr(1, include.second.imp->about.size() - 2) + "</p>\n";
+            if(unsafe_html.size()) docs += "<p class=\"notice\"><i>This file is marked with the unsafe keyword. This means that its "
+            "internal implementation (<i>only</i>) could be subject to bugs that the language's design otherwise "
+            "eliminates. By using this file as a direct or indirect dependency you are trusting its implementation. "
+            "Given this trust, consider other non-unsafe files using it as safe.</i></p>";
+            string overload_docs("");
+            for (const auto& type : include.second.vars) {
+                string type_docs("");
+                for (const auto& subtype : type.second->options)
+                    if (subtype->imp.get() == include.second.imp.get()) {
+                        try {
+                            string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;&nbsp;→&nbsp;&nbsp;";
+                            if(subtype->alias_for.size()) sig = "[non-tuple] "+sig+ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
+                            else sig += ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
+                            sig +=  "<br>\n";
+                            //for(const auto& param : subtype->parametric_types) {
+                            //    sig += "&nbsp;&nbsp;&nbsp;&nbsp;"+param.first + " = " + ansi_to_html(param.second->signature(include.second))+"<br>\n";
+                            //}
+                            type_docs += sig;
+                        } catch (const runtime_error&) {}
+                    }
+                if (type_docs.size()) {
+                    if(type.second->options.size()!=1) overload_docs += "<h2>" + type.first + "</h2>\n" + type_docs;
+                    else docs += "<h2>" + type.first + "</h2>\n" + type_docs;
+                }
+            }
+            docs += overload_docs;
+        }
+        docs += "</body>\n</html>\n";
+        std::ofstream out("doc.html");
+        out << docs;
+    }
+
 
     if(selected_task==Task::Verify) for(const auto& def : all_types) if(def && def->imp && def->imp->allow_unsafe && def->imp->about.size()) {
         //cout << "[ "<< def->imp->path << "] ";
@@ -377,6 +458,7 @@ int main(int argc, char* argv[]) {
         cout << def->imp->about.substr(1, def->imp->about.size()-2) << "\n";
         def->imp->about = "";
     }
+
     for(const auto& def : all_types) if(def && def->imp) def->imp->tokens.clear();
     all_types.clear();
     return 0;
