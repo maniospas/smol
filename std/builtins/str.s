@@ -74,7 +74,7 @@ smo slice(String self, u64 from, u64 to)
     if to>s.length @fail{printf("String slice must end at most at the length of the base string\n");} --
     @body{
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
-        char first = from==to?'\0':((char*)s__contents)[from];
+        char first = from==to?'\0':((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
     }
     -> nom:str(contents, to-from, first, s.contents)
 smo slice(String self, u64 from) -> slice(self, from, 0)
@@ -113,7 +113,8 @@ smo len(cstr x)
 
 smo at(str x, u64 pos) 
     if x__length<=pos @fail{printf("String index out of bounds\n");} --
-    @body{char z=((char*)x__contents)[pos];} 
+    // trying to help the compiler below, but maybe it's too clever and it can optimize that
+    @body{char z= (__builtin_constant_p(pos) && pos == 0) ? x__first: ((char*)x__contents)[pos];} 
     -> z
 
 smo Split(nom, str query, str sep, u64 &pos) 

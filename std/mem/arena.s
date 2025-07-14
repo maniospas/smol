@@ -56,7 +56,7 @@ smo Dynamic(nom)
         } 
     }
     -> @new, acquired, size, allocated
-smo is(Dynamic&, Dynamic&) --
+    
 smo allocate(Dynamic& self, u64 size, Primitive)
     @head{#include <cstdlib>}
     Primitive = Primitive
@@ -137,6 +137,8 @@ smo allocate_arena(Arena &self, u64 size) -> _arena(allocate(self, size))
 smo allocate_volatile(Arena &self, u64 size) -> _volatile(allocate(self, size))
 smo allocate_arena(Volatile &self, u64 size) -> _arena(allocate(self, size))
 smo allocate_volatile(Volatile &self, u64 size) -> _volatile(allocate(self, size))
+smo allocate_arena(Dynamic &self, u64 size) -> _arena(allocate(self, size))
+smo allocate_volatile(Dynamic &self, u64 size) -> _volatile(allocate(self, size))
 
 smo read(Arena &self)
     @head{#include <stdio.h>}
@@ -159,5 +161,6 @@ smo read(Arena &self)
 
 smo is(Arena&, Arena&) --
 smo is(Volatile&, Volatile&) --
+smo is(Dynamic&, Dynamic&) --
 union Memory(MemoryDevice, DerivedMemory, Dynamic)
 

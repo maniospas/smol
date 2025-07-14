@@ -13,7 +13,7 @@
 // ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 // WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
-// IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+// IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 @include std.builtins.num
 @include std.builtins.str
@@ -22,8 +22,14 @@
 @unsafe
 @about "Standard library implementation of file management that uses the C filesystem."
 
-smo File(nom, ptr contents) 
+smo ReadFile(nom, ptr contents)
+    @noborrow
     -> @new
+smo WriteFile(nom, ptr contents)
+    @noborrow
+    -> @new
+
+union File(ReadFile, WriteFile)
 
 smo File(String _path) 
     path = _path:str
@@ -31,54 +37,92 @@ smo File(String _path)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{ptr contents = fopen((char*)path__contents, "r");}
-    if contents:exists:not @fail{printf("Unable to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
+    if contents:exists:not @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
-    -> nom:File(contents)
+    -> nom:ReadFile(contents)
 
-smo read(Memory &memory, File f, u64 chunk_size) 
-    reader = memory:allocate(chunk_size) 
-    -> f, reader
+smo goto_start(File &f) 
+    if f.contents:exists:not @fail{printf("Failed to move to start of closed file: %.*s\n", (int)path__length, (char*)path__contents);} --
+    @body{fseek(f__contents, 0, SEEK_SET);}
+    -> f
 
-smo read(Arena &memory, File f)
-    reader = memory:allocate((memory.contents.size-memory.length)-1)
-    -> f, reader
+smo goto_end(WriteFile &f) 
+    // only useful for moving to the end of write files. For read files, close them instead.
+    @body{if(f__contents) fseek(f__contents, 0, SEEK_END);}
+    -> f
+
+smo close(File &f)
+    @body{if(f__contents)fclose((FILE*)f__contents);f__contents = 0;}
+    --
+
+smo len(File &f)
+    @head{#include <stdio.h>}
+    @body{
+        u64 pos = ftell((FILE*)f__contents);
+        u64 size = 0;
+        if (pos != -1L) {
+            if (fseek((FILE*)f__contents, 0, SEEK_END) == 0) {
+                size = ftell((FILE*)f__contents);
+                fseek((FILE*)f__contents, pos, SEEK_SET);
+            }
+        }
+    }
+    -> size
+
+smo write(WriteFile &f, String _s)
+    s = _s:str
+    @head{#include <stdio.h>}
+    @body{
+        u64 bytes_written = fwrite((char*)s__contents, 1, s__length, (FILE*)f__contents);
+        bool success = (bytes_written == s__length);
+    }
+    if success:not @fail{printf("Failed to write to file: %.*s\n", (int)path__length, (char*)path__contents);} --
+    ----
+
+smo allocate_file(Memory& memory, u64 size)
+    @head{#include <stdio.h>}
+    @head{#include <string.h>}
+    @head{#include <stdlib.h>}
+    mem = memory:allocate(size)
+    @body {ptr contents = fmemopen(mem__mem, "w+");}
+    @finally contents {if(contents)fclose((FILE*)contents);}
+    -> nom:WriteFile(contents)
     
-smo next_chunk(read &self, File f, str& value)
-    with self.f.contents:exists -- // verify that we're using the correct read
-    with contents = self.reader --
+smo next_chunk(Volatile &memory, File &f, str& value)
+    contents = memory.contents.mem
+    size = memory.contents.size
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        u64 bytes_read = fread((char*)contents__mem, 1, contents__size, (FILE*)self__f__contents);
-        if(!bytes_read) ((char*)contents__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
-        ptr ret = bytes_read ? (ptr)contents__mem : 0;
-        char first = ((char*)contents__mem)[0];
+        u64 bytes_read = f__contents?fread((char*)contents, 1, size, (FILE*)f__contents):f__contents;
+        if(!bytes_read) ((char*)contents)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
+        ptr ret = bytes_read ? (ptr)contents : 0;
+        char first = ((char*)contents)[0];
     }
-    with value = nom:str(ret, bytes_read, first, contents.mem)
+    with value = nom:str(ret, bytes_read, first, memory.contents.underlying)
     ---> ret:bool
 
-smo next_line(read &self, str& value)
-    with self.f.contents:exists -- // verify that we're using the correct read
-    with contents = self.reader --
+smo next_line(Volatile &memory, File &f, str& value)
+    contents = memory.contents.mem
+    size = memory.contents.size
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        ptr ret = (ptr)fgets((char*)contents__mem, contents__size, (FILE*)self__f__contents);
+        ptr ret = f__contents?(ptr)fgets((char*)contents, size, (FILE*)f__contents):f__contents;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
-        char first = ((char*)contents__mem)[0];
+        char first = ((char*)contents)[0];
     }
-    with value = nom:str(ret, bytes_read, first, contents.mem)
+    with value = nom:str(ret, bytes_read, first, memory.contents.underlying)
     ---> ret:bool
 
-smo next_chunk(File f, Arena &reader, str& value)
-    with f.contents:exists -- // verify that we're using the correct read
+smo next_chunk(Arena &reader, File &f, str& value)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        u64 bytes_read = fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)f__contents);
+        u64 bytes_read = f__contents?fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)f__contents):f__contents;
         if(!bytes_read) ((char*)reader__contents__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
         char first = ((char*)reader__contents__mem)[0];
@@ -86,20 +130,25 @@ smo next_chunk(File f, Arena &reader, str& value)
     value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
     -> ret:bool
 
-smo next_line(File f, Arena &reader, str& value)
+smo next_line(Arena &reader, File &f, str& value)
     with f.contents:exists -- // verify that we're using the correct read
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        ptr ret = (ptr)fgets((char*)reader__contents__mem, reader__contents__size, (FILE*)f__contents);
+        ptr ret = f__contents?(ptr)fgets((char*)reader__contents__mem, reader__contents__size, (FILE*)f__contents):f__contents;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
     with value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
     ---> ret:bool
 
-smo ended(File f)
+smo next_chunk(File &f, Volatile &memory, str& value) -> next_chunk(memory, f, value)
+smo next_line(File &f, Volatile &memory, str& value) -> next_line(memory, f, value)
+smo next_chunk(File &f, Arena &memory, str& value) -> next_chunk(memory, f, value)
+smo next_line(File &f, Arena &memory, str& value) -> next_line(memory, f, value)
+
+smo ended(File &f)
     @head{#include <stdio.h>}
     @body{
         char c = fgetc((FILE*)f__contents);
@@ -133,5 +182,41 @@ smo remove_file(String _path)
     path = _path:str
     @head{#include <stdio.h>}
     @body{u64 status = remove((char*)path__contents);}
-    if status:bool @fail{printf("Failed to remove file: %.*s\n", (int)path__length, (char*)path__contents);} 
+    if status:bool @fail{printf("Failed to remove file - makre sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
+    ----
+
+smo create_file(String _path)
+    path = _path:str
+    @head{#include <stdio.h>}
+    @head{
+        #if defined(_WIN32) || defined(_WIN64)
+            #include <direct.h>
+            #define __SMOLANG_CREATE_FILE(path_cstr, out_file) fopen_s((FILE**)&(out_file), (char*)(path_cstr), "wx+")
+        #else
+            #define __SMOLANG_CREATE_FILE(path_cstr, out_file) (out_file) = fopen((char*)(path_cstr), "wx+")
+        #endif
+    }
+    @body{
+        ptr contents = 0;
+        __SMOLANG_CREATE_FILE(path__contents, contents);
+    }
+    if contents:exists:not @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
+    ---> nom:WriteFile(contents)
+
+smo create_dir(String _path)
+    path = _path:str
+    @head{#if defined(_WIN32) || defined(_WIN64)
+    #include <direct.h>
+    #define __SMOLANG_CREATE_DIR(path_cstr, status) (status) = _mkdir((char*)(path_cstr))
+    #else
+    #include <sys/stat.h>
+    #include <sys/types.h>
+    #define __SMOLANG_CREATE_DIR(path_cstr, status) (status) = mkdir((char*)(path_cstr), 0777)
+    #endif}
+    @body{
+        int status = -1;
+        __SMOLANG_CREATE_DIR(path__contents, status);
+        bool created = (status == 0);
+    }
+    if created:not @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
     ----
