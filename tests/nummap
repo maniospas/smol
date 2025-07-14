@@ -1,0 +1,376 @@
+	.file	"__smolambda__temp__main.cpp"
+	.intel_syntax noprefix
+	.text
+	.section	.rodata.main.str1.1,"aMS",@progbits,1
+.LC0:
+	.string	"Did not initialize Dynamic"
+.LC1:
+	.string	"%s\n"
+.LC2:
+	.string	"Failed a Dynamic allocation"
+.LC3:
+	.string	"%lu"
+	.section	.rodata.main.str1.8,"aMS",@progbits,1
+	.align 8
+.LC4:
+	.string	"Failed to allocate str from number\n"
+	.section	.rodata.main.str1.1
+.LC5:
+	.string	"Map out of space"
+.LC6:
+	.string	"entry 2"
+.LC7:
+	.string	"Map has no such entry"
+.LC8:
+	.string	"%lu\n"
+	.section	.text.startup.main,"ax",@progbits
+	.p2align 4
+	.globl	main
+	.type	main, @function
+main:
+.LFB90:
+	.cfi_startproc
+	endbr64
+	push	rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	mov	rbp, rsp
+	.cfi_def_cfa_register 6
+	push	r15
+	push	r14
+	push	r13
+	push	r12
+	push	rbx
+	sub	rsp, 72
+	.cfi_offset 15, -24
+	.cfi_offset 14, -32
+	.cfi_offset 13, -40
+	.cfi_offset 12, -48
+	.cfi_offset 3, -56
+	mov	rdi, QWORD PTR fs:40
+	mov	QWORD PTR -56[rbp], rdi
+	mov	edi, 8
+	call	malloc@PLT
+	mov	QWORD PTR -72[rbp], rax
+	test	rax, rax
+	je	.L55
+	mov	edi, 8
+	call	malloc@PLT
+	mov	rbx, rax
+	test	rax, rax
+	je	.L4
+	mov	rax, QWORD PTR -72[rbp]
+	mov	esi, 1
+	mov	edi, 16000
+	mov	QWORD PTR [rax], rbx
+	call	calloc@PLT
+	mov	r8, rax
+	test	rax, rax
+	je	.L4
+	mov	QWORD PTR [rbx], rax
+	mov	rax, rsp
+	cmp	rsp, rax
+	je	.L6
+.L56:
+	sub	rsp, 4096
+	or	QWORD PTR 4088[rsp], 0
+	cmp	rsp, rax
+	jne	.L56
+.L6:
+	sub	rsp, 48
+	or	QWORD PTR 40[rsp], 0
+	xor	edx, edx
+	lea	r10, 15[rsp]
+	mov	QWORD PTR -80[rbp], rdx
+	mov	r15, r10
+	mov	QWORD PTR -104[rbp], 1
+	mov	QWORD PTR -112[rbp], 1
+	and	r15, -16
+	mov	QWORD PTR -88[rbp], r8
+	lea	rbx, 1[r15]
+	mov	r10, r15
+.L8:
+	mov	rdi, QWORD PTR -80[rbp]
+	lea	r8, .LC3[rip]
+	mov	ecx, 32
+	movabs	rax, -3689348814741910323
+	mov	esi, 21
+	mov	QWORD PTR -96[rbp], r10
+	mul	rdi
+	shr	rdx, 3
+	lea	rax, [rdx+rdx*4]
+	mov	edx, 2
+	add	rax, rax
+	sub	rdi, rax
+	xor	eax, eax
+	mov	r9, rdi
+	mov	r15, rdi
+	mov	rdi, r10
+	call	__snprintf_chk@PLT
+	mov	edi, 2
+	call	malloc@PLT
+	test	rax, rax
+	je	.L13
+	mov	r10, QWORD PTR -96[rbp]
+	mov	BYTE PTR 1[rax], 0
+	mov	ecx, 5381
+	movzx	edx, BYTE PTR [r10]
+	mov	DWORD PTR [r10], 1920233061
+	lea	rsi, 7[r10]
+	mov	BYTE PTR 6[r10], dl
+	mov	BYTE PTR [rax], dl
+	mov	eax, 8313
+	mov	WORD PTR 4[r10], ax
+	mov	rax, r10
+	.p2align 5
+	.p2align 4
+	.p2align 3
+.L14:
+	mov	rdx, rcx
+	add	rax, 1
+	sal	rdx, 5
+	add	rcx, rdx
+	movzx	edx, BYTE PTR -1[rax]
+	add	rcx, rdx
+	cmp	rax, rsi
+	jne	.L14
+	mov	rdx, rcx
+	mov	QWORD PTR -96[rbp], r10
+	movabs	rax, 2361183241434822607
+	shr	rdx, 3
+	mul	rdx
+	shr	rdx, 4
+	imul	rax, rdx, 1000
+	sub	rcx, rax
+	mov	rax, QWORD PTR -88[rbp]
+	mov	rdx, rcx
+	lea	r13, [rcx+rcx]
+	sal	rdx, 4
+	lea	r12, [rax+rdx]
+	mov	rax, r12
+	mov	r12, r13
+	mov	r13, rax
+	jmp	.L16
+	.p2align 4,,10
+	.p2align 3
+.L19:
+	add	r12, 2
+	add	r13, 16
+	cmp	r12, 1999
+	ja	.L57
+.L16:
+	mov	r14, QWORD PTR 0[r13]
+	test	r14, r14
+	je	.L18
+	mov	rdi, r14
+	call	strlen@PLT
+	cmp	BYTE PTR [r14], 101
+	jne	.L19
+	cmp	rax, 7
+	jne	.L19
+	mov	esi, DWORD PTR [rbx]
+	cmp	DWORD PTR 1[r14], esi
+	jne	.L19
+	movzx	edi, WORD PTR 4[rbx]
+	cmp	WORD PTR 5[r14], di
+	jne	.L19
+	mov	rax, QWORD PTR -88[rbp]
+	mov	r10, QWORD PTR -96[rbp]
+	mov	QWORD PTR 8[rax+r12*8], r15
+.L10:
+.L35:
+.L11:
+	add	QWORD PTR -80[rbp], 1
+	mov	rax, QWORD PTR -80[rbp]
+	cmp	rax, 100
+	jne	.L8
+	mov	r8, QWORD PTR -88[rbp]
+	mov	edx, 1
+	mov	eax, 5381
+	lea	rdi, .LC6[rip-1]
+.L12:
+	imul	rax, rax, 33
+	movzx	ecx, BYTE PTR [rdi+rdx]
+	add	rdx, 1
+	add	rax, rcx
+	cmp	rdx, 8
+	jne	.L12
+	mov	ebx, 1000
+	xor	edx, edx
+	lea	r13, .LC6[rip+1]
+	mov	r14, r8
+	div	rbx
+	lea	r12, [rdx+rdx]
+	jmp	.L28
+.L58:
+	mov	rdi, rbx
+	call	strlen@PLT
+	cmp	BYTE PTR [rbx], 101
+	jne	.L31
+	cmp	rax, 7
+	jne	.L31
+	lea	rdi, 1[rbx]
+	mov	edx, 6
+	mov	rsi, r13
+	call	memcmp@PLT
+	mov	ebx, eax
+	test	eax, eax
+	je	.L32
+.L31:
+	add	r12, 2
+	cmp	r12, 1999
+	ja	.L30
+.L28:
+	mov	rbx, QWORD PTR [r14+r12*8]
+	test	rbx, rbx
+	jne	.L58
+.L30:
+	lea	rdx, .LC7[rip]
+	lea	rsi, .LC1[rip]
+	mov	edi, 2
+	xor	eax, eax
+	call	__printf_chk@PLT
+	jmp	.L15
+.L57:
+	lea	rdx, .LC5[rip]
+	lea	rsi, .LC1[rip]
+	mov	edi, 2
+	xor	eax, eax
+	call	__printf_chk@PLT
+.L15:
+	mov	ebx, 1
+.L23:
+	mov	rax, QWORD PTR -72[rbp]
+	mov	rax, QWORD PTR [rax]
+	mov	rdi, QWORD PTR [rax]
+	call	free@PLT
+.L9:
+	mov	rdi, QWORD PTR -72[rbp]
+	call	free@PLT
+.L1:
+	mov	rax, QWORD PTR -56[rbp]
+	sub	rax, QWORD PTR fs:40
+	jne	.L59
+	lea	rsp, -40[rbp]
+	mov	eax, ebx
+	pop	rbx
+	pop	r12
+	pop	r13
+	pop	r14
+	pop	r15
+	pop	rbp
+	.cfi_remember_state
+	.cfi_def_cfa 7, 8
+	ret
+.L18:
+	.cfi_restore_state
+	mov	rax, r13
+	mov	r13, r12
+	mov	rsi, QWORD PTR -112[rbp]
+	mov	r10, QWORD PTR -96[rbp]
+	mov	r12, rax
+	mov	rax, QWORD PTR -104[rbp]
+	lea	r14, 1[rax]
+	cmp	r14, rsi
+	jb	.L24
+	mov	rdi, QWORD PTR -72[rbp]
+	mov	rax, rsi
+	shr	rax
+	mov	rdi, QWORD PTR [rdi]
+	lea	rax, 1[rsi+rax]
+	mov	QWORD PTR -112[rbp], rax
+	lea	rsi, 0[0+rax*8]
+	test	rdi, rdi
+	je	.L25
+	call	realloc@PLT
+	mov	r10, QWORD PTR -96[rbp]
+.L26:
+	test	rax, rax
+	je	.L27
+	mov	rsi, QWORD PTR -72[rbp]
+	mov	QWORD PTR [rsi], rax
+.L24:
+	mov	edi, 8
+	mov	QWORD PTR -96[rbp], r10
+	call	malloc@PLT
+	test	rax, rax
+	je	.L27
+	mov	rdi, QWORD PTR -72[rbp]
+	mov	r10, QWORD PTR -96[rbp]
+	mov	QWORD PTR [r12], rax
+	mov	BYTE PTR 7[rax], 0
+	mov	rsi, QWORD PTR [rdi]
+	mov	rdi, QWORD PTR -104[rbp]
+	mov	QWORD PTR -104[rbp], r14
+	mov	QWORD PTR [rsi+rdi*8], rax
+	mov	esi, DWORD PTR [r10]
+	mov	DWORD PTR [rax], esi
+	mov	esi, DWORD PTR 3[r10]
+	mov	DWORD PTR 3[rax], esi
+	mov	rax, QWORD PTR -88[rbp]
+	mov	QWORD PTR 8[rax+r13*8], r15
+	jmp	.L35
+.L4:
+	lea	rdx, .LC2[rip]
+	lea	rsi, .LC1[rip]
+	mov	edi, 2
+	xor	eax, eax
+	call	__printf_chk@PLT
+	mov	ebx, 1
+	jmp	.L9
+.L25:
+	mov	rdi, rsi
+	mov	QWORD PTR -96[rbp], r10
+	call	malloc@PLT
+	mov	r10, QWORD PTR -96[rbp]
+	jmp	.L26
+.L13:
+	lea	rsi, .LC4[rip]
+	mov	edi, 2
+	xor	eax, eax
+	call	__printf_chk@PLT
+	jmp	.L15
+.L32:
+	mov	rdx, QWORD PTR 8[r14+r12*8]
+	lea	rsi, .LC8[rip]
+	mov	edi, 2
+	xor	eax, eax
+	call	__printf_chk@PLT
+	jmp	.L23
+.L59:
+	call	__stack_chk_fail@PLT
+.L27:
+	lea	rdx, .LC2[rip]
+	lea	rsi, .LC1[rip]
+	mov	edi, 2
+	xor	eax, eax
+	call	__printf_chk@PLT
+	jmp	.L15
+.L55:
+	lea	rdx, .LC0[rip]
+	mov	edi, 2
+	mov	ebx, 1
+	lea	rsi, .LC1[rip]
+	call	__printf_chk@PLT
+	jmp	.L1
+	.cfi_endproc
+.LFE90:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 14.2.0-19ubuntu2) 14.2.0"
+	.section	.note.GNU-stack,"",@progbits
+	.section	.note.gnu.property,"a"
+	.align 8
+	.long	1f - 0f
+	.long	4f - 1f
+	.long	5
+0:
+	.string	"GNU"
+1:
+	.align 8
+	.long	0xc0000002
+	.long	3f - 2f
+2:
+	.long	0x3
+3:
+	.align 8
+4:

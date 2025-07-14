@@ -23,6 +23,7 @@
 union Keys(str,u64)
 union Values(str,u64,f64,i64)
 
+smo __unsafe_cast(str, str value) -> value
 smo __unsafe_cast(str, cstr value) -> value
 smo __unsafe_cast(str, ptr value) @body{cstr temp_cast = reinterpret_cast<cstr>(value);} -> temp_cast
 smo __unsafe_cast(str, u64 value) @body{cstr temp_cast = reinterpret_cast<cstr>(value);} -> temp_cast
@@ -31,10 +32,10 @@ smo __unsafe_cast(u64, ptr value) @body{u64 temp_cast = reinterpret_cast<u64>(va
 smo __unsafe_cast(u64, u64 value) -> value
 smo __unsafe_cast(u64, i64 value) @body{u64 temp_cast = static_cast<u64>(value);} -> temp_cast
 smo __unsafe_cast(u64, f64 value) @body{u64 temp_cast = static_cast<u64>(value);} -> temp_cast
-smo __unsafe_ret(u64, u64 value) -> value
-smo __unsafe_ret(f64, u64 value) @body{f64 temp_cast = static_cast<f64>(value);} -> temp_cast
-smo __unsafe_ret(i64, u64 value) @body{i64 temp_cast = static_cast<i64>(value);} -> temp_cast
-smo __unsafe_ret(str, u64 value) 
+smo __unsafe_ret(u64, u64 value, ptr context) -> value
+smo __unsafe_ret(f64, u64 value, ptr context) @body{f64 temp_cast = static_cast<f64>(value);} -> temp_cast
+smo __unsafe_ret(i64, u64 value, ptr context) @body{i64 temp_cast = static_cast<i64>(value);} -> temp_cast
+smo __unsafe_ret(str, u64 value, ptr context) 
     @head{#include <string.h>}
     @body{cstr raw = reinterpret_cast<cstr>(value);} 
     @body{
@@ -42,24 +43,39 @@ smo __unsafe_ret(str, u64 value)
         ptr contents=(ptr)raw;
         char first=raw[0];
     }
-    -> nom:str(contents, length, first, contents)
+    -> nom:str(contents, length, first, context)
 
 smo __map_prepare_key(str value, Memory &memory) 
-    copied = memory:copy(value)
-    -> value.contents
+    with memory:is(Heap) fail("Cannot directly allocate `Heap` memory for map strings, use anything else (a heap Arena, Dynamic, Stack)") 
+    --else--
+    //if value.memory:exists:not |-> value.contents  // cstr wrappers
+    mem = memory:allocate(value.length+1, char)
+    @body{
+        if(mem__mem) {
+            memcpy((char*)mem__mem, value__contents, value__length);
+            ((char*)mem__mem)[value__length] = '\0';
+        }
+    }
+    -> mem.mem
 smo __map_prepare_key(cstr value, Memory &memory) -> value
 smo __map_prepare_key(f64 value, Memory &memory) -> value
 smo __map_prepare_key(i64 value, Memory &memory) -> value
-smo __map_prepare_key(u64 value, Memory &memory) -> value
-
-smo __map_prepare_key(str value) -> value.contents
+smo __map_prepare_key(u64 value, Memory &memory) -> value+1
+smo __map_prepare_key(str value) -> value
 smo __map_prepare_key(cstr value) -> value
 smo __map_prepare_key(f64 value) -> value
 smo __map_prepare_key(i64 value) -> value
-smo __map_prepare_key(u64 value) -> value
-
-smo __map_prepare_value(str value, Memory &memory) 
-    -> value.contents
+smo __map_prepare_key(u64 value) -> value+1
+smo __map_prepare_value(str value, Memory &memory)
+    //if value.memory:exists:not |-> value.contents  // cstr wrappers
+    mem = memory:allocate(value.length+1, char)
+    @body{
+        if(mem__mem) {
+            memcpy((char*)mem__mem, value__contents, value__length);
+            ((char*)mem__mem)[value__length] = '\0';
+        }
+    }
+    -> mem.mem
 smo __map_prepare_value(cstr value, Memory &memory) -> value
 smo __map_prepare_value(f64 value, Memory &memory) -> value
 smo __map_prepare_value(i64 value, Memory &memory) -> value
@@ -109,8 +125,7 @@ smo put(Map &self, Keys _key, Values _val)
         _key:is(self.Keys)
         _val:is(self.Values)
         --
-    key = _key:__map_prepare_key(self.memory)
-    val = _val:__map_prepare_value(self.memory)
+    key = _key:__map_prepare_key
     &idx = (_key:hash % self.size)*2
     on self.Keys
         while(self.mem[idx]!=0)and((self.mem[idx]:__unsafe_cast)!=(key:__unsafe_cast)) 
@@ -119,10 +134,9 @@ smo put(Map &self, Keys _key, Values _val)
         ----
     if self.mem[idx] == 0 
         @body{self__length = self__length+1;} 
-        --
-    on u64 
-        self.mem:put(idx, key:__unsafe_cast)
-        self.mem:put(idx+1, val:__unsafe_cast)
+        on u64 self.mem:put(idx, _key:__map_prepare_key(self.memory):__unsafe_cast) // copy strings only if no entry there
+        ----
+    on u64 self.mem:put(idx+1, _val:__map_prepare_value(self.memory):__unsafe_cast)
     ---- // TODO: find why, if we return self here, we get a double free error (regardless of whether it's mutable)
 smo at(Map self, Keys _key)
     with _key:is(self.Keys) --
@@ -136,7 +150,7 @@ smo at(Map self, Keys _key)
         ----
     if self.mem[idx] == 0 
         -> fail("Map has no such entry")
-    -> on self.Values -> self.mem:at(idx+1):__unsafe_ret
+    -> on self.Values -> self.mem:at(idx+1):__unsafe_ret(self.mem.underlying)
 
 smo put(Map &self, cstr _mkey, Values _val) 
     with put(self, _mkey:str, _val) 

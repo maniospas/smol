@@ -90,14 +90,15 @@ smo add(Memory &allocator, cstr x, str y)
     -> nom:str(_contents, len_x + len_y, first, mem.underlying)
 
 
-smo str(i64 number)
+smo tostr(Memory &allocator, i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
+    mem = allocator:allocate(21, char)
+    readbuf = mem.mem
     @body{
-        ptr readbuf = (ptr)malloc(32);
         if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%ld", number);
+            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*21, "%ld", number);
             if (length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
@@ -109,18 +110,17 @@ smo str(i64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally contents {if(contents)free(contents);contents=0;}
-    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
-    -> nom:str(contents, length, first, contents)
+    -> nom:str(contents, length, first, mem.underlying)
 
-smo tostr(u64 number)
+smo tostr(Memory &allocator, u64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
+    mem = allocator:allocate(21, char)
+    readbuf = mem.mem
     @body{
-        ptr readbuf = (ptr)malloc(32);
         if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%lu", number);
+            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*21, "%lu", number);
             if (length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
@@ -132,18 +132,17 @@ smo tostr(u64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally contents {if(contents)free(contents);contents=0;}
-    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
-    -> nom:str(contents, length, first, contents)
+    -> nom:str(contents, length, first, mem.underlying)
 
-smo tostr(f64 number)
+smo tostr(Memory &allocator, f64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
+    mem = allocator:allocate(25, char)
+    readbuf = mem.mem
     @body{
-        ptr readbuf = (ptr)malloc(32);
         if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*32, "%.6f", number);
+            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*25, "%.6f", number);
             if(length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
@@ -155,6 +154,4 @@ smo tostr(f64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    @finally contents {if(contents)free(contents);contents=0;}
-    @finally readbuf {if(readbuf)free(readbuf);readbuf=0;}
-    -> nom:str(contents, length, first, contents)
+    -> nom:str(contents, length, first, mem.underlying)

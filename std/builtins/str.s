@@ -79,18 +79,27 @@ smo slice(String self, u64 from, u64 to)
     -> nom:str(contents, to-from, first, s.contents)
 smo slice(String self, u64 from) -> slice(self, from, 0)
 
-smo eq(String _x, String _y)
+union _IndependentString(String)
+smo eq(String _x, _IndependentString _y)
     x = _x:str
     y = _y:str
     @head{#include <string.h>}
     @body{bool z = x__first==y__first && (x__length == y__length) && memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) == 0;}
     -> z
 
-smo neq(String _x, String _y)
+smo neq(String _x, _IndependentString _y)
     x = _x:str
     y = _y:str
     @head{#include <string.h>}
-    @body{bool z = x__first!=y__first || (x__length != y__length) || memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) != 0;} 
+    @body{
+    //printf("x: '%s', length: %zu\n", ((char*)x__contents), x__length - 1);
+    //printf("y: '%s', length: %zu\n", ((char*)y__contents), y__length - 1);
+
+    bool z = x__first != y__first ||
+             (x__length != y__length) ||
+             memcmp((char*)x__contents + 1, (char*)y__contents + 1, x__length - 1) != 0;
+}
+
     -> z
 
 smo len(str x) 
