@@ -52,6 +52,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                     prevType = parametric_types[next];
                 }
                 Type type = prevType->retrievable_parameters[next_token];
+                if(type->name=="ptr" && !imp->allow_unsafe) imp->error(--p, "Direct access of `ptr` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
                 next = create_temp();
                 if(type->not_primitive()) {
                     for(size_t i=0;i<type->args.size();++i) {
@@ -95,6 +96,7 @@ string Def::next_var(const shared_ptr<Import>& i, size_t& p, const string& first
                 next += "__"+next_token;
                 if(p>=n) return first_token;
                 if(next.size() && test && !internalTypes.contains(next)) imp->error(--p, "Not found: "+pretty_var(next)+recommend_variable(types, next));
+                if(internalTypes.contains(next) && internalTypes.vars[next]->name=="ptr"&& !imp->allow_unsafe) imp->error(--p, "Direct access of `ptr` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
             }
         }
         else if(imp->at(p)=="[") {

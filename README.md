@@ -52,7 +52,7 @@ service main()
     p = Point(3.0,5.0)
     f = nom:Field(1.0,2.0,p)
     m = f64:read             // types can be args to determine type version
-    print(f:operation(1.0))  // prints 6*m
+    print(f:operation(m))    // prints 6*m
     --
 ```
 
