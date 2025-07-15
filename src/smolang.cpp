@@ -108,7 +108,6 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
     auto imp = tokenize(file);
     types.imp = imp;
     for(const auto& it : builtins.vars) types.vars[it.first] = it.second;
-
     unordered_set<string> imported;
     size_t p = 0;
     size_t warnings = 0;
@@ -342,11 +341,107 @@ int main(int argc, char* argv[]) {
     }
     if(files.size()==0) files.push_back("main.s");
     string task_report;
-    for(string file : files) {
+    for(const string& file : files) {
         if(file.size()<2 || file.substr(file.size()-2) != ".s") {cerr << "Error: expecting '.s' extension but got file: " << file << endl; return 1;}
         try {
             codegen(included, file, builtins, selected_task, task_report);
-            if(selected_task==Task::Verify) {cout << task_report;continue;}
+
+    
+            if (Def::export_docs) {
+            std::string docs = "<!DOCTYPE html>\n<html>\n<head>\n"
+                    "<meta charset=\"UTF-8\">\n"
+                    "<title>Documentation</title>\n"
+                    "<link href=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css\" rel=\"stylesheet\" />\n"
+                    "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js\"></script>\n"
+                    "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-clike.min.js\"></script>\n"
+                    "<style>\n"
+                    "body { font-family: sans-serif; max-width: 960px; margin: auto; padding: 2em; background: #fafaff; }\n"
+                    "h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.2em;}\n"
+                    ".sig { font-size:1.3em; font-family: monospace; }\n"
+                    ".notice { color: #888; margin-left:3em; margin-right:3em; }\n"
+                    ".unsafe-badge { font-size: 0.65em; height:1em; color: #fff; background: #d72a2a; border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
+                    ".overload-badge { font-size: 0.65em; height:1em; color: #fff; background:rgb(126, 123, 149); border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
+                    "</style>\n"
+                    "<script>\n"
+                    "Prism.languages.smolambda = {\n"
+                    "  'comment': /\\/\\/.*/,\n"
+                    "  'directive': { pattern: /@\\w+/, alias: 'important' },\n"
+                    "  'keyword': [\n"
+                    "    { pattern: /\\b(?:smo|service|if|else|elif|with|include|do|while|on|union|to|upto|lento|len|and|or)\\b/, greedy: true },\n"
+                    "    { pattern: /(?:\\|\\|\\|->|\\|\\|->|\\|\\|--|\\|->|\\|--|->|--|:|=)/, greedy: true }\n"
+                    "  ],\n"
+                    "  'builtin': /\\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\\b/,\n"
+                    "  'punctuation': /[{}();,\\[\\]]/,\n"
+                    "  'number': /\\b\\d+\\b/,\n"
+                    "  'string': { pattern: /\"(?:\\\\.|[^\"\\\\])*\"/, greedy: true }\n"
+                    "};\n"
+                    "Prism.highlightAll();\n"
+                    "</script>\n"
+                    "</head>\n<body>\n";
+
+
+
+                for (auto& include : included) {
+                    string display_name = include.first;
+                    if (display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  display_name = display_name.substr(0, display_name.size() - 2);
+                    display_name = std::regex_replace(display_name, std::regex("[\\\\/]"), ".");
+                    string unsafe_html = "";
+                    if (include.second.imp->allow_unsafe) unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
+
+                    docs += "<h1><span style=\"color:blue;\"></span> " + display_name + unsafe_html + "</h1>\n";
+                    docs += "<p>" + include.second.imp->about.substr(1, include.second.imp->about.size() - 2) + "</p>\n";
+                    if(unsafe_html.size()) docs += "<p class=\"notice\"><i>This file is marked with the unsafe keyword. This means that its "
+                    "internal implementation (<i>only</i>) could be subject to bugs that the language's design otherwise "
+                    "eliminates. By using this file as a direct or indirect dependency you are trusting its implementation. "
+                    "Given this trust, consider other non-unsafe files using it as safe.</i></p>";
+                    string overload_docs("");
+                    std::vector<pair<string, Type>> keys;
+                    for (const auto& type : include.second.vars) keys.push_back(pair<string,Type>(type.first, type.second));
+                    std::sort(keys.begin(), keys.end(), [](pair<string, Type>& lhs, pair<string, Type>& rhs) {
+                        return lhs.second->pos < rhs.second->pos;
+                    });
+
+                    for (const auto& type : keys) {
+                        string type_docs("");
+                        for (const auto& subtype : type.second->options)
+                            if (/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second.imp.get()==subtype->imp.get()) {
+                                try {
+                                    string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;→&nbsp;";
+                                    if(subtype->alias_for.size() && subtype->internalTypes.vars[subtype->alias_for]->name==subtype->name) sig = sig+ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
+                                    else if(subtype->alias_for.size()) sig = sig+ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->alias_for]->name)+"["+to_string(subtype->internalTypes.vars[subtype->alias_for]->args.size())+"]");//ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
+                                    else if(subtype->packs.size()==1) sig += ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->packs[0]]->name));
+                                    else if(subtype->packs.size()==0) sig += "()";
+                                    else sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
+                                    sig +=  "<br>\n";
+                                    //for(const auto& param : subtype->parametric_types) {
+                                    //    sig += "&nbsp;&nbsp;&nbsp;&nbsp;"+param.first + " = " + ansi_to_html(param.second->signature(include.second))+"<br>\n";
+                                    //}
+                                    sig = "<span class=\"sig\">"+sig+"</span>";
+                                    type_docs += sig;
+                                } catch (const runtime_error&) {}
+                            }
+                        if (type_docs.size()) {
+                            string desc = include.second.imp->docs[type.second->name];
+                            desc = unescape_string(desc);
+                            if(desc.size()>=2) {
+                                replaceAll(desc, "<pre>", "<pre class=\"language-smolambda\"><code class=\"language-smolambda\">");
+                                replaceAll(desc, "</pre>", "</code></pre>");
+                                desc = "<p>"+(desc.substr(1,desc.size()-2))+"</p>";
+                            }
+                            
+                            if(type.second->options.size()!=1) overload_docs += "<h2>" + type.first + "</h2>\n" +desc+ type_docs;
+                            else docs += "<h2>" + type.first + "</h2>\n" +desc+ type_docs;
+                        }
+                    }
+                    docs += overload_docs;
+                }
+                docs += "</body>\n</html>\n";
+                std::ofstream out(file.substr(0, file.size()-2)+".html");
+                out << docs;
+                included.clear();
+                continue;
+            }
+            if(selected_task==Task::Verify) {cout << task_report;included.clear();continue;}
             Type main = included[file].vars["main"];
             if(!main) ERROR("Missing main service at: "+file);
             if(!main->is_service) ERROR("Main was not a service at: "+file);
@@ -449,107 +544,13 @@ int main(int argc, char* argv[]) {
         std::remove("__smolambda__temp__main.cpp");
         included.clear();
     }
-    
-    if (Def::export_docs) {
-       std::string docs = "<!DOCTYPE html>\n<html>\n<head>\n"
-            "<meta charset=\"UTF-8\">\n"
-            "<title>Documentation</title>\n"
-            "<link href=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css\" rel=\"stylesheet\" />\n"
-            "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js\"></script>\n"
-            "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-clike.min.js\"></script>\n"
-            "<style>\n"
-            "body { font-family: sans-serif; max-width: 960px; margin: auto; padding: 2em; background: #fafaff; }\n"
-            "h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.2em;}\n"
-            ".sig { font-size:1.3em; font-family: monospace; }\n"
-            ".notice { color: #888; margin-left:3em; margin-right:3em; }\n"
-            ".unsafe-badge { font-size: 0.65em; height:1em; color: #fff; background: #d72a2a; border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
-            ".overload-badge { font-size: 0.65em; height:1em; color: #fff; background:rgb(126, 123, 149); border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
-            "</style>\n"
-            "<script>\n"
-            "Prism.languages.smolambda = {\n"
-            "  'comment': /\\/\\/.*/,\n"
-            "  'directive': { pattern: /@\\w+/, alias: 'important' },\n"
-            "  'keyword': [\n"
-            "    { pattern: /\\b(?:smo|service|if|else|elif|with|include|do|while|on|union|to|upto|lento|len|and|or)\\b/, greedy: true },\n"
-            "    { pattern: /(?:\\|\\|\\|->|\\|\\|->|\\|\\|--|\\|->|\\|--|->|--|:|=)/, greedy: true }\n"
-            "  ],\n"
-            "  'builtin': /\\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\\b/,\n"
-            "  'punctuation': /[{}();,\\[\\]]/,\n"
-            "  'number': /\\b\\d+\\b/,\n"
-            "  'string': { pattern: /\"(?:\\\\.|[^\"\\\\])*\"/, greedy: true }\n"
-            "};\n"
-            "Prism.highlightAll();\n"
-            "</script>\n"
-            "</head>\n<body>\n";
-
-
-
-        for (auto& include : included) {
-            string display_name = include.first;
-            if (display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  display_name = display_name.substr(0, display_name.size() - 2);
-            display_name = std::regex_replace(display_name, std::regex("[\\\\/]"), ".");
-            string unsafe_html = "";
-            if (include.second.imp->allow_unsafe) unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
-
-            docs += "<h1><span style=\"color:blue;\"></span> " + display_name + unsafe_html + "</h1>\n";
-            docs += "<p>" + include.second.imp->about.substr(1, include.second.imp->about.size() - 2) + "</p>\n";
-            if(unsafe_html.size()) docs += "<p class=\"notice\"><i>This file is marked with the unsafe keyword. This means that its "
-            "internal implementation (<i>only</i>) could be subject to bugs that the language's design otherwise "
-            "eliminates. By using this file as a direct or indirect dependency you are trusting its implementation. "
-            "Given this trust, consider other non-unsafe files using it as safe.</i></p>";
-            string overload_docs("");
-            std::vector<pair<string, Type>> keys;
-            for (const auto& type : include.second.vars) keys.push_back(pair<string,Type>(type.first, type.second));
-            std::sort(keys.begin(), keys.end(), [](pair<string, Type>& lhs, pair<string, Type>& rhs) {
-                return lhs.second->pos < rhs.second->pos;
-            });
-
-            for (const auto& type : keys) {
-                string type_docs("");
-                for (const auto& subtype : type.second->options)
-                    if (/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second.imp.get()==subtype->imp.get()) {
-                        try {
-                            string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;→&nbsp;";
-                            if(subtype->alias_for.size() && subtype->internalTypes.vars[subtype->alias_for]->name==subtype->name) sig = sig+ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
-                            else if(subtype->alias_for.size()) sig = sig+ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->alias_for]->name)+"["+to_string(subtype->internalTypes.vars[subtype->alias_for]->args.size())+"]");//ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
-                            else if(subtype->packs.size()==1) sig += ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->packs[0]]->name));
-                            else if(subtype->packs.size()==0) sig += "()";
-                            else sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
-                            sig +=  "<br>\n";
-                            //for(const auto& param : subtype->parametric_types) {
-                            //    sig += "&nbsp;&nbsp;&nbsp;&nbsp;"+param.first + " = " + ansi_to_html(param.second->signature(include.second))+"<br>\n";
-                            //}
-                            sig = "<span class=\"sig\">"+sig+"</span>";
-                            type_docs += sig;
-                        } catch (const runtime_error&) {}
-                    }
-                if (type_docs.size()) {
-                    string desc = include.second.imp->docs[type.second->name];
-                    desc = unescape_string(desc);
-                    if(desc.size()>=2) {
-                        replaceAll(desc, "<pre>", "<pre class=\"language-smolambda\"><code class=\"language-smolambda\">");
-                        replaceAll(desc, "</pre>", "</code></pre>");
-                        desc = "<p>"+(desc.substr(1,desc.size()-2))+"</p>";
-                    }
-                    
-                    if(type.second->options.size()!=1) overload_docs += "<h2>" + type.first + "</h2>\n" +desc+ type_docs;
-                    else docs += "<h2>" + type.first + "</h2>\n" +desc+ type_docs;
-                }
-            }
-            docs += overload_docs;
-        }
-        docs += "</body>\n</html>\n";
-        std::ofstream out("doc.html");
-        out << docs;
-    }
-
-
     if(selected_task==Task::Verify) for(const auto& def : all_types) if(def && def->imp && def->imp->allow_unsafe && def->imp->about.size()) {
         //cout << "[ "<< def->imp->path << "] ";
         cout << "\033[30;43m UNSAFE \033[0m ";
         cout << def->imp->about.substr(1, def->imp->about.size()-2) << "\n";
         def->imp->about = "";
     }
+
 
     for(const auto& def : all_types) if(def && def->imp) def->imp->tokens.clear();
     all_types.clear();
