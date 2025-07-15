@@ -38,11 +38,11 @@ smo slice(Vec v, u64 from, u64 to)
     @body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
     -> nom:Vec(contents, to-from, v.surface)
 
-smo rand(Memory &memory, u64 size)
+smo rand(Memory &memory, Rand &rand, u64 size)
     mem = memory:allocate(size,f64)
     range(size)
     :while next(u64 &i)
-        value = rand()
+        value = rand:next
         @body{((f64*)mem__mem)[i] = value;}
     ---> nom:Vec(mem.mem, size, mem.mem)
 

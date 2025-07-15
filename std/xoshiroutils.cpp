@@ -1,0 +1,3 @@
+#define __splitmix64__0 0x9E3779B97F4A7C15ULL
+#define __splitmix64__1 0xBF58476D1CE4E5B9ULL
+#define __splitmix64__2 0x94D049BB133111EBULL

@@ -28,6 +28,8 @@ public:
 };
 bool is_symbol(char c) {return ispunct(c) && c != '_';}
 
+#include <sstream>
+
 class Token {
 public:
     string name;
@@ -76,8 +78,7 @@ void Import::error(size_t pos, const string& message) {
     if(pos<0) ERROR("Tried to read before the beginning of file: "+path);
     if(pos>=tokens.size()) ERROR("Premature end of file: "+path+"\n"+tokens[pos-1].show());
     ERROR(message+"\n"+tokens[pos].show());
-}
-auto tokenize(const string& path) {
+}auto tokenize(const string& path) {
     ifstream file(path);
     if (!file) ERROR("Could not open file: " + path);
     string line;
@@ -85,7 +86,6 @@ auto tokenize(const string& path) {
     auto main_file = make_shared<Import>(path);
     vector<Token>& tokens = main_file->tokens;
     size_t in_brackets = 0;
-    size_t in_interpolation = 0;
     while(getline(file, line)) {
         line_num++;
         size_t i = 0;
@@ -96,47 +96,46 @@ auto tokenize(const string& path) {
             if(line[i] == '/' && i + 1 < line.size() && line[i + 1] == '/') break;
             size_t start = i;
             size_t start_col = col;
-            if(line[i]=='"' && in_interpolation) ERROR("Cannot start a string within string interpolation\n"+tokens[tokens.size()-1].show());
             string prefix("");
-            if (line[i] == '"' || (line[i]=='}' && in_interpolation)) {
-                if(line[i]=='}') {
-                    tokens.emplace_back(")", line_num, col, main_file);
-                    tokens.emplace_back(":", line_num, col, main_file);
-                    tokens.emplace_back("add", line_num, col, main_file);
-                    tokens.emplace_back("__consume", line_num, col, main_file);
-                    prefix = "\"";
-                    --in_interpolation;
-                    i++;
-                    col++;
-                    start++;
-                }
+            if (line[i] == '"') {
                 i++;
                 col++;
-                bool to_eplace = true;
-                while(i < line.size() && line[i] != '"') {
-                    if(line[i]=='\\' && i<line.size()-1 && line[i+1]=='{') {
-                        in_interpolation++;
-                        to_eplace = false;
-                        tokens.emplace_back(prefix+line.substr(start, i - start)+'"', line_num, col, main_file);
-                        tokens.emplace_back(":", line_num, col, main_file);
-                        tokens.emplace_back("add", line_num, col, main_file);
-                        tokens.emplace_back("__consume", line_num, col, main_file);
-                        tokens.emplace_back("str", line_num, col, main_file);
-                        tokens.emplace_back("(", line_num, col, main_file);
-                        i+=2;
-                        col+=2;
-                        break;
+                // Parse string literal, allowing escaped quotes
+                while (i < line.size()) {
+                    if (line[i] == '"') {
+                        // Count number of backslashes before this quote
+                        size_t backslashes = 0;
+                        size_t j = i;
+                        while (j > start && line[j-1] == '\\') { backslashes++; j--; }
+                        if (backslashes % 2 == 0) {
+                            // even: not escaped, string ends
+                            break;
+                        }
                     }
                     if (line[i] == '\t') col += 4;
                     else col++;
                     i++;
                 }
-                if(i>=line.size() && !in_interpolation) ERROR("Strings segments can only span one line\n"+tokens[tokens.size()-1].show());
-                if(i < line.size() && line[i] == '"' && line[i-1]!='\\') {
-                    i++;
-                    col++;
+                if(i >= line.size()) ERROR("String segments can only span one line\n"+tokens[tokens.size()-1].show());
+                i++; // skip closing quote
+                col++;
+                string current_str_token = (prefix + line.substr(start, i - start));
+                // Merge with previous string token if possible
+                if (!tokens.empty() && 
+                    !tokens.back().name.empty() && 
+                    tokens.back().name.front() == '"' && 
+                    tokens.back().name.back() == '"' &&
+                    !current_str_token.empty() && 
+                    current_str_token.front() == '"' && 
+                    current_str_token.back() == '"') 
+                {
+                    // Merge: remove the ending quote from previous and starting quote from current, then join
+                    tokens.back().name = 
+                        tokens.back().name.substr(0, tokens.back().name.size() - 1) + 
+                        current_str_token.substr(1);
+                } else {
+                    tokens.emplace_back(current_str_token, line_num, start_col, main_file);
                 }
-                if(to_eplace)tokens.emplace_back(prefix+line.substr(start, i - start), line_num, start_col, main_file);
             }
             else if(!in_brackets && line[i]=='+') {
                 tokens.emplace_back(":", line_num, col, main_file);
@@ -249,6 +248,8 @@ auto tokenize(const string& path) {
     }
     return main_file;
 }
+
+
 
 
 #endif // TOKENIZE_H

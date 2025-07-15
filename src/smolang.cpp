@@ -14,6 +14,51 @@
 #include <regex>
 #include <map>
 
+std::string html_escape(const std::string& code) {
+    std::string out;
+    for (char c : code) {
+        switch (c) {
+            case '&': out += "&amp;"; break;
+            case '<': out += "&lt;"; break;
+            case '>': out += "&gt;"; break;
+            case '"': out += "&quot;"; break;
+            default: out += c;
+        }
+    }
+    return out;
+}
+
+string unescape_string(const string& input) {
+    std::ostringstream out;
+    // Start at 1 to skip opening quote, end at size()-1 to skip closing quote
+    for (size_t i = 1; i + 1 < input.size(); ++i) {
+        if (input[i] == '\\' && i + 1 < input.size() - 1) {
+            char next = input[i + 1];
+            switch (next) {
+                case 'n': out << '\n'; break;
+                case 't': out << '\t'; break;
+                case 'r': out << '\r'; break;
+                case '"': out << '"'; break;
+                case '\\': out << '\\'; break;
+                default: out << next; break; // unknown escape, emit as-is
+            }
+            ++i; // skip the next character, it's part of escape
+        } else {
+            out << input[i];
+        }
+    }
+    // Wrap with quotes to match how you output string tokens
+    return '"' + out.str() + '"';
+}
+
+void replaceAll(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Move past the replacement
+    }
+}
+
 // g++ src/smolang.cpp -o smol -O2 -std=c++23 -Wall
 // g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 // g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
@@ -27,12 +72,12 @@ std::string ansi_to_html(const std::string& input) {
     output = std::regex_replace(output, std::regex("\033\\[0m"), "</b>");
 
     // Red: \033[31m ... \033[0m
-    output = std::regex_replace(output, std::regex("\033\\[31m"), "</span><span style=\"color:red\">");
-    output = std::regex_replace(output, std::regex("\033\\[32m"), "</span><span style=\"color:green\">");
-    output = std::regex_replace(output, std::regex("\033\\[33m"), "</span><span style=\"color:orange\">");
-    output = std::regex_replace(output, std::regex("\033\\[34m"), "</span><span style=\"color:blue\">");
-    output = std::regex_replace(output, std::regex("\033\\[36m"), "</span><span style=\"color:blue\">");
-    output = std::regex_replace(output, std::regex("\033\\[35m"), "</span><span style=\"color:magenta\">");
+    output = std::regex_replace(output, std::regex("\033\\[31m"), "</span><span style=\"color:#c0392b\">");
+    output = std::regex_replace(output, std::regex("\033\\[32m"), "</span><span style=\"color:#2E7D32\">");
+    output = std::regex_replace(output, std::regex("\033\\[33m"), "</span><span style=\"color:#f39c12\">");
+    output = std::regex_replace(output, std::regex("\033\\[34m"), "</span><span style=\"color:#2980b9\">");
+    output = std::regex_replace(output, std::regex("\033\\[36m"), "</span><span style=\"color:#1976D2\">");
+    output = std::regex_replace(output, std::regex("\033\\[35m"), "</span><span style=\"color:#7B1FA2\">");
     output = std::regex_replace(output, std::regex("\033\\[38m"), "</span><span style=\"color:black\">");
     output = std::regex_replace(output, std::regex("\033\\[0m"), "</span><span>");
 
@@ -406,19 +451,39 @@ int main(int argc, char* argv[]) {
     }
     
     if (Def::export_docs) {
-        std::string docs = "<!DOCTYPE html>\n<html>\n<head>\n"
-                        "<meta charset=\"UTF-8\">\n"
-                        "<title>Documentation</title>\n"
-                        "<style>\n"
-                        "body { font-family: sans-serif; max-width: 900px; margin: auto; padding: 2em; background: #fafaff; }\n"
-                        "h1 { border-bottom: 2px solid #ddd; }\n"
-                        "code { background: #eee; border-radius: 4px; padding: 0.2em 0.4em; }\n"
-                        ".notice { color: #888; margin-left:3em; margin-right:3em; }\n"
-                        "pre { background: #f7f7fa; padding: 1em; border-radius: 8px; }\n"
-                        ".unsafe-badge { font-size: 0.65em; height:1emd; color: #fff; background: #d72a2a; border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
-                        ".overload-badge { font-size: 0.65em; height:1emd; color: #fff; background:rgb(126, 123, 149); border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
-                        "</style>\n"
-                        "</head>\n<body>\n";
+       std::string docs = "<!DOCTYPE html>\n<html>\n<head>\n"
+            "<meta charset=\"UTF-8\">\n"
+            "<title>Documentation</title>\n"
+            "<link href=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css\" rel=\"stylesheet\" />\n"
+            "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js\"></script>\n"
+            "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-clike.min.js\"></script>\n"
+            "<style>\n"
+            "body { font-family: sans-serif; max-width: 960px; margin: auto; padding: 2em; background: #fafaff; }\n"
+            "h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.2em;}\n"
+            ".sig { font-size:1.3em; font-family: monospace; }\n"
+            ".notice { color: #888; margin-left:3em; margin-right:3em; }\n"
+            ".unsafe-badge { font-size: 0.65em; height:1em; color: #fff; background: #d72a2a; border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
+            ".overload-badge { font-size: 0.65em; height:1em; color: #fff; background:rgb(126, 123, 149); border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
+            "</style>\n"
+            "<script>\n"
+            "Prism.languages.smolambda = {\n"
+            "  'comment': /\\/\\/.*/,\n"
+            "  'directive': { pattern: /@\\w+/, alias: 'important' },\n"
+            "  'keyword': [\n"
+            "    { pattern: /\\b(?:smo|service|if|else|elif|with|include|do|while|on|union|to|upto|lento|len|and|or)\\b/, greedy: true },\n"
+            "    { pattern: /(?:\\|\\|\\|->|\\|\\|->|\\|\\|--|\\|->|\\|--|->|--|:|=)/, greedy: true }\n"
+            "  ],\n"
+            "  'builtin': /\\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\\b/,\n"
+            "  'punctuation': /[{}();,\\[\\]]/,\n"
+            "  'number': /\\b\\d+\\b/,\n"
+            "  'string': { pattern: /\"(?:\\\\.|[^\"\\\\])*\"/, greedy: true }\n"
+            "};\n"
+            "Prism.highlightAll();\n"
+            "</script>\n"
+            "</head>\n<body>\n";
+
+
+
         for (auto& include : included) {
             string display_name = include.first;
             if (display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  display_name = display_name.substr(0, display_name.size() - 2);
@@ -444,8 +509,9 @@ int main(int argc, char* argv[]) {
                 for (const auto& subtype : type.second->options)
                     if (/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second.imp.get()==subtype->imp.get()) {
                         try {
-                            string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;&nbsp;→&nbsp;&nbsp;";
-                            if(subtype->alias_for.size()) sig = sig+ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
+                            string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;→&nbsp;";
+                            if(subtype->alias_for.size() && subtype->internalTypes.vars[subtype->alias_for]->name==subtype->name) sig = sig+ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
+                            else if(subtype->alias_for.size()) sig = sig+ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->alias_for]->name)+"["+to_string(subtype->internalTypes.vars[subtype->alias_for]->args.size())+"]");//ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
                             else if(subtype->packs.size()==1) sig += ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->packs[0]]->name));
                             else if(subtype->packs.size()==0) sig += "()";
                             else sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
@@ -453,12 +519,19 @@ int main(int argc, char* argv[]) {
                             //for(const auto& param : subtype->parametric_types) {
                             //    sig += "&nbsp;&nbsp;&nbsp;&nbsp;"+param.first + " = " + ansi_to_html(param.second->signature(include.second))+"<br>\n";
                             //}
+                            sig = "<span class=\"sig\">"+sig+"</span>";
                             type_docs += sig;
                         } catch (const runtime_error&) {}
                     }
                 if (type_docs.size()) {
                     string desc = include.second.imp->docs[type.second->name];
-                    if(desc.size()>=2) desc = "<p>"+desc.substr(1,desc.size()-2)+"</p>";
+                    desc = unescape_string(desc);
+                    if(desc.size()>=2) {
+                        replaceAll(desc, "<pre>", "<pre class=\"language-smolambda\"><code class=\"language-smolambda\">");
+                        replaceAll(desc, "</pre>", "</code></pre>");
+                        desc = "<p>"+(desc.substr(1,desc.size()-2))+"</p>";
+                    }
+                    
                     if(type.second->options.size()!=1) overload_docs += "<h2>" + type.first + "</h2>\n" +desc+ type_docs;
                     else docs += "<h2>" + type.first + "</h2>\n" +desc+ type_docs;
                 }

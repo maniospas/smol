@@ -27,6 +27,7 @@ string pretty_var(const string& name) {
         else if(i && name[i]=='_' && i+1<name.size() && name[i+1]=='_') {result += "";i+=2;while(i<name.size() && name[i]=='_')i++;while(i<name.size() && name[i]!='_')i++;}
         else result += name[i++];
     }
+    if(result.size()>=4 && result.substr(result.size()-4)=="type") result = result.substr(0, result.size()-4);
     while(result.size() && result[result.size()-1]=='.') result = result.substr(0, result.size()-1);
     return result;
 }

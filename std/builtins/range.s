@@ -18,7 +18,12 @@
 @include std.builtins.num
 @about "Standard library implementation of u64 ranges."
 @about range "Defines a u64 range as a structural type (instead of nominal type). When directly using variables as ranges, the position should be mutable. A couple of calling conventions are provided for default values of 0 for start and 1 for step."
-@about next  "Obtains the next element in the range. This is safer than manually checking bounds. Example: <code>range(10):while next(u64 &i) print(i) --</code>"
+@about next  "Obtains the next element in the range. Using a combination of a range and next element traversal is safer than manually checking bounds."
+             "\n<br><br>Below is the main usage pattern. Notice that next's argument is an in-place constructed u64 number that is mutable to obtain the next value. The function progress the range's state and set that value."
+             "\n<pre>range(10)"
+             "\n:while next(u64 &i)"
+             "\n    print(i)"
+             "\n    --</pre>"
 
 smo range(u64 start, u64 end, u64 step) 
     &pos = start 

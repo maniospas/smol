@@ -19,6 +19,30 @@
 @include std.mem
 @unsafe
 @about "Standard library implementation of maps that requires unsafe entry casts to u64."
+@about put "Inserts an element to a Map."
+@about has "Checks if an element key exists in a Map."
+@about put "Computes hash values for several primitive and string types to be used by maps."
+@about len "Tracks the number of elements stored in each Map. Elements cannot be removed but can be replaced. Several variations exist for different map variations. "
+@about len "Tracks the number of elements stored in each Map. Elements cannot be removed but can be replaced. Several variations exist for different map variations. "
+@about at  "Gets an element from a Map given that it is the same type as its key. This overloads the bracket operator. Will cause service failure if the element is missing; check for its existence first. "
+           "\n<br><br>Here is example usage that obtains a key's value:"
+           "\n<pre>map = Dynamic:Map(100, str, str)  // str to str map on dynamic memory with 100 max size"
+           "\nmap:put(\"hello\", \"world\")"
+           "\nprint(map[\"hello\"])</pre>"
+@about Map "Constructs a map data type given a memory allocator, a maximum number of map elements that can be stored on it, and the types of keys and values. "
+           "The maximum number of elements cannot be increased and is reserved as space beforehand for security. Str is used as a storage type for both all String values. "
+           "Memory is reserved beforehand for the map's entries so that implementation is performant and can conform to any allocator. For string keys or values, "
+           "the base allocator is also used to reserve space later for string copying to maintain lifetimes. Element insertion may fail if the map or base memory is out of space. "
+           "<br><br>Here is an example of a string-based map, where known constant string (cstr) elements are placed by hand "
+           "to prevent any additional memory allocation for them."
+           "\n<pre>map = Stack:allocate_arena(32):Map(10, 1, u64) // do everything in 32 bytes with up to 10 entries"
+           "\non map // open context to add the map as first argument when needed"
+           "\n    1:put(\"entry 1\")"
+           "\n    2:put(\"entry 2\")"
+           "\n    3:put(\"entry 3\")"
+           "\n    --"
+           "\nprint(map[3])"
+           "\n</pre>"
 
 union Keys(str,u64)
 union Values(str,u64,f64,i64)
@@ -102,7 +126,7 @@ smo hash(u64 _x)
 // class Map
 smo Map(nom type, Memory &memory, u64 size, Keys, Values) 
     mem = memory:allocate(size*2, u64)
-    range(size*2):while next(u64& i) mem:put(i, 0)
+    range(size*2):while next(u64& i) mem:__unsafe_put(i, 0)
     length = 0
     ---> type, size, mem, length, memory
 smo Map(Memory &memory, u64 size, Keys, Values) 
@@ -134,9 +158,9 @@ smo put(Map &self, Keys _key, Values _val)
         ----
     if self.mem[idx] == 0 
         @body{self__length = self__length+1;} 
-        on u64 self.mem:put(idx, _key:__map_prepare_key(self.memory):__unsafe_cast) // copy strings only if no entry there
+        on u64 self.mem:__unsafe_put(idx, _key:__map_prepare_key(self.memory):__unsafe_cast) // copy strings only if no entry there
         ----
-    on u64 self.mem:put(idx+1, _val:__map_prepare_value(self.memory):__unsafe_cast)
+    on u64 self.mem:__unsafe_put(idx+1, _val:__map_prepare_value(self.memory):__unsafe_cast)
     ---- // TODO: find why, if we return self here, we get a double free error (regardless of whether it's mutable)
 smo at(Map self, Keys _key)
     with _key:is(self.Keys) --
