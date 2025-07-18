@@ -78,8 +78,6 @@ public:
 
     bool operator==(const SegmentedString& other) const { return segments == other.segments; }
     bool operator!=(const SegmentedString& other) const { return segments != other.segments; }
-
-    // For std::set/map (optional but recommended)
     bool operator<(const SegmentedString& other) const { return segments < other.segments; }
 
     friend std::ostream& operator<<(std::ostream& os, const SegmentedString& ss) {
@@ -92,18 +90,13 @@ public:
         for (size_t i = 0; i < segments.size(); ++i) {
             const std::string& seg = SegmentMap::instance().get_segment(segments[i]);
             size_t seg_len = seg.length();
-            // Check if next part matches segment
-            if (s.compare(pos, seg_len, seg) != 0)
-                return false;
+            if (s.compare(pos, seg_len, seg) != 0) return false;
             pos += seg_len;
-            // After each segment except last, expect "__"
             if (i + 1 < segments.size()) {
-                if (s.compare(pos, 2, "__") != 0)
-                    return false;
+                if (s.compare(pos, 2, "__") != 0) return false;
                 pos += 2;
             }
         }
-        // If anything left in s, not equal
         return pos == s.length();
     }
 };
@@ -115,20 +108,13 @@ namespace std {
         std::size_t operator()(const SegmentedString& s) const noexcept {
             std::size_t h = 0;
             // FNV-1a or similar combination, but simple XOR+hash is enough for most
-            for (auto id : s.segments) {
-                h ^= std::hash<int>()(id) + 0x9e3779b9 + (h << 6) + (h >> 2);
-            }
+            for (auto id : s.segments) h ^= std::hash<int>()(id) + 0x9e3779b9 + (h << 6) + (h >> 2);
             return h;
         }
     };
 }
 
-inline bool operator==(const std::string& lhs, const SegmentedString& rhs) {
-    return rhs == lhs;
-}
-inline bool operator!=(const std::string& lhs, const SegmentedString& rhs) {
-    return !(rhs == lhs);
-}
-
+inline bool operator==(const std::string& lhs, const SegmentedString& rhs) {return rhs == lhs;}
+inline bool operator!=(const std::string& lhs, const SegmentedString& rhs) {return !(rhs == lhs);}
 
 #endif // SEGMENTS_H
