@@ -3,7 +3,7 @@
 int Def::log_depth = 0;
 void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types) {
     bool is_as = false;
-    if(p>=imp->size()) ERROR("Internal error: parsing "+name+" has misjudged end of file");
+    if(p>=imp->size()) ERROR("Internal error: parsing "+name.to_string()+" has misjudged end of file");
     if(imp->at(p)=="as") is_as = true;
     else if(imp->at(p)=="service") is_service = true;
     else if(imp->at(p)!="smo") imp->error(--p, "Missing `service` or `smo` to declare runtype");
@@ -30,7 +30,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         if(next==",") next = imp->at(p++);//spaghetios
         if(!accepted_var_name(next)) imp->error(--p, "Not a valid name: "+next);
         if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Missing runtype: "+next);
-        string arg_name = imp->at(p++);
+        Variable arg_name = imp->at(p++);
         if(arg_name=="&") {mut = true;arg_name = imp->at(p++);}
         if(mut && is_service) imp->error(p-2, "Services do not accept values by reference\nThis ensures failsafe-compliant extensibility.\nDid you mean to declare a runtype instead?");
         
@@ -41,7 +41,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             arg_name = create_temp();
             --p;
         }
-        if(!accepted_var_name(arg_name)) imp->error(--p, "Not a valid name");
+        if(!accepted_var_name(arg_name.to_string())) imp->error(--p, "Not a valid name");
         if(types.vars.find(arg_name)!=types.vars.end()) imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
         if(argType->lazy_compile) {
             args.emplace_back(arg_name, argType, mut);
@@ -55,16 +55,16 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             retrievable_parameters[argType->name] = argType;
             internalTypes.vars[arg_name] = argType;
             if(autoconstruct) for(const auto& it : argType->args) {
-                args.emplace_back(arg_name+"__"+it.name, it.type, mut || it.mut);
-                internalTypes.vars[arg_name+"__"+it.name] = it.type;
+                args.emplace_back(arg_name+it.name, it.type, mut || it.mut);
+                internalTypes.vars[arg_name+it.name] = it.type;
                 implementation += it.type->rebase(it.type->implementation, arg_name);
                 for(const string& pre : it.type->preample) add_preample(it.type->rebase(pre, arg_name));
-                for(const auto& final : it.type->finals) finals[arg_name+"__"+final.first] += it.type->rebase(final.second, arg_name); 
-                for(const auto& it : it.type->current_renaming) current_renaming[arg_name+"__"+it.first] = arg_name+"__"+it.second;
-                for(const auto& it : it.type->alignments) if(it.second) {alignments[arg_name+"__"+it.first] = it.second;}
+                for(const auto& final : it.type->finals) finals[arg_name+final.first] += it.type->rebase(final.second, arg_name); 
+                for(const auto& it : it.type->current_renaming) current_renaming[arg_name+it.first] = arg_name+it.second;
+                for(const auto& it : it.type->alignments) if(it.second) {alignments[arg_name+it.first] = it.second;}
                 errors = errors+it.type->rebase(it.type->errors, arg_name);
                 for(const auto& it2 : it.type->internalTypes.vars) {
-                    string arg = arg_name+"__"+it2.first;
+                    Variable arg = arg_name+it2.first;
                     internalTypes.vars[arg] = it2.second;
                     if(it2.second->name=="buffer") buffer_primitive_associations[arg] = it.type->buffer_primitive_associations[it2.first];
                 }
@@ -72,17 +72,17 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             else {
                 internalTypes.vars[arg_name] = argType;
                 if(mut) mutables.insert(arg_name);
-                if(!mut && argType->noborrow) imp->error(--p, "Argument's "+arg_name+" runtype has been set as @noborrow\nThis means that arguments and variables of it can only be mutable\nand therefore it becomes impossible to share it\n(mutables cannot be assinged anywhere).\nAdd & before the argument name to make it mutable");
-                for(const string& mut : argType->mutables) mutables.insert(arg_name+"__"+mut);
+                if(!mut && argType->noborrow) imp->error(--p, "Argument's "+arg_name.to_string()+" runtype has been set as @noborrow\nThis means that arguments and variables of it can only be mutable\nand therefore it becomes impossible to share it\n(mutables cannot be assinged anywhere).\nAdd & before the argument name to make it mutable");
+                for(const Variable& mut : argType->mutables) mutables.insert(arg_name+mut);
                 for(const auto& itarg : argType->packs) {
                     //cout << name << " " <<itarg << " " << mut << " "<<(argType->mutables.find(itarg)!=argType->mutables.end())<<"\n";
-                    args.emplace_back(arg_name+"__"+itarg, argType->internalTypes.vars[itarg], mut || (argType->mutables.find(itarg)!=argType->mutables.end()));
-                    internalTypes.vars[arg_name+"__"+itarg] = argType->internalTypes.vars[itarg];
-                    for(const auto& it : argType->alignments) if(it.second) alignments[arg_name+"__"+it.first] = it.second;
+                    args.emplace_back(arg_name+itarg, argType->internalTypes.vars[itarg], mut || (argType->mutables.find(itarg)!=argType->mutables.end()));
+                    internalTypes.vars[arg_name+itarg] = argType->internalTypes.vars[itarg];
+                    for(const auto& it : argType->alignments) if(it.second) alignments[arg_name+it.first] = it.second;
                 }
                 for(const auto& itarg : argType->internalTypes.vars) {
                     // TODO: this may be too expensive - consider tracking only packs parents
-                    internalTypes.vars[arg_name+"__"+itarg.first] = itarg.second;
+                    internalTypes.vars[arg_name+itarg.first] = itarg.second;
                 }
             }
         }
@@ -103,16 +103,16 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
 
 void Def::print_depth() {for(int i=0;i<log_depth;++i) cout<<"| "; }
 unordered_set<Type> Def::get_options(Types& types) {return options;}
-void Def::signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current, const Types& types) {
-    unordered_map<string, Type> next(current);
+void Def::signature_until_position(vector<unordered_map<Variable, Type>>& results, const vector<Variable>& parametric_names, size_t i, const unordered_map<Variable, Type>& current, const Types& types) {
+    unordered_map<Variable, Type> next(current);
     if(i>=parametric_names.size()) {results.push_back(next);return;}
     // will always have a lazy compilation here
-    string parametric_name = parametric_names[i];
+    Variable parametric_name = parametric_names[i];
     //cout << "for name "<<parametric_name<<" will consider "<<types.vars.find(parametric_name)->second->options.size() << " options\n";
     if(current.find(parametric_name)!=current.end()) return signature_until_position(results, parametric_names, i+1, current, types);
     auto& arg_options = types.vars.find(parametric_name)->second->options;
     for(const Type& option : arg_options) {
-        if(option->alias_for.size() && arg_options.find(option->internalTypes.vars[option->alias_for])!=arg_options.end()) continue;
+        if(option->alias_for.exists() && arg_options.find(option->internalTypes.vars[option->alias_for])!=arg_options.end()) continue;
         next[parametric_name] = option;
         signature_until_position(results, parametric_names, i+1, next, types);
     }
@@ -123,13 +123,13 @@ vector<Type> Def::get_lazy_options(Types& _types) {
     if(log_type_resolution) {print_depth(); cout<< signature(_types)<<" "<<this<<"\n";}
     log_depth += 1;
 
-    vector<string> parametric_names;
+    vector<Variable> parametric_names;
     for(const auto& it : parametric_types) {parametric_names.push_back(it.first);}
-    vector<unordered_map<string, Type>> argoptions;
-    signature_until_position(argoptions, parametric_names, 0, unordered_map<string, Type>(), _types);
+    vector<unordered_map<Variable, Type>> argoptions;
+    signature_until_position(argoptions, parametric_names, 0, unordered_map<Variable, Type>(), _types);
 
     vector<Type> newOptions;
-    for(const unordered_map<string, Type>& argoption : argoptions) {
+    for(const unordered_map<Variable, Type>& argoption : argoptions) {
         // create a copy of types
         Types types;
         types.vars.reserve(_types.vars.size());
@@ -142,8 +142,8 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         double power = 0;
         for(const auto& it : argoption) {
             power += (1+it.second->choice_power)*0.5;
-            if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first);
-            if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first);
+            if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first.to_string());
+            if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first.to_string());
             //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
             if(it.second->lazy_compile) imp->error(pos, "Failed to previously compile type: "+types.vars[it.first]->signature(_types));
             if(!types.vars[it.first]->lazy_compile && types.vars[it.first]!=it.second) {
@@ -175,7 +175,7 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         newOptions.push_back(def);
         if(log_type_resolution) {
             print_depth();cout << def->signature(types) <<"\n";
-            for(const auto& it : argoption) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" is "<<it.second->signature(_types)<<"\n";}
+            for(const auto& it : argoption) {print_depth();cout<<"- "<<pretty_runtype(it.first.to_string())<<" is "<<it.second->signature(_types)<<"\n";}
         }
 
         // get back the alignment labels to the real type

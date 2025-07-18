@@ -41,7 +41,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
                 else imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
             }
             else {
-                if(next=="goto") internalTypes.vars[nextnext] = types.vars["__label"];
+                if(next=="goto") internalTypes.vars[nextnext] = types.vars[LABEL_VAR];
                 implementation += next;
                 if(!is_symbol(next) && !is_symbol(nextnext)) implementation += " ";
             }
@@ -59,7 +59,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         next = imp->at(p++);
         if(next!="{") {conditioned = next; next = imp->at(p++);}
         if(conditioned.size() && !internalTypes.contains(conditioned)) imp->error(p-2, "Expected brackets or conditioning variable but this has not been declared: "+pretty_var(conditioned));
-        if(conditioned.size() && internalTypes.vars[conditioned]->not_primitive()) imp->error(p-2, "finally can only be conditioned on a primitive but got "+internalTypes.vars[conditioned]->name+" "+pretty_var(conditioned));
+        if(conditioned.size() && internalTypes.vars[conditioned]->not_primitive()) imp->error(p-2, "finally can only be conditioned on a primitive but got "+internalTypes.vars[conditioned]->name.to_string()+" "+pretty_var(conditioned));
         if(next!="{") imp->error(p-1, "Expected brackets");
         int depth = 1;
         while(true) {
@@ -77,7 +77,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
                 else imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
             }
             else {
-                if(next=="goto") internalTypes.vars[nextnext] = types.vars["__label"];
+                if(next=="goto") internalTypes.vars[nextnext] = types.vars[LABEL_VAR];
                 finals += next;
                 if(!is_symbol(next) && !is_symbol(nextnext)) finals += " ";
             }
@@ -88,7 +88,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
     else if(next=="fail") {
         if(!imp->allow_unsafe) imp->error(--p, "@fail is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         string fail_label = create_temp();
-        internalTypes.vars[fail_label] = types.vars["__label"];
+        internalTypes.vars[fail_label] = types.vars[LABEL_VAR];
         errors += fail_label+":\n";
         next = imp->at(p++);
         if(next!="{") imp->error(--p, "Expected brackets");

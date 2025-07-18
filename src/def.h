@@ -20,28 +20,55 @@
 #include <unordered_set>
 #include <set>
 #include <queue>  
+#include "segments.h"
+
 
 using namespace std;
 
 struct Def;
 typedef shared_ptr<Def> Type;
+typedef SegmentedString Variable;
+const Variable LABEL_VAR = Variable("__label");
+const Variable NEXT_VAR = Variable("__next");
+const Variable BOOL_VAR = Variable("bool");
+const Variable EMPTY_VAR = Variable("");
+const Variable ZERO_VAR = Variable("0");
+const Variable NOM_VAR = Variable("nom");
+const Variable U64_VAR = Variable("u64");
+const Variable PTR_VAR = Variable("ptr");
+const Variable BUFFER_VAR = Variable("buffer");
+const Variable ERRCODE_VAR = Variable("errcode");
+const Variable IF_VAR = Variable("if");
+const Variable FI_VAR = Variable("fi");
+const Variable LE_VAR = Variable("le");
+const Variable EL_VAR = Variable("el");
+const Variable ELSE_VAR = Variable("else");
+const Variable WHILE_VAR = Variable("while");
+const Variable LOOP_VAR = Variable("loop");
+const Variable ERR_VAR = Variable("err");
+const Variable VALUE_VAR = Variable("__value");
+const Variable AT_VAR = Variable("@");
+const Variable NEW_VAR = Variable("new");
+const Variable COMMA_VAR = Variable(",");
+const Variable DOT_VAR = Variable(".");
+const Variable CURRY_VAR = Variable(":");
 
 class Memory {
 public:
-    unordered_map<string, Type> vars;
+    unordered_map<Variable, Type> vars;
     unordered_map<string, string> all_errors;
     unordered_map<string, size_t> suppressed;
-    inline bool contains(const string& var) const {return vars.find(var)!=vars.end();}
+    inline bool contains(const Variable& var) const {return vars.find(var)!=vars.end();}
     Memory() = default;
 };
 
 
 class Arg {
 public:
-    string name;
+    Variable name;
     Type type;
     bool mut;
-    Arg(const string& n, const Type& t, bool m):name(n),type(t),mut(m){}
+    Arg(const Variable& n, const Type& t, bool m):name(n),type(t),mut(m){}
 };
 
 class Types: public Memory {
@@ -60,23 +87,23 @@ vector<Type> all_types;
 
 class Def {
     static int temp;
-    vector<string> map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types,  bool is_zero_level);
+    vector<Variable> map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types,  bool is_zero_level);
     static string create_temp() {return "__"+numberToVar(++temp);}
-    unordered_map<string, string> current_renaming;
+    unordered_map<Variable, Variable> current_renaming;
     void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
-    void assign_variable(const Type& type, const string& from, const string& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false, bool check_mutables=true);
-    string recommend_runtype(const Types& types, const string& candidate);
-    string recommend_variable(const Types& types, const string& candidate);
+    void assign_variable(const Type& type, const Variable& from, const Variable& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false, bool check_mutables=true);
+    string recommend_runtype(const Types& types, const Variable& candidate);
+    string recommend_variable(const Types& types, const Variable& candidate);
     void parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types);
-    void signature_until_position(vector<unordered_map<string, Type>>& results, const vector<string>& parametric_names, size_t i, const unordered_map<string, Type>& current, const Types& types);
+    void signature_until_position(vector<unordered_map<Variable, Type>>& results, const vector<Variable>& parametric_names, size_t i, const unordered_map<Variable, Type>& current, const Types& types);
     static void print_depth();
-    
-    void parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
-    string parse_expression(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Types& types, string curry="");
-    string call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<string>& unpacks, const size_t first_token_pos, const string& first_token, const string& inherit_buffer, Types& types);
-    string parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const string& first_token, Types& types, string curry="");
-    unordered_map<string, Type> retrievable_parameters;
-    bool can_mutate(const string& text) {
+    void parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, Types& types);
+    Variable parse_expression(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, const Variable &curry=EMPTY_VAR);
+    Variable call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, const Variable& inherit_buffer, Types& types);
+    Variable parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry=EMPTY_VAR);
+    unordered_map<Variable, Type> retrievable_parameters;
+    bool can_mutate(const Variable& _text) {
+        string text = _text.to_string();
         if(mutables.find(text)!=mutables.end()) return true;
         size_t pos = 0;
         while((pos = text.find("__", pos)) != std::string::npos) {
@@ -100,45 +127,46 @@ public:
     vector<Arg> args;
     shared_ptr<Import> imp;
     Memory internalTypes;
-    vector<string> packs;
+    vector<Variable> packs;
     string finals_when_used;
-    string alias_for;
+    Variable alias_for;
     size_t pos, start, end;
-    string name, vardecl, implementation, errors;
+    Variable name;
+    string vardecl, implementation, errors;
     size_t number_of_calls;
-    string active_context;
+    Variable active_context;
     set<string> preample;
-    unordered_map<string, string> finals;         // resource closing code (transferred around)
-    unordered_map<string, string> invalidators;   // also resource closing code (may happen at end of loop)
-    unordered_map<string, Type> parametric_types; // type name resolution in signature (all argument types - even those not overloaded)
-    unordered_map<string, Type> buffer_primitive_associations; // the type associated with buffers, nullptr if typecheck is needed
-    unordered_map<string, unsigned long> alignments; // the type id nom vlues represent
-    unordered_set<string> mutables;
-    vector<string> uplifting_targets;
+    unordered_map<Variable, string> finals;         // resource closing code (transferred around)
+    unordered_map<Variable, string> invalidators;   // also resource closing code (may happen at end of loop)
+    unordered_map<Variable, Type> parametric_types;   // type name resolution in signature (all argument types - even those not overloaded)
+    unordered_map<Variable, Type> buffer_primitive_associations; // the type associated with buffers, nullptr if typecheck is needed
+    unordered_map<Variable, unsigned long> alignments; // the type id nom vlues represent
+    unordered_set<Variable> mutables;
+    vector<Variable> uplifting_targets;
     vector<bool> uplifiting_is_loop;
     unordered_set<Type> get_options(Types& types);
     vector<Type> get_lazy_options(Types& types);
-    unordered_set<string> type_trackers;
+    unordered_set<Variable> type_trackers;
     bool has_returned;
     void add_preample(const string& pre) {if(preample.find(pre)==preample.end()) preample.insert(pre);}
-    void coallesce_finals(const string& original) {
-        unordered_set<string> visited;
-        queue<string> q;
-        unordered_set<string> group;
+    void coallesce_finals(const Variable& original) {
+        unordered_set<Variable> visited;
+        queue<Variable> q;
+        unordered_set<Variable> group;
         q.push(original);
         visited.insert(original);
         while (!q.empty()) {
-            string var = q.front();
+            Variable var = q.front();
             q.pop();
             group.insert(var);
             if(current_renaming.count(var)) {
-                string next = current_renaming[var];
+                Variable next = current_renaming[var];
                 if(visited.insert(next).second) q.push(next);
             }
             for(const auto& [k, v] : current_renaming) if(v == var && visited.insert(k).second) q.push(k);
         }
         // Coalesce all finals into the original
-        for(const string& name : group) if(name != original && finals.count(name)) {
+        for(const Variable& name : group) if(name != original && finals.count(name)) {
             finals[original] += rename_var(finals[name], name, original);
             finals[name] = "";
         }
@@ -151,20 +179,20 @@ public:
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;
     } 
-    vector<string> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, string& inherit_buffer, const string& curry);
+    vector<Variable> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, Variable& inherit_buffer, const Variable& curry);
     inline bool not_primitive() const {return !_is_primitive;}
-    string next_var(const shared_ptr<Import>& i, size_t& p, const string& first_token, Types& types, bool test=true);
-    string signature_like(Types& types, vector<string> args);
+    Variable next_var(const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test=true);
+    string signature_like(Types& types, vector<Variable> args);
     string signature(Types &types);
     string canonic_name();
     string raw_signature();
-    string rebase(const string& impl, const string& var);
+    string rebase(const string& impl, const Variable& var);
     void simplify();
-    string rename_var(const string& impl, const string& from, const string& to);
+    string rename_var(const string& impl, const Variable& from, const Variable& to);
     void parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
     void end_block(const shared_ptr<Import>& i, size_t& p);
     Def* canonic_type() {
-        if(alias_for.size()) return internalTypes.vars[alias_for]->canonic_type();
+        if(alias_for.exists()) return internalTypes.vars[alias_for]->canonic_type();
         return this;
     }
 };

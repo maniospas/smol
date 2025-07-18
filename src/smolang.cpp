@@ -117,7 +117,7 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     if (!file) imp->error(p, "Could not open file: " + path);
                 }
                 codegen(files, path, builtins, selected_task, task_report);
-                unordered_set<string> filter;
+                unordered_set<Variable> filter;
                 if(p<imp->size()-1 && imp->at(p+1)=="-") {
                     p += 2;
                     if(imp->at(p++)!=">") imp->error(--p, "Expecting -> to import specific symbols");
@@ -129,7 +129,7 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     }
                 }
                 for(const auto& it : files[path].vars) {
-                    const string& name = it.first;
+                    const Variable& name = it.first;
                     if(filter.size() && filter.find(name)==filter.end()) continue;
                     Type impl = it.second;
                     //cout<<file<<" imports "<<path<<" "<<impl->signature(types) << "\n";
@@ -280,28 +280,28 @@ int main(int argc, char* argv[]) {
     map<string, Types> included;
     Types builtins;
 
-    builtins.vars["u64"] = make_shared<Def>("u64");
-    builtins.vars["i64"] = make_shared<Def>("i64");
-    builtins.vars["f64"] = make_shared<Def>("f64");
-    builtins.vars["ptr"] = make_shared<Def>("ptr");
-    builtins.vars["errcode"] = make_shared<Def>("errcode");
-    builtins.vars["cstr"] = make_shared<Def>("cstr");
-    builtins.vars["bool"] = make_shared<Def>("bool");
-    builtins.vars["char"] = make_shared<Def>("char");
-    builtins.vars["nom"] = make_shared<Def>("nom");
+    builtins.vars[U64_VAR] = make_shared<Def>("u64");
+    builtins.vars[Variable("i64")] = make_shared<Def>("i64");
+    builtins.vars[Variable("f64")] = make_shared<Def>("f64");
+    builtins.vars[PTR_VAR] = make_shared<Def>("ptr");
+    builtins.vars[ERRCODE_VAR] = make_shared<Def>("errcode");
+    builtins.vars[Variable("cstr")] = make_shared<Def>("cstr");
+    builtins.vars[BOOL_VAR] = make_shared<Def>("bool");
+    builtins.vars[Variable("char")] = make_shared<Def>("char");
+    builtins.vars[NOM_VAR] = make_shared<Def>("nom");
 
-    builtins.vars["__label"] = make_shared<Def>("__label");
+    builtins.vars[LABEL_VAR] = make_shared<Def>("__label");
 
-    builtins.vars["buffer"] = make_shared<Def>("buffer");
-    builtins.vars["buffer"]->packs.push_back("__contents");
-    builtins.vars["buffer"]->packs.push_back("__typetag");
-    builtins.vars["buffer"]->packs.push_back("__size");
-    builtins.vars["buffer"]->packs.push_back("__offset");
-    builtins.vars["buffer"]->internalTypes.vars["__contents"] = builtins.vars["ptr"];
-    builtins.vars["buffer"]->internalTypes.vars["__typetag"] = builtins.vars["ptr"];
-    builtins.vars["buffer"]->internalTypes.vars["__size"] = builtins.vars["u64"];
-    builtins.vars["buffer"]->internalTypes.vars["__offset"] = builtins.vars["u64"];
-    builtins.vars["buffer"]->_is_primitive = false;
+    builtins.vars[BUFFER_VAR] = make_shared<Def>("buffer");
+    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("__contents"));
+    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("__typetag"));
+    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("__size"));
+    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("__offset"));
+    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("__contents")] = builtins.vars[PTR_VAR];
+    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("__typetag")] = builtins.vars[PTR_VAR];
+    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("__size")] = builtins.vars[U64_VAR];
+    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("__offset")] = builtins.vars[U64_VAR];
+    builtins.vars[BUFFER_VAR]->_is_primitive = false;
     for(const auto& it : builtins.vars) it.second->options.insert(it.second);
     for(const auto& it : builtins.vars) all_types.push_back(it.second);
 
@@ -373,9 +373,9 @@ int main(int argc, char* argv[]) {
                     "eliminates. By using this file as a direct or indirect dependency you are trusting its implementation. "
                     "Given this trust, consider other non-unsafe files using it as safe.</i></p>";
                     string overload_docs("");
-                    std::vector<pair<string, Type>> keys;
-                    for (const auto& type : include.second.vars) keys.push_back(pair<string,Type>(type.first, type.second));
-                    std::sort(keys.begin(), keys.end(), [](pair<string, Type>& lhs, pair<string, Type>& rhs) {
+                    std::vector<pair<Variable, Type>> keys;
+                    for (const auto& type : include.second.vars) keys.push_back(pair<Variable,Type>(type.first, type.second));
+                    std::sort(keys.begin(), keys.end(), [](pair<Variable, Type>& lhs, pair<Variable, Type>& rhs) {
                         return lhs.second->pos < rhs.second->pos;
                     });
 
@@ -385,9 +385,9 @@ int main(int argc, char* argv[]) {
                             if (/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second.imp.get()==subtype->imp.get()) {
                                 try {
                                     string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;→&nbsp;";
-                                    if(subtype->alias_for.size() && subtype->internalTypes.vars[subtype->alias_for]->name==subtype->name) sig = sig+ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
-                                    else if(subtype->alias_for.size()) sig = sig+ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->alias_for]->name)+"["+to_string(subtype->internalTypes.vars[subtype->alias_for]->args.size())+"]");//ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
-                                    else if(subtype->packs.size()==1) sig += ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->packs[0]]->name));
+                                    if(subtype->alias_for.exists() && subtype->internalTypes.vars[subtype->alias_for]->name==subtype->name) sig = sig+ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
+                                    else if(subtype->alias_for.exists()) sig = sig+ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->alias_for]->name.to_string())+"["+to_string(subtype->internalTypes.vars[subtype->alias_for]->args.size())+"]");//ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
+                                    else if(subtype->packs.size()==1) sig += ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->packs[0]]->name.to_string()));
                                     else if(subtype->packs.size()==0) sig += "()";
                                     else sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
                                     sig +=  "<br>\n";
@@ -399,7 +399,7 @@ int main(int argc, char* argv[]) {
                                 } catch (const runtime_error&) {}
                             }
                         if (type_docs.size()) {
-                            string desc = include.second.imp->docs[type.second->name];
+                            string desc = include.second.imp->docs[type.second->name.to_string()];
                             desc = unescape_string(desc);
                             if(desc.size()>=2) {
                                 replaceAll(desc, "<pre>", "<pre class=\"language-smolambda\"><code class=\"language-smolambda\">");
@@ -407,8 +407,8 @@ int main(int argc, char* argv[]) {
                                 desc = "<p>"+(desc.substr(1,desc.size()-2))+"</p>";
                             }
                             
-                            if(type.second->options.size()!=1) overload_docs += "<h2>" + type.first + "</h2>\n" +desc+ type_docs;
-                            else docs += "<h2>" + type.first + "</h2>\n" +desc+ type_docs;
+                            if(type.second->options.size()!=1) overload_docs += "<h2>" + type.first.to_string() + "</h2>\n" +desc+ type_docs;
+                            else docs += "<h2>" + type.first.to_string() + "</h2>\n" +desc+ type_docs;
                         }
                     }
                     docs += overload_docs;
@@ -420,7 +420,7 @@ int main(int argc, char* argv[]) {
                 continue;
             }
             if(selected_task==Task::Verify) {cout << task_report;included.clear();continue;}
-            Type main = included[file].vars["main"];
+            Type main = included[file].vars[Variable("main")];
             if(!main) ERROR("Missing main service at: "+file);
             if(!main->is_service) ERROR("Main was not a service at: "+file);
             if(included[file].all_errors.size()) ERROR("Aborted due to the above errors\n");
@@ -467,7 +467,7 @@ int main(int argc, char* argv[]) {
                     service->coallesce_finals(var); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
                     if(service->finals[var].size()) {
                         finals_on_error += service->finals[var];
-                        finals_on_error += var+"=0;\n";
+                        finals_on_error += var.to_string()+"=0;\n";
                         service->finals[var] = "";
                     }
                     service->internalTypes.vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through internalTypes
@@ -477,13 +477,13 @@ int main(int argc, char* argv[]) {
                         service->coallesce_finals(arg.name); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
                         if(service->finals[arg.name].size()) {
                             finals_on_error += service->finals[arg.name];
-                            finals_on_error += arg.name+"=0;\n";
+                            finals_on_error += arg.name.to_string()+"=0;\n";
                             service->finals[arg.name] = "";
                         }
                     }
                     service->internalTypes.vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
-                for(const auto& var : service->internalTypes.vars) if(var.second && var.second->_is_primitive && var.second->name!="buffer" && var.second->name!="__label") out << var.second->name << " " << var.first << "=0;\n";
+                for(const auto& var : service->internalTypes.vars) if(var.second && var.second->_is_primitive && var.second->name!=BUFFER_VAR && var.second->name!=LABEL_VAR) out << var.second->name << " " << var.first << "=0;\n";
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
                 out << "goto __return;\n"; // skip error handling block that resides at the end of the service

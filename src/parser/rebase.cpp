@@ -7,7 +7,8 @@ static bool is_unescaped_quote(const string& line, size_t pos) {
     return backslash_count % 2 == 0;
 }
 
-string Def::rebase(const string& impl, const string& var) {
+string Def::rebase(const string& impl, const Variable& _var) {
+    string var = _var.to_string();
     stringstream input(impl);
     string line, output;
     while(getline(input, line)) {
@@ -30,7 +31,9 @@ string Def::rebase(const string& impl, const string& var) {
     return output;
 }
 
-string Def::rename_var(const string& impl, const string& from, const string& to) {
+string Def::rename_var(const string& impl, const Variable& _from, const Variable& _to) {
+    string from = _from.to_string();
+    string to = _to.to_string();
     stringstream input(impl);
     string line, output;
     while(getline(input, line)) {

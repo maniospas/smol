@@ -1,32 +1,32 @@
 #include "../def.h"
 
 
-vector<string> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types, bool is_zero_level) {
-    vector<string> packs;
-    string next = imp->at(p++);
+vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types, bool is_zero_level) {
+    vector<Variable> packs;
+    Variable next = imp->at(p++);
     bool hasComma = false;
     if(is_service && is_zero_level) {
-        packs.push_back("err");
-        internalTypes.vars["err"] = types.vars["errcode"];
+        packs.push_back(ERR_VAR);
+        internalTypes.vars[ERR_VAR] = types.vars[ERRCODE_VAR];
     }
-    if(next=="@") {
+    if(next==AT_VAR) {
         next = imp->at(p++);
-        if(next!="new") imp->error(--p, "Use `->@new`");
+        if(next!=NEW_VAR) imp->error(--p, "Use `->@new`");
         choice_power++; 
         if(is_service && !uplifting_targets.size())  {
             bool found = false;
-            for(const string& pack : packs) if(pack=="err") {found=true;break;}
+            for(const Variable& pack : packs) if(pack==ERR_VAR) {found=true;break;}
             if(!found) {
-                packs.push_back("err");
-                internalTypes.vars["err"] = types.vars["errcode"];
+                packs.push_back(ERR_VAR);
+                internalTypes.vars[ERR_VAR] = types.vars[ERRCODE_VAR];
             }
         }
         for (const auto& arg : args) {
-            string next = arg.name;
+            Variable next = arg.name;
             if(internalTypes.vars[next]->_is_primitive) packs.push_back(next);
-            else for(const string& pack : internalTypes.vars[next]->packs) {
-                packs.push_back(next+"__"+pack);
-                if(internalTypes.contains(next+"__"+pack) && internalTypes.vars[next+"__"+pack]->name=="nom" && !alignments[next+"__"+pack]) imp->error(--p, "You are returning an unset align "+pretty_var(next+"__"+pack)+"\nAdd an align first variable to the signature and return that instead");
+            else for(const Variable& pack : internalTypes.vars[next]->packs) {
+                packs.push_back(next+pack);
+                if(internalTypes.contains(next+pack) && internalTypes.vars[next+pack]->name=="nom" && !alignments[next+pack]) imp->error(--p, "You are returning an unset align "+pretty_var(next.to_string()+"__"+pack.to_string())+"\nAdd an align first variable to the signature and return that instead");
             }
         }
         p++;
@@ -41,65 +41,66 @@ vector<string> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Type
     while(true) {
         next = parse_expression(imp, p, imp->at(p++), types);
         if(!internalTypes.contains(next)) break;
-        if(is_service && finals.find(next)!=finals.end() && finals[next].find("__TRANSIENT") != std::string::npos) imp->error(--p, "You are returning @noshare data from a"+pretty_var(next)+"\nThose can only be returned from smo runtypes");
+        if(is_service && finals.find(next)!=finals.end() && finals[next].find("__TRANSIENT") != std::string::npos) imp->error(--p, "You are returning @noshare data from a"+pretty_var(next.to_string())+"\nThose can only be returned from smo runtypes");
         if(!internalTypes.vars[next]->not_primitive()) {
-            if(internalTypes.contains(next) && internalTypes.vars[next]->name=="nom" && !alignments[next]) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next)+"\nAdd an align first variable to the signature and return that instead");
+            if(internalTypes.contains(next) && internalTypes.vars[next]->name=="nom" && !alignments[next]) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next.to_string())+"\nAdd an align first variable to the signature and return that instead");
             if(is_service && !uplifting_targets.size()) {
-                implementation += "__value = "+next+";\n";
-                if(internalTypes.contains("__value") && internalTypes.vars["__value"]!=internalTypes.vars[next]) imp->error(--p, "Returning single value of multple types "+internalTypes.vars["__value"]->name+" and "+internalTypes.vars[next]->name);
-                internalTypes.vars["__value"] = internalTypes.vars[next];
-                packs.push_back("__value");
+                implementation += VALUE_VAR.to_string() + " = "+next.to_string()+";\n";
+                if(internalTypes.contains(VALUE_VAR) && internalTypes.vars[VALUE_VAR]!=internalTypes.vars[next]) imp->error(--p, "Returning single value of multiple types "+internalTypes.vars[VALUE_VAR]->name.to_string()+" and "+internalTypes.vars[next]->name.to_string());
+                internalTypes.vars[VALUE_VAR] = internalTypes.vars[next];
+                packs.push_back(VALUE_VAR);
             }
             else packs.push_back(next);
         }
         else {
             // not primitives here
-            if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Not found: "+pretty_var(next)+recommend_variable(types, next));
+            if(internalTypes.vars.find(next)==internalTypes.vars.end()) imp->error(--p, "Not found: "+pretty_var(next.to_string())+recommend_variable(types, next));
             if(!hasComma && p<imp->size() && imp->at(p)!=",") {
                 alias_for = next;
                 noborrow = internalTypes.vars[alias_for]->noborrow;
-                if(noborrow && !imp->allow_unsafe) imp->error(--p, "Rerurning a @noborrow type for variable "+pretty_var(alias_for)+" is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
-                if(internalTypes.vars[alias_for]->alias_for.size()) alias_for = next+"__"+internalTypes.vars[alias_for]->alias_for;
-                for(const string& pack : internalTypes.vars[next]->packs) {
+                if(noborrow && !imp->allow_unsafe) imp->error(--p, "Rerurning a @noborrow type for variable "+pretty_var(alias_for.to_string())+" is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+                if(internalTypes.vars[alias_for]->alias_for.exists()) alias_for = next+internalTypes.vars[alias_for]->alias_for;
+                for(const Variable& pack : internalTypes.vars[next]->packs) {
                     if(internalTypes.contains(pack)) {
-                        if(internalTypes.vars[pack]!=internalTypes.vars[next]->internalTypes.vars[pack]) imp->error(--p, "Mismatching types for: "+pretty_var(pack)+"\nYou are wrapping a base runtype that declares the same internal variable name under a different type");
+                        if(internalTypes.vars[pack]!=internalTypes.vars[next]->internalTypes.vars[pack]) imp->error(--p, "Mismatching types for: "+pretty_var(pack.to_string())+"\nYou are wrapping a base runtype that declares the same internal variable name under a different type");
                     }
-                    assign_variable(internalTypes.vars[next]->internalTypes.vars[pack], pack, next+"__"+pack, imp, p, false, false);
+                    assign_variable(internalTypes.vars[next]->internalTypes.vars[pack], pack, next+pack, imp, p, false, false);
                     if(is_service) {
-                        coallesce_finals(next+"__"+pack);
-                        if(finals.find(next+"__"+pack)!=finals.end() && finals[next+"__"+pack].find("__TRANSIENT") != std::string::npos) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next+"__"+pack)+"\nThose can only be returned from smo runtypes");
+                        coallesce_finals(next+pack);
+                        if(finals.find(next+pack)!=finals.end() && finals[next+pack].find("__TRANSIENT") != std::string::npos) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next.to_string()+"__"+pack.to_string())+"\nThose can only be returned from smo runtypes");
                     }
                     packs.push_back(pack);
-                    if(internalTypes.contains(pack) && internalTypes.vars[pack]->name=="nom" && !alignments[pack]) imp->error(--p, "You are returning an unset align "+pretty_var(pack)+"\nAdd an align first variable to the signature and return that instead");
+                    if(internalTypes.contains(pack) && internalTypes.vars[pack]->name=="nom" && !alignments[pack]) imp->error(--p, "You are returning an unset align "+pretty_var(pack.to_string())+"\nAdd an align first variable to the signature and return that instead");
                 }
                 mutables.clear();
-                for(const string& mut : internalTypes.vars[next]->mutables) mutables.insert(mut);
+                for(const Variable& mut : internalTypes.vars[next]->mutables) mutables.insert(mut);
                 for(const auto& it : internalTypes.vars[next]->finals) finals[it.first] += it.second;
             }
             else {
                 if(internalTypes.vars[next]->name=="buffer") imp->error(--p, "Cannot return a buffer alongside other values");
-                for(const string& pack : internalTypes.vars[next]->packs) {
-                    if(internalTypes.contains(next+"__"+pack) && internalTypes.vars[next+"__"+pack]->noborrow) imp->error(--p, "Rerurning a @noborrow type for variable "+pretty_var(next+"__"+pack)+" is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
-                    packs.push_back(next+"__"+pack);
+                for(const Variable& pack : internalTypes.vars[next]->packs) {
+                    Variable next_pack = next+pack;
+                    if(internalTypes.contains(next_pack) && internalTypes.vars[next_pack]->noborrow) imp->error(--p, "Rerurning a @noborrow type for variable "+pretty_var(next.to_string()+"__"+pack.to_string())+" is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+                    packs.push_back(next_pack);
                     if(is_service) {
-                        coallesce_finals(next+"__"+pack);
-                        if(finals.find(next+"__"+pack)!=finals.end() && finals[next+"__"+pack].find("__TRANSIENT") != std::string::npos) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next+"__"+pack)+"\nThose can only be returned from smo runtypes");
+                        coallesce_finals(next_pack);
+                        if(finals.find(next_pack)!=finals.end() && finals[next_pack].find("__TRANSIENT") != std::string::npos) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next.to_string()+"__"+pack.to_string())+"\nThose can only be returned from smo runtypes");
                     }
-                    if(internalTypes.contains(next+"__"+pack) && internalTypes.vars[next+"__"+pack]->name=="nom" && !alignments[next+"__"+pack]) imp->error(--p, "You are returning an unset align "+pretty_var(next+"__"+pack)+"\nAdd an align first variable to the signature and return that instead");
+                    if(internalTypes.contains(next_pack) && internalTypes.vars[next_pack]->name=="nom" && !alignments[next_pack]) imp->error(--p, "You are returning an unset align "+pretty_var(next.to_string()+"__"+pack.to_string())+"\nAdd an align first variable to the signature and return that instead");
                 }
             }
         }
         if(p>=imp->size()){p=imp->size();break;}
         next = imp->at(p++);
         //if(next==")") break;
-        if(next!=",") {--p;break;}//imp->error(--p, "Missing comma (not implemented expression in return statements yet)");
+        if(next!=COMMA_VAR) {--p;break;}//imp->error(--p, "Missing comma (not implemented expression in return statements yet)");
         hasComma = true;
     }
     return packs;
 }
 
 
-void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Types& types) {
+void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, Types& types) {
     size_t uplifting = 0;
     if(next=="|") {
         --p;
@@ -109,14 +110,14 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
     }
     if(imp->at(p)=="-") {
         ++p;
-        if(uplifting) implementation += "goto "+uplifting_targets[0]+";\n"; 
+        if(uplifting) implementation += "goto "+uplifting_targets[0].to_string()+";\n"; 
         return;
     }
     if(imp->at(p++)!=">") imp->error(p-2, "Expecting return.\nUse `->` to return a value or `--` (or end of file) to return without a value for expressions starting with `-`");
     if(uplifting>=uplifting_targets.size()) imp->error(p-3, "Too many levels of uplifting.\nYou are currently on "+to_string(uplifting_targets.size()-1)+" nested blocks in.");
     if(p<imp->size() && imp->at(p)=="-") {
         p++;
-        implementation += "goto "+uplifting_targets[uplifting_targets.size()-uplifting-1]+";\n";
+        implementation += "goto "+uplifting_targets[uplifting_targets.size()-uplifting-1].to_string()+";\n";
         if(has_returned && uplifting_targets.size()-uplifting==1 && packs.size()) imp->error(p-1, "Cannot mix a no-return and a return");
         if(uplifting_targets.size()==1+uplifting) has_returned = true;
         return;
@@ -125,12 +126,12 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
         if(uplifting>=uplifting_targets.size()) imp->error(p-3, "Too many levels of uplifting.\nYou are currently on "+to_string(uplifting_targets.size()-1)+" nested blocks in.");
         next = imp->at(p++);
         next = parse_expression(imp, p, next, types);
-        if(internalTypes.contains(next)) assign_variable(internalTypes.vars[next], uplifting_targets[uplifting_targets.size()-uplifting-1]+"r", next, imp, p);
-        implementation += "goto "+uplifting_targets[uplifting_targets.size()-uplifting-1]+";\n";
+        if(internalTypes.contains(next)) assign_variable(internalTypes.vars[next], uplifting_targets[uplifting_targets.size()-uplifting-1]+Variable("r"), next, imp, p);
+        implementation += "goto "+uplifting_targets[uplifting_targets.size()-uplifting-1].to_string()+";\n";
         return;
     }
 
-    vector<string> tentative = map_to_return(imp, p, types, true);
+    vector<Variable> tentative = map_to_return(imp, p, types, true);
     if(!has_returned) packs = tentative;
     else if(packs.size()!=tentative.size()) imp->error(--p, "Incompatible returns\nprevious "+signature_like(types, packs)+" vs last "+signature_like(types, tentative));
     else {
@@ -139,6 +140,6 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, string next, Ty
             assign_variable(internalTypes.vars[packs[i]], tentative[i], packs[i], imp, p, false, false);
         }
     }
-    implementation += "goto "+uplifting_targets[0]+";\n";
+    implementation += "goto "+uplifting_targets[0].to_string()+";\n";
     has_returned = true;
 }

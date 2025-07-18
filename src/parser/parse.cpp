@@ -17,12 +17,12 @@ void Def::end_block(const shared_ptr<Import>& i, size_t& p) {
 
 void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature) {
     if(!imp) imp = _imp;
-    if(!imp) ERROR("Internal error: tried to parse a runtype without a file "+name);
+    if(!imp) ERROR("Internal error: tried to parse a runtype without a file "+name.to_string());
     if(with_signature) {pos = p;parse_signature(imp, p, types);}
-    if(!uplifting_targets.size()) uplifting_targets.push_back("__end");
+    if(!uplifting_targets.size()) uplifting_targets.push_back(Variable("__end"));
     start = p;
     if(lazy_compile && with_signature) return;
-    unordered_set<string> next_assignments;
+    unordered_set<Variable> next_assignments;
     while(p<imp->size()) {
         bool is_next_assignment = false;
         bool is_mutable_assignment = false;
@@ -35,29 +35,29 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
         if(next=="|") {parse_return(imp, p, next, types);end = p--; break;}
         if(next=="-") {parse_return(imp, p, next, types);end = p--; break;}
         if(next=="else") {--p;end = p--; break;}
-        string var = imp->at(p);
-        if(var=="=" && p<imp->size()-1 && imp->at(p+1)=="=") var = "";
+        Variable var = imp->at(p);
+        if(var=="=" && p<imp->size()-1 && imp->at(p+1)=="=") var = EMPTY_VAR;
         if(var=="." || var=="=") {
             var = next_var(imp, p, next, types, false);
-            if(is_mutable_assignment) {if(internalTypes.contains(var)) imp->error(--p, "Cannot set as mutable an existing variable: "+var+"\nMutability is declared by prepending & to the first occurence"); mutables.insert(var);}
+            if(is_mutable_assignment) {if(internalTypes.contains(var)) imp->error(--p, "Cannot set as mutable an existing variable: "+var.to_string()+"\nMutability is declared by prepending & to the first occurence"); mutables.insert(var);}
             int assignment_start = p;
             if(imp->at(p++)!="=") {--p;continue;}//imp->error(--p, "Missing assignment");
             next = imp->at(p++);
-            string expression_outcome = parse_expression(imp, p, next, types);
-            if(!expression_outcome.size()) imp->error(assignment_start, "The right-hand-side expression computes to no value");
+            Variable expression_outcome = parse_expression(imp, p, next, types);
+            if(!expression_outcome.exists()) imp->error(assignment_start, "The right-hand-side expression computes to no value");
             const auto& it = internalTypes.vars.find(expression_outcome);
             if(it==internalTypes.vars.end()) imp->error(assignment_start, "Failed to parse expression");
-            if(is_next_assignment) {next_assignments.insert(var);var = "__next__"+var;}
-            if(it->second && it->second->name=="buffer") buffer_primitive_associations[var] = buffer_primitive_associations[expression_outcome];
+            if(is_next_assignment) {next_assignments.insert(var);var = NEXT_VAR+var;}
+            if(it->second && it->second->name==BUFFER_VAR) buffer_primitive_associations[var] = buffer_primitive_associations[expression_outcome];
             assign_variable(it->second, var, expression_outcome, imp, p);
         }
         else if(is_next_assignment) imp->error(p, "Expecting assignment to variable after @next");
         else if(is_mutable_assignment) imp->error(p, "Expecting assignment to variable after &");
         else parse_expression(imp, p, next, types);
     }
-    for(const string& var : next_assignments) assign_variable(internalTypes.vars["__next__"+var], var, "__next__"+var, imp, p);
+    for(const Variable& var : next_assignments) assign_variable(internalTypes.vars[NEXT_VAR+var], var, NEXT_VAR+var.to_string(), imp, p);
     if(with_signature) {
-        internalTypes.vars["__end"] = types.vars["__label"];implementation += "__end:\n";
+        internalTypes.vars[Variable("__end")] = types.vars[LABEL_VAR];implementation += "__end:\n";
         for(const auto& it : invalidators) if(it.second.size()) finals[it.first] = it.second;
         invalidators.clear();
         simplify();
