@@ -5,11 +5,7 @@ void Def::assign_variable(const Type& type, const string& from, const string& to
     current_renaming[to] = from;
     if(check_mutables && internalTypes.contains(from) && mutables.find(from)==mutables.end()) imp->error(--p, "Cannot reassign to non-mutable: "+pretty_var(from)+"\nMutables are prepended by & in their first declaration");
     if(to.size()>=2 && (to[0]!='_' || to[1]!='_') && internalTypes.contains(to) && internalTypes.vars[to]->noborrow && mutables.find(to)!=mutables.end()) imp->error(--p, "Cannot reassign from @noborrow: "+pretty_var(to)+"\nArguments and variables of its runtype can only be mutable\nand therefore it becomes impossible to share it\n(mutable variables cannot be assinged anywhere).\nAdd & before the variable name to make it mutable");
-    
-    
-    //if(invalidators.find(from)!=invalidators.end() && invalidators[from].size()) {implementation += invalidators[from]; invalidators[from] = "";}
     if(type_trackers.find(to)!=type_trackers.end()) type_trackers.insert(from);
-    //else if(type_trackers.find(from)!=type_trackers.end()) i->error(p-2, "Cannot assign a value on internal variable referencing a runtype: "+pretty_var(to));
     if(type && type->not_primitive()) {
         if(error_on_non_primitives) imp->error(p, "Failed to resolve "+type->name+" "+pretty_var(to)+" to a primitive");
         if(type->packs.size()==0) return;

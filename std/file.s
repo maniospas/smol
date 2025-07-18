@@ -23,26 +23,32 @@
 @about "Standard library implementation of file management that uses the C filesystem."
 @about ReadFile   "An opened file that is meant to be read only."
 @about WriteFile  "An opened file that is meant to be read or write."
-@about File       "A union between file types that allows common reading and positioning operations. It is also used to open files for reading, in which case it may cause service failure due to external factors."
-@about goto_start "Go to the beginning of a File. You can continue read or writing from there. May cause service failure due to external factors."
-@about goto_end   "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. May cause service failure due to external factors."
+@about File       "A union between file types that allows common reading and positioning operations."
+@about open       "Opens a File given a String path, in which case you might get service failure due to external factors. Opening a WriteFile, "
+                  "may also cause service failure if the file already exists - in that case remove it first. On the other hand, a ReadFile must "
+                  "already exist to be opened."
+@about to_start   "Go to the beginning of a File. You can continue read or writing from there. May cause service failure due to external factors."
+@about to_end     "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. May cause service failure due to external factors."
 @about close      "Closes an open file. This invalidates its internals completely and will make all other operations on it either do nothing or cause service failures."
 @about len        "Computes the size of a File in bytes."
 @about write      "Writes a string on a WriteFile."
 @about allocate_file "Creates a virtual file by of a given size on top of some memory allocator."
 @about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories "
-                  " and argument orders."
+                  "and different argument orders that allow you to use either the file or the memory as context."
                   "<br><br>Here is an example where volatile memory is used to avoid repeated or large allocations:"
-                  "<pre>on Heap:allocate_volatile(1024) // optimized to just the character"
-                  "\n    File(\"README.md\")"
+                  "<pre>on Heap:allocate_volatile(1024)"
+                  "\n    ReadFile"
+                  "\n    :open(\"README.md\")"
                   "\n    :while next_chunk(str& chunk)"
                   "\n        print(chunk)"
                   "\n    ----</pre>"
-@about next_line  "Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories and argument orders."
+@about next_line  "Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories "
+                  "and different argument orders that allow you to use either the file or the memory as context."
                   "<br><br>Here is an example where volatile memory is used to avoid repeated or large allocations:"
-                  "<pre>endl=\"n\":str.first // optimized to just the character"
+                  "<pre>endl=\"n\":str.first // optimized to just setting the new line character"
                   "\non Heap:allocate_volatile(1024)"
-                  "\n    File(\"README.md\")"
+                  "\n    ReadFile(\"README.md\")"
+                  "\n    :open(\"README.md\")"
                   "\n    :while next_line(str& line)"
                   "\n        if line[line:len-1]==endl"
                   "\n             line = line[0 to line:len-1]"
@@ -52,7 +58,6 @@
 @about ended      "Checks if the ending of the file has been reached. This is normal to be true for WriteFile."
 @about is_file    "Checks if a String path is a file system file."
 @about is_dir     "Checks if a String path is a file system directory."
-@about create_file "Creates a file given a String path and opens it as a WriteFile. May cause service failure due to external factors or if the file already exists - in that case remove it first."
 @about create_dir  "Creates a directory given a String path. May cause service failure due to external factors or if the directory already exists."
 @about remove_file "Deletes a file from the system. May cause service failure due to external factors or if the file is already open."
 
@@ -65,7 +70,7 @@ smo WriteFile(nom, ptr contents)
 
 union File(ReadFile, WriteFile)
 
-smo File(String _path) 
+smo open(ReadFile&, String _path) 
     path = _path:str
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -75,12 +80,12 @@ smo File(String _path)
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
     -> nom:ReadFile(contents)
 
-smo goto_start(File &f) 
+smo to_start(File &f) 
     if f.contents:exists:not @fail{printf("Failed to move to start of closed file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @body{fseek(f__contents, 0, SEEK_SET);}
     -> f
 
-smo goto_end(WriteFile &f) 
+smo to_end(WriteFile &f) 
     // only useful for moving to the end of write files. For read files, close them instead.
     @body{if(f__contents) fseek(f__contents, 0, SEEK_END);}
     -> f
@@ -219,7 +224,7 @@ smo remove_file(String _path)
     if status:bool @fail{printf("Failed to remove file - makre sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
     ----
 
-smo create_file(String _path)
+smo open(WriteFile&, String _path)
     path = _path:str
     @head{#include <stdio.h>}
     @head{

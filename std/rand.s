@@ -29,10 +29,6 @@
             "variables are marked as a leaking resource. The whole data type as a whole is marked as @noborrow. "
             "These safety mechanisms are not mandatory but help safeguard speed by preventing common mistakes, such as directly re-initializing Rand "
             "in each loop to get a next number."
-@about rand "Returns a random f64 in the range [0,1]. This is not cryprographically secure for the last bits but a very fast implementation "
-            "that one might use to produce a lot of random numbers and maintains only 256 bits of state. "
-            "This approach IS secure when lower precision is required, but do not use it to produce random "
-            "bitmasks. This samples from the same random distribution everywhere. The dstribution is seeded based on the current high resolution time."
 
 smo __rotl(u64 x, u64 k)
     @body{u64 z = (x << k) | (x >> (64 - k));}

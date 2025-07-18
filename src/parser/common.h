@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <limits>
+#include <regex>
 
 using namespace std;
 
@@ -17,6 +18,18 @@ inline void ERROR(const string& message) {
     throw runtime_error(formatted_message);
 }
 
+string ansi_to_html(const std::string& input) {
+    string output = input;
+    output = std::regex_replace(output, std::regex("\033\\[31m"), "</span><span style=\"color:#c0392b\">");
+    output = std::regex_replace(output, std::regex("\033\\[32m"), "</span><span style=\"color:#2E7D32\">");
+    output = std::regex_replace(output, std::regex("\033\\[33m"), "</span><span style=\"color:#f39c12\">");
+    output = std::regex_replace(output, std::regex("\033\\[34m"), "</span><span style=\"color:#2980b9\">");
+    output = std::regex_replace(output, std::regex("\033\\[36m"), "</span><span style=\"color:#1976D2\">");
+    output = std::regex_replace(output, std::regex("\033\\[35m"), "</span><span style=\"color:#7B1FA2\">");
+    output = std::regex_replace(output, std::regex("\033\\[38m"), "</span><span style=\"color:black\">");
+    output = std::regex_replace(output, std::regex("\033\\[0m"), "</span><span>");
+    return "<span>"+output+"</span>";
+}
 
 string pretty_var(const string& name) {
     if(name.size()>=2 && name[0]=='_' && name[1]=='_') return "";
@@ -33,7 +46,7 @@ string pretty_var(const string& name) {
 }
 
 string pretty_runtype(const string& name) {
-    if(name=="i64" || name=="f64" || name=="ptr" || name=="bool" || name=="nom" || name=="char" || name=="u64" || name=="cstr")return "\033[35m" + name + "\033[0m";
+    if(name=="i64" || name=="f64" || name=="ptr" || name=="bool" || name=="nom" || name=="char" || name=="u64" || name=="cstr") return "\033[35m" + name + "\033[0m";
     return "\033[36m" + name + "\033[0m";
 }
 

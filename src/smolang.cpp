@@ -64,28 +64,6 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
 // g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
 
-// Replace a few basic ANSI codes. Extend as needed.
-std::string ansi_to_html(const std::string& input) {
-    std::string output = input;
-    // Bold: \033[1m ... \033[0m
-    output = std::regex_replace(output, std::regex("\033\\[1m"), "<b>");
-    output = std::regex_replace(output, std::regex("\033\\[0m"), "</b>");
-
-    // Red: \033[31m ... \033[0m
-    output = std::regex_replace(output, std::regex("\033\\[31m"), "</span><span style=\"color:#c0392b\">");
-    output = std::regex_replace(output, std::regex("\033\\[32m"), "</span><span style=\"color:#2E7D32\">");
-    output = std::regex_replace(output, std::regex("\033\\[33m"), "</span><span style=\"color:#f39c12\">");
-    output = std::regex_replace(output, std::regex("\033\\[34m"), "</span><span style=\"color:#2980b9\">");
-    output = std::regex_replace(output, std::regex("\033\\[36m"), "</span><span style=\"color:#1976D2\">");
-    output = std::regex_replace(output, std::regex("\033\\[35m"), "</span><span style=\"color:#7B1FA2\">");
-    output = std::regex_replace(output, std::regex("\033\\[38m"), "</span><span style=\"color:black\">");
-    output = std::regex_replace(output, std::regex("\033\\[0m"), "</span><span>");
-
-    // Add more as needed!
-    return "<span>"+output+"</span>";
-}
-
-
 enum class Task {
     Assemble,
     Compile,

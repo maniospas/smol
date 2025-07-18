@@ -342,6 +342,7 @@ function runCompilerAndSendDiagnostics(document) {
       .replace(/\x1b\[34m/g, '')
       .replace(/\x1b\[35m/g, '')
       .replace(/\x1b\[36m/g, '')
+      .replace(/\x1b\[38m/g, '')
       .replace(/\x1b\[0m/g, '');
   }
 }

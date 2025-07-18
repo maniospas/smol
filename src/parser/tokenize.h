@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <cctype>
 #include "common.h"
+#include <sstream>
 using namespace std;
 
 class Token;
@@ -28,7 +29,6 @@ public:
 };
 bool is_symbol(char c) {return ispunct(c) && c != '_';}
 
-#include <sstream>
 
 class Token {
 public:

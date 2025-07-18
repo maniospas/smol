@@ -3,7 +3,7 @@
 @include std.file
 
 smo file_reader(String path, Memory &memory)
-    &file = File(path)
+    &file = ReadFile:open(path)
     endl = "\n":str.first
     on memory:allocate_arena(1024)
         file
@@ -15,6 +15,7 @@ smo file_reader(String path, Memory &memory)
             printin("line: ")
             printin(line)
         ----
+    print("")
     --
 
 service main()
