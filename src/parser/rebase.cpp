@@ -16,10 +16,8 @@ string Def::rebase(const string& impl, const Variable& _var) {
         while(i < line.size()) {
             if(is_unescaped_quote(line, i)) { output += line[i++]; in_str = !in_str; continue; }
             if(in_str) { output += line[i++]; continue; }
-
             if(isspace(line[i])) { output += line[i++]; continue; }
             if(is_symbol(line[i])) { output += line[i++]; continue; }
-
             int start = i;
             while(i < line.size() && !isspace(line[i]) && !is_symbol(line[i]) && !(line[i] == '"' && is_unescaped_quote(line, i))) i++;
             string token = line.substr(start, i - start);

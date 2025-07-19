@@ -39,7 +39,6 @@ public:
     unsigned int size;
     unsigned int first_segment;
     unsigned int* segments;
-
     SegmentedString() : size(0), first_segment(0), segments(nullptr) {}
     SegmentedString(const std::string& input) : size(0), first_segment(0), segments(nullptr) {
         if (input.empty()) return;
@@ -72,22 +71,16 @@ public:
             }
         }
     }
-
-    SegmentedString(const SegmentedString& other)
-        : size(other.size), first_segment(other.first_segment), segments(nullptr)
-    {
+    SegmentedString(const SegmentedString& other): size(other.size), first_segment(other.first_segment), segments(nullptr) {
         if (size > 1) {
             segments = (unsigned int*)malloc(sizeof(unsigned int) * (size - 1));
             std::copy(other.segments, other.segments + (size - 1), segments);
         }
     }
-
-    SegmentedString(SegmentedString&& other) noexcept: size(other.size), first_segment(other.first_segment), segments(other.segments)
-    {
+    SegmentedString(SegmentedString&& other) noexcept: size(other.size), first_segment(other.first_segment), segments(other.segments) {
         other.segments = nullptr;
         other.size = 0;
     }
-
     SegmentedString& operator=(const SegmentedString& other) {
         if (this != &other) {
             if (size > 1) free(segments);
@@ -100,7 +93,6 @@ public:
         }
         return *this;
     }
-
     SegmentedString& operator=(SegmentedString&& other) noexcept {
         if (this != &other) {
             if (size>1) free(segments);
@@ -111,7 +103,6 @@ public:
         }
         return *this;
     }
-
     ~SegmentedString() {if (size>1) free(segments);}
     explicit SegmentedString(unsigned int* segments, unsigned int size, unsigned int first_segment): size(size), first_segment(first_segment), segments(segments) {}
     bool is_empty() const { return size == 0; }
@@ -176,12 +167,12 @@ namespace std {
             std::size_t h = 0;
             {
                 unsigned int id = s.first_segment;
-                h ^= std::hash<int>()(id) + 0x9e3779b9 + (h << 6) + (h >> 2);
+                h ^= std::hash<unsigned int>()(id) + 0x9e3779b9 + (h << 6) + (h >> 2);
             }
             // FNV-1a or similar combination, but simple XOR+hash is enough for most
             for (size_t i = 1; i < s.size; ++i) {
                 unsigned int id = s.segments[i-1];
-                h ^= std::hash<int>()(id) + 0x9e3779b9 + (h << 6) + (h >> 2);
+                h ^= std::hash<unsigned int>()(id) + 0x9e3779b9 + (h << 6) + (h >> 2);
             }
             return h;
         }
@@ -190,5 +181,102 @@ namespace std {
 
 inline bool operator==(const std::string& lhs, const SegmentedString& rhs) {return rhs == lhs;}
 inline bool operator!=(const std::string& lhs, const SegmentedString& rhs) {return !(rhs == lhs);}
+
+
+
+class SegmentSequence {
+public:
+    unsigned int size;
+    SegmentedString* segments;
+    SegmentSequence() : size(0),segments(nullptr) {}
+    explicit SegmentSequence(SegmentedString* segments, unsigned int size):  size(size), segments(segments) {}
+    SegmentSequence(SegmentedString segment) {
+        size = 1;
+        segments = (SegmentedString*)malloc(sizeof(SegmentedString) * size);
+        segments[0] = segment;
+    }
+    SegmentSequence(SegmentedString segment1, SegmentedString segment2) {
+        size = 2;
+        segments = (SegmentedString*)malloc(sizeof(SegmentedString) * size);
+        segments[0] = segment1;
+        segments[1] = segment2;
+    }
+    SegmentSequence(SegmentedString segment1, SegmentedString segment2, SegmentedString segment3) {
+        size = 3;
+        segments = (SegmentedString*)malloc(sizeof(SegmentedString) * size);
+        segments[0] = segment1;
+        segments[1] = segment2;
+        segments[2] = segment3;
+    }
+    SegmentSequence(SegmentedString segment1, SegmentedString segment2, SegmentedString segment3, SegmentedString segment4) {
+        size = 4;
+        segments = (SegmentedString*)malloc(sizeof(SegmentedString) * size);
+        segments[0] = segment1;
+        segments[1] = segment2;
+        segments[2] = segment3;
+        segments[3] = segment4;
+    }
+    SegmentSequence(const SegmentSequence& other): size(other.size), segments(nullptr) {
+        if (size) {
+            segments = (SegmentedString*)malloc(sizeof(SegmentedString) * size);
+            std::copy(other.segments, other.segments + size, segments);
+        }
+    }
+    SegmentSequence(SegmentSequence&& other) noexcept: size(other.size), segments(other.segments) {
+        other.segments = nullptr;
+        other.size = 0;
+    }
+    SegmentSequence& operator=(const SegmentSequence& other) {
+        if (this != &other) {
+            if (size)  free(segments);
+            size = other.size;
+            if (size) {
+                segments = (SegmentedString*)malloc(sizeof(SegmentedString) * size);
+                std::copy(other.segments, other.segments + size, segments);
+            }
+        }
+        return *this;
+    }
+    SegmentSequence& operator=(SegmentSequence&& other) noexcept {
+        if (this != &other) {
+            if(size)  free(segments);
+            size = other.size;
+            other.size = 0;
+        }
+        return *this;
+    }
+    ~SegmentSequence() {if (size) free(segments);}
+    SegmentSequence operator+(const SegmentSequence& other) const {
+        if (size == 0) return other;
+        if (other.size == 0) return *this;
+        size_t new_size = size + other.size;
+        SegmentedString* new_segments = (SegmentedString*)malloc(sizeof(SegmentedString) * new_size);
+        for (size_t i = 0; i < size; ++i) new (new_segments + i) SegmentedString(segments[i]);
+        for (size_t i = 0; i < other.size; ++i) new (new_segments + size + i) SegmentedString(other.segments[i]);
+        return SegmentSequence(new_segments, new_size);
+    }
+};
+
+namespace std {
+    template <>
+    struct hash<SegmentSequence> {
+        std::size_t operator()(const SegmentSequence& seq) const noexcept {
+            std::size_t h = 0;
+            for (unsigned int i = 0; i < seq.size; ++i) {
+                h ^= std::hash<SegmentedString>()(seq.segments[i]) + 0x9e3779b9 + (h << 6) + (h >> 2);
+            }
+            return h;
+        }
+    };
+}
+
+inline bool operator==(const SegmentSequence& a, const SegmentSequence& b) {
+    if (a.size != b.size) return false;
+    for (unsigned int i = 0; i < a.size; ++i)
+        if (!(a.segments[i] == b.segments[i])) return false;
+    return true;
+}
+inline bool operator!=(const SegmentSequence& a, const SegmentSequence& b) { return !(a == b); }
+
 
 #endif // SEGMENTS_H
