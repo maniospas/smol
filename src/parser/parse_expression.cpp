@@ -329,11 +329,11 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         parse(imp, p, types, false);
         p++; // offset p-- after parse_return above
         Variable else_var = EMPTY_VAR;
-        Variable rfinally_var = finally_var+string("r");
-        Variable relse_var = else_var+string("r");
+        Variable rfinally_var = finally_var+Variable("r");
         if(p<imp->size()-1 && imp->at(p)=="else") {
             p++;
             else_var = temp+LE_VAR;
+            Variable relse_var = else_var+Variable("r");
             internalTypes.vars[else_var] = types.vars[LABEL_VAR];
             Variable else_skip = temp+EL_VAR;
             internalTypes.vars[else_skip] = types.vars[LABEL_VAR];
@@ -346,7 +346,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             implementation += else_var.to_string()+":\n";
             p++; // offset p-- after parse_return above
             if(internalTypes.contains(relse_var) && !internalTypes.contains(rfinally_var)) imp->error(first_token_pos, "There was a non-empty return "+internalTypes.vars[relse_var]->name.to_string()+" `else` but no such value from `if`");
-            if(!internalTypes.contains(relse_var) && internalTypes.contains(rfinally_var)) imp->error(first_token_pos, "There was a non-empty return "+internalTypes.vars[rfinally_var]->name.to_string()+" `if` but no such value from `else`");
+            if(!internalTypes.contains(relse_var) && internalTypes.contains(rfinally_var)) imp->error(first_token_pos, "There was a non-empty return "+internalTypes.vars[rfinally_var]->name.to_string()+" `if` but no such value from `else` ");
             if(internalTypes.contains(relse_var) && internalTypes.contains(rfinally_var)) {
                 if(internalTypes.vars[rfinally_var]!=internalTypes.vars[relse_var]) imp->error(first_token_pos, "There were mismatching return "+internalTypes.vars[rfinally_var]->name.to_string()+" `if` and "+internalTypes.vars[relse_var]->name.to_string()+" `else`");
                 assign_variable(internalTypes.vars[rfinally_var],rfinally_var, relse_var, imp, first_token_pos, false, false);
@@ -390,8 +390,8 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         string next = imp->at(p++);
         active_context = parse_expression(imp,p,next,types,curry);
         if(!active_context.exists() || !internalTypes.contains(active_context)) imp->error(--p, "Expression does not evaluate to a variable to use as `on` context");
-        string temp = create_temp();
-        string finally_var = temp+"__on";
+        Variable temp = create_temp();
+        Variable finally_var = temp+Variable("on");
         internalTypes.vars[finally_var] = types.vars[LABEL_VAR];
         //int on_start = p-1;
         uplifting_targets.push_back(finally_var);
@@ -401,9 +401,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         uplifting_targets.pop_back();
         uplifiting_is_loop.pop_back();
         p++;
-        string var = finally_var+"r";
-        if(!internalTypes.contains(var)) var = "";
-        implementation += finally_var+":\n";
+        Variable var = finally_var+Variable("r");
+        if(!internalTypes.contains(var)) var = EMPTY_VAR;
+        implementation += finally_var.to_string()+":\n";
         active_context = EMPTY_VAR;
         return var;
     }

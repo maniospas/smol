@@ -13,6 +13,54 @@
 #include "parser/simplify.cpp"
 #include <regex>
 #include <map>
+#include <sstream>
+
+#include <sstream>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+
+#if defined(_WIN32) || defined(_WIN64)
+#define SMOL_POPEN _popen
+#define SMOL_PCLOSE _pclose
+#else
+#define SMOL_POPEN popen
+#define SMOL_PCLOSE pclose
+#endif
+
+// Returns 0 on success, or nonzero (compiler exit code or error).
+int compile_from_stringstream_with_flags(
+    std::stringstream& out,
+    const std::string& output_file,
+    const std::string& extra_flags // Pass "" if none
+) {
+    std::string cmd =
+        "g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 " +
+        extra_flags + " -o \"" + output_file + "\" -x c++ -";
+
+    FILE* pipe = SMOL_POPEN(cmd.c_str(), "w");
+    if (!pipe)
+        return -1; // popen failed
+
+    std::string code = out.str();
+    size_t written = fwrite(code.data(), 1, code.size(), pipe);
+    int ret = SMOL_PCLOSE(pipe);
+
+    if (written != code.size())
+        return -2; // fwrite failed
+
+#if defined(_WIN32) || defined(_WIN64)
+    // On Windows, ret is the return value of the process (already shifted)
+    return ret;
+#else
+    // On UNIX, WEXITSTATUS gives the compiler's exit code
+    if (WIFEXITED(ret))
+        return WEXITSTATUS(ret);
+    else
+        return -3; // Abnormal termination
+#endif
+}
+
 
 std::string html_escape(const std::string& code) {
     std::string out;
@@ -449,7 +497,8 @@ int main(int argc, char* argv[]) {
                 "using i64 = long;\n"
                 "using nom = unsigned long;\n"
                 "using f64 = double;\n\n";
-            std::ofstream out("__smolambda__temp__main.cpp");
+            //std::fstream out("__smolambda__temp__main.cpp");
+            std::stringstream out("");
             // globals & define services
             out << globals;
             for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
@@ -501,19 +550,33 @@ int main(int argc, char* argv[]) {
                 out << "return __result__errocode;\n";
                 out << "}\n\n";
             }
-            out.close();
+            //out.close();
             for(const auto& it : included[file].vars) {
                 for(const auto& opt : it.second->options) opt->internalTypes.vars.clear();
                 it.second->internalTypes.vars.clear();
                 it.second->options.clear();
             }
-            if(selected_task==Task::Run) {int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -std=c++23 -o "+file.substr(0, file.size()-2)+" && ./"+file.substr(0, file.size()-2)).c_str()); if (run_status != 0) return run_status;}
+            /*if(selected_task==Task::Run) {int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -std=c++23 -o "+file.substr(0, file.size()-2)+" && ./"+file.substr(0, file.size()-2)).c_str()); if (run_status != 0) return run_status;}
             else if(selected_task==Task::Assemble) {int run_status = system(("g++ -O3 -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -S -masm=intel -std=c++23").c_str()); if (run_status != 0) return run_status;}
             else {
                 int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -nodefaultlibs -lc -std=c++23").c_str());
                 if (run_status != 0) return run_status;
                 cout << "\033[30;42m ./ \033[0m " + file.substr(0, file.size()-2) + "\n";
+            }*/
+           if(selected_task == Task::Run) {
+                int rc = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "");
+                if (rc != 0) return rc;
+                int run_status = system(("./" + file.substr(0, file.size()-2)).c_str());
+                if (run_status != 0) return run_status;
+            } else if(selected_task == Task::Assemble) {
+                int rc = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-S -masm=intel");
+                if (rc != 0) return rc;
+            } else {
+                int rc = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-nodefaultlibs -lc");
+                if (rc != 0) return rc;
+                cout << "\033[30;42m ./ \033[0m " + file.substr(0, file.size()-2) + "\n";
             }
+
         }
         catch(const std::runtime_error& e) {
             if(selected_task!=Task::Run) cout << "\033[30;41m ERROR \033[0m " << file << "\n";

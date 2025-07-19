@@ -36,12 +36,11 @@ private:
 
 class SegmentedString {
 public:
-    unsigned int size;            // total number of segments (including the first)
-    unsigned int first_segment;   // segment[0]
-    unsigned int* segments;       // points to segment[1..size-1] or nullptr if size==1
+    unsigned int size;
+    unsigned int first_segment;
+    unsigned int* segments;
 
     SegmentedString() : size(0), first_segment(0), segments(nullptr) {}
-
     SegmentedString(const std::string& input) : size(0), first_segment(0), segments(nullptr) {
         if (input.empty()) return;
         // Count segments
@@ -51,9 +50,7 @@ public:
             pos = next + 2;
         }
         if (pos < input.size()) ++size;
-
         if (size == 0) return;
-
         // Parse segments
         pos = 0;
         next = input.find("__", pos);
@@ -85,8 +82,7 @@ public:
         }
     }
 
-    SegmentedString(SegmentedString&& other) noexcept
-        : size(other.size), first_segment(other.first_segment), segments(other.segments)
+    SegmentedString(SegmentedString&& other) noexcept: size(other.size), first_segment(other.first_segment), segments(other.segments)
     {
         other.segments = nullptr;
         other.size = 0;
@@ -94,10 +90,9 @@ public:
 
     SegmentedString& operator=(const SegmentedString& other) {
         if (this != &other) {
-            if (segments) free(segments);
+            if (size > 1) free(segments);
             size = other.size;
             first_segment = other.first_segment;
-            segments = nullptr;
             if (size > 1) {
                 segments = (unsigned int*)malloc(sizeof(unsigned int) * (size - 1));
                 std::copy(other.segments, other.segments + (size - 1), segments);
@@ -108,17 +103,16 @@ public:
 
     SegmentedString& operator=(SegmentedString&& other) noexcept {
         if (this != &other) {
-            if (segments) free(segments);
+            if (size>1) free(segments);
             size = other.size;
             first_segment = other.first_segment;
             segments = other.segments;
-            other.segments = nullptr;
             other.size = 0;
         }
         return *this;
     }
 
-    ~SegmentedString() {if (segments) free(segments);}
+    ~SegmentedString() {if (size>1) free(segments);}
     explicit SegmentedString(unsigned int* segments, unsigned int size, unsigned int first_segment): size(size), first_segment(first_segment), segments(segments) {}
     bool is_empty() const { return size == 0; }
     bool exists() const { return size != 0; }
@@ -136,13 +130,9 @@ public:
         if (other.size == 0) return *this;
         size_t new_size = size + other.size;
         unsigned int* new_segments = (unsigned int*)malloc(sizeof(unsigned int) * (new_size - 1));
-        // Copy this segments (excluding first_segment)
-        if (size > 1)
-            memcpy(new_segments, segments, sizeof(unsigned int) * (size - 1));
-        // Copy other's first_segment and segments
+        if (size > 1) memcpy(new_segments, segments, sizeof(unsigned int) * (size - 1));
         new_segments[size - 1] = other.first_segment;
-        if (other.size > 1)
-            memcpy(new_segments + size, other.segments, sizeof(unsigned int) * (other.size - 1));
+        if (other.size > 1) memcpy(new_segments + size, other.segments, sizeof(unsigned int) * (other.size - 1));
         return SegmentedString(new_segments, new_size, first_segment);
     }
 
@@ -155,7 +145,10 @@ public:
     bool operator!=(const SegmentedString& other) const { return !(*this == other); }
 
     friend std::ostream& operator<<(std::ostream& os, const SegmentedString& ss) {
-        return os << ss.to_string();
+        if (ss.size == 0) return os;
+        os << SegmentMap::instance().get_segment(ss.first_segment);
+        for (size_t i = 1; i < ss.size; ++i) os << "__" << SegmentMap::instance().get_segment(ss.segments[i - 1]);
+        return os;
     }
 
     bool operator==(const std::string& s) const {
