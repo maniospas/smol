@@ -107,7 +107,7 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
     }
 }
 
-// g++ src/smolang.cpp -o smol -O2 -std=c++23 -Wall
+// g++ src/smolang.cpp -o smol -O3 -std=c++23 -Wall
 // g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 // g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
@@ -514,20 +514,20 @@ int main(int argc, char* argv[]) {
                 string finals_on_error = "";
                 for(const auto& var : service->packs) {
                     service->coallesce_finals(var); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
-                    if(service->finals[var].size()) {
-                        finals_on_error += service->finals[var];
+                    if(service->finals[var].exists()) {
+                        finals_on_error += service->finals[var].to_string();
                         finals_on_error += var.to_string()+"=0;\n";
-                        service->finals[var] = "";
+                        service->finals[var] = Code();
                     }
                     service->internalTypes.vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
                 for(const auto& arg : service->args) {
                     if(arg.mut) {
                         service->coallesce_finals(arg.name); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
-                        if(service->finals[arg.name].size()) {
-                            finals_on_error += service->finals[arg.name];
+                        if(service->finals[arg.name].exists()) {
+                            finals_on_error += service->finals[arg.name].to_string();
                             finals_on_error += arg.name.to_string()+"=0;\n";
-                            service->finals[arg.name] = "";
+                            service->finals[arg.name] = Code();
                         }
                     }
                     service->internalTypes.vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
@@ -536,7 +536,7 @@ int main(int argc, char* argv[]) {
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
                 out << "goto __return;\n"; // skip error handling block that resides at the end of the service
-                if(service->errors.size()) {
+                if(service->errors.exists()) {
                     out << "\n// ERROR HANDLING\n";
                     //out <<"__error:\n"; // error handling (each of those runs goto ____finally)
                     out << service->errors;
@@ -546,7 +546,7 @@ int main(int argc, char* argv[]) {
                 out << finals_on_error;
                 out << "\n// HOTPATH SKIPS TO HERE\n";
                 out << "__return:\n"; // resource deallocation
-                for(const auto& final : service->finals) if(final.second.size()) out << final.second;
+                for(const auto& final : service->finals) if(final.second.exists()) out << final.second;
                 out << "return __result__errocode;\n";
                 out << "}\n\n";
             }

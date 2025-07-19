@@ -57,8 +57,10 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
     }
     for(const Variable& var : next_assignments) assign_variable(internalTypes.vars[NEXT_VAR+var], var, NEXT_VAR+var.to_string(), imp, p);
     if(with_signature) {
-        internalTypes.vars[Variable("__end")] = types.vars[LABEL_VAR];implementation += "__end:\n";
-        for(const auto& it : invalidators) if(it.second.size()) finals[it.first] = it.second;
+        static const Variable endvar = Variable("__end");
+        internalTypes.vars[endvar] = types.vars[LABEL_VAR];
+        implementation +=Code(endvar, COLON_VAR);
+        for(const auto& it : invalidators) if(it.second.exists()) finals[it.first] = it.second;
         invalidators.clear();
         simplify();
     }

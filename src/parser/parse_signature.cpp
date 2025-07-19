@@ -57,16 +57,16 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             if(autoconstruct) for(const auto& it : argType->args) {
                 args.emplace_back(arg_name+it.name, it.type, mut || it.mut);
                 internalTypes.vars[arg_name+it.name] = it.type;
-                implementation += it.type->rebase(it.type->implementation, arg_name);
-                for(const string& pre : it.type->preample) add_preample(it.type->rebase(pre, arg_name));
-                for(const auto& final : it.type->finals) finals[arg_name+final.first] += it.type->rebase(final.second, arg_name); 
+                implementation +=it.type->rebase(it.type->implementation, arg_name);
+                for(const string& pre : it.type->preample) add_preample(pre);
+                for(const auto& final : it.type->finals) finals[arg_name+final.first] = finals[arg_name+final.first] + it.type->rebase(final.second, arg_name); 
                 for(const auto& it : it.type->current_renaming) current_renaming[arg_name+it.first] = arg_name+it.second;
                 for(const auto& it : it.type->alignments) if(it.second) {alignments[arg_name+it.first] = it.second;}
                 errors = errors+it.type->rebase(it.type->errors, arg_name);
                 for(const auto& it2 : it.type->internalTypes.vars) {
                     Variable arg = arg_name+it2.first;
                     internalTypes.vars[arg] = it2.second;
-                    if(it2.second->name=="buffer") buffer_primitive_associations[arg] = it.type->buffer_primitive_associations[it2.first];
+                    if(it2.second->name==BUFFER_VAR) buffer_primitive_associations[arg] = it.type->buffer_primitive_associations[it2.first];
                 }
             }
             else {
@@ -91,7 +91,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             retrievable_parameters[argType->name] = argType;
             args.emplace_back(arg_name, argType, mut);
             internalTypes.vars[arg_name] = argType;
-            if(argType->name=="nom") {
+            if(argType->name==NOM_VAR) {
                 alignments[arg_name] = types.alignment_labels[this];
                 if(!types.alignment_labels[this]) imp->error(--p, "Internal error: Failed to assign itself as an alignment label");
             }

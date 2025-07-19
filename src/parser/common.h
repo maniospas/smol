@@ -99,4 +99,8 @@ string type_primitive(const string& name) {
 bool accepted_var_name(const string& name) {return !(name=="(" || name==")" || name=="{" || name=="}" || name == "|" ||  name == ":" || name=="&" || name=="=" || name=="-" || name=="," || name=="." || name=="smo" || name=="@");}
 bool is_symbol(const std::string& s) {return s.size() == 1 && std::ispunct(static_cast<unsigned char>(s[0])) && s != "_";}
 
+
+bool is_symbol_or_digit(const std::string& s) {return s.size() == 1 && (std::ispunct(static_cast<unsigned char>(s[0])) || std::isdigit(static_cast<unsigned char>(s[0])));}
+
+
 #endif // COMMON_H
