@@ -9,6 +9,9 @@
 #include <memory>
 
 void Def::simplify() {
+    return;
+
+
     if(implementation.is_empty()) return;
     //cout << "----------------------------------\n";
     //cout << raw_signature() << "\n";
@@ -39,6 +42,7 @@ void Def::simplify() {
             && implementation.segments[i+1]==ASSIGN_VAR 
             && implementation.segments[i+3]==SEMICOLON_VAR
             && internalTypes.contains(var)
+            && internalTypes.vars[var]->name!=NOM_VAR
             && in_packs.find(var)==in_packs.end() // do not rename returned values
             && (internalTypes.contains(implementation.segments[i+2]) 
                 /*|| (is_primitive(implementation.segments[i+2].to_string()))*/)
@@ -123,7 +127,6 @@ void Def::simplify() {
         new_renaming[new_first] = new_second;
     }
     current_renaming = new_renaming;
-
 
     /*unordered_map<Variable, unsigned long> new_alignments;
     for(const auto& it : alignments) {

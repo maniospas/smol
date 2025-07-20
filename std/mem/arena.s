@@ -58,7 +58,7 @@ smo Dynamic(nom)
     -> @new, acquired, size, allocated
     
 smo allocate(Dynamic& self, u64 size, Primitive)
-    @head{#include <cstdlib>}
+    @head{#include <stdlib.h>}
     Primitive = Primitive
     if self.acquired:bool:not -> fail("Did not initialize Dynamic")
 

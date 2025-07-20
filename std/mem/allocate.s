@@ -36,7 +36,7 @@ smo is(Primitive value, Primitive) --
 smo is(MemoryDevice, MemoryDevice) --
 
 smo allocate(Stack, u64 size, Primitive) 
-    @head{#include <cstdlib>}
+    @head{#include <stdlib.h>}
     Primitive = Primitive
     @body{ptr mem=alloca(size*sizeof(Primitive));}
     if mem:bool:not -> fail("Failed a Stack allocation")
@@ -44,7 +44,7 @@ smo allocate(Stack, u64 size, Primitive)
     -> nom:ContiguousMemory(Stack, size, Primitive, mem, mem)
 
 smo allocate(Heap, u64 size, Primitive)
-    @head{#include <cstdlib>}
+    @head{#include <stdlib.h>}
     Primitive = Primitive
     @body{ptr mem=malloc(size*sizeof(Primitive));}
     if mem:bool:not -> fail("Failed a Heap allocation")
