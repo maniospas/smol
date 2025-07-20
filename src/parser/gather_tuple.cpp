@@ -3,7 +3,7 @@
 
 vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, Variable& inherit_buffer, const Variable& curry) {
     static const Variable token_if = Variable("if(");
-    static const Variable token_goto = Variable(") goto");
+    static const Variable token_goto = Variable(")goto");
     static const Variable token_print = Variable(":\nprintf(\"Runtime error from");
     static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
 
@@ -12,7 +12,7 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
         Variable var = curry;
         if(!internalTypes.contains(var)) imp->error(p, "Not found: "+pretty_var(var.to_string())+recommend_variable(types, var));
         const auto& type = internalTypes.vars.find(var)->second;
-        if(type->name=="buffer") inherit_buffer = var;
+        if(type->name==BUFFER_VAR) inherit_buffer = var;
         else {
             if(!type->not_primitive()) ret.push_back(var);
             else if(type->is_service) {

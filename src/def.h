@@ -149,7 +149,6 @@ public:
     Variable active_context;
     set<string> preample;
     unordered_map<Variable, Code> finals;         // resource closing code (transferred around)
-    unordered_map<Variable, Code> invalidators;   // also resource closing code (may happen at end of loop)
     unordered_map<Variable, Type> parametric_types;   // type name resolution in signature (all argument types - even those not overloaded)
     unordered_map<Variable, Type> buffer_primitive_associations; // the type associated with buffers, nullptr if typecheck is needed
     unordered_map<Variable, unsigned long> alignments; // the type id nom vlues represent

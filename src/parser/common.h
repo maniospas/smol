@@ -93,7 +93,7 @@ string type_primitive(const string& name) {
     std::strtod(str, &end);
     if (end != str && *end == '\0') return "f64";
     if (name.size() >= 2 && name.front() == '"' && name.back() == '"') return "cstr";
-    return "CANNOT DETECT TYPE";
+    return "";//"CANNOT DETECT TYPE";
 }
 
 bool accepted_var_name(const string& name) {return !(name=="(" || name==")" || name=="{" || name=="}" || name == "|" ||  name == ":" || name=="&" || name=="=" || name=="-" || name=="," || name=="." || name=="smo" || name=="@");}

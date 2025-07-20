@@ -194,7 +194,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 internalTypes.vars[trelement] = types.vars[U64_VAR];
                 implementation +=Code(trelement+Variable(" = ((u64*)"), arg+Variable("__typetag"), Variable(")[("+ to_string(i)+"+"), arg+Variable("__offset"), Variable(")/16];\n"));
                 Code pos = Code(Variable("((("+ to_string(i)+"+"), arg+Variable("__offset"), Variable(")%16)*4)"));
-                implementation +=Code(Variable("if((("), trelement, Variable(">>"))+pos+Code(Variable(")& 0xF)!=__IS_"+desiredType->name.to_string()+") goto "), fail_var_type, SEMICOLON_VAR);
+                implementation +=Code(Variable("if((("), trelement, Variable(">>"))+pos+Code(Variable(")& 0xF)!=__IS_"+desiredType->name.to_string()+")goto"), fail_var_type, SEMICOLON_VAR);
             }
             implementation +=Code(Variable("std::memcpy(&"), element, Variable(",(unsigned char*)"), arg+Variable("__contents"), Variable("+sizeof(u64)*("+ to_string(i)+"+"), arg+Variable("__offset"), Variable("), sizeof("), element, Variable("));\n"));
             if(desiredType) internalTypes.vars[element] = desiredType;
@@ -241,13 +241,15 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         for(size_t i=1;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
             const Variable& ret = type->packs[i];
             size_t fp = first_token_pos;
-            assign_variable(type->internalTypes.vars[ret], var+ret, ZERO_VAR, imp, fp);
+            Variable arg = var+ret;
+            assign_variable(type->internalTypes.vars[ret], arg, ZERO_VAR, imp, fp);
             if(toadd) impl = impl+Code(COMMA_VAR);
-            impl = impl+Code(var+ret);
+            impl = impl+Code(arg);
+            mutables.insert(arg);
             toadd = true;
             //type->coallesce_finals(ret);
             //finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
-            if(type->internalTypes.vars[ret]->name==BUFFER_VAR) buffer_primitive_associations[var+ret] = type->buffer_primitive_associations[ret];
+            if(type->internalTypes.vars[ret]->name==BUFFER_VAR) buffer_primitive_associations[arg] = type->buffer_primitive_associations[ret];
         }
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+it.first] = it.second;
         for(size_t i=0;i<unpacks.size();++i) {
@@ -485,7 +487,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         if(!types.contains(vartype)) return first_token;// fallback
         internalTypes.vars[var] = types.vars[vartype];
         // vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
-        implementation +=Code(var,ASSIGN_VAR,first_token,SEMICOLON_VAR);
+        implementation += Code(var,ASSIGN_VAR,first_token.to_string(),SEMICOLON_VAR);
         //mutables.insert(var);
         return next_var(imp, p, var, types);
     }
@@ -524,7 +526,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 internalTypes.vars[telement] = types.vars[U64_VAR];
                 implementation +=Code(telement, Variable(" = ((u64*)"),arg+Variable("__typetag"), Variable(")[("+ to_string(i)+"+"),arg+Variable("__offset"), Variable(")/16];\n"));
                 Code pos = Code(Variable("((("+ to_string(i)+"+"), arg+Variable("__offset"), Variable(")%16)*4)"));
-                implementation +=Code(Variable("if((("), telement, Variable(">>"))+pos+Code(Variable(")& 0xF)!=__IS_"+desiredType->name.to_string()+") goto "), fail_var_type, SEMICOLON_VAR);
+                implementation +=Code(Variable("if((("), telement, Variable(">>"))+pos+Code(Variable(")& 0xF)!=__IS_"+desiredType->name.to_string()+")goto"), fail_var_type, SEMICOLON_VAR);
             }
             //if(desiredType->name=="i64" || desiredType->name=="f64" || desiredType->name=="ptr" || desiredType->name=="cstr") implementation += "((u64*)" + arg + "____contents)["+ to_string(i)+"+"+arg+"____offset] = std::bit_cast<u64>("+unpacks[i]+");\n";
             implementation +=Code(Variable("std::memcpy((unsigned char*)"), arg+Variable("__contents"), Variable("+sizeof(u64)*("+ to_string(i)+"+"), arg+Variable("__offset"), Variable("), &"), unpacks[i], Variable(", sizeof("), unpacks[i], Variable("));\n"));

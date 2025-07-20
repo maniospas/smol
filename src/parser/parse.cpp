@@ -60,8 +60,6 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
         static const Variable endvar = Variable("__end");
         internalTypes.vars[endvar] = types.vars[LABEL_VAR];
         implementation +=Code(endvar, COLON_VAR);
-        for(const auto& it : invalidators) if(it.second.exists()) finals[it.first] = it.second;
-        invalidators.clear();
         simplify();
     }
 }
