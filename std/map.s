@@ -49,10 +49,34 @@ union Values(str,u64,f64,i64)
 
 smo __unsafe_cast(str, str value) -> value
 smo __unsafe_cast(str, cstr value) -> value
-smo __unsafe_cast(str, ptr value) @body{cstr temp_cast = reinterpret_cast<cstr>(value);} -> temp_cast
-smo __unsafe_cast(str, u64 value) @body{cstr temp_cast = reinterpret_cast<cstr>(value);} -> temp_cast
-smo __unsafe_cast(u64, cstr value) @body{u64 temp_cast = reinterpret_cast<u64>(value);} -> temp_cast
-smo __unsafe_cast(u64, ptr value) @body{u64 temp_cast = reinterpret_cast<u64>(value);} -> temp_cast
+smo __unsafe_cast(str, ptr value) 
+    @head{#include <string.h>}
+    @body{
+        cstr temp_cast = 0;
+        memcpy(&temp_cast, &value, sizeof(temp_cast));
+    } -> temp_cast
+
+smo __unsafe_cast(str, u64 value) 
+    @head{#include <string.h>}
+    @body{
+        cstr temp_cast = 0;
+        memcpy(&temp_cast, &value, sizeof(temp_cast));
+    } -> temp_cast
+
+smo __unsafe_cast(u64, cstr value) 
+    @head{#include <string.h>}
+    @body{
+        u64 temp_cast = 0;
+        memcpy(&temp_cast, &value, sizeof(temp_cast));
+    } -> temp_cast
+
+smo __unsafe_cast(u64, ptr value) 
+    @head{#include <string.h>}
+    @body{
+        u64 temp_cast = 0;
+        memcpy(&temp_cast, &value, sizeof(temp_cast));
+    } -> temp_cast
+
 smo __unsafe_cast(u64, u64 value) -> value
 smo __unsafe_cast(u64, i64 value) @body{u64 temp_cast = static_cast<u64>(value);} -> temp_cast
 smo __unsafe_cast(u64, f64 value) @body{u64 temp_cast = static_cast<u64>(value);} -> temp_cast
@@ -61,7 +85,7 @@ smo __unsafe_ret(f64, u64 value, ptr context) @body{f64 temp_cast = static_cast<
 smo __unsafe_ret(i64, u64 value, ptr context) @body{i64 temp_cast = static_cast<i64>(value);} -> temp_cast
 smo __unsafe_ret(str, u64 value, ptr context) 
     @head{#include <string.h>}
-    @body{cstr raw = reinterpret_cast<cstr>(value);} 
+    @body{cstr raw = (cstr)(value);} 
     @body{
         u64 length=strlen(raw);
         ptr contents=(ptr)raw;

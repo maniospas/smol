@@ -35,5 +35,5 @@ void Def::assign_variable(const Type& type, const Variable& from, const Variable
         if(alignments[from] && alignments[from]!=alignments[to]) imp->error(--p, "Cannot assign to align "+pretty_var(from.to_string())+" with id "+to_string(alignments[from])+" from a different runtype's alignment "+pretty_var(to.to_string())+" with id "+to_string(alignments[to]));
         if(alignments[to]) alignments[from] = alignments[to];
     }
-    implementation += from.to_string()+" = "+to.to_string()+";\n";
+    implementation +=Code(from,ASSIGN_VAR,to,SEMICOLON_VAR);
 }

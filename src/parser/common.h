@@ -93,10 +93,14 @@ string type_primitive(const string& name) {
     std::strtod(str, &end);
     if (end != str && *end == '\0') return "f64";
     if (name.size() >= 2 && name.front() == '"' && name.back() == '"') return "cstr";
-    return "CANNOT DETECT TYPE";
+    return "";//"CANNOT DETECT TYPE";
 }
 
 bool accepted_var_name(const string& name) {return !(name=="(" || name==")" || name=="{" || name=="}" || name == "|" ||  name == ":" || name=="&" || name=="=" || name=="-" || name=="," || name=="." || name=="smo" || name=="@");}
 bool is_symbol(const std::string& s) {return s.size() == 1 && std::ispunct(static_cast<unsigned char>(s[0])) && s != "_";}
+
+
+bool is_symbol_or_digit(const std::string& s) {return s.size() == 1 && (std::ispunct(static_cast<unsigned char>(s[0])) || std::isdigit(static_cast<unsigned char>(s[0])));}
+
 
 #endif // COMMON_H

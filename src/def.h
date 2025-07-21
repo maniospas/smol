@@ -28,11 +28,18 @@ using namespace std;
 struct Def;
 typedef shared_ptr<Def> Type;
 typedef SegmentedString Variable;
+typedef SegmentSequence Code;
 const Variable LABEL_VAR = Variable("__label");
 const Variable NEXT_VAR = Variable("__next");
 const Variable BOOL_VAR = Variable("bool");
 const Variable EMPTY_VAR = Variable("");
 const Variable ZERO_VAR = Variable("0");
+const Variable ASSIGN_VAR = Variable("=");
+const Variable PLUS_VAR = Variable("+");
+const Variable MUL_VAR = Variable("*");
+const Variable REF_VAR = Variable("&");
+const Variable MINUS_VAR = Variable("-");
+const Variable GT_VAR = Variable(">");
 const Variable NOM_VAR = Variable("nom");
 const Variable U64_VAR = Variable("u64");
 const Variable PTR_VAR = Variable("ptr");
@@ -42,6 +49,8 @@ const Variable IF_VAR = Variable("if");
 const Variable FI_VAR = Variable("fi");
 const Variable LE_VAR = Variable("le");
 const Variable EL_VAR = Variable("el");
+const Variable LPAR_VAR = Variable("(");
+const Variable COMMA_VAR = Variable(",");
 const Variable ELSE_VAR = Variable("else");
 const Variable WHILE_VAR = Variable("while");
 const Variable LOOP_VAR = Variable("loop");
@@ -49,9 +58,15 @@ const Variable ERR_VAR = Variable("err");
 const Variable VALUE_VAR = Variable("__value");
 const Variable AT_VAR = Variable("@");
 const Variable NEW_VAR = Variable("new");
-const Variable COMMA_VAR = Variable(",");
 const Variable DOT_VAR = Variable(".");
 const Variable CURRY_VAR = Variable(":");
+const Variable SEMICOLON_VAR = Variable(";\n");
+const Variable COLON_VAR = Variable(":\n");
+const Variable ENDL_VAR = Variable("\n");
+const Variable COMP_LE_VAR = Variable("<=");
+const Variable COMP_LT_VAR = Variable("<");
+const Variable UNREACHABLE_VAR = Variable("__builtin_unreachable();\n");
+const Variable TRANSIENT_VAR = Variable("__TRANSIENT(");
 
 class Memory {
 public:
@@ -128,16 +143,14 @@ public:
     shared_ptr<Import> imp;
     Memory internalTypes;
     vector<Variable> packs;
-    string finals_when_used;
     Variable alias_for;
     size_t pos, start, end;
     Variable name;
-    string vardecl, implementation, errors;
+    Code vardecl, implementation, errors;
     size_t number_of_calls;
     Variable active_context;
     set<string> preample;
-    unordered_map<Variable, string> finals;         // resource closing code (transferred around)
-    unordered_map<Variable, string> invalidators;   // also resource closing code (may happen at end of loop)
+    unordered_map<Variable, Code> finals;         // resource closing code (transferred around)
     unordered_map<Variable, Type> parametric_types;   // type name resolution in signature (all argument types - even those not overloaded)
     unordered_map<Variable, Type> buffer_primitive_associations; // the type associated with buffers, nullptr if typecheck is needed
     unordered_map<Variable, unsigned long> alignments; // the type id nom vlues represent
@@ -167,14 +180,14 @@ public:
         }
         // Coalesce all finals into the original
         for(const Variable& name : group) if(name != original && finals.count(name)) {
-            finals[original] += rename_var(finals[name], name, original);
-            finals[name] = "";
+            finals[original] = finals[original] + rename_var(finals[name], name, original);
+            finals[name] = Code();
         }
     }
 
 
-    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), name(builtin), vardecl(""), implementation(""), errors(""), number_of_calls(0), has_returned(false) {}
-    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), name(""), vardecl(""), implementation(""), errors(""), number_of_calls(0), has_returned(false) {
+    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), name(builtin), number_of_calls(0), has_returned(false) {}
+    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), name(""), number_of_calls(0), has_returned(false) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;
@@ -186,9 +199,9 @@ public:
     string signature(Types &types);
     string canonic_name();
     string raw_signature();
-    string rebase(const string& impl, const Variable& var);
+    Code rebase(const Code& impl, const Variable& var);
     void simplify();
-    string rename_var(const string& impl, const Variable& from, const Variable& to);
+    Code rename_var(const Code& impl, const Variable& from, const Variable& to);
     void parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
     void end_block(const shared_ptr<Import>& i, size_t& p);
     Def* canonic_type() {

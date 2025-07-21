@@ -2,6 +2,10 @@
 
 service main()
     &pos = 0
-    next(range(10), u64& i)
+    &r = range(10)
+    next(r, u64& i)
+    print(i)
+    print(pos)
+    next(r, i)
     print(i)
     print(pos)

@@ -54,11 +54,11 @@ string Def::raw_signature() {
     string ret("");
     if(is_service) for(size_t i=1;i<packs.size();++i) {
         if(i>=2) ret += ", ";
-        ret += ""+internalTypes.vars[packs[i]]->name.to_string()+" &"+packs[i].to_string();
+        ret += ""+internalTypes.vars[packs[i]]->name.to_string()+" *__ref__"+packs[i].to_string();
     }
     for(const auto& arg : args) {
         if(ret.size()) ret += ", ";
-        ret += ""+arg.type->name.to_string()+" "+(arg.mut?"&":"")+arg.name.to_string();
+        ret += ""+arg.type->name.to_string()+" "+(arg.mut?"*__ref__":"")+arg.name.to_string();
     }
     return name.to_string()+"("+ret+")";
 }

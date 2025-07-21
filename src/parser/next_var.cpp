@@ -5,6 +5,10 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
     size_t n = i->size();
     if(p>=n) return first_token;
     Variable next = first_token;
+    static const Variable token_if = Variable("if(");
+    static const Variable token_ifnot = Variable("if(!");
+    static const Variable token_goto = Variable(")goto");
+    static const Variable token_plus_one = Variable("+1");
     while(true) {
         if(p>=n) break;
         if(imp->at(p)==":") {
@@ -16,14 +20,13 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             if(internalTypes.vars[next]!=types.vars[BOOL_VAR]) imp->error(--p, "Left hand side of `and` expected bool but got "+internalTypes.vars[next]->name.to_string()+" "+pretty_var(next.to_string()));
             ++p;
             Variable prev = next;
-            string tmp = create_temp();
+            Variable tmp = create_temp();
             internalTypes.vars[tmp] = types.vars[LABEL_VAR];
-            implementation += "if(!"+next.to_string()+")"+" goto "+tmp+";\n";
+            implementation +=Code(token_ifnot, next, token_goto, tmp, SEMICOLON_VAR);
             next = parse_expression(i, p, imp->at(p++), types);
             if(!internalTypes.contains(next)) imp->error(--p, "Unknown symbol "+pretty_var(next.to_string()));
             if(internalTypes.vars[next]!=types.vars[BOOL_VAR]) imp->error(--p, "Right hand side of `and` expected bool but got "+internalTypes.vars[next]->name.to_string()+" "+pretty_var(next.to_string()));
-            implementation += prev.to_string()+"="+next.to_string()+";\n";
-            implementation += tmp+":\n";
+            implementation +=Code(prev,ASSIGN_VAR,next,SEMICOLON_VAR,tmp,COLON_VAR);
             next = prev;
         }
         else if(imp->at(p)=="or") {
@@ -31,14 +34,13 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             if(internalTypes.vars[next]!=types.vars[BOOL_VAR]) imp->error(--p, "Left hand side of `or` expected bool but got "+internalTypes.vars[next]->name.to_string()+" "+pretty_var(next.to_string()));
             ++p;
             Variable prev = next;
-            string tmp = create_temp();
+            Variable tmp = create_temp();
             internalTypes.vars[tmp] = types.vars[LABEL_VAR];
-            implementation += "if("+next.to_string()+")"+" goto "+tmp+";\n";
+            implementation +=Code(token_if, next, token_goto, tmp, SEMICOLON_VAR);
             next = parse_expression(i, p, imp->at(p++), types);
             if(!internalTypes.contains(next)) imp->error(--p, "Unknown symbol "+pretty_var(next.to_string()));
             if(internalTypes.vars[next]!=types.vars[BOOL_VAR]) imp->error(--p, "Right hand side of `or` expected bool but got "+internalTypes.vars[next]->name.to_string()+" "+pretty_var(next.to_string()));
-            implementation += prev.to_string()+"="+next.to_string()+";\n";
-            implementation += tmp+":\n";
+            implementation +=Code(prev, ASSIGN_VAR, next, SEMICOLON_VAR, tmp, COLON_VAR);
             next = prev;
         }
         else if(imp->at(p)==".") {
@@ -124,7 +126,7 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                     method = "slice";
                     string tmp = create_temp();
                     assign_variable(internalTypes.vars[end], tmp, end, imp, p);
-                    implementation += tmp+" = "+tmp+" + 1;\n";
+                    implementation +=Code(tmp,ASSIGN_VAR,tmp,token_plus_one,SEMICOLON_VAR);
                     end = tmp;
                 }
                 else if(imp->at(p)=="lento") {
@@ -136,7 +138,7 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                     method = "slice";
                     Variable tmp = create_temp();
                     assign_variable(internalTypes.vars[end], tmp, end, imp, p);
-                    implementation += tmp.to_string()+" = "+tmp.to_string()+" + "+arg.to_string()+";\n";
+                    implementation +=Code(tmp,ASSIGN_VAR,tmp,PLUS_VAR,arg,SEMICOLON_VAR);
                     end = tmp.to_string();
                 }
                 if(!types.contains(method)) imp->error(--p, "No implementation for "+method);
@@ -189,15 +191,15 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             if(end.size()) {
                 // prepare error position
                 string fail_var = create_temp();
-                errors += fail_var+":\nprintf(\"Runtime error: buffer does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+                static const Variable token_err = Variable(":\nprintf(\"Runtime error: buffer does not have enough remaining elements\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
+                errors = errors+Code(fail_var, token_err);
                 add_preample("#include <stdio.h>");
-
                 assign_variable(types.vars[U64_VAR], next+Variable("__size"), prev+Variable("__offset + "+end), imp, p, false); // TODO: this is a hack but semantically wrong and may cause issues
                 // copy the actual size from the first position of the pointer
                 //// vardecl += "u64 "+actual_size+";\n";
                 //implementation += "std::memcpy(&" + actual_size + ", (unsigned char*)" + prev + "____contents, sizeof(u64));\n";
                 // check if we do not get over actual size (size is the end basically, so practical size is size-start)
-                implementation += "if("+next.to_string()+"____size>"+prev.to_string()+"____size) goto "+fail_var+";\n";
+                implementation +=Code(token_if, next+Variable("__size"),GT_VAR,prev+Variable("__size"), token_goto, fail_var, SEMICOLON_VAR);
             }
             else assign_variable(types.vars[U64_VAR], next+Variable("__size"), prev+Variable("__size"), imp, p, false);
             assign_variable(types.vars[U64_VAR], next+Variable("__offset"), prev+Variable("__offset + "+arg.to_string()), imp, p, false); // no need for bounds checking here because we are going to later check if non-empty anyway when we pop elements in parse_expression

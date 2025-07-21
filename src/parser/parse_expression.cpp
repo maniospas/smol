@@ -11,6 +11,9 @@ Variable Def::parse_expression(const shared_ptr<Import>& imp, size_t& p, const V
 
 
 Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, const Variable& inherit_buffer, Types& types) {
+    
+    static const Variable token_if = Variable("if(");
+    static const Variable token_goto = Variable(")goto");
     string overloading_errors("");
     Variable var = create_temp();
     Type successfullType = nullptr;
@@ -27,7 +30,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         try {
             //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
             size_t type_args = type->not_primitive()?type->args.size():1;
-            if(inherit_buffer.exists() && unpacks.size()>type_args) throw runtime_error(type->signature(types));
+            if(inherit_buffer.exists() && unpacks.size()>=type_args) throw runtime_error(type->signature(types));
             else if(unpacks.size()!=type_args) throw runtime_error(type->signature(types));
             for(size_t i=0;i<unpacks.size();++i) {
                 auto arg_type = type->_is_primitive?type:type->args[i].type;
@@ -92,7 +95,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
                 size_t type_args = type->not_primitive()?type->args.size():1;
                 if(inherit_buffer.exists()) {
-                    if(unpacks.size()>type_args) throw runtime_error(type->signature(types));
+                    if(unpacks.size()>=type_args) throw runtime_error(type->signature(types));
                 }
                 else if(unpacks.size()!=type_args) throw runtime_error(type->signature(types));
                 for(size_t i=0;i<unpacks.size();++i) {
@@ -169,15 +172,16 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     // TODO: reinstate this but improve inference
     //if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of ["+to_string(unpacks.size())+"] structural arguments - they match "+to_string(numberOfFound)+" candidates"+(markdown_errors?"\n```rust":"")+multipleFound+(markdown_errors?"\n```\n":""));
     if(inherit_buffer.exists()) { // unpack buffer
+        static const Variable token_err1 = Variable(":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
+        static const Variable token_err2 = Variable(":\nprintf(\"Runtime error: buffer element has the wrong type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
         Variable arg = inherit_buffer;
         int remaining = (int)(type->args.size()-unpacks.size());
         if(type->_is_primitive) remaining++;
         Variable fail_var = create_temp();
         Variable fail_var_type = create_temp();
-        if(remaining==1) implementation += "if("+arg.to_string()+"____size<="+arg.to_string()+"____offset) goto "+fail_var.to_string()+";\n";
-        else implementation += "if("+arg.to_string()+"____size<"+arg.to_string()+"____offset+"+to_string(remaining)+") goto "+fail_var.to_string()+";\n";
-        errors += fail_var.to_string()+":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
-        errors += fail_var_type.to_string()+":\nprintf(\"Runtime error: buffer element has the wrong type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+        if(remaining==1) implementation +=Code(token_if,arg+Variable("__size"),COMP_LE_VAR,arg+Variable("__offset"), token_goto, fail_var, SEMICOLON_VAR);
+        else implementation +=Code(token_if,arg+Variable("__size"), COMP_LT_VAR, arg+Variable("__offset"),Variable("+"+to_string(remaining)+")goto"), fail_var, SEMICOLON_VAR);
+        errors = errors+Code(fail_var, token_err1, fail_var_type, token_err2);
         add_preample("#include <stdio.h>");
         string tmp = create_temp();
         for(int i=0;i<remaining;++i) {
@@ -188,32 +192,31 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             if(typecheck) {
                 Variable trelement = element+string("t");
                 internalTypes.vars[trelement] = types.vars[U64_VAR];
-                implementation += trelement.to_string()+" = ((u64*)"+arg.to_string()+"____typetag)[("+ to_string(i)+"+"+arg.to_string()+"____offset)/16];\n";
-                string pos = "((("+ to_string(i)+"+"+arg.to_string()+"____offset)%16)*4)";
-                implementation += "if((("+trelement.to_string()+">>"+pos+")& 0xF)!=__IS_"+desiredType->name.to_string()+") goto "+fail_var_type.to_string()+";\n";
+                implementation +=Code(trelement+Variable(" = ((u64*)"), arg+Variable("__typetag"), Variable(")[("+ to_string(i)+"+"), arg+Variable("__offset"), Variable(")/16];\n"));
+                Code pos = Code(Variable("((("+ to_string(i)+"+"), arg+Variable("__offset"), Variable(")%16)*4)"));
+                implementation +=Code(Variable("if((("), trelement, Variable(">>"))+pos+Code(Variable(")& 0xF)!=__IS_"+desiredType->name.to_string()+")goto"), fail_var_type, SEMICOLON_VAR);
             }
-            implementation += "std::memcpy(&" + element.to_string() + ", (unsigned char*)" + arg.to_string() + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg.to_string()+"____offset), sizeof("+element.to_string()+"));\n";
+            implementation +=Code(Variable("std::memcpy(&"), element, Variable(",(unsigned char*)"), arg+Variable("__contents"), Variable("+sizeof(u64)*("+ to_string(i)+"+"), arg+Variable("__offset"), Variable("), sizeof("), element, Variable("));\n"));
             if(desiredType) internalTypes.vars[element] = desiredType;
             unpacks.push_back(element);
         }
-        implementation += arg.to_string()+"____offset += "+to_string(remaining)+";\n";
+        implementation +=Code(arg+Variable("__offset"), Variable("+= "+to_string(remaining)+";\n"));
     }
-
 
     for(const Variable& pack : type->packs) type->coallesce_finals(pack);
     auto transfer_finals = type->finals;
-    unordered_map<Variable, Variable> transferring;
-    for(const Variable& pack : type->packs) if(type->finals[pack].size()) {
+    unordered_map<Variable, Code> transferring;
+    for(const Variable& pack : type->packs) if(type->finals[pack].exists()) {
         type->coallesce_finals(pack);
-        finals[var+pack] += type->rebase(type->finals[pack], var);
+        finals[var+pack] = finals[var+pack] + type->rebase(type->finals[pack], var);
         transferring[var+pack] = finals[var+pack];
-        transfer_finals[pack] = "";
+        transfer_finals[pack] = Code();
     }
-    for(const auto& arg : type->args) if(arg.mut && type->finals[arg.name].size()) {
+    for(const auto& arg : type->args) if(arg.mut && type->finals[arg.name].exists()) {
         type->coallesce_finals(arg.name);
-        finals[var+arg.name] += type->rebase(type->finals[arg.name], var);
+        finals[var+arg.name] = finals[var+arg.name]+type->rebase(type->finals[arg.name], var);
         transferring[var+arg.name] = finals[var+arg.name];
-        transfer_finals[arg.name] = "";
+        transfer_finals[arg.name] = Code();
     }
     for(const auto& it : type->current_renaming) current_renaming[var+it.first] = var+it.second;
 
@@ -230,7 +233,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     // make actual call
     if(type->is_service) {
         // vardecl += "errcode "+var+"__err = 0;\n";
-        string impl = var.to_string()+"__err = "+type->name.to_string()+"(";
+        Code impl = Code(var+ERR_VAR,ASSIGN_VAR,type->name,LPAR_VAR);
         internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
         internalTypes.vars[var] = type;
         for(const Variable& pack : type->packs) if(type->alignments[pack]) alignments[var+pack] = type->alignments[pack];
@@ -238,29 +241,31 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         for(size_t i=1;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
             const Variable& ret = type->packs[i];
             size_t fp = first_token_pos;
-            assign_variable(type->internalTypes.vars[ret], var+ret, ZERO_VAR, imp, fp);
-            if(toadd) impl += ",";
-            impl += var.to_string()+"__"+ret.to_string();
+            Variable arg = var+ret;
+            assign_variable(type->internalTypes.vars[ret], arg, ZERO_VAR, imp, fp);
+            if(toadd) impl = impl+Code(COMMA_VAR);
+            impl += Code(REF_VAR,arg);
+            mutables.insert(arg);
             toadd = true;
             //type->coallesce_finals(ret);
             //finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
-            if(type->internalTypes.vars[ret]->name=="buffer") buffer_primitive_associations[var+ret] = type->buffer_primitive_associations[ret];
+            if(type->internalTypes.vars[ret]->name==BUFFER_VAR) buffer_primitive_associations[arg] = type->buffer_primitive_associations[ret];
         }
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+it.first] = it.second;
         for(size_t i=0;i<unpacks.size();++i) {
-            if(toadd) impl += ",";
-            impl += unpacks[i].to_string();
+            if(toadd) impl = impl+Code(COMMA_VAR);
             toadd = true;
             if(type->args[i].mut) {
-                string ret = unpacks[i].to_string();
+                impl += Code(REF_VAR, unpacks[i]);
+                const Variable &ret = unpacks[i];
                 type->coallesce_finals(type->args[i].name);
-                finals[unpacks[i]] += type->rename_var(type->finals[type->args[i].name], type->args[i].name, unpacks[i]);
-                if(type->internalTypes.vars[ret]->name=="buffer") buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[type->args[i].name];
+                finals[unpacks[i]] = finals[unpacks[i]]+type->rename_var(type->finals[type->args[i].name], type->args[i].name, unpacks[i]);
+                if(type->internalTypes.vars[ret]->name==BUFFER_VAR) buffer_primitive_associations[unpacks[i]] = type->buffer_primitive_associations[type->args[i].name];
             }
+            else impl += Code(unpacks[i]);
         }
-        impl += ");\n";
-        implementation += impl;
-        finals[var] = type->rebase(type->finals_when_used, var);
+        impl = impl+Code(Variable(");\n"));
+        implementation +=impl;
         internalTypes.vars[var] = type->alias_for.exists()?type->internalTypes.vars[type->alias_for]:type;
         if(internalTypes.vars[var]->name==BUFFER_VAR) buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
         return next_var(imp, p, var, types);
@@ -272,12 +277,12 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         return next_var(imp, p, var, types);
     }
     for(const auto& it : type->alignments) if(it.second) alignments[var+it.first] = it.second; 
-    string immediate_finals("");
+    Code immediate_finals;
     for(size_t i=0;i<unpacks.size();++i) {
         size_t fp = first_token_pos;
         assign_variable(type->args[i].type, var+type->args[i].name, unpacks[i], imp, fp);
         if(type->args[i].mut) {
-            immediate_finals += unpacks[i].to_string()+ " = "+var.to_string()+"__"+type->args[i].name.to_string()+";\n";
+            immediate_finals = immediate_finals+Code(unpacks[i],ASSIGN_VAR,var+type->args[i].name,SEMICOLON_VAR);
             current_renaming[unpacks[i]] = var.to_string()+"__"+type->args[i].name.to_string();
             current_renaming[var+type->args[i].name] = unpacks[i];
             current_renaming[unpacks[i]] = var+type->args[i].name;
@@ -285,11 +290,10 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         }
     }
     for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+it.first] = it.second;
-    for(const auto& final : transfer_finals) immediate_finals += type->rebase(final.second, var);
+    for(const auto& final : transfer_finals) immediate_finals = immediate_finals+type->rebase(final.second, var);
     internalTypes.vars[var] = type->alias_for.exists()?type->internalTypes.vars[type->alias_for]:type;
-    implementation += type->rebase(type->implementation, var);
-    implementation += immediate_finals;
-    for(const string& pre : type->preample) add_preample(type->rebase(pre, var));
+    implementation +=type->rebase(type->implementation, var)+immediate_finals;
+    for(const string& pre : type->preample) add_preample(pre);
 
     //for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); // splt into immediate and delayed finals
     //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
@@ -301,14 +305,18 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         if(it.second->name==BUFFER_VAR) buffer_primitive_associations[var+it.first] = type->buffer_primitive_associations[it.first];
     }
     //finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
-    finals[var] = type->rebase(type->finals_when_used, var);
-    if(internalTypes.contains(var) && internalTypes.vars[var]->name=="buffer") buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
+    if(internalTypes.contains(var) && internalTypes.vars[var]->name==BUFFER_VAR) buffer_primitive_associations[var] = type->buffer_primitive_associations[type->alias_for];
     if(type->packs.size()==1) return next_var(imp, p, var+type->packs[0], types);
     return next_var(imp, p, var, types);
 }
 
 
 Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry) {
+    
+    static const Variable token_if = Variable("if(");
+    static const Variable token_ifnot = Variable("if(!");
+    static const Variable token_goto = Variable(")goto");
+    
     size_t first_token_pos = p-1;
     if(first_token==DOT_VAR || first_token==CURRY_VAR|| first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
 
@@ -325,7 +333,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         Variable var = parse_expression(imp, p, next, types, curry);
         if(!internalTypes.contains(var)) imp->error(--p, "Expression did not evaluate to anything");
         if(internalTypes.vars.find(var)->second!=types.vars[BOOL_VAR]) imp->error(--p, "If expects bool condition but got "+internalTypes.vars.find(var)->second->name.to_string()+" "+pretty_var(var.to_string()));
-        implementation += "if(!"+var.to_string()+") goto "+closeif_var.to_string()+";\n";
+        implementation +=Code(token_ifnot,var,token_goto,closeif_var,SEMICOLON_VAR);
         parse(imp, p, types, false);
         p++; // offset p-- after parse_return above
         Variable else_var = EMPTY_VAR;
@@ -339,11 +347,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             internalTypes.vars[else_skip] = types.vars[LABEL_VAR];
             uplifting_targets.pop_back();
             uplifting_targets.push_back(else_var);
-            implementation += finally_var.to_string()+":\n";
-            implementation += "goto "+else_skip.to_string()+";\n";
-            implementation += closeif_var.to_string()+":\n";
+            implementation +=Code(finally_var,COLON_VAR,Variable("goto"), else_skip, SEMICOLON_VAR, closeif_var, COLON_VAR);
             parse(imp, p, types, false);
-            implementation += else_var.to_string()+":\n";
+            implementation +=Code(else_var,COLON_VAR);
             p++; // offset p-- after parse_return above
             if(internalTypes.contains(relse_var) && !internalTypes.contains(rfinally_var)) imp->error(first_token_pos, "There was a non-empty return "+internalTypes.vars[relse_var]->name.to_string()+" `else` but no such value from `if`");
             if(!internalTypes.contains(relse_var) && internalTypes.contains(rfinally_var)) imp->error(first_token_pos, "There was a non-empty return "+internalTypes.vars[rfinally_var]->name.to_string()+" `if` but no such value from `else` ");
@@ -351,9 +357,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 if(internalTypes.vars[rfinally_var]!=internalTypes.vars[relse_var]) imp->error(first_token_pos, "There were mismatching return "+internalTypes.vars[rfinally_var]->name.to_string()+" `if` and "+internalTypes.vars[relse_var]->name.to_string()+" `else`");
                 assign_variable(internalTypes.vars[rfinally_var],rfinally_var, relse_var, imp, first_token_pos, false, false);
             }
-            implementation += else_skip.to_string()+":\n";
+            implementation +=Code(else_skip,COLON_VAR);
         }
-        else implementation += finally_var.to_string()+":\n"+closeif_var.to_string()+":\n";
+        else implementation +=Code(finally_var,COLON_VAR,closeif_var,COLON_VAR);
         uplifting_targets.pop_back();
         uplifiting_is_loop.pop_back();
         if(internalTypes.contains(rfinally_var)) {
@@ -370,16 +376,15 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         Variable start_var = temp+LOOP_VAR;
         internalTypes.vars[start_var] = types.vars[LABEL_VAR];
         internalTypes.vars[finally_var] = types.vars[LABEL_VAR];
-        implementation += start_var.to_string()+":\n";
+        implementation +=Code(start_var,COLON_VAR);
         Variable next = imp->at(p++);
         Variable var = parse_expression(imp, p, next, types, curry);
         if(!internalTypes.contains(var)) imp->error(--p, "Expression did not evaluate to anything");
         if(internalTypes.vars.find(var)->second!=types.vars[BOOL_VAR]) imp->error(--p, "If expects bool condition but got "+internalTypes.vars.find(var)->second->name.to_string()+" "+pretty_var(var.to_string()));
-        implementation += "if(!"+var.to_string()+") goto "+finally_var.to_string()+";\n";
+        implementation +=Code(token_ifnot,var,token_goto,finally_var,SEMICOLON_VAR);
         parse(imp, p, types, false);
         p++; // offset p-- after parse_return above
-        implementation += "goto "+start_var.to_string()+";\n";
-        implementation += finally_var.to_string()+":\n";
+        implementation +=Code(Variable("goto"),start_var,SEMICOLON_VAR,finally_var,COLON_VAR);
         uplifting_targets.pop_back();
         uplifiting_is_loop.pop_back();
         return EMPTY_VAR;
@@ -403,13 +408,13 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         p++;
         Variable var = finally_var+Variable("r");
         if(!internalTypes.contains(var)) var = EMPTY_VAR;
-        implementation += finally_var.to_string()+":\n";
+        implementation +=Code(finally_var,COLON_VAR);
         active_context = EMPTY_VAR;
         return var;
     }
     if(first_token=="with") { // TODO: this implementation does not account for nesting
-        string temp = create_temp();
-        string finally_var = temp+"__with";
+        Variable temp = create_temp();
+        Variable finally_var = temp+Variable("with");
         size_t numberOfCandidates = 0;
         string overloading_errors = "";
         string competing = "";
@@ -425,7 +430,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             p++;
             next = imp->at(p++);
             numberOfCandidates++;
-            implementation += "goto "+finally_var+";\n";
+            implementation +=Code(Variable("goto"),finally_var,SEMICOLON_VAR);
             if(numberOfCandidates) competing = "\n"+imp->tokens[with_start].show();
         }
         catch (const runtime_error& e) {
@@ -444,7 +449,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                     size_t else_start = p-1;
                     parse(imp, p, types, false);
                     numberOfCandidates++;
-                    implementation += "goto "+finally_var+";\n";
+                    implementation +=Code(Variable("goto"), finally_var, SEMICOLON_VAR);
                     ++p;
                     if(numberOfCandidates) competing = "\n"+imp->tokens[else_start].show();
                 }
@@ -465,7 +470,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         if(numberOfCandidates>1) ERROR("Competes with previous branch of `with`"+competing);
         if(numberOfCandidates==0) imp->error(with_start, "No valid branch of `with`"+string(Def::markdown_errors?"\n```rust":"")+overloading_errors+(Def::markdown_errors?"\n```\n":""));
 
-        implementation += finally_var+":\n";
+        implementation +=Code(finally_var,COLON_VAR);
         uplifting_targets.pop_back();
         uplifiting_is_loop.pop_back();
         return EMPTY_VAR;
@@ -483,17 +488,19 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         if(!types.contains(vartype)) return first_token;// fallback
         internalTypes.vars[var] = types.vars[vartype];
         // vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
-        implementation += var+" = "+first_token.to_string()+";\n";
+        implementation += Code(var,ASSIGN_VAR,first_token.to_string(),SEMICOLON_VAR);
         //mutables.insert(var);
         return next_var(imp, p, var, types);
     }
     if(first_token == "len" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name=="buffer") {
         Variable var = create_temp();
-        implementation += var.to_string() + " = " + curry.to_string()+"____size-"+curry.to_string()+"____offset;\n"; 
+        implementation +=Code(var,ASSIGN_VAR, curry+Variable("__size"), MINUS_VAR, curry+Variable("__offset"), Variable(";\n")); 
         internalTypes.vars[var] = types.vars[U64_VAR];
         return next_var(imp, p, var, types);
     }
     if(first_token == "put" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name=="buffer") {
+        static const Variable token_err1 = Variable(":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
+        static const Variable token_err2 = Variable(":\nprintf(\"Runtime error: buffer element would replace a different type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
         Variable arg = curry;
         if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
         Variable inherit_buffer = EMPTY_VAR;
@@ -504,10 +511,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
         Variable fail_var = create_temp();
         Variable fail_var_type = create_temp();
-        if(remaining==1) implementation += "if("+arg.to_string()+"____size<="+arg.to_string()+"____offset) goto "+fail_var.to_string()+";\n";
-        else implementation += "if("+arg.to_string()+"____size<"+arg.to_string()+"____offset+"+to_string(remaining)+") goto "+fail_var.to_string()+";\n";
-        errors += fail_var.to_string()+":\nprintf(\"Runtime error: buffer is empty\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
-        errors += fail_var_type.to_string()+":\nprintf(\"Runtime error: buffer element would replace a different type\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n";
+        if(remaining==1) implementation +=Code(token_if, arg+Variable("__size"), COMP_LE_VAR, arg+Variable("__offset"), token_goto, fail_var, SEMICOLON_VAR);
+        else implementation +=Code(token_if, arg+Variable("__size"), COMP_LT_VAR, arg+Variable("__offset"),Variable("+"+to_string(remaining)+")goto"),fail_var,SEMICOLON_VAR);
+        errors = errors + Code(fail_var, token_err1, fail_var_type, token_err2);
         add_preample("#include <stdio.h>");
         string tmp = create_temp();
         for(int i=0;i<remaining;++i) {
@@ -519,21 +525,21 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             Variable telement = element + string("t");
             if(typecheck) {
                 internalTypes.vars[telement] = types.vars[U64_VAR];
-                implementation += telement.exists()+" = ((u64*)"+arg.to_string()+"____typetag)[("+ to_string(i)+"+"+arg.to_string()+"____offset)/16];\n";
-                string pos = "((("+ to_string(i)+"+"+arg.to_string()+"____offset)%16)*4)";
-                implementation += "if((("+telement.to_string()+">>"+pos+")& 0xF)!=__IS_"+desiredType->name.to_string()+") goto "+fail_var_type.to_string()+";\n";
+                implementation +=Code(telement, Variable(" = ((u64*)"),arg+Variable("__typetag"), Variable(")[("+ to_string(i)+"+"),arg+Variable("__offset"), Variable(")/16];\n"));
+                Code pos = Code(Variable("((("+ to_string(i)+"+"), arg+Variable("__offset"), Variable(")%16)*4)"));
+                implementation +=Code(Variable("if((("), telement, Variable(">>"))+pos+Code(Variable(")& 0xF)!=__IS_"+desiredType->name.to_string()+")goto"), fail_var_type, SEMICOLON_VAR);
             }
             //if(desiredType->name=="i64" || desiredType->name=="f64" || desiredType->name=="ptr" || desiredType->name=="cstr") implementation += "((u64*)" + arg + "____contents)["+ to_string(i)+"+"+arg+"____offset] = std::bit_cast<u64>("+unpacks[i]+");\n";
-            implementation += "std::memcpy((unsigned char*)" + arg.to_string() + "____contents+sizeof(u64)*("+ to_string(i)+"+"+arg.to_string()+"____offset), &"+unpacks[i].to_string()+", sizeof("+unpacks[i].to_string()+"));\n";
+            implementation +=Code(Variable("std::memcpy((unsigned char*)"), arg+Variable("__contents"), Variable("+sizeof(u64)*("+ to_string(i)+"+"), arg+Variable("__offset"), Variable("), &"), unpacks[i], Variable(", sizeof("), unpacks[i], Variable("));\n"));
         }
-        implementation += arg.to_string()+"____offset += "+to_string(remaining)+";\n";
+        implementation +=Code(arg+Variable("__offset"), Variable("+="+to_string(remaining)+";\n"));
         return next_var(imp, p, arg, types);
     }
     if(internalTypes.contains(first_token)) {
         if(curry.exists()) imp->error(p, "Expecting runtype but got variable: "+first_token.to_string());
         return next_var(imp, p, first_token, types); //ASSIGNMENT TO ALREADY EXISTING VARIABLE
     }
-    if(first_token=="buffer") {
+    if(first_token==BUFFER_VAR) {
         Variable var = create_temp();
         add_preample("#include<cstdlib>");
         Variable inherit_buffer = EMPTY_VAR;
@@ -553,19 +559,20 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             else if(internalTypes.vars[curry]->_is_primitive) unpacks.push_back(curry);
             else if(internalTypes.vars[curry]->is_service) {
                 Variable fail_var = create_temp();
-                implementation += "if("+var.to_string()+"__err) goto "+fail_var.to_string()+";\n";
-                errors += fail_var.to_string()+":\nprintf(\"Runtime error from "+internalTypes.vars[curry]->name.to_string()+" "+pretty_var(curry.to_string())+"\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n";
+                implementation += Code(token_if,var+ERR_VAR,Variable(")goto"),fail_var,SEMICOLON_VAR);
+                errors += Code(fail_var, Variable(":\nprintf(\"Runtime error from "), internalTypes.vars[curry]->name, curry, Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n"));
                 add_preample("#include <stdio.h>");
                 for(size_t i=1;i<internalTypes.vars[curry]->packs.size();++i) unpacks.push_back(curry+internalTypes.vars[curry]->packs[i]);
             }
             else for(const Variable& pack : internalTypes.vars[curry]->packs) unpacks.push_back(curry+pack);
         }
-        implementation += "if("+var.to_string()+"____size-"+var.to_string()+"____offset) free("+var.to_string()+"____contents);\n";
-        implementation += var.to_string()+"____size = "+to_string(unpacks.size())+(inherit_buffer.exists()?(" + "+inherit_buffer.to_string()+"____size"):"")+(prototype_buffer.exists()?(" + "+prototype_buffer.to_string()+"____size"):"")+";\n";
-        implementation += var.to_string()+"____offset = 0;\n";
-        implementation += var.to_string() + "____contents = malloc(sizeof(i64)*" + var.to_string() + "____size);\n";
-        implementation += var.to_string() + "____typetag = calloc(" + var.to_string() + "____size/16+1, sizeof(u64));\n";
-        //implementation += "std::memcpy((unsigned char*)" + var + "____contents, &" + var + "____size, sizeof(u64));\n";
+        implementation +=Code(token_if, var+Variable("__size"), MINUS_VAR, var+Variable("__offset"), Variable(") free("), var+Variable("__contents"), Variable(");\n"));
+        implementation +=Code(var+Variable("__size"), "="+to_string(unpacks.size()));
+        if(inherit_buffer.exists()) implementation +=Code(PLUS_VAR, inherit_buffer+Variable("__size"));
+        if(prototype_buffer.exists()) implementation +=Code(PLUS_VAR, prototype_buffer+Variable("__size"));
+        implementation +=Code(SEMICOLON_VAR, var+Variable("__offset"), ASSIGN_VAR, ZERO_VAR, SEMICOLON_VAR);
+        implementation +=Code(var+Variable("__contents"), Variable("=malloc(sizeof(i64)*"), var+Variable("__size"), Variable(");\n"));
+        implementation +=Code(var+Variable("__typetag"),Variable("=calloc("), var+Variable("__size"), Variable("/16+1, sizeof(u64));\n"));
         if(unpacks.size() && internalTypes.contains(unpacks[0])) buffer_primitive_associations[var] = internalTypes.vars[unpacks[0]];
         else if(prototype_buffer.exists()) buffer_primitive_associations[var] = buffer_primitive_associations[prototype_buffer];
         else if(inherit_buffer.exists()) buffer_primitive_associations[var] = buffer_primitive_associations[inherit_buffer];
@@ -573,32 +580,31 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         if(prototype_buffer.exists() && buffer_primitive_associations[prototype_buffer]!=buffer_primitive_associations[var]) buffer_primitive_associations[var] = nullptr;
         if(inherit_buffer.exists() && buffer_primitive_associations[inherit_buffer]!=buffer_primitive_associations[var]) buffer_primitive_associations[var] = nullptr;
 
-        string offset = to_string(unpacks.size());
+        Code offset = Code(Variable(to_string(unpacks.size())));
         if (prototype_buffer.exists()) {
-            implementation += "std::memcpy((unsigned char*)"+var.to_string()+"____contents,  (unsigned char*)"+prototype_buffer.to_string()+"____contents, sizeof(u64)*"+prototype_buffer.to_string()+"____size);\n";
-            implementation += "memcpy((unsigned char*)"+var.to_string()+"____typetag, (unsigned char*)"+prototype_buffer.to_string()+"____typetag, sizeof(u64) * ("+prototype_buffer.to_string()+"____size / 16+1));\n";
-            offset += "+"+prototype_buffer.to_string()+"____size";
-
+            implementation += Code(Variable("std::memcpy((unsigned char*)"), var+Variable("__contents"), COMMA_VAR, Variable("unsigned char*)"), prototype_buffer+Variable("__contents"), Variable(", sizeof(u64)*"),prototype_buffer+Variable("__size)"), SEMICOLON_VAR);
+            implementation += Code(Variable("memcpy((unsigned char*)"), var+Variable("__typetag"), COMMA_VAR, Variable("(unsigned char*)"), prototype_buffer+Variable("__typetag"), Variable(", sizeof(u64)*("), prototype_buffer+Variable("__size"), Variable("/16+1));\n"));
+            offset += Code(PLUS_VAR, prototype_buffer+Variable("__size"));
 
             for(size_t i = 0; i < unpacks.size(); ++i) {
             if(buffer_primitive_associations[var]!=internalTypes.vars[unpacks[i]]) buffer_primitive_associations[var] = nullptr;
             //if(buffer_primitive_associations[var]) 
             // for now it's mandatory to set the type because we might lose the primitive association in the future - the optimizer may just remove if if unused though
-            implementation += "((u64*)" + var.to_string() + "____typetag)[("+to_string(i)+"+"+prototype_buffer.to_string()+"__size)/16] |= ((u64)__IS_"+internalTypes.vars[unpacks[i]]->name.to_string()+")<<("+to_string(i)+"+"+prototype_buffer.to_string()+"__size)%16)*4;\n";
-            implementation += "std::memcpy((unsigned char*)" + var.to_string() + "____contents + sizeof(u64) * (" + to_string(i)+"+"+prototype_buffer.to_string()+ "__size), &" + unpacks[i].to_string() + ", sizeof("+unpacks[i].to_string()+"));\n";
+            implementation += Code(Variable("((u64*)"), var+Variable("__typetag"), Variable(")[("+to_string(i)+"+"), prototype_buffer+Variable("__size"), Variable(")/16] |= ((u64)__IS_"+internalTypes.vars[unpacks[i]]->name.to_string()+")<<("+to_string(i)+"+"), prototype_buffer+Variable("__size"), Variable(")%16)*4;\n"));
+            implementation += Code(Variable("std::memcpy((unsigned char*)"), var+Variable("__contents"), Variable("+sizeof(u64)*("+to_string(i)+"+"),prototype_buffer+Variable("__size"), Variable("), &"), unpacks[i], Variable(",sizeof("), unpacks[i], Variable("));\n"));
         }
         }
         else for(size_t i = 0; i < unpacks.size(); ++i) {
             if(buffer_primitive_associations[var]!=internalTypes.vars[unpacks[i]]) buffer_primitive_associations[var] = nullptr;
             //if(buffer_primitive_associations[var]) 
             // for now it's mandatory to set the type because we might lose the primitive association in the future - the optimizer may just remove if if unused though
-            implementation += "((u64*)" + var.to_string() + "____typetag)["+to_string(i/16)+"] |= ((u64)__IS_"+internalTypes.vars[unpacks[i]]->name.to_string()+")<<"+to_string((i%16)*4)+";\n";
-            implementation += "std::memcpy((unsigned char*)" + var.to_string() + "____contents + sizeof(u64) * " + to_string(i) + ", &" + unpacks[i].to_string() + ", sizeof("+unpacks[i].to_string()+"));\n";
+            implementation += Code(Variable("((u64*)"), var+Variable("__typetag"), Variable(")["+to_string(i/16)+"] |= ((u64)__IS_"+internalTypes.vars[unpacks[i]]->name.to_string()+")<<"+to_string((i%16)*4)+";\n"));
+            implementation += Code(Variable("std::memcpy((unsigned char*)"), var+Variable("__contents"), Variable("+sizeof(u64) * " + to_string(i) + ", &"), unpacks[i], COMMA_VAR, Variable("sizeof("),unpacks[i], Variable("));\n"));
         }
         if(inherit_buffer.exists()) {
-            implementation += "std::memcpy((unsigned char*)"+var.to_string()+"____contents+sizeof(u64)*("+offset+"),  (unsigned char*)"+inherit_buffer.to_string()+"____contents, sizeof(u64)*"+inherit_buffer.to_string()+"____size);\n";
-            implementation += "for(u64 i = 0; i < "+inherit_buffer.to_string()+"____size; ++i) ((u64*)"+var.to_string()+"____typetag)[(i+"+offset+")/16] |=((u64*)"+prototype_buffer.to_string()+"____typetag)[(i+"+offset+")/16] << (((i+"+offset+")%16)*4);\n";
-            offset += "+"+prototype_buffer.to_string()+"____size";
+            implementation += Code(Variable("std::memcpy((unsigned char*)"), var+Variable("__contents"), Variable("+sizeof(u64)*("))+offset+Code(Variable("),  (unsigned char*)")+inherit_buffer+Variable("__contents"), Variable(", sizeof(u64)*"),inherit_buffer+Variable("__size"), Variable(");\n"));
+            implementation += Code(Variable("for(u64 i=0;i<"), inherit_buffer+Variable("__size"), Variable("; ++i) ((u64*)"), var+Variable("__typetag"), Variable(")[(i+"))+offset+Code(Variable(")/16] |=((u64*)"), prototype_buffer+Variable("__typetag"), Variable(")[(i+"))+offset+Code(Variable(")/16]<<(((i+"))+offset+Code(Variable(")%16)*4);\n"));
+            offset += Code(PLUS_VAR, prototype_buffer+Variable("__size"));
         }
 
 
@@ -607,8 +613,8 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         internalTypes.vars[var+Variable("__offset")] = types.vars[U64_VAR];
         internalTypes.vars[var+Variable("__contents")] = types.vars[PTR_VAR];
         internalTypes.vars[var+Variable("__typetag")] = types.vars[PTR_VAR];
-        finals[var+Variable("__contents")] += "if("+var.to_string()+"____contents) free(" + var.to_string() + "____contents);\n"+var.to_string()+"____contents = 0;\n";
-        finals[var+Variable("__typetag")] += "if("+var.to_string()+"____typetag) free(" + var.to_string() + "____typetag);\n"+var.to_string()+"____typetag = 0;\n";
+        finals[var+Variable("__contents")] += Code(token_if, var+Variable("__contents"), Variable(")free("), var+Variable("__contents"),Variable(");\n"), var+Variable("__contents"), ASSIGN_VAR, ZERO_VAR, SEMICOLON_VAR);
+        finals[var+Variable("__typetag")] += Code(token_if, var+Variable("__typetag"), Variable(")free("), var+Variable("__typetag"),Variable(");\n"), var+Variable("__typetag"), ASSIGN_VAR, ZERO_VAR, SEMICOLON_VAR);
         return next_var(imp, p, var, types);
     }
     if(types.contains(first_token)) {
@@ -631,9 +637,11 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             if(rhsType->name==BUFFER_VAR) imp->error(--p, "Cannot involve a buffer in operation "+first_token.to_string());
             if(rhsType->_is_primitive) unpacks.push_back(rhs);
             else if(type->is_service) {
-                string fail_var = create_temp();
-                implementation += "if("+rhs.to_string()+"__err) goto "+fail_var+";\n";
-                errors += fail_var+":\nprintf(\"Runtime error from "+rhsType->name.to_string()+" "+pretty_var(rhs.to_string())+"\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n";
+                Variable fail_var = create_temp();
+                static const Variable token_err1 = Variable(":\nprintf(\"Runtime error from ");
+                static const Variable token_err2 = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+                implementation +=Code(token_if, rhs+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
+                errors = errors+Code(fail_var, token_err1, rhsType->name, rhs, token_err2);
                 add_preample("#include <stdio.h>");
                 for(size_t i=1;i<rhsType->packs.size();++i) unpacks.push_back(rhs+rhsType->packs[i]);
             }

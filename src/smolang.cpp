@@ -28,6 +28,8 @@
 #define SMOL_PCLOSE pclose
 #endif
 
+string compiler = "g++";
+
 // Returns 0 on success, or nonzero (compiler exit code or error).
 int compile_from_stringstream_with_flags(
     std::stringstream& out,
@@ -35,7 +37,7 @@ int compile_from_stringstream_with_flags(
     const std::string& extra_flags // Pass "" if none
 ) {
     std::string cmd =
-        "g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 " +
+        compiler+" -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 " +
         extra_flags + " -o \"" + output_file + "\" -x c++ -";
 
     FILE* pipe = SMOL_POPEN(cmd.c_str(), "w");
@@ -107,7 +109,7 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
     }
 }
 
-// g++ src/smolang.cpp -o smol -O2 -std=c++23 -Wall
+// g++ src/smolang.cpp -o smol -O3 -std=c++23 -Wall
 // g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 // g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
@@ -362,6 +364,10 @@ int main(int argc, char* argv[]) {
             try {selected_task = parse_task(argv[++i]); } 
             catch (const invalid_argument& e) {cerr << "Error: " << e.what() << endl; return 1;}
         } 
+        else if (arg == "--back") {
+            if(i + 1 >= argc) {cerr << "Error: --back requires an argument (e.g., gcc, tcc, g++)" << endl;return 1;}
+            compiler = argv[++i];
+        } 
         else if(arg.rfind("--", 0) == 0) {cerr << "Unknown option: " << arg << endl; return 1;}
         else files.push_back(arg);
     }
@@ -474,7 +480,7 @@ int main(int argc, char* argv[]) {
             if(included[file].all_errors.size()) ERROR("Aborted due to the above errors\n");
             string globals = 
                 //"#undef _FORTIFY_SOURCE"
-                "#include <cstring>\n"
+                "#include <string.h>\n"
                 "#define __IS_i64 1\n"
                 "#define __IS_f64 2\n"
                 "#define __IS_u64 3\n"
@@ -484,25 +490,49 @@ int main(int argc, char* argv[]) {
                 "#define __IS_cstr 7\n"
                 "#define __IS_bool 8\n"
                 "#define __IS_nom 9\n"
+                "#ifdef __cplusplus\n"
                 "#define __NULL nullptr\n"
+                "#else\n"
+                "#include <stddef.h>\n"
+                "#define __NULL NULL\n"
+                "#endif\n"
                 "#define __USER__ERROR 1\n"
                 "#define __BUFFER__ERROR 2\n"
                 "#define __UNHANDLED__ERROR 3\n"
                 "#define __TRANSIENT(message)\n" // empty
                 "#define __builtin_assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)\n"
-                "using ptr = void*;\n"
-                "using errcode = int;\n"
-                "using cstr = const char*;\n"
-                "using u64 = unsigned long;\n"
-                "using i64 = long;\n"
-                "using nom = unsigned long;\n"
-                "using f64 = double;\n\n";
+                "#ifdef __cplusplus\n"
+                "#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L\n"
+                "#include <stdbool.h>\n"
+                "#else\n"
+                "#ifndef bool\n"
+                "typedef int bool;\n"
+                "#define true 1\n"
+                "#define false 0\n"
+                "#endif\n"
+                "#endif\n"
+                "#ifndef __GNUC__\n"
+                "#ifndef __builtin_unreachable\n"
+                "#define __builtin_unreachable();\n"
+                "#endif\n"
+                "#endif\n"
+                "typedef void* ptr;\n"
+                "typedef int errcode;\n"
+                "typedef const char* cstr;\n"
+                "typedef unsigned long u64;\n"
+                "typedef long i64;\n"
+                "typedef unsigned long nom;\n"
+                "typedef double f64;\n\n";
             //std::fstream out("__smolambda__temp__main.cpp");
             std::stringstream out("");
             // globals & define services
             out << globals;
+            unordered_set<string> preample;
             for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
-                for(const string& pre : service->preample) out << pre << "\n";
+                for(const string& pre : service->preample) preample.insert(pre);
+            }
+            for(const string& pre : preample) out << pre << "\n";
+            for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
                 out << "errcode "+service->raw_signature()+";\n";
             }
             // implement services
@@ -512,23 +542,30 @@ int main(int argc, char* argv[]) {
                 out << service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
                 //out << service->vardecl;
                 string finals_on_error = "";
+                string enref_at_end = "";
                 for(const auto& var : service->packs) {
                     service->coallesce_finals(var); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
-                    if(service->finals[var].size()) {
-                        finals_on_error += service->finals[var];
+                    if(service->finals[var].exists()) {
+                        finals_on_error += service->finals[var].to_string();
                         finals_on_error += var.to_string()+"=0;\n";
-                        service->finals[var] = "";
+                        service->finals[var] = Code();
+                    }
+                    if(var!=ERR_VAR) {
+                        out << service->internalTypes.vars[var]->name.to_string()<<" "<<var.to_string() << "= *__ref__" << var.to_string() << ";\n";
+                        enref_at_end += "*__ref__"+var.to_string()+"="+var.to_string()+";\n";
                     }
                     service->internalTypes.vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
                 for(const auto& arg : service->args) {
                     if(arg.mut) {
                         service->coallesce_finals(arg.name); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
-                        if(service->finals[arg.name].size()) {
-                            finals_on_error += service->finals[arg.name];
+                        if(service->finals[arg.name].exists()) {
+                            finals_on_error += service->finals[arg.name].to_string();
                             finals_on_error += arg.name.to_string()+"=0;\n";
-                            service->finals[arg.name] = "";
+                            service->finals[arg.name] = Code();
                         }
+                        out << arg.type->name.to_string()<<" "<<arg.name.to_string() << "= *__ref__" << arg.name.to_string() << ";\n";
+                        enref_at_end += "*__ref__"+arg.name.to_string()+"="+arg.name.to_string()+";\n";
                     }
                     service->internalTypes.vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
@@ -536,7 +573,7 @@ int main(int argc, char* argv[]) {
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
                 out << "goto __return;\n"; // skip error handling block that resides at the end of the service
-                if(service->errors.size()) {
+                if(service->errors.exists()) {
                     out << "\n// ERROR HANDLING\n";
                     //out <<"__error:\n"; // error handling (each of those runs goto ____finally)
                     out << service->errors;
@@ -546,11 +583,13 @@ int main(int argc, char* argv[]) {
                 out << finals_on_error;
                 out << "\n// HOTPATH SKIPS TO HERE\n";
                 out << "__return:\n"; // resource deallocation
-                for(const auto& final : service->finals) if(final.second.size()) out << final.second;
+                for(const auto& final : service->finals) if(final.second.exists()) out << final.second;
+                out << enref_at_end;
                 out << "return __result__errocode;\n";
                 out << "}\n\n";
             }
             //out.close();
+            //cout << out.str() << "\n";
             for(const auto& it : included[file].vars) {
                 for(const auto& opt : it.second->options) opt->internalTypes.vars.clear();
                 it.second->internalTypes.vars.clear();

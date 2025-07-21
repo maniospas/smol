@@ -4,7 +4,7 @@
 @about "Standard library wrapping of C system calls."
 
 smo system(cstr command)
-    @head{#include <cstdlib>}
+    @head{#include <stdlib.h>}
     @body{u64 result = system((char*)command);}
     if result!=0 -> fail("System call failed")
     --
