@@ -36,6 +36,8 @@ const Variable EMPTY_VAR = Variable("");
 const Variable ZERO_VAR = Variable("0");
 const Variable ASSIGN_VAR = Variable("=");
 const Variable PLUS_VAR = Variable("+");
+const Variable MUL_VAR = Variable("*");
+const Variable REF_VAR = Variable("&");
 const Variable MINUS_VAR = Variable("-");
 const Variable GT_VAR = Variable(">");
 const Variable NOM_VAR = Variable("nom");

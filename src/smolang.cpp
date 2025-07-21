@@ -542,12 +542,17 @@ int main(int argc, char* argv[]) {
                 out << service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
                 //out << service->vardecl;
                 string finals_on_error = "";
+                string enref_at_end = "";
                 for(const auto& var : service->packs) {
                     service->coallesce_finals(var); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
                     if(service->finals[var].exists()) {
                         finals_on_error += service->finals[var].to_string();
                         finals_on_error += var.to_string()+"=0;\n";
                         service->finals[var] = Code();
+                    }
+                    if(var!=ERR_VAR) {
+                        out << service->internalTypes.vars[var]->name.to_string()<<" "<<var.to_string() << "= *__ref__" << var.to_string() << ";\n";
+                        enref_at_end += "*__ref__"+var.to_string()+"="+var.to_string()+";\n";
                     }
                     service->internalTypes.vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
@@ -559,6 +564,8 @@ int main(int argc, char* argv[]) {
                             finals_on_error += arg.name.to_string()+"=0;\n";
                             service->finals[arg.name] = Code();
                         }
+                        out << arg.type->name.to_string()<<" "<<arg.name.to_string() << "= *__ref__" << arg.name.to_string() << ";\n";
+                        enref_at_end += "*__ref__"+arg.name.to_string()+"="+arg.name.to_string()+";\n";
                     }
                     service->internalTypes.vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
@@ -577,10 +584,12 @@ int main(int argc, char* argv[]) {
                 out << "\n// HOTPATH SKIPS TO HERE\n";
                 out << "__return:\n"; // resource deallocation
                 for(const auto& final : service->finals) if(final.second.exists()) out << final.second;
+                out << enref_at_end;
                 out << "return __result__errocode;\n";
                 out << "}\n\n";
             }
             //out.close();
+            //cout << out.str() << "\n";
             for(const auto& it : included[file].vars) {
                 for(const auto& opt : it.second->options) opt->internalTypes.vars.clear();
                 it.second->internalTypes.vars.clear();
