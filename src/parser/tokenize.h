@@ -13,6 +13,32 @@
 #include <sstream>
 using namespace std;
 
+inline size_t parse_integer_suffix(const string& line, size_t i) {
+    size_t start = i;
+    bool found_u = false;
+    int l_count = 0;
+
+    // Try to match up to three suffix chars
+    for (int n = 0; n < 3 && i < line.size(); ++n) {
+        char c = line[i];
+        if ((c == 'u' || c == 'U') && !found_u) {
+            found_u = true;
+            ++i;
+        } else if ((c == 'l' || c == 'L') && l_count < 2) {
+            ++l_count;
+            ++i;
+        } else {
+            break;
+        }
+    }
+
+    // Accept if at least one valid suffix was found and
+    // total suffix length equals i - start (no extra chars)
+    // (actually, we can always accept up to here; tokenizer only calls this at number end)
+    return i;
+}
+
+
 class Token;
 class Import {
 public:
@@ -222,15 +248,61 @@ void Import::error(size_t pos, const string& message) {
                 i++; col++;
                 continue;
             }
-            else if(isdigit(line[i]) || (line[i] == '.' && i + 1 < line.size() && isdigit(line[i + 1]))) {
+            else if (isdigit(line[i]) || (line[i] == '.' && i + 1 < line.size() && isdigit(line[i + 1]))) {
+                size_t number_start = i;
+                size_t number_col = col;
+                // Handle hex, octal, binary literals
+                if (line[i] == '0' && i + 1 < line.size()) {
+                    if (line[i + 1] == 'x' || line[i + 1] == 'X') {
+                        i += 2; col += 2;
+                        size_t hex_start = i;
+                        while (i < line.size() && isxdigit(line[i])) { i++; col++; }
+                        if (hex_start == i)
+                            ERROR("Invalid hexadecimal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
+                        // <<<<<< ADD THIS >>>>>
+                        size_t suffix_end = parse_integer_suffix(line, i);
+                        col += (suffix_end - i);
+                        i = suffix_end;
+                        tokens.emplace_back(line.substr(number_start, i - number_start), line_num, number_col, main_file);
+                        continue;
+                    } else if (line[i + 1] == 'b' || line[i + 1] == 'B') {
+                        i += 2; col += 2;
+                        size_t bin_start = i;
+                        while (i < line.size() && (line[i] == '0' || line[i] == '1')) { i++; col++; }
+                        if (bin_start == i)
+                            ERROR("Invalid binary number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
+                        size_t suffix_end = parse_integer_suffix(line, i);
+                        col += (suffix_end - i);
+                        i = suffix_end;
+                        tokens.emplace_back(line.substr(number_start, i - number_start), line_num, number_col, main_file);
+                        continue;
+                    } else if (line[i + 1] == 'o' || line[i + 1] == 'O') {
+                        i += 2; col += 2;
+                        size_t oct_start = i;
+                        while (i < line.size() && (line[i] >= '0' && line[i] <= '7')) { i++; col++; }
+                        if (oct_start == i)
+                            ERROR("Invalid octal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
+                        size_t suffix_end = parse_integer_suffix(line, i);
+                        col += (suffix_end - i);
+                        i = suffix_end;
+                        tokens.emplace_back(line.substr(number_start, i - number_start), line_num, number_col, main_file);
+                        continue;
+                    }
+                }
+                // Decimal/floating point
                 bool has_dot = false;
                 if(line[i] == '.') has_dot = true;
                 while(i < line.size() && (isdigit(line[i]) || (line[i] == '.' && !has_dot))) {
                     if(line[i] == '.') has_dot = true;
                     i++; col++;
                 }
-                tokens.emplace_back(line.substr(start, i - start), line_num, start_col, main_file);
+                // Accept integer suffixes (not for floats, but safe to include for now)
+                size_t suffix_end = parse_integer_suffix(line, i);
+                col += (suffix_end - i);
+                i = suffix_end;
+                tokens.emplace_back(line.substr(number_start, i - number_start), line_num, number_col, main_file);
             }
+
             else {
                 while(i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) {i++; col++;}
                 if(start < i) {

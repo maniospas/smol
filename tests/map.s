@@ -3,7 +3,7 @@
 
 
 service main() 
-    on Heap:allocate_arena(10000) // create an arena, automatically add as first argument
+    on Stack:allocate_arena(10000) // create an arena, automatically add as first argument
         s = "123":str:copy
         &map = Map(100, str, u64) // flatmap with 100 slots
         --

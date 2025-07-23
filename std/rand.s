@@ -35,11 +35,10 @@ smo __rotl(u64 x, u64 k)
     -> z
 
 smo __splitmix64(u64& x)
-    @head{#include "std/xoshiroutils.cpp"}
     @body {
-        u64 z = (x += __splitmix64__0);
-        z = (z ^ (z >> 30)) * __splitmix64__1;
-        z = (z ^ (z >> 27)) * __splitmix64__2;
+        u64 z = (x += 0x9E3779B97F4A7C15ULL);
+        z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+        z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
         z = z ^ (z >> 31);
     }
     -> z
@@ -57,8 +56,13 @@ smo Rand(u64 seed)
     -> s0,s1,s2,s3
 
 smo Rand() 
-    @head{#include <chrono>}
-    @body {u64 seed = (u64)std::chrono::high_resolution_clock::now().time_since_epoch().count();}
+    @head{#include <time.h>}
+    @head{#include <stdlib.h>}
+    @body {
+        ptr ts = (struct timespec *)alloca(sizeof(struct timespec));
+        clock_gettime(CLOCK_REALTIME, (struct timespec*)ts);
+        u64 seed = (u64)((struct timespec*)ts)->tv_sec * (u64)1000000000 + ((struct timespec*)ts)->tv_nsec;
+    }
     -> Rand(seed)
 
 smo next(Rand &self)
@@ -72,6 +76,6 @@ smo next(Rand &self)
         self__s2 ^= t;
     }
     self.s3 = __rotl(self.s3, 45)
-    @body{f64 value = static_cast<f64>(result >> 11) / static_cast<f64>(static_cast<unsigned long long>(1) << 53);}
+    @body{f64 value = ((f64)(result >> 11)) / ((f64)((unsigned long long)(1) << 53));}
     -> value
 

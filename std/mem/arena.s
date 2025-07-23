@@ -56,6 +56,9 @@ smo Dynamic(nom)
         } 
     }
     -> @new, acquired, size, allocated
+
+smo allocate_dynamic(Heap) -> nom:Dynamic
+smo allocate_dynamic(Stack) -> nom:Stack
     
 smo allocate(Dynamic& self, u64 size, Primitive)
     @head{#include <stdlib.h>}

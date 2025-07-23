@@ -42,21 +42,22 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
                 else imp->error(pos, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
             }
             else {
+                string prev_nextnext = next;
                 if(is_symbol_or_digit(next)) while(is_symbol_or_digit(nextnext) && nextnext!="{" && nextnext!="}" && p<imp->size()-1) {
                     next += nextnext;
                     ++p;
                     nextnext = imp->at(p);
                 }
                 if(next=="goto") internalTypes.vars[nextnext] = types.vars[LABEL_VAR];
-                implementation +=Variable(next);
+                implementation += move(Variable(next));
             }
         }
-        implementation = implementation + Variable(ENDL_VAR);
+        implementation += move(Variable(ENDL_VAR));
     }
     else if(next=="noshare") {
         static const Variable token_transient_end = Variable(")\n");
         next = imp->at(p++);
-        this->finals[next] = this->finals[next]+Code(TRANSIENT_VAR,next,token_transient_end);
+        this->finals[next] = this->finals[next]+Code(TRANSIENT_VAR,move(Variable(next)),move(token_transient_end));
     }
     else if(next=="finally") {
         if(!imp->allow_unsafe) imp->error(--p, "@finally is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
@@ -89,11 +90,11 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
                     nextnext = imp->at(p);
                 }
                 if(next=="goto") internalTypes.vars[nextnext] = types.vars[LABEL_VAR];
-                finals = finals+Code(Variable(next));
+                finals += Code(move(Variable(next)));
             }
         }
-        finals = finals+Code(ENDL_VAR);
-        this->finals[conditioned] = this->finals[conditioned]+finals;
+        finals += Code(ENDL_VAR);
+        this->finals[conditioned] += finals;
     }
     else if(next=="fail") {
         if(!imp->allow_unsafe) imp->error(--p, "@fail is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
@@ -123,7 +124,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
                     ++p;
                     nextnext = imp->at(p);
                 }
-                errors = errors+Code(Variable(next));
+                errors += Code(move(Variable(next)));
             }
         }
         static const Variable token_error = Variable("\n__result__errocode=__USER__ERROR;\ngoto __failsafe;\n");

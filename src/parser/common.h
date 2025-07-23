@@ -101,6 +101,22 @@ bool is_symbol(const std::string& s) {return s.size() == 1 && std::ispunct(stati
 
 
 bool is_symbol_or_digit(const std::string& s) {return s.size() == 1 && (std::ispunct(static_cast<unsigned char>(s[0])) || std::isdigit(static_cast<unsigned char>(s[0])));}
+bool is_digits(const std::string& s) {
+    for (char ch : s) {
+        if (!std::isdigit(static_cast<unsigned char>(ch))) {
+            return false;
+        }
+    }
+    return !s.empty();
+}
+bool is_digits_part(const std::string& s) {
+    for (char ch : s) {
+        if (!std::isdigit(static_cast<unsigned char>(ch)) && ch!='X' && ch!='x' && ch!='U' && ch!='u' && ch!='L' && ch!='l' && ch!='e' && ch!='E') {
+            return false;
+        }
+    }
+    return !s.empty();
+}
 
 
 #endif // COMMON_H
