@@ -37,7 +37,7 @@ int compile_from_stringstream_with_flags(
     const std::string& extra_flags // Pass "" if none
 ) {
     std::string cmd =
-        compiler+" -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 " +
+        compiler+" -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 -m64 " +
         extra_flags + " -o \"" + output_file + "\" -x c++ -";
 
     FILE* pipe = SMOL_POPEN(cmd.c_str(), "w");
@@ -63,6 +63,13 @@ int compile_from_stringstream_with_flags(
 #endif
 }
 
+#ifdef _WIN32
+    #define EXEC_EXT ".exe"
+    #define EXEC_PREFIX ".\\"
+#else
+    #define EXEC_EXT ""
+    #define EXEC_PREFIX "./"
+#endif
 
 std::string html_escape(const std::string& code) {
     std::string out;
@@ -109,7 +116,7 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
     }
 }
 
-// g++ src/smolang.cpp -o smol -O3 -std=c++23 -Wall
+// g++ src/smolang.cpp -o smol -O3 -std=c++23 -Wall -m64
 // g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 // g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
@@ -516,12 +523,13 @@ int main(int argc, char* argv[]) {
                 "#define __builtin_unreachable();\n"
                 "#endif\n"
                 "#endif\n"
+                "#include <stdint.h>\n"
                 "typedef void* ptr;\n"
                 "typedef int errcode;\n"
                 "typedef const char* cstr;\n"
-                "typedef unsigned long u64;\n"
+                "typedef uint64_t u64;\n"
                 "typedef long i64;\n"
-                "typedef unsigned long nom;\n"
+                "typedef uint64_t nom;\n"
                 "typedef double f64;\n\n";
             //std::fstream out("__smolambda__temp__main.cpp");
             std::stringstream out("");
@@ -605,7 +613,8 @@ int main(int argc, char* argv[]) {
            if(selected_task == Task::Run) {
                 int rc = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "");
                 if (rc != 0) return rc;
-                int run_status = system(("./" + file.substr(0, file.size()-2)).c_str());
+                cout << (EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str() << "\n";
+                int run_status = system((EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str());
                 if (run_status != 0) return run_status;
             } else if(selected_task == Task::Assemble) {
                 int rc = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-S -masm=intel");
