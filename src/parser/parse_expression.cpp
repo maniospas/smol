@@ -27,6 +27,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     type->number_of_calls++;
     for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
         if(!type) imp->error(--p, "Internal error: obained a null option for "+previousType->name.to_string());
+        if(type->unresolved_options) continue;
         try {
             //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
             size_t type_args = type->not_primitive()?type->args.size():1;
@@ -91,6 +92,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         // COPY OF ABOVE CODE HERE TO RETRY
         for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
             if(!type) imp->error(--p, "Internal error: obained a null option for "+previousType->name.to_string());
+            if(type->unresolved_options) continue;
             try {
                 //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
                 size_t type_args = type->not_primitive()?type->args.size():1;
@@ -662,7 +664,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             int highest_choice_power = 0;
             if(parametric_types.find(type->name)!=parametric_types.end()) type = parametric_types[type->name];
             string candidates("");
-            for(const auto& option : type->options) {
+            for(const auto& option : type->get_options(types)) {
                 if(option->choice_power>highest_choice_power) {
                     highest_choice_power = option->choice_power;
                     num_choices = 0;
@@ -703,7 +705,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             int num_choices = 0;
             int highest_choice_power = 0;
             string candidates("");
-            for(const auto& option : type->options) {
+            for(const auto& option : type->get_options(types)) {
                 if(option->choice_power>highest_choice_power) {
                     highest_choice_power = option->choice_power;
                     num_choices = 0;

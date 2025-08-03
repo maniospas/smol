@@ -188,8 +188,16 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     else if(types.vars[name]==impl) {}
                     else {
                         auto def = make_shared<Def>(types);
-                        for(const auto& option : types.vars[name]->options) def->options.insert(option);
-                        for(const auto& option : impl->options) def->options.insert(option);
+                        for(const auto& option : types.vars[name]->options) {
+                            bool found = false;
+                            for(const auto& it : def->options) if(it==option) {found=true;break;}
+                            if(!found) def->options.push_back(option);
+                        }
+                        for(const auto& option : impl->options) {
+                            bool found = false;
+                            for(const auto& it : def->options) if(it==option) {found=true;break;}
+                            if(!found) def->options.push_back(option);
+                        }
                         all_types.push_back(def);
                         def->imp = imp;
                         def->lazy_compile = true;//treat as union
@@ -237,14 +245,20 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     types.vars[def->name]->pos = p;
                     types.vars[def->name]->lazy_compile = true;
                     types.vars[def->name]->name = prev->name;
-                    for(const auto& d : prev->options) types.vars[def->name]->options.insert(d);
+                    for(const auto& d : prev->options) {
+                        bool found = false;
+                        for(const auto& it : types.vars[def->name]->options) if(it==d) {found=true;break;}
+                        if(!found) types.vars[def->name]->options.push_back(d);
+                    }
                 }
 
                 if(def->lazy_compile) {
                     Def::log_depth = 0;
                     for(const auto& d : lazy_options) {
                         if(d->lazy_compile) imp->error(--p, "Internal error: failed to compile "+d->signature(types));
-                        types.vars[def->name]->options.insert(d);
+                        bool found = false;
+                        for(const auto& it : types.vars[def->name]->options) if(it==d) {found=true;break;}
+                        if(!found) types.vars[def->name]->options.push_back(d);
                     }
                     p--;
                     while(p<imp->size()-1) {
@@ -256,7 +270,7 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     }
                     --p;
                 }
-                else types.vars[def->name]->options.insert(def);
+                else types.vars[def->name]->options.push_back(def);
             }
             else if(imp->at(p)=="union") {
                 string name = imp->at(++p);
@@ -276,7 +290,9 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     if(found_type==types.vars.end()) imp->error(--p, "Undefined runtype");
                     for(const Type& option : found_type->second->options) {
                         if(option->lazy_compile) imp->error(--p, "Internal error: failed to compile runtype "+option->signature(types));
-                        def->options.insert(option);
+                        bool found = false;
+                        for(const auto& it : def->options) if(it==option) {found=true;break;}
+                        if(!found) def->options.push_back(option);
                     }
                     next = imp->at(p++);
                     if(next==")") break;
@@ -352,7 +368,7 @@ int main(int argc, char* argv[]) {
     builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("__size")] = builtins.vars[U64_VAR];
     builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("__offset")] = builtins.vars[U64_VAR];
     builtins.vars[BUFFER_VAR]->_is_primitive = false;
-    for(const auto& it : builtins.vars) it.second->options.insert(it.second);
+    for(const auto& it : builtins.vars) it.second->options.push_back(it.second);
     for(const auto& it : builtins.vars) all_types.push_back(it.second);
 
 

@@ -102,7 +102,27 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
 }
 
 void Def::print_depth() {for(int i=0;i<log_depth;++i) cout<<"| "; }
-unordered_set<Type> Def::get_options(Types& types) {return options;}
+vector<Type>& Def::get_options(const Types& types) { 
+    // //if(log_type_resolution) {print_depth(); cout<< name <<" "<<this<<"\n";}
+    // log_depth += 1;
+    // for(auto& def : options) {
+    //     if(def.get()==this) break; // refrence only previously declared versions
+    //     if(def->unresolved_options && !def->has_tried_to_resolve_before) {
+    //         def->has_tried_to_resolve_before = true;
+    //         //try {
+    //             if(!def->complete_option_resolution(types)) continue;
+    //         /*}
+    //         catch(std::runtime_error& err) {
+    //             if(err. continue;
+    //             throw err;
+    //         }*/
+    //         def->unresolved_options = false;
+    //     }
+    // }
+    // log_depth -= 1;
+    // if(options.size()==0) imp->error(pos, "Failed to resolve to any valid version\nCheck your `with` statements that have no `else`\nor if you have runtypes that serve as constructors of others with the same name or in the same union");
+    return options;
+}
 void Def::signature_until_position(vector<unordered_map<Variable, Type>>& results, const vector<Variable>& parametric_names, size_t i, const unordered_map<Variable, Type>& current, const Types& types) {
     unordered_map<Variable, Type> next(current);
     if(i>=parametric_names.size()) {results.push_back(next);return;}
@@ -110,79 +130,143 @@ void Def::signature_until_position(vector<unordered_map<Variable, Type>>& result
     Variable parametric_name = parametric_names[i];
     //cout << "for name "<<parametric_name<<" will consider "<<types.vars.find(parametric_name)->second->options.size() << " options\n";
     if(current.find(parametric_name)!=current.end()) return signature_until_position(results, parametric_names, i+1, current, types);
-    auto& arg_options = types.vars.find(parametric_name)->second->options;
+    auto& arg_options = types.vars.find(parametric_name)->second->get_options(types);
+    bool progressed = false;
     for(const Type& option : arg_options) {
-        if(option->alias_for.exists() && arg_options.find(option->internalTypes.vars[option->alias_for])!=arg_options.end()) continue;
+        if(option->alias_for.exists()) {
+            bool found = false;
+            for(const auto& it : arg_options) if(it==option->internalTypes.vars[option->alias_for]) {found = true;break;}
+            if(found) continue;
+        }
         next[parametric_name] = option;
         signature_until_position(results, parametric_names, i+1, next, types);
+        progressed = true;
     }
+    if(!progressed) signature_until_position(results, parametric_names, i+1, next, types);
 }
+
+
+bool Def::start_option_resolution(const Types& _types) {
+    has_tried_to_resolve_before = false;
+    unresolved_options = true;
+    Types types;
+    types.vars.reserve(_types.vars.size());
+    types.alignment_labels.reserve(_types.alignment_labels.size());
+    types.reverse_alignment_labels.reserve(_types.reverse_alignment_labels.size());
+    for(const auto& it : _types.vars) types.vars[it.first] = it.second;
+    for(const auto& it : _types.alignment_labels) types.alignment_labels[it.first] = it.second;
+    for(const auto& it : _types.reverse_alignment_labels) types.reverse_alignment_labels[it.first] = it.second;
+
+    double power = 0;
+    for(const auto& it : this->retrievable_parameters) {
+        power += (1+it.second->choice_power)*0.5;
+        if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first.to_string());
+        if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first.to_string());
+        //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
+        if(it.second->lazy_compile) imp->error(pos, "Failed to previously compile type: "+types.vars[it.first]->signature(types));
+        if(!types.vars[it.first]->lazy_compile && types.vars[it.first]!=it.second) {
+            power = -1;
+            //if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
+            break;
+        }
+        types.vars[it.first] = it.second;
+    }
+
+    log_depth += 1;
+    size_t p = pos;
+    try {parse_signature(imp, p, types);}
+    catch(const runtime_error& e) {
+        string what = e.what();
+        log_depth -= 1;
+        const std::string expected = "\033[33m`with` with no `else`";
+        if(what.compare(0, expected.size(), expected) != 0) throw e;
+        return false;
+    }
+    log_depth -= 1;
+    if(lazy_compile) imp->error(pos, "Failed to resolve all dependent types");
+    choice_power += power;
+    if(log_type_resolution) {
+        print_depth();cout << signature(types) <<"\n";
+        for(const auto& it : retrievable_parameters) {print_depth();cout<<"- "<<pretty_runtype(it.first.to_string())<<" is "<<it.second->signature(types)<<"\n";}
+    }
+    unresolved_options = false;
+    return true;
+}
+
+bool Def::complete_option_resolution(const Types& _types) {
+    if(has_tried_to_resolve_before) return !unresolved_options;
+    has_tried_to_resolve_before = true;
+    unresolved_options = true;
+    Types types;
+    types.vars.reserve(_types.vars.size());
+    types.alignment_labels.reserve(_types.alignment_labels.size());
+    types.reverse_alignment_labels.reserve(_types.reverse_alignment_labels.size());
+    for(const auto& it : _types.vars) types.vars[it.first] = it.second;
+    for(const auto& it : _types.alignment_labels) types.alignment_labels[it.first] = it.second;
+    for(const auto& it : _types.reverse_alignment_labels) types.reverse_alignment_labels[it.first] = it.second;
+
+    double power = 0;
+    for(const auto& it : this->retrievable_parameters) {
+        power += (1+it.second->choice_power)*0.5;
+        if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first.to_string());
+        if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first.to_string());
+        //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
+        if(it.second->lazy_compile) imp->error(pos, "Failed to previously compile type: "+types.vars[it.first]->signature(types));
+        if(!types.vars[it.first]->lazy_compile && types.vars[it.first]!=it.second) {
+            power = -1;
+            //if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
+            break;
+        }
+        types.vars[it.first] = it.second;
+    }
+
+    log_depth += 1;
+    size_t p = pos;
+    try {parse(imp, p, types);}
+    catch(const runtime_error& e) {
+        string what = e.what();
+        log_depth -= 1;
+        const std::string expected = "\033[33m`with` with no `else`";
+        if(what.compare(0, expected.size(), expected) != 0) throw e;
+        //if(log_type_resolution) {print_depth();cout << "Skipped: caught an error using `with` without `else`\n";}
+        return false;
+    }
+    log_depth -= 1;
+    //if(args.size() && args[0].type && args[0].type->name=="nom") def->alignments[def->args[0].name] = types.alignment_labels[def.get()];
+    if(lazy_compile) imp->error(pos, "Failed to resolve all dependent types");
+    choice_power += power;
+    if(log_type_resolution) {
+        print_depth();cout << signature(types) <<"\n";
+        for(const auto& it : retrievable_parameters) {print_depth();cout<<"- "<<pretty_runtype(it.first.to_string())<<" is "<<it.second->signature(types)<<"\n";}
+    }
+    unresolved_options = false;
+    return true;
+}
+
 
 vector<Type> Def::get_lazy_options(Types& _types) {
     // store prev state
-    if(log_type_resolution) {print_depth(); cout<< signature(_types)<<" "<<this<<"\n";}
-    log_depth += 1;
 
     vector<Variable> parametric_names;
     for(const auto& it : parametric_types) {parametric_names.push_back(it.first);}
     vector<unordered_map<Variable, Type>> argoptions;
     signature_until_position(argoptions, parametric_names, 0, unordered_map<Variable, Type>(), _types);
 
-    vector<Type> newOptions;
     for(const unordered_map<Variable, Type>& argoption : argoptions) {
-        // create a copy of types
-        Types types;
-        types.vars.reserve(_types.vars.size());
-        types.alignment_labels.reserve(_types.alignment_labels.size());
-        types.reverse_alignment_labels.reserve(_types.reverse_alignment_labels.size());
-        for(const auto& it : _types.vars) types.vars[it.first] = it.second;
-        for(const auto& it : _types.alignment_labels) types.alignment_labels[it.first] = it.second;
-        for(const auto& it : _types.reverse_alignment_labels) types.reverse_alignment_labels[it.first] = it.second;
-
-        double power = 0;
-        for(const auto& it : argoption) {
-            power += (1+it.second->choice_power)*0.5;
-            if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first.to_string());
-            if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first.to_string());
-            //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
-            if(it.second->lazy_compile) imp->error(pos, "Failed to previously compile type: "+types.vars[it.first]->signature(_types));
-            if(!types.vars[it.first]->lazy_compile && types.vars[it.first]!=it.second) {
-                power = -1;
-                //if(log_type_resolution) {print_depth(); cout<<"Incompatibility will skip this combination (this is ok) : "<<it.second->name<<"\n";}
-                break;
-            }
-            types.vars[it.first] = it.second;
-        }
-        if(power<0) continue;
-        size_t p = pos;
-        auto def = make_shared<Def>(types);
+        auto def = make_shared<Def>(_types);
         def->retrievable_parameters = argoption;
-        log_depth += 1;
-        try {def->parse(imp, p, types);}
-        catch(const runtime_error& e) {
-            string what = e.what();
-            log_depth -= 1;
-            const std::string expected = "\033[33m`with` with no `else`";
-            if(what.compare(0, expected.size(), expected) != 0) throw e;
-            //if(log_type_resolution) {print_depth();cout << "Skipped: caught an error using `with` without `else`\n";}
-            continue;
-        }
+        def->pos = pos;
+        def->imp = imp;
+        def->name = name;
+        def->has_tried_to_resolve_before = false;
+        //def->start_option_resolution(_types);
+        if(!def->complete_option_resolution(_types)) continue;
+        options.push_back(def);
         all_types.push_back(def);
-        log_depth -= 1;
-        //if(args.size() && args[0].type && args[0].type->name=="nom") def->alignments[def->args[0].name] = types.alignment_labels[def.get()];
-        if(def->lazy_compile) def->imp->error(def->pos, "Failed resolved all dependent types");
-        def->choice_power += power;
-        newOptions.push_back(def);
-        if(log_type_resolution) {
-            print_depth();cout << def->signature(types) <<"\n";
-            for(const auto& it : argoption) {print_depth();cout<<"- "<<pretty_runtype(it.first.to_string())<<" is "<<it.second->signature(_types)<<"\n";}
-        }
-
         // get back the alignment labels to the real type
-        _types.alignment_labels[def.get()] = types.alignment_labels[def.get()];
-        _types.reverse_alignment_labels[_types.alignment_labels[def.get()]] = def.get();
+        //_types.alignment_labels[def.get()] = types.alignment_labels[def.get()];
+        //_types.reverse_alignment_labels[_types.alignment_labels[def.get()]] = def.get();
     }
-    log_depth -= 1;
-    if(newOptions.size()==0) imp->error(pos, "Failed to resolve to any valid version\nCheck your `with` statements that have no `else`\nor if you have runtypes that serve as constructors of others with the same name or in the same union");
-    return newOptions;
+    if(options.size()==0) imp->error(pos, "Failed to resolve to any valid version\nCheck your `with` statements that have no `else`\nor if you have runtypes that serve as constructors of others with the same name or in the same union");
+    return options;
 }

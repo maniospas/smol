@@ -117,6 +117,8 @@ class Def {
     Variable call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, const Variable& inherit_buffer, Types& types);
     Variable parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry=EMPTY_VAR);
     unordered_map<Variable, Type> retrievable_parameters;
+    bool complete_option_resolution(const Types& _types);
+    bool start_option_resolution(const Types& _types);
     bool can_mutate(const Variable& _text) {
         string text = _text.to_string();
         if(mutables.find(text)!=mutables.end()) return true;
@@ -136,9 +138,11 @@ public:
     bool _is_primitive;
     bool lazy_compile;
     bool noborrow;
+    bool unresolved_options;
+    bool has_tried_to_resolve_before;
     static bool debug;
     static bool export_docs;
-    unordered_set<Type> options;
+    vector<Type> options;
     vector<Arg> args;
     shared_ptr<Import> imp;
     Memory internalTypes;
@@ -157,7 +161,7 @@ public:
     unordered_set<Variable> mutables;
     vector<Variable> uplifting_targets;
     vector<bool> uplifiting_is_loop;
-    unordered_set<Type> get_options(Types& types);
+    vector<Type>& get_options(const Types& types);
     vector<Type> get_lazy_options(Types& types);
     unordered_set<Variable> type_trackers;
     bool has_returned;
@@ -186,8 +190,8 @@ public:
     }
 
 
-    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), name(builtin), number_of_calls(0), has_returned(false) {}
-    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), name(""), number_of_calls(0), has_returned(false) {
+    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), name(builtin), number_of_calls(0), has_returned(false) {}
+    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), name(""), number_of_calls(0), has_returned(false) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;

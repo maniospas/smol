@@ -90,7 +90,7 @@ smo slice(String self, u64 from, u64 to)
         char first = from==to?'\0':((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
     }
     -> nom:str(contents, to-from, first, s.contents)
-smo slice(String self, u64 from) -> slice(self, from, 0)
+smo slice(String self, u64 from) -> self:slice(from, 0)
 
 union IndependentString(String)
 smo eq(String _x, IndependentString _y)

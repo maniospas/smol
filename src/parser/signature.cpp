@@ -14,7 +14,7 @@ string Def::signature_like(Types& types, vector<Variable> args) {
         if(arg_name.size()) ret += " \033[38m"+arg_name;
         ret += "\033[32m";
     }
-    return "\033[32m("+ret+")";
+    return "\033[32m("+ret+")\033[0m";
 }
 
 string Def::signature(Types& types) {
@@ -37,8 +37,8 @@ string Def::signature(Types& types) {
         if(arg_name.size()) ret += " \033[38m"+arg_name;
         ret += "\033[32m";
     }
-    if(lazy_compile) return "\033[32m:"+name.to_string()+"\033[0m("+ret+") \033[31munresolved\033[0m with "+to_string(options.size())+" options";
-    return "\033[32m"+name.to_string()+"\033[0m("+ret+")";
+    if(lazy_compile) return "\033[32m:"+name.to_string()+"(\033[0m"+ret+") \033[31munresolved\033[0m with "+to_string(options.size())+" options";
+    return "\033[32m"+name.to_string()+"(\033[0m"+ret+")\033[0m";
     //if(lazy_compile) return "\033[32m:"+name+"\033[0m("+ret+")->\033[31munresolved (overload or union)\033[0m";
     //return "\033[32m:"+name+"\033[0m("+ret+")->"+pretty_runtype(name)+signature_like(types, packs)+"";
 }
