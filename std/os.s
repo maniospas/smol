@@ -5,12 +5,11 @@
 @about Process     "A running process whose stdout can be read as a file-like object."
 @about open        "Opens a Process given a command string. This starts the process and lets you read its output."
 @about to_end      "Reads all remaining output from the process without returning it, moving to EOF."
-@about to_start    "Closes and restarts the process with the same command."
 @about close       "Closes the process, terminating the pipe and freeing resources."
 @about next_chunk  "Reads the next chunk of process output into a provided buffer."
 @about next_line   "Reads the next line of process output into a provided buffer."
 
-smo Process(nom, ptr contents, cstr command)
+smo Process(nom, ptr contents)
     @noborrow
     -> @new
 
@@ -27,7 +26,7 @@ smo open(Process&, cstr command)
     @body{ptr contents = (ptr)popen((char*)command, "r");}
     if contents:exists:not @fail{printf("Failed to start process");} --
     @finally contents { if(contents) pclose((FILE*)contents); contents = 0; }
-    -> nom:Process(contents, command)
+    -> nom:Process(contents)
 
 smo to_end(Process &p)
     // pclose defined by Process anyway
@@ -112,3 +111,7 @@ smo system(cstr command)
 smo system(str command) 
     system(Stack:copy(command).memory:cstr)
     --
+
+smo open(Process&, str command)
+    -> Process:open(Stack:copy(command).memory:cstr)
+

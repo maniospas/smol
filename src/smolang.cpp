@@ -41,7 +41,7 @@ int compile_from_stringstream_with_flags(
     const std::string& extra_flags // Pass "" if none
 ) {
     std::string cmd =
-        compiler+" -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 -m64 " +
+        compiler+" -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 -m64 -fpermissive " +
         extra_flags + " -o \"" + output_file + "\" -x c++ -";
 
     FILE* pipe = SMOL_POPEN(cmd.c_str(), "w");

@@ -1,12 +1,21 @@
 @include std.builtins
 @include std.os
 
-service main()
+smo std_test(String _name)
     // use `to_end` to consume the process to its end - is silent but creates failure on process error
-    Process:open("./smol tests/effvec.s"):to_end
-    Process:open("./smol tests/file.s"):to_end
-    Process:open("./smol tests/finally.s"):to_end
-    Process:open("./smol tests/map.s"):to_end
-    Process:open("./smol tests/mem.s"):to_end
-    Process:open("./smol tests/memtest.s"):to_end
+    name = _name:str
+    on nom:Dynamic
+        command = "./smol tests/"+name+".s"
+        Process:open(command):to_end
+        printin("[ \033[32mOK\033[0m ] ")
+        print(name)
+    ----
+
+service main()
+    std_test("effvec")
+    std_test("file")
+    std_test("finally")
+    std_test("map")
+    std_test("mem")
+    std_test("memtest")
     --
