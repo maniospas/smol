@@ -1,0 +1,12 @@
+@include std.builtins
+@include std.os
+
+service main()
+    &process = Process:open("./smol tests/effvec.s")
+    on Dynamic:allocate_volatile(1024)
+        process
+        :while next_line(str& x)
+            printin(x)
+        ----
+    print("")
+    --

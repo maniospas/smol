@@ -172,7 +172,7 @@ symbol the first time you assign a value to it. It seems a bit bothersome to exp
 declare which variables can be modified, but the reasons will become more obvious as we
 progress through this tutorial; immutability brings logic safety and helps prevent many errors. 
 Conversely, you need to pay special attention to variables marked for modification 
-as they could be modified by called functions. An example of mofifying set values shown below.</p>
+as they could be modified by called functions. An example of mofifying values is shown below.</p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
@@ -192,7 +192,8 @@ world
 
 <p>So far we only worked with printing some strings. But there are more types of
 values built in the language and its standard library - the standard library is a collection
-of helper implementations that usually comes alongside languages. You will also be able to 
+of helper implementations that usually comes alongside languages to extend their base functionality
+with common operations. You will also be able to 
 define more types of variables later to give structure to complicated data. For 
 now, let us see some basic types.
 </p>
@@ -273,10 +274,10 @@ its float counterpart is <code>0.0</code>.
 <p>
 Notably, the IEEE 754 standard allows invalid operations like
 division by zero and lets them yield positive infinity, negative infinity, or <code>NaN</code> (not a number) values.
-You can check for those properties by calling <code class="language-smolambda">isnan,isinf</code>.
-Lack of native error checking from the standard results of very performant floating point code. 
+You can check for those properties by correspondingly calling one of <code class="language-smolambda">isinf,isnan</code>.
+Lack of native error checking from the standard results in performant floating point code. 
 Of course, nothing stops you from creating
-safe variations of the type that are as fast as possible while failing when computing NaN results.
+safe variations of the float type that are as fast as possible while failing when NaN would be computed.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -288,7 +289,7 @@ service main()
     print("Float division of 2/3")
     print(x/y)
     print("Is float division of 2/0 an infinity?")
-    print(isinf(1.0/0.0))
+    print(isinf(2.0/0.0))
     --
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -302,7 +303,7 @@ true
 
 <p>
 The last example also contains a check of whether some property is <code class="language-smolambda">true</code>
-or <code class="language-smolambda">false</code>. This is a called a boolean value, or <code class="language-smolambda">bool</code> 
+or <code class="language-smolambda">false</code>. This is called a boolean value, or <code class="language-smolambda">bool</code> 
 for short. Boolean values usually hold comparisons. Numeric types also implement 
 comparisons like <code>&gt;</code> (greater than), <code>&lt;</code> (less than), 
 <code>&gt;=</code> (greater than or equal to), <code>&lt;=</code> (less than or equal to), 
@@ -328,11 +329,12 @@ true
 
 
 <p>
-In programming you can change the sequence in which your command run, also known as the <i>control flow</i> of your program.
-The most common -and default- control flow in most languages is to just call one command after the other. But you can also
-have conditional execution that changes which program segment is executed, depending on some boolean value. The syntax takes
-the form of <code class="language-smolambda">if condition case_true --</code> 
-or, to also consider the alternative, <code class="language-smolambda">if condition case_true -- else case_false --</code>. Notice that each
+In programming you can dynamically determine which of your programm's commandσ run. This is known as the <i>control flow</i>.
+The most common -and default- control flow is to just call one command after the other. But you can also
+have conditional execution that changes which program segment is executed next, depending on some boolean value. In <i>smoλ</i>, the
+syntax for this is <code class="language-smolambda">if condition case_true --</code> 
+or, to also consider the alternative, <code class="language-smolambda">if condition case_true -- else case_false --</code>. 
+The text <code>case_true</code> and code>case_true</code> can in turn be any sequence of commands. Notice that each
 case is terminated with the same <code class="language-smolambda">--</code> symbol as the service's ending. In general, this symbol
 declares the end of the current block of code so that previous control flow can resume. Increase the indentation of each code block
 to make it easy to visually recognize them.

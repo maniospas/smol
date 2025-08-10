@@ -14,7 +14,7 @@
 using namespace std;
 
 inline size_t parse_integer_suffix(const string& line, size_t i) {
-    size_t start = i;
+    //size_t start = i;
     bool found_u = false;
     int l_count = 0;
 

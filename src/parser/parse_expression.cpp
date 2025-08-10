@@ -11,7 +11,6 @@ Variable Def::parse_expression(const shared_ptr<Import>& imp, size_t& p, const V
 
 
 Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, const Variable& inherit_buffer, Types& types) {
-    
     static const Variable token_if = Variable("if(");
     static const Variable token_goto = Variable(")goto");
     string overloading_errors("");
@@ -39,7 +38,6 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i].to_string()));
                 if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i].to_string())) 
                     throw runtime_error(type->signature(types));
-                    //throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
                     if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
                     if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i].to_string()+" argument "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
@@ -49,8 +47,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                         +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
                 }
                 if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 
-                    throw runtime_error(type->signature(types));
-                    //throw runtime_error(type->signature(types)+": Expects mutable " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got immutable "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
+                    throw runtime_error(type->signature(types));     
             }
             if(type->choice_power>highest_choice_power) {
                 highest_choice_power = type->choice_power;
@@ -58,13 +55,6 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 multipleFound = "";
             }
             if(type->choice_power<highest_choice_power) continue;
-            /*bool equivalentTypes = true;
-            if(!successfullType) equivalentTypes = false;
-            else if(successfullType->name!=type->name) equivalentTypes = false;
-            else if(successfullType->args.size()!=type->args.size()) equivalentTypes = false;
-            else for(size_t i=0;i<type->args.size();++i) if(type->args[i].name!=successfullType->args[i].name || type->args[i].type!=successfullType->args[i].type) {equivalentTypes=false;break;}
-            if(equivalentTypes) continue;
-            */
             successfullType = type;
             if(markdown_errors) multipleFound += "\n";
             else multipleFound += "\n- ";
@@ -106,7 +96,6 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                     if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i].to_string()));
                     if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i].to_string())) 
                         throw runtime_error(type->signature(types));
-                        //throw runtime_error(type->signature(types)+": Expects " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                     if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
                         if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
                         if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i].to_string()+" argument "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
@@ -117,7 +106,6 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                     }
                     if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 
                         throw runtime_error(type->signature(types));
-                        //throw runtime_error(type->signature(types)+": Expects mutable " + arg_type->name + " "+pretty_var(type->name+"__"+type->args[i].name)+" but got immutable "+internalTypes.vars[unpacks[i]]->name+" "+pretty_var(unpacks[i]));
                 }
                 if(type->choice_power>highest_choice_power) {
                     highest_choice_power = type->choice_power;
@@ -125,13 +113,6 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                     multipleFound = "";
                 }
                 if(type->choice_power<highest_choice_power) continue;
-                /*bool equivalentTypes = true;
-                if(!successfullType) equivalentTypes = false;
-                else if(successfullType->name!=type->name) equivalentTypes = false;
-                else if(successfullType->args.size()!=type->args.size()) equivalentTypes = false;
-                else for(size_t i=0;i<type->args.size();++i) if(type->args[i].name!=successfullType->args[i].name || type->args[i].type!=successfullType->args[i].type) {equivalentTypes=false;break;}
-                if(equivalentTypes) continue;
-                */
                 successfullType = type;
                 if(markdown_errors) multipleFound += "\n";
                 else multipleFound += "\n- ";

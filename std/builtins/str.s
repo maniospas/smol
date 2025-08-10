@@ -105,14 +105,13 @@ smo neq(String _x, IndependentString _y)
     y = _y:str
     @head{#include <string.h>}
     @body{
-    //printf("x: '%s', length: %zu\n", ((char*)x__contents), x__length - 1);
-    //printf("y: '%s', length: %zu\n", ((char*)y__contents), y__length - 1);
+        //printf("x: '%s', length: %zu\n", ((char*)x__contents), x__length - 1);
+        //printf("y: '%s', length: %zu\n", ((char*)y__contents), y__length - 1);
 
-    bool z = x__first != y__first ||
-             (x__length != y__length) ||
-             memcmp((char*)x__contents + 1, (char*)y__contents + 1, x__length - 1) != 0;
-}
-
+        bool z = x__first != y__first ||
+                (x__length != y__length) ||
+                memcmp((char*)x__contents + 1, (char*)y__contents + 1, x__length - 1) != 0;
+    }
     -> z
 
 smo len(str x) 

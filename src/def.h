@@ -117,6 +117,8 @@ class Def {
     Variable call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, const Variable& inherit_buffer, Types& types);
     Variable parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry=EMPTY_VAR);
     unordered_map<Variable, Type> retrievable_parameters;
+    void parse_implementation(size_t& p, bool with_signature);
+    Types saved_types;
     bool complete_option_resolution(const Types& _types);
     bool start_option_resolution(const Types& _types);
     bool can_mutate(const Variable& _text) {
@@ -207,6 +209,7 @@ public:
     void simplify();
     Code rename_var(const Code& impl, const Variable& from, const Variable& to);
     void parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
+    void parse_no_implementation(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
     void end_block(const shared_ptr<Import>& i, size_t& p);
     Def* canonic_type() {
         if(alias_for.exists()) return internalTypes.vars[alias_for]->canonic_type();

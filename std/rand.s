@@ -22,19 +22,24 @@
 // The same license is applied to changes.
 
 @unsafe
-@about "Standard library porting Xoshiro256plusInitializer random numbers from https://prng.di.unimi.it/. These and are NOT cryptographically secure."
+@about "Standard library porting Xoshiro256plus random numbers from https://prng.di.unimi.it/. These and are NOT cryptographically secure."
 @about Rand "This a structural type for storing the progress of random number generators on four u64 state fields. "
             "It can be initialized with an optional seed, which defaults to a time-based initialization if not provided. "
             "For safety against sharing random implementations between services or repeatedly initializating them, state "
             "variables are marked as a leaking resource. The whole data type as a whole is marked as @noborrow. "
             "These safety mechanisms are not mandatory but help safeguard speed by preventing common mistakes, such as directly re-initializing Rand "
-            "in each loop to get a next number."
+            "in each loop to get a next number. Its period is 2^256-1"
+@about next "Computes the next random number of a Rand sequence."
+@about splitmix64 "Computes the next random number of a splitmix64 sequence using the mutable unsigned int argument as state to be updated."
+            "This is not cryptographically secure and also has small period of 2^64 so usage is not recommended for long-running sequences."
+            "It is, however, much faster than using a Rand state with next."
+
 
 smo __rotl(u64 x, u64 k)
     @body{u64 z = (x << k) | (x >> (64 - k));}
     -> z
 
-smo __splitmix64(u64& x)
+smo splitmix64(u64& x)
     @body {
         u64 z = (x += 0x9E3779B97F4A7C15ULL);
         z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
@@ -45,10 +50,10 @@ smo __splitmix64(u64& x)
 
 smo Rand(u64 seed)
     &modifying_seed = seed
-    &s0 = __splitmix64(modifying_seed)
-    &s1 = __splitmix64(modifying_seed)
-    &s2 = __splitmix64(modifying_seed)
-    &s3 = __splitmix64(modifying_seed)
+    &s0 = splitmix64(modifying_seed)
+    &s1 = splitmix64(modifying_seed)
+    &s2 = splitmix64(modifying_seed)
+    &s3 = splitmix64(modifying_seed)
     @finally s0 {}
     @finally s1 {}
     @finally s2 {}

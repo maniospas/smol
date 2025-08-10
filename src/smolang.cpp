@@ -1,3 +1,7 @@
+// g++ src/smolang.cpp -o smol -O3 -std=c++23 -Wall -m64
+// g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
+// g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
+
 #include "def.h"
 #include "parser/recommendations.cpp"
 #include "parser/gather_tuple.cpp"
@@ -115,11 +119,6 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
         start_pos += to.length(); // Move past the replacement
     }
 }
-
-// g++ src/smolang.cpp -o smol -O3 -std=c++23 -Wall -m64
-// g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
-// g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
-
 
 enum class Task {
     Assemble,
@@ -629,7 +628,7 @@ int main(int argc, char* argv[]) {
            if(selected_task == Task::Run) {
                 int rc = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "");
                 if (rc != 0) return rc;
-                cout << (EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str() << "\n";
+                //cout << (EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str() << "\n";
                 int run_status = system((EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str());
                 if (run_status != 0) return run_status;
             } else if(selected_task == Task::Assemble) {

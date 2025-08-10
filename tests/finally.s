@@ -3,11 +3,15 @@
 
 smo test()
     x = 1
+    y = 2
     print(x)
     @head{#include <cstdio>}
-    @finally x {printf("Closing\n");}
-    --
+    @finally x {printf("Closing x=1\n");}
+    @finally y {printf("Closing y=2\n");}
+    -> y
 
 service main()
-    test()
+    y = test()
+    print(y)
+    print("Still in main")
     --

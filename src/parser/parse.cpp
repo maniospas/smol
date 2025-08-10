@@ -20,8 +20,31 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
     if(!imp) ERROR("Internal error: tried to parse a runtype without a file "+name.to_string());
     if(with_signature) {pos = p;parse_signature(imp, p, types);}
     if(!uplifting_targets.size()) uplifting_targets.push_back(Variable("__end"));
+    saved_types = types;
     start = p;
+    parse_implementation(p, with_signature);
+}
+
+void Def::parse_no_implementation(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature) {
+    if(!imp) imp = _imp;
+    if(!imp) ERROR("Internal error: tried to parse a runtype without a file "+name.to_string());
+    if(with_signature) {pos = p;parse_signature(imp, p, types);}
+    if(!uplifting_targets.size()) uplifting_targets.push_back(Variable("__end"));
+
+    saved_types.vars.reserve(types.vars.size());
+    saved_types.alignment_labels.reserve(types.alignment_labels.size());
+    saved_types.reverse_alignment_labels.reserve(types.reverse_alignment_labels.size());
+    for(const auto& it : types.vars) saved_types.vars[it.first] = it.second;
+    for(const auto& it : types.alignment_labels) saved_types.alignment_labels[it.first] = it.second;
+    for(const auto& it : types.reverse_alignment_labels) saved_types.reverse_alignment_labels[it.first] = it.second;
+    start = p;
+}
+
+void Def::parse_implementation(size_t& p, bool with_signature) {
+    if(_is_primitive) return;
+    if(!imp) ERROR("Internal error: tried to parse a runtype implementation without a file "+name.to_string());
     if(lazy_compile && with_signature) return;
+    Types& types = saved_types;
     unordered_set<Variable> next_assignments;
     while(p<imp->size()) {
         bool is_next_assignment = false;

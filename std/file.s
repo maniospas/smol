@@ -83,12 +83,12 @@ smo open(ReadFile&, String _path)
 smo to_start(File &f) 
     if f.contents:exists:not @fail{printf("Failed to move to start of closed file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @body{fseek(f__contents, 0, SEEK_SET);}
-    -> f
+    --
 
 smo to_end(WriteFile &f) 
     // only useful for moving to the end of write files. For read files, close them instead.
     @body{if(f__contents) fseek(f__contents, 0, SEEK_END);}
-    -> f
+    --
 
 smo close(File &f)
     @body{if(f__contents)fclose((FILE*)f__contents);f__contents = 0;}
@@ -122,8 +122,18 @@ smo allocate_file(Memory& memory, u64 size)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
+    @head{
+        #if defined(_WIN32) || defined(_WIN64)
+            static FILE* fmemopen(void *buf, size_t size, const char *mode) {
+                FILE *f = tmpfile();
+                if (!f) return NULL;
+                //if (buf && size > 0) {fwrite(buf, 1, size, f);rewind(f);}
+                return f;
+            }
+        #endif
+    }
     mem = memory:allocate(size)
-    @body {ptr contents = fmemopen(mem__mem, "w+");}
+    @body {ptr contents = fmemopen(mem__mem, size, "w+");}
     @finally contents {if(contents)fclose((FILE*)contents);}
     -> nom:WriteFile(contents)
     
@@ -134,7 +144,7 @@ smo next_chunk(Volatile &memory, File &f, str& value)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        u64 bytes_read = f__contents?fread((char*)contents, 1, size, (FILE*)f__contents):f__contents;
+        u64 bytes_read = f__contents?fread((char*)contents, 1, size, (FILE*)f__contents):0;
         if(!bytes_read) ((char*)contents)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
         ptr ret = bytes_read ? (ptr)contents : 0;
         char first = ((char*)contents)[0];
@@ -161,7 +171,7 @@ smo next_chunk(Arena &reader, File &f, str& value)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
-        u64 bytes_read = f__contents?fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)f__contents):f__contents;
+        u64 bytes_read = f__contents?fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)f__contents):0;
         if(!bytes_read) ((char*)reader__contents__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
         char first = ((char*)reader__contents__mem)[0];

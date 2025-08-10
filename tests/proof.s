@@ -18,13 +18,13 @@ smo neg(nom,neg arg) -> arg.Var
 smo neg(nom,zero) -> nom:zero
 smo add(nom,Var,neg) 
     with 
-        equals=Var 
+        &equals=Var 
         equals=neg.Var 
     ---> nom:zero
 smo add(nom,Var,zero) -> Var
 smo sub(nom,Number,Number2) with result = nom:add(Number,nom:neg(Number2)) ---> result
 
 service main() 
-    equals = nom:sub(nom:neg(nom:neg(x)), zero) // (0-(0-x))-zero == x
+    &equals = nom:sub(nom:neg(nom:neg(x)), zero) // (0-(0-x))-zero == x
     equals = nom:x // this would have an error if we used nom:z
     --

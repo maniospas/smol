@@ -16,7 +16,7 @@
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
 @unsafe
-@about "Standard library implementation of vectors allocated with its memory management but using C pointers for element access."
+@about "Standard library implementation of vectors that are allocated with safe memory management but use C pointers for element access."
 
 @include std.builtins
 @include std.rand
@@ -27,8 +27,7 @@ smo allocate_vector(Memory &memory, u64 size)
     mem = memory:allocate(size,f64)
     range(size):while next(u64 &i) 
         @body{((f64*)mem__mem)[i] = 0;}
-    --
-    -> nom:Vec(mem.mem, size, mem.mem)
+    ---> nom:Vec(mem.mem, size, mem.mem)
 
 smo len(Vec v) -> v.size
 smo slice(Vec v, u64 from, u64 to) 
@@ -40,8 +39,7 @@ smo slice(Vec v, u64 from, u64 to)
 
 smo allocate_vector(Memory &memory, Rand &rand, u64 size)
     mem = memory:allocate(size,f64)
-    range(size)
-    :while next(u64 &i)
+    range(size):while next(u64 &i)
         value = rand:next
         @body{((f64*)mem__mem)[i] = value;}
     ---> nom:Vec(mem.mem, size, mem.mem)
