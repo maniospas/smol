@@ -135,6 +135,7 @@ class Def {
 public:
     static bool markdown_errors;
     static int log_depth;
+    size_t identifier;
     int choice_power;
     bool is_service;
     bool _is_primitive;
@@ -197,6 +198,7 @@ public:
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;
+        identifier = Types::last_type_id;
     } 
     vector<Variable> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, Variable& inherit_buffer, const Variable& curry);
     inline bool not_primitive() const {return !_is_primitive;}

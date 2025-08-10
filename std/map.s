@@ -43,6 +43,7 @@
            "\n    --"
            "\nprint(map[3])"
            "\n</pre>"
+@about List "Constructs a list given a memory allocator, a maximum capacity, and the type of its elements."
 
 union Keys(str,u64)
 union Values(str,u64,f64,i64)
@@ -212,3 +213,47 @@ smo put(Map &self, Keys _key, cstr _mval)
 smo at(Map self, cstr _mkey) 
     with ret = at(self, _mkey:str) 
     ---> ret
+
+
+// smo List(nom, Memory &memory, u64 capacity, Values)
+//     mem = memory:allocate(capacity, u64)
+//     //range(capacity):while next(u64& i) mem:__unsafe_put(i, 0)
+//     length = 0
+//     ---> capacity, mem, length, memory, Values
+
+// smo List(Memory &memory, u64 capacity, Values)
+//     -> nom:List(memory, capacity, Values)
+
+// smo len(List self) -> self.length
+
+// smo push(List &self, Values value)
+//     if self.length >= self.capacity -> fail("List out of space")
+//     on u64 
+//         self.mem:__unsafe_put(self.length, value:__map_prepare_value(self.memory):__unsafe_cast)
+//         @body{self__length = self__length + 1;}
+//     ---> self
+
+// smo push(List &self, cstr value)
+//    -> self:push(value:str)
+
+// smo at(List self, u64 index)
+//     if index >= self.length -> fail("Index out of bounds")
+//     -> on self.Values -> self.mem:at(index):__unsafe_ret(self.mem.underlying)
+
+// smo set(List &self, u64 index, Values value)
+//     with value:is(self.Values) --
+//     if index >= self.length -> fail("Index out of bounds")
+//     on u64 
+//         self.mem:__unsafe_put(index, value:__map_prepare_value(self.memory):__unsafe_cast)
+//     ----
+
+// smo iter(List self) 
+//     &pos = 0
+//     -> self, pos
+
+// smo next(List self, u64 &pos, Values &value)
+//     with Values:is(List.Values) 
+//         if pos >= self.length |-> false
+//         value = self[pos]
+//         pos = pos+1
+//     ---> true

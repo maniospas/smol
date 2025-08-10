@@ -24,6 +24,8 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     int highest_choice_power = 0;
     for(size_t i=0;i<unpacks.size();++i) if(!internalTypes.contains(unpacks[i])) imp->error(p-3, "Not found: "+pretty_var(unpacks[i].to_string())+recommend_variable(types, unpacks[i]));
     type->number_of_calls++;
+    size_t max_arg_progress = 0;
+    size_t arg_progress = 0;
     for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
         if(!type) imp->error(--p, "Internal error: obained a null option for "+previousType->name.to_string());
         if(type->unresolved_options) continue;
@@ -33,6 +35,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             if(inherit_buffer.exists() && unpacks.size()>=type_args) throw runtime_error(type->signature(types));
             else if(unpacks.size()!=type_args) throw runtime_error(type->signature(types));
             for(size_t i=0;i<unpacks.size();++i) {
+                arg_progress = i;
                 auto arg_type = type->_is_primitive?type:type->args[i].type;
                 if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name.to_string());
                 if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i].to_string()));
@@ -62,6 +65,10 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             numberOfFound++;
         }
         catch (const std::runtime_error& e) {
+            if(arg_progress>max_arg_progress) {
+                overloading_errors = "";
+                numberOfErrors = 0;
+            }
             if(markdown_errors) overloading_errors += "\n";
             else overloading_errors += "\n- ";
             overloading_errors += e.what();
@@ -80,6 +87,8 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         unpacks = new_unpacks;
 
         // COPY OF ABOVE CODE HERE TO RETRY
+        arg_progress = 0;
+        max_arg_progress = 0;
         for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
             if(!type) imp->error(--p, "Internal error: obained a null option for "+previousType->name.to_string());
             if(type->unresolved_options) continue;
@@ -91,6 +100,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 }
                 else if(unpacks.size()!=type_args) throw runtime_error(type->signature(types));
                 for(size_t i=0;i<unpacks.size();++i) {
+                    arg_progress = i;
                     auto arg_type = type->_is_primitive?type:type->args[i].type;
                     if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name.to_string());
                     if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i].to_string()));
@@ -120,6 +130,10 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 numberOfFound++;
             }
             catch (const std::runtime_error& e) {
+                if(arg_progress>max_arg_progress) {
+                    overloading_errors = "";
+                    numberOfErrors = 0;
+                }
                 if(markdown_errors) overloading_errors += "\n";
                 else overloading_errors += "\n- ";
                 overloading_errors += e.what();
@@ -216,7 +230,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     // make actual call
     if(type->is_service) {
         // vardecl += "errcode "+var+"__err = 0;\n";
-        Code impl = Code(var+ERR_VAR,ASSIGN_VAR,type->name,LPAR_VAR);
+        Code impl = Code(var+ERR_VAR,ASSIGN_VAR,Variable(type->name+to_string(type->identifier)),LPAR_VAR);
         internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
         internalTypes.vars[var] = type;
         for(const Variable& pack : type->packs) if(type->alignments[pack]) alignments[var+pack] = type->alignments[pack];

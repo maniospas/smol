@@ -60,5 +60,7 @@ string Def::raw_signature() {
         if(ret.size()) ret += ", ";
         ret += ""+arg.type->name.to_string()+" "+(arg.mut?"*__ref__":"")+arg.name.to_string();
     }
-    return name.to_string()+"("+ret+")";
+    string name = this->name.to_string();
+    if(is_service && name!="main") name += "__"+to_string(identifier);
+    return name+"("+ret+")";
 }

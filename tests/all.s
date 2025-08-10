@@ -1,7 +1,7 @@
 @include std.builtins
 @include std.os
 
-smo std_test(String _name)
+service std_test(String _name)
     // use `to_end` to consume the process to its end - is silent but creates failure on process error
     name = _name:str
     on nom:Dynamic
