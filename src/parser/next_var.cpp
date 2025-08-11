@@ -10,6 +10,7 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
     static const Variable token_goto = Variable(")goto");
     static const Variable token_plus_one = Variable("+1");
     while(true) {
+        if(released[next]) imp->error(--p, "Cannot use already released value: "+pretty_var(next.to_string()));
         if(p>=n) break;
         if(imp->at(p)==":") {
             ++p;
@@ -210,5 +211,6 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
         else break;
     }
     if(next.exists() && test && !internalTypes.contains(next)) imp->error(--p, "Not found: "+pretty_var(next.to_string())+recommend_variable(types, next));
+    if(released[next]) imp->error(--p, "Cannot use already released value: "+pretty_var(next.to_string()));
     return next;
 }

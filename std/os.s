@@ -14,10 +14,10 @@ smo Process(nom, ptr contents)
     -> @new
 
 smo open(Process&, cstr command)
+    @head{#include <stdio.h>}
+    @head{#include <string.h>}
+    @head{#include <stdlib.h>}
     @head{
-        #include <stdio.h>
-        #include <string.h>
-        #include <stdlib.h>
         #if defined(_WIN32) || defined(_WIN64)
         #define popen  _popen
         #define pclose _pclose
@@ -33,7 +33,7 @@ smo to_end(Process &p)
     @body{
         if(p__contents) {
             char buf[1024];
-            while(fread(buf, 1, sizeof(buf), (FILE*)p__contents) > 0) {}
+            while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) {}
             u64 status = pclose((FILE*)p__contents);
             p__contents = 0;
         }
@@ -53,7 +53,9 @@ smo close(Process &p)
 smo next_chunk(Volatile &memory, Process &p, str& value)
     contents = memory.contents.mem
     size = memory.contents.size
-    @head{#include <stdio.h> #include <string.h> #include <stdlib.h>}
+    @head{#include <stdio.h>}
+    @head{#include <string.h>}
+    @head{#include <stdlib.h>}
     @body{
         u64 bytes_read = p__contents ? fread((char*)contents, 1, size, (FILE*)p__contents) : 0;
         if(size) ((char*)contents)[ (bytes_read < size) ? bytes_read : (size - 1) ] = '\0';
@@ -66,7 +68,9 @@ smo next_chunk(Volatile &memory, Process &p, str& value)
 smo next_line(Volatile &memory, Process &p, str& value)
     contents = memory.contents.mem
     size = memory.contents.size
-    @head{#include <stdio.h> #include <string.h> #include <stdlib.h>}
+    @head{#include <stdio.h>}
+    @head{#include <string.h>}
+    @head{#include <stdlib.h>}
     @body{
         ptr ret = p__contents ? (ptr)fgets((char*)contents, size, (FILE*)p__contents) : 0;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
@@ -76,7 +80,9 @@ smo next_line(Volatile &memory, Process &p, str& value)
     ---> ret:bool
 
 smo next_chunk(Arena &reader, Process &p, str& value)
-    @head{#include <stdio.h> #include <string.h> #include <stdlib.h>}
+    @head{#include <stdio.h>}
+    @head{#include <string.h>}
+    @head{#include <stdlib.h>}
     @body{
         u64 bytes_read = p__contents ? fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)p__contents) : 0;
         if(reader__contents__size) ((char*)reader__contents__mem)[ (bytes_read < reader__contents__size) ? bytes_read : (reader__contents__size - 1) ] = '\0';

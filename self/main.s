@@ -38,7 +38,13 @@ smo tokenize(Memory &memory, ReadFile& f)
                             --
                         else 
                             tokens:__unsafe_put(num_tokens, names2tokens:at(token))
-    -------------> tokens, num_tokens, names, names2tokens
+                            --
+                        --
+                    --
+                --
+            --
+        --
+    -> tokens, num_tokens, names, names2tokens
 
 
 service main()

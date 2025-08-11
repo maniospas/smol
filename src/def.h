@@ -42,6 +42,7 @@ const Variable MINUS_VAR = Variable("-");
 const Variable GT_VAR = Variable(">");
 const Variable NOM_VAR = Variable("nom");
 const Variable U64_VAR = Variable("u64");
+const Variable RELEASED_VAR = Variable("__released");
 const Variable PTR_VAR = Variable("ptr");
 const Variable BUFFER_VAR = Variable("buffer");
 const Variable ERRCODE_VAR = Variable("errcode");
@@ -157,6 +158,7 @@ public:
     size_t number_of_calls;
     Variable active_context;
     set<string> preample;
+    unordered_map<Variable, bool> released;
     unordered_map<Variable, Code> finals;         // resource closing code (transferred around)
     unordered_map<Variable, Type> parametric_types;   // type name resolution in signature (all argument types - even those not overloaded)
     unordered_map<Variable, Type> buffer_primitive_associations; // the type associated with buffers, nullptr if typecheck is needed
@@ -190,6 +192,25 @@ public:
             finals[original] = finals[original] + rename_var(finals[name], name, original);
             finals[name] = Code();
         }
+    }
+    void notify_release(const Variable& original) {
+        unordered_set<Variable> visited;
+        queue<Variable> q;
+        unordered_set<Variable> group;
+        q.push(original);
+        visited.insert(original);
+        while (!q.empty()) {
+            Variable var = q.front();
+            q.pop();
+            group.insert(var);
+            if(current_renaming.count(var)) {
+                Variable next = current_renaming[var];
+                if(visited.insert(next).second) q.push(next);
+            }
+            for(const auto& [k, v] : current_renaming) if(v == var && visited.insert(k).second) q.push(k);
+        }
+        // Coalesce all finals into the original
+        for(const Variable& name : group) released[name] = true;
     }
 
 

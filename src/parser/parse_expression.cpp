@@ -22,7 +22,10 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     if(!type) imp->error(first_token_pos, "Not found runtype: "+first_token.to_string()+recommend_runtype(types, first_token));
     Type previousType = type;
     int highest_choice_power = 0;
-    for(size_t i=0;i<unpacks.size();++i) if(!internalTypes.contains(unpacks[i])) imp->error(p-3, "Not found: "+pretty_var(unpacks[i].to_string())+recommend_variable(types, unpacks[i]));
+    for(size_t i=0;i<unpacks.size();++i) {
+        if(!internalTypes.contains(unpacks[i])) imp->error(p-3, "Not found: "+pretty_var(unpacks[i].to_string())+recommend_variable(types, unpacks[i]));
+        if(released[unpacks[i]]) imp->error(p-3, "Already released (this includes implicit releases): "+pretty_var(unpacks[i].to_string())+recommend_variable(types, unpacks[i]));
+    }
     type->number_of_calls++;
     size_t max_arg_progress = 0;
     size_t arg_progress = 0;
@@ -87,8 +90,6 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         unpacks = new_unpacks;
 
         // COPY OF ABOVE CODE HERE TO RETRY
-        arg_progress = 0;
-        max_arg_progress = 0;
         for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
             if(!type) imp->error(--p, "Internal error: obained a null option for "+previousType->name.to_string());
             if(type->unresolved_options) continue;

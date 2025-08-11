@@ -29,7 +29,6 @@
                   "already exist to be opened."
 @about to_start   "Go to the beginning of a File. You can continue read or writing from there. May cause service failure due to external factors."
 @about to_end     "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. May cause service failure due to external factors."
-@about close      "Closes an open file. This invalidates its internals completely and will make all other operations on it either do nothing or cause service failures."
 @about len        "Computes the size of a File in bytes."
 @about write      "Writes a string on a WriteFile."
 @about allocate_file "Creates a virtual file by of a given size on top of some memory allocator."
@@ -81,17 +80,13 @@ smo open(ReadFile&, String _path)
     -> nom:ReadFile(contents)
 
 smo to_start(File &f) 
-    if f.contents:exists:not @fail{printf("Failed to move to start of closed file: %.*s\n", (int)path__length, (char*)path__contents);} --
-    @body{fseek(f__contents, 0, SEEK_SET);}
+    if f.contents:exists:not @fail{printf("Failed to move to start of closed file");} --
+    @body{fseek((FILE*)f__contents, 0, SEEK_SET);}
     --
 
 smo to_end(WriteFile &f) 
     // only useful for moving to the end of write files. For read files, close them instead.
-    @body{if(f__contents) fseek(f__contents, 0, SEEK_END);}
-    --
-
-smo close(File &f)
-    @body{if(f__contents)fclose((FILE*)f__contents);f__contents = 0;}
+    @body{if(f__contents) fseek((FILE*)f__contents, 0, SEEK_END);}
     --
 
 smo len(File &f)
@@ -115,26 +110,26 @@ smo write(WriteFile &f, String _s)
         u64 bytes_written = fwrite((char*)s__contents, 1, s__length, (FILE*)f__contents);
         bool success = (bytes_written == s__length);
     }
-    if success:not @fail{printf("Failed to write to file: %.*s\n", (int)path__length, (char*)path__contents);} --
+    if success:not @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);} --
     ----
 
 smo allocate_file(Memory& memory, u64 size)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
-    @head{
-        #if defined(_WIN32) || defined(_WIN64)
-            static FILE* fmemopen(void *buf, size_t size, const char *mode) {
-                FILE *f = tmpfile();
-                if (!f) return NULL;
-                //if (buf && size > 0) {fwrite(buf, 1, size, f);rewind(f);}
-                return f;
-            }
-        #endif
-    }
+    // @head{
+    //     #if defined(_WIN32) || defined(_WIN64)
+    //         static FILE* fmemopen(void *buf, size_t size, const char *mode) {
+    //             FILE *f = tmpfile();
+    //             if (!f) return NULL;
+    //             //if (buf && size > 0) {fwrite(buf, 1, size, f);rewind(f);}
+    //             return f;
+    //         }
+    //     #endif
+    // }
     mem = memory:allocate(size)
     @body {ptr contents = fmemopen(mem__mem, size, "w+");}
-    @finally contents {if(contents)fclose((FILE*)contents);}
+    @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
     -> nom:WriteFile(contents)
     
 smo next_chunk(Volatile &memory, File &f, str& value)
@@ -269,3 +264,30 @@ smo create_dir(String _path)
     }
     if created:not @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
     ----
+
+smo console(WriteFile&)
+    @head{#include <stdio.h>}
+    @head{
+        #if defined(_WIN32) || defined(_WIN64)
+            #include <windows.h>
+            #define SMOLAMBDA_CONSOLE(f) AllocConsole(); {HANDLE hConsole = CreateFileA("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); if (hConsole != INVALID_HANDLE_VALUE) {int fd = _open_osfhandle((intptr_t)hConsole, 0); if (fd != -1) {(f) = (ptr)_fdopen(fd, "w"); if ((f)) setvbuf((FILE*)(f), NULL, _IONBF, 0);}}}
+            #define SMOLAMBDA_CONSOLE_CLOSE(f) if(f)fclose((FILE*)(f)); FreeConsole();
+            #include <io.h>
+        #else
+            #include <stdlib.h>
+            #include <unistd.h>
+            #include <pty.h>
+            #include <fcntl.h>
+            #define SMOLAMBDA_CONSOLE(f) {int master_fd, slave_fd; char slavename[128]; if (openpty(&master_fd, &slave_fd, slavename, NULL, NULL) != -1) {const char* terms[] = {"xterm", "konsole"}; const char* found = NULL; for (int i = 0; i < 2 && !found; i++) {char cmd[64]; snprintf(cmd, sizeof(cmd), "command -v %s >/dev/null 2>&1", terms[i]); if (system(cmd) == 0) found = terms[i];} if (found) {pid_t pid = fork(); if (pid == 0) {close(master_fd); if (strcmp(found, "xterm") == 0) execlp("xterm", "xterm", "-e", slavename, NULL); else if (strcmp(found, "konsole") == 0) execlp("konsole", "konsole", "-e", "socat", "-", slavename, NULL); _exit(1);} else {close(slave_fd); f = (ptr)fdopen(master_fd, "w"); if (f) setvbuf((FILE*)(f), NULL, _IONBF, 0);}} else {close(slave_fd); f = (ptr)fdopen(master_fd, "w"); if (f) setvbuf((FILE*)(f), NULL, _IONBF, 0);}}}
+            #define SMOLAMBDA_CONSOLE_CLOSE(f) if(f)pclose((FILE*)f);
+        #endif
+    }
+    @body{
+        ptr f = 0;
+        SMOLAMBDA_CONSOLE(f)
+    }
+    @finally f { // this prevents leaking open terminals
+        SMOLAMBDA_CONSOLE_CLOSE(f)
+        f = 0;
+    }
+    -> nom:WriteFile(f)

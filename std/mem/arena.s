@@ -64,7 +64,6 @@ smo allocate(Dynamic& self, u64 size, Primitive)
     @head{#include <stdlib.h>}
     Primitive = Primitive
     if self.acquired:bool:not -> fail("Did not initialize Dynamic")
-
     @body{
         u64 next_size = self__size+1;
         bool success = true;

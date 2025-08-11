@@ -130,7 +130,38 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         static const Variable token_error = Variable("\n__result__errocode=__USER__ERROR;\ngoto __failsafe;\n");
         static const Variable token_goto = Variable("goto");
         errors = errors+Code(token_error);
-        implementation +=Code(token_goto, fail_label, SEMICOLON_VAR, UNREACHABLE_VAR);
+        implementation += Code(token_goto, fail_label, SEMICOLON_VAR, UNREACHABLE_VAR);
     }
-    else imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally, @noshare are allowed here for injecting C++ code.");
+    else if(next=="release") {
+        next = imp->at(p++);
+        //bool found = false;
+        if(!internalTypes.contains(next)) imp->error(--p, "Unknown variable: "+pretty_var(next));
+        //for(const auto& arg : args) if(arg.name==next) imp->error(--p, "Cannot @release an argument");
+        for(const auto& it : internalTypes.vars[next]->internalTypes.vars) {
+            Variable var = Variable(next)+it.first;
+            coallesce_finals(var);
+            if(finals[var].exists()) {
+                implementation += finals[var];
+                finals[var] = Code();
+                //found = true;
+            }
+            for(const auto& arg : args) if(arg.name==var) imp->error(--p, "Cannot @release an argument");
+            //size_t fp = p-1;
+            //assign_variable(internalTypes.vars[var], it.first, ZERO_VAR, imp, fp, false, false);
+            //if(internalTypes.vars[var]->_is_primitive && internalTypes.vars[var]->name!=LABEL_VAR) implementation += Code(var,ASSIGN_VAR,ZERO_VAR,SEMICOLON_VAR);
+            notify_release(var);
+            //internalTypes.vars[it.first] = types.vars[RELEASED_VAR];
+        }
+        coallesce_finals(next);
+        if(finals[next].exists()) {
+            implementation += finals[next];
+            finals[next] = Code();
+            //found = true;
+        }
+        notify_release(next);
+        //if(!found) imp->error(--p, "There is no @finally to @release for the data of variable: "+pretty_var(next));
+        //internalTypes.vars[next] = types.vars[RELEASED_VAR];
+        //if(!imp->allow_unsafe) imp->error(--p, "@release is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+    }
+    else imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally, @noshare, @release are allowed here.");
 }

@@ -43,17 +43,12 @@ int compile_from_stringstream_with_flags(
     std::string cmd =
         compiler+" -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 -m64 -fpermissive " +
         extra_flags + " -o \"" + output_file + "\" -x c++ -";
-
     FILE* pipe = SMOL_POPEN(cmd.c_str(), "w");
-    if (!pipe)
-        return -1; // popen failed
-
+    if (!pipe) return -1; // popen failed
     std::string code = out.str();
     size_t written = fwrite(code.data(), 1, code.size(), pipe);
     int ret = SMOL_PCLOSE(pipe);
-
-    if (written != code.size())
-        return -2; // fwrite failed
+    if (written != code.size()) return -2; // fwrite failed
 
 #if defined(_WIN32) || defined(_WIN64)
     // On Windows, ret is the return value of the process (already shifted)

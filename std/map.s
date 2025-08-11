@@ -120,7 +120,7 @@ smo __map_prepare_value(str value, Memory &memory)
     mem = memory:allocate(value.length+1, char)
     @body{
         if(mem__mem) {
-            memcpy((char*)mem__mem, value__contents, value__length);
+            memcpy((char*)mem__mem, (char*)value__contents, value__length);
             ((char*)mem__mem)[value__length] = '\0';
         }
     }
