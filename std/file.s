@@ -157,6 +157,11 @@ smo next_line(Volatile &memory, File &f, str& value)
         ptr ret = f__contents?(ptr)fgets((char*)contents, size, (FILE*)f__contents):f__contents;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)contents)[0];
+        if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == '\n') {
+            bytes_read--;
+            if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == '\r') bytes_read--;
+            ((char*)reader__contents__mem)[bytes_read] = '\0';
+        }
     }
     with value = nom:str(ret, bytes_read, first, memory.contents.underlying)
     ---> ret:bool
@@ -264,29 +269,30 @@ smo create_dir(String _path)
     }
     if created:not @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
     ----
-
+    
 smo console(WriteFile&)
     @head{#include <stdio.h>}
     @head{
         #if defined(_WIN32) || defined(_WIN64)
             #include <windows.h>
-            #define SMOLAMBDA_CONSOLE(f) AllocConsole(); {HANDLE hConsole = CreateFileA("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); if (hConsole != INVALID_HANDLE_VALUE) {int fd = _open_osfhandle((intptr_t)hConsole, 0); if (fd != -1) {(f) = (ptr)_fdopen(fd, "w"); if ((f)) setvbuf((FILE*)(f), NULL, _IONBF, 0);}}}
-            #define SMOLAMBDA_CONSOLE_CLOSE(f) if(f)fclose((FILE*)(f)); FreeConsole();
             #include <io.h>
+            #define SMOLAMBDA_CONSOLE(f) AllocConsole(); {HANDLE hIn = CreateFileA("CONIN$", GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); HANDLE hOut = CreateFileA("CONOUT$", GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); if (hIn != INVALID_HANDLE_VALUE && hOut != INVALID_HANDLE_VALUE) {int fd = _open_osfhandle((intptr_t)hIn, 0); if (fd != -1) {(f) = (ptr)_fdopen(fd, "r+"); if ((f)) {setvbuf((FILE*)(f), NULL, _IONBF, 0); DWORD mode; GetConsoleMode(hIn, &mode); mode &= ~ENABLE_ECHO_INPUT; SetConsoleMode(hIn, mode);}} int fdOut = _open_osfhandle((intptr_t)hOut, 0); if (fdOut != -1) dup2(fdOut, _fileno((FILE*)(f)));}}
+            #define SMOLAMBDA_CONSOLE_CLOSE(f) if(f)fclose((FILE*)(f)); FreeConsole();
         #else
             #include <stdlib.h>
             #include <unistd.h>
-            #include <pty.h>
             #include <fcntl.h>
-            #define SMOLAMBDA_CONSOLE(f) {int master_fd, slave_fd; char slavename[128]; if (openpty(&master_fd, &slave_fd, slavename, NULL, NULL) != -1) {const char* terms[] = {"xterm", "konsole"}; const char* found = NULL; for (int i = 0; i < 2 && !found; i++) {char cmd[64]; snprintf(cmd, sizeof(cmd), "command -v %s >/dev/null 2>&1", terms[i]); if (system(cmd) == 0) found = terms[i];} if (found) {pid_t pid = fork(); if (pid == 0) {close(master_fd); if (strcmp(found, "xterm") == 0) execlp("xterm", "xterm", "-e", slavename, NULL); else if (strcmp(found, "konsole") == 0) execlp("konsole", "konsole", "-e", "socat", "-", slavename, NULL); _exit(1);} else {close(slave_fd); f = (ptr)fdopen(master_fd, "w"); if (f) setvbuf((FILE*)(f), NULL, _IONBF, 0);}} else {close(slave_fd); f = (ptr)fdopen(master_fd, "w"); if (f) setvbuf((FILE*)(f), NULL, _IONBF, 0);}}}
-            #define SMOLAMBDA_CONSOLE_CLOSE(f) if(f)pclose((FILE*)f);
+            #include <termios.h>
+            #include <string.h>
+            #define SMOLAMBDA_CONSOLE(f) {int pty_fd = posix_openpt(O_RDWR | O_NOCTTY); if (pty_fd >= 0 && grantpt(pty_fd) == 0 && unlockpt(pty_fd) == 0) {char pts_name[128]; if (ptsname_r(pty_fd, pts_name, sizeof(pts_name)) == 0) {struct termios tio; tcgetattr(pty_fd, &tio); tio.c_lflag &= ~(ECHO | ICANON); tcsetattr(pty_fd, TCSANOW, &tio); const char* terms[] = {"xterm", "konsole"}; const char* found = NULL; for (int i = 0; i < 2 && !found; i++) {char cmd[64]; snprintf(cmd, sizeof(cmd), "command -v %s >/dev/null 2>&1", terms[i]); if (system(cmd) == 0) found = terms[i];} if (found) {pid_t pid = fork(); if (pid == 0) {close(pty_fd); if (strcmp(found, "xterm") == 0) execlp("xterm", "xterm", "-e", pts_name, NULL); else if (strcmp(found, "konsole") == 0) execlp("konsole", "konsole", "-e", "socat", "-", pts_name, NULL); _exit(1);} else {(f) = (ptr)fdopen(pty_fd, "r+"); if (f) setvbuf((FILE*)(f), NULL, _IONBF, 0);}} else {(f) = (ptr)fdopen(pty_fd, "r+"); if (f) setvbuf((FILE*)(f), NULL, _IONBF, 0);}}}}
+            #define SMOLAMBDA_CONSOLE_CLOSE(f) if(f)fclose((FILE*)f);
         #endif
     }
     @body{
         ptr f = 0;
         SMOLAMBDA_CONSOLE(f)
     }
-    @finally f { // this prevents leaking open terminals
+    @finally f {
         SMOLAMBDA_CONSOLE_CLOSE(f)
         f = 0;
     }

@@ -5,6 +5,9 @@
 service main()
     &console = WriteFile:console()
     console:write("hello world!\n")
-    str:read:print
-    @release console // safely close everything related to the resource
+    printin("Press enter here to close the open console...")
+    str:read
+    @release console // safely close the resource preemptively
+    print("We are done. Press enter again...")
+    str:read
     --

@@ -92,6 +92,26 @@ smo slice(String self, u64 from, u64 to)
     -> nom:str(contents, to-from, first, s.contents)
 smo slice(String self, u64 from) -> self:slice(from, 0)
 
+smo strip(String _s)
+    s = _s:str
+    @body{
+        u64 start = 0;
+        u64 end = s__length;
+        while(start < end) {
+            char c = ((char*)s__contents)[start];
+            if (c == 32 || c == 9 || c == 13 || c == 10) start++; // ' ', '\t', '\r', '\n'
+            else break;
+        }
+        while(end > start) {
+            char c = ((char*)s__contents)[end - 1];
+            if (c == 32 || c == 9 || c == 13 || c == 10) end--;
+            else break;
+        }
+    }
+    -> s:slice(start, end)
+
+
+
 union IndependentString(String)
 smo eq(String _x, IndependentString _y)
     x = _x:str

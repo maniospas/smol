@@ -23,8 +23,8 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     Type previousType = type;
     int highest_choice_power = 0;
     for(size_t i=0;i<unpacks.size();++i) {
-        if(!internalTypes.contains(unpacks[i])) imp->error(p-3, "Not found: "+pretty_var(unpacks[i].to_string())+recommend_variable(types, unpacks[i]));
-        if(released[unpacks[i]]) imp->error(p-3, "Already released (this includes implicit releases): "+pretty_var(unpacks[i].to_string())+recommend_variable(types, unpacks[i]));
+        if(!internalTypes.contains(unpacks[i])) imp->error(p-1, "Not found: "+pretty_var(unpacks[i].to_string())+recommend_variable(types, unpacks[i]));
+        if(released[unpacks[i]]) imp->error(p-1, "Already released (this includes implicit releases): "+pretty_var(unpacks[i].to_string())+recommend_variable(types, unpacks[i]));
     }
     type->number_of_calls++;
     size_t max_arg_progress = 0;
@@ -252,6 +252,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+it.first] = it.second;
         for(size_t i=0;i<unpacks.size();++i) {
             if(toadd) impl = impl+Code(COMMA_VAR);
+            notify_service_arg(unpacks[i]);
             toadd = true;
             if(type->args[i].mut) {
                 impl += Code(REF_VAR, unpacks[i]);
@@ -716,7 +717,6 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
                 internalTypes.vars[var+type->args[i].name] = type->args[i].type;
                 unpacks.push_back(var+type->args[i].name);
-                
             }
             else unpacks.push_back(var);
             if(type->args.size() && type->args[0].type->name=="nom") alignments[var+type->args[0].name] = types.alignment_labels[type.get()];

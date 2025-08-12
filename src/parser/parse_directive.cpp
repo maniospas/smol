@@ -135,17 +135,21 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
     else if(next=="release") {
         next = imp->at(p++);
         //bool found = false;
-        if(!internalTypes.contains(next)) imp->error(--p, "Unknown variable: "+pretty_var(next));
+        Variable released_var = Variable(next);
+        if(!internalTypes.contains(released_var)) imp->error(--p, "Unknown variable: "+pretty_var(released_var.to_string()));
+        if(has_been_service_arg[released_var]) imp->error(--p, "Cannot release a variable that has been previously be passed to a service: "+pretty_var(released_var.to_string()));
         //for(const auto& arg : args) if(arg.name==next) imp->error(--p, "Cannot @release an argument");
+        for(const auto& arg : args) if(arg.name==released_var) imp->error(--p, "Cannot @release an argument: "+pretty_var(arg.name.to_string()));
         for(const auto& it : internalTypes.vars[next]->internalTypes.vars) {
-            Variable var = Variable(next)+it.first;
+            Variable var = released_var+it.first;
+            if(has_been_service_arg[var]) imp->error(--p, "Cannot release a variable that has been previously be passed to a service: "+pretty_var(var.to_string()));
             coallesce_finals(var);
             if(finals[var].exists()) {
                 implementation += finals[var];
                 finals[var] = Code();
                 //found = true;
             }
-            for(const auto& arg : args) if(arg.name==var) imp->error(--p, "Cannot @release an argument");
+            for(const auto& arg : args) if(arg.name==var) imp->error(--p, "Cannot @release an argument: "+pretty_var(arg.name.to_string()));
             //size_t fp = p-1;
             //assign_variable(internalTypes.vars[var], it.first, ZERO_VAR, imp, fp, false, false);
             //if(internalTypes.vars[var]->_is_primitive && internalTypes.vars[var]->name!=LABEL_VAR) implementation += Code(var,ASSIGN_VAR,ZERO_VAR,SEMICOLON_VAR);

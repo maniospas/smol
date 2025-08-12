@@ -159,6 +159,7 @@ public:
     Variable active_context;
     set<string> preample;
     unordered_map<Variable, bool> released;
+    unordered_map<Variable, bool> has_been_service_arg;
     unordered_map<Variable, Code> finals;         // resource closing code (transferred around)
     unordered_map<Variable, Type> parametric_types;   // type name resolution in signature (all argument types - even those not overloaded)
     unordered_map<Variable, Type> buffer_primitive_associations; // the type associated with buffers, nullptr if typecheck is needed
@@ -211,6 +212,25 @@ public:
         }
         // Coalesce all finals into the original
         for(const Variable& name : group) released[name] = true;
+    }
+    void notify_service_arg(const Variable& original) {
+        unordered_set<Variable> visited;
+        queue<Variable> q;
+        unordered_set<Variable> group;
+        q.push(original);
+        visited.insert(original);
+        while (!q.empty()) {
+            Variable var = q.front();
+            q.pop();
+            group.insert(var);
+            if(current_renaming.count(var)) {
+                Variable next = current_renaming[var];
+                if(visited.insert(next).second) q.push(next);
+            }
+            for(const auto& [k, v] : current_renaming) if(v == var && visited.insert(k).second) q.push(k);
+        }
+        // Coalesce all finals into the original
+        for(const Variable& name : group) has_been_service_arg[name] = true;
     }
 
 

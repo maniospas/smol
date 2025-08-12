@@ -3,6 +3,7 @@
 Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test) {
     if(first_token.is_empty()) return Variable("");
     size_t n = i->size();
+    if(released[first_token]) imp->error(p-2, "Cannot use already released value: "+pretty_var(first_token.to_string()));
     if(p>=n) return first_token;
     Variable next = first_token;
     static const Variable token_if = Variable("if(");

@@ -33,7 +33,9 @@ smo copy(Memory &allocator, str _s)
     }
     -> nom:str(mem.mem, s.length, first, mem.underlying)
 
-smo add(Memory &allocator, str x, str y)
+smo add(Memory &allocator, String _x, IndependentString _y)
+    x = _x:str
+    y = _y:str
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
@@ -49,46 +51,7 @@ smo add(Memory &allocator, str x, str y)
             memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
         }
     }
-    -> nom:str(_contents, len_x + len_y, x.first, mem.underlying)
-
-smo add(Memory &allocator, str x, cstr y)
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
-        u64 len_x = x__length;
-        u64 len_y = strlen(y);
-        u64 total_len = len_x + len_y;
-    }
-    mem = allocator:allocate(total_len, char)
-    _contents = mem.mem
-    @body{
-        if(_contents) {
-            memcpy((char*)_contents, (char*)x__contents, len_x);
-            memcpy((char*)_contents + len_x, (const char*)y, len_y);
-        }
-    }
-    -> nom:str(_contents, len_x + len_y, x.first, mem.underlying)
-
-smo add(Memory &allocator, cstr x, str y)
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
-        u64 len_x = strlen(x);
-        u64 len_y = y__length;
-        u64 total_len = len_x + len_y;
-    }
-    mem = allocator:allocate(total_len, char)
-    _contents = mem.mem
-    @body{
-        char first = 0;
-        if(_contents) {
-            memcpy((char*)_contents, (const char*)x, len_x);
-            memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
-            first = ((char*)_contents)[0];
-        }
-    }
-    -> nom:str(_contents, len_x + len_y, first, mem.underlying)
-
+    -> nom:str(_contents, total_len, x.first, mem.underlying)
 
 smo tostr(Memory &allocator, i64 number)
     @head{#include <stdio.h>}

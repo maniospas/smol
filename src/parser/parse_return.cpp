@@ -41,6 +41,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
     while(true) {
         next = parse_expression(imp, p, imp->at(p++), types);
         if(!internalTypes.contains(next)) break;
+        if(released[next]) imp->error(--p, "You are returning data after @release: "+pretty_var(next.to_string())+recommend_variable(types, next));
         if(is_service && finals.find(next)!=finals.end() && finals[next].find(TRANSIENT_VAR) != std::string::npos) imp->error(--p, "You are returning @noshare data from a"+pretty_var(next.to_string())+"\nThose can only be returned from smo runtypes");
         if(!internalTypes.vars[next]->not_primitive()) {
             if(internalTypes.contains(next) && internalTypes.vars[next]->name=="nom" && !alignments[next]) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next.to_string())+"\nAdd an align first variable to the signature and return that instead");
@@ -61,6 +62,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                 if(noborrow && !imp->allow_unsafe) imp->error(--p, "Rerurning a @noborrow type for variable "+pretty_var(alias_for.to_string())+" is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
                 if(internalTypes.vars[alias_for]->alias_for.exists()) alias_for = next+internalTypes.vars[alias_for]->alias_for;
                 for(const Variable& pack : internalTypes.vars[next]->packs) {
+                    if(released[next+pack]) imp->error(--p, "You are returning data after @release: "+pretty_var((next+pack).to_string()));
                     if(internalTypes.contains(pack)) {
                         if(internalTypes.vars[pack]!=internalTypes.vars[next]->internalTypes.vars[pack]) imp->error(--p, "Mismatching types for: "+pretty_var(pack.to_string())+"\nYou are wrapping a base runtype that declares the same internal variable name under a different type");
                     }
@@ -80,6 +82,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                 if(internalTypes.vars[next]->name==BUFFER_VAR) imp->error(--p, "Cannot return a buffer alongside other values");
                 for(const Variable& pack : internalTypes.vars[next]->packs) {
                     Variable next_pack = next+pack;
+                    if(released[next_pack]) imp->error(--p, "You are returning data after @release: "+pretty_var((next_pack).to_string()));
                     if(internalTypes.contains(next_pack) && internalTypes.vars[next_pack]->noborrow) imp->error(--p, "Rerurning a @noborrow type for variable "+pretty_var(next.to_string()+"__"+pack.to_string())+" is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
                     packs.push_back(next_pack);
                     if(is_service) {
