@@ -66,7 +66,6 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 for(const auto& it2 : it.type->internalTypes.vars) {
                     Variable arg = arg_name+it2.first;
                     internalTypes.vars[arg] = it2.second;
-                    if(it2.second->name==BUFFER_VAR) buffer_primitive_associations[arg] = it.type->buffer_primitive_associations[it2.first];
                 }
             }
             else {

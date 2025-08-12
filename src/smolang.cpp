@@ -356,19 +356,8 @@ int main(int argc, char* argv[]) {
     builtins.vars[BOOL_VAR] = make_shared<Def>("bool");
     builtins.vars[Variable("char")] = make_shared<Def>("char");
     builtins.vars[NOM_VAR] = make_shared<Def>("nom");
-
     builtins.vars[LABEL_VAR] = make_shared<Def>("__label");
 
-    builtins.vars[BUFFER_VAR] = make_shared<Def>("buffer");
-    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("__contents"));
-    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("__typetag"));
-    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("__size"));
-    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("__offset"));
-    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("__contents")] = builtins.vars[PTR_VAR];
-    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("__typetag")] = builtins.vars[PTR_VAR];
-    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("__size")] = builtins.vars[U64_VAR];
-    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("__offset")] = builtins.vars[U64_VAR];
-    builtins.vars[BUFFER_VAR]->_is_primitive = false;
     for(const auto& it : builtins.vars) it.second->options.push_back(it.second);
     for(const auto& it : builtins.vars) all_types.push_back(it.second);
 
@@ -587,7 +576,7 @@ int main(int argc, char* argv[]) {
                     }
                     service->internalTypes.vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
-                for(const auto& var : service->internalTypes.vars) if(var.second && var.second->_is_primitive && var.second->name!=BUFFER_VAR && var.second->name!=LABEL_VAR) out << var.second->name << " " << var.first << "=0;\n";
+                for(const auto& var : service->internalTypes.vars) if(var.second && var.second->_is_primitive && var.second->name!=LABEL_VAR) out << var.second->name << " " << var.first << "=0;\n";
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
                 out << "goto __return;\n"; // skip error handling block that resides at the end of the service

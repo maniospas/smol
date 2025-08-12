@@ -44,7 +44,6 @@ const Variable NOM_VAR = Variable("nom");
 const Variable U64_VAR = Variable("u64");
 const Variable RELEASED_VAR = Variable("__released");
 const Variable PTR_VAR = Variable("ptr");
-const Variable BUFFER_VAR = Variable("buffer");
 const Variable ERRCODE_VAR = Variable("errcode");
 const Variable IF_VAR = Variable("if");
 const Variable FI_VAR = Variable("fi");
@@ -115,7 +114,7 @@ class Def {
     static void print_depth();
     void parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, Types& types);
     Variable parse_expression(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, const Variable &curry=EMPTY_VAR);
-    Variable call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, const Variable& inherit_buffer, Types& types);
+    Variable call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, Types& types);
     Variable parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry=EMPTY_VAR);
     unordered_map<Variable, Type> retrievable_parameters;
     void parse_implementation(size_t& p, bool with_signature);
@@ -160,10 +159,9 @@ public:
     set<string> preample;
     unordered_map<Variable, bool> released;
     unordered_map<Variable, bool> has_been_service_arg;
-    unordered_map<Variable, Code> finals;         // resource closing code (transferred around)
-    unordered_map<Variable, Type> parametric_types;   // type name resolution in signature (all argument types - even those not overloaded)
-    unordered_map<Variable, Type> buffer_primitive_associations; // the type associated with buffers, nullptr if typecheck is needed
-    unordered_map<Variable, unsigned long> alignments; // the type id nom vlues represent
+    unordered_map<Variable, Code> finals;              // resource closing code (transferred around)
+    unordered_map<Variable, Type> parametric_types;    // type name resolution in signature (all argument types - even those not overloaded)
+    unordered_map<Variable, unsigned long> alignments; // the type id that `nom` vlues represent
     unordered_set<Variable> mutables;
     vector<Variable> uplifting_targets;
     vector<bool> uplifiting_is_loop;
@@ -241,7 +239,7 @@ public:
         types.alignment_labels[this] = Types::last_type_id;
         identifier = Types::last_type_id;
     } 
-    vector<Variable> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, Variable& inherit_buffer, const Variable& curry);
+    vector<Variable> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, const Variable& curry);
     inline bool not_primitive() const {return !_is_primitive;}
     Variable next_var(const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test=true);
     string signature_like(Types& types, vector<Variable> args);

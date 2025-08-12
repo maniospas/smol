@@ -75,7 +75,9 @@ variadic data or exchange data between services.</p>
 <p>Download <i>smoλ</i> from its <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>
 or build it from source by cloning the repository and running <code class="bash">g++ src/smolang.cpp -o smol -O2 -std=c++23</code>.
 The language is so lightweight that there is no need for a build system and its main executable consumes less than 300kB
-... plus a GCC distribution. Ensure that both the <i>smol</i> executable and GCC are in your system path.
+... plus a GCC distribution if you want more optimizations. Make sure that the <i>smol</i> executable and GCC is in your system path.
+Alternatively, add <code>--back tcc</code> to use <a href="https://www.bellard.org/tcc/">tiny C</a> or another lightweight compiler
+as a backend. If you weave in raw C++ code instead of simple C, you can also use a compiler for that language.
 </p>
 
 <p>
@@ -182,6 +184,16 @@ available in the standard library.
       <td>Dot-path notation used for `.s` files</td>
     </tr>
     <tr>
+      <td><code class="language-smolambda">@noshare</code></td>
+      <td>Mark as unsafe to share</td>
+      <td>Prevents sharing to other services</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@release</code></td>
+      <td>Release all resources</td>
+      <td>Invalidates any variables using those</td>
+    </tr>
+    <tr>
       <td><code class="language-smolambda">.</code></td>
       <td>Field access</td>
       <td>For named returns of runtypes</td>
@@ -215,7 +227,7 @@ available in the standard library.
     <tr>
       <td><code class="language-smolambda">||-></code></td>
       <td>Uplift return two levels</td>
-      <td>E.g., escape from loops inside conditions</td>
+      <td>E.g., escape loops from inside conditions</td>
     </tr>
     <tr>
       <td><code class="language-smolambda">@new</code></td>
@@ -299,25 +311,25 @@ available in the standard library.
       <td>Slicing by length</td>
       <td>Number of elements instead of end</td>
     </tr>
-    <tr class="section-header"><td colspan="3"><u>C++ ABI</u></td></tr>
+    <tr class="section-header"><td colspan="3"><u>C/C++ ABI</u></td></tr>
     <tr>
       <td><code class="language-smolambda">@body{...}</code></td>
-      <td>Inline C++ code</td>
+      <td>Inline C/C++ code</td>
       <td>ABI-level logic inside runtypes</td>
     </tr>
     <tr>
       <td><code class="language-smolambda">@head{...}</code></td>
-      <td>Include C++ headers</td>
+      <td>Include C/C++ headers</td>
       <td>Prepended once per program</td>
     </tr>
     <tr>
       <td><code class="language-smolambda">@fail{...}</code></td>
-      <td>C++ for error handling</td>
+      <td>C/C++ for error handling</td>
       <td>Prefer <code class="language-smolambda">fail(str message)</code></td>
     </tr>
     <tr>
       <td><code class="language-smolambda">@finally{...}</code></td>
-      <td>C++ to free resources</td>
+      <td>C/C++ to free resources</td>
       <td>Can also tie the resources to a variable</td>
     </tr>
   </tbody>
@@ -386,10 +398,10 @@ service main()
     ----
 </code></pre>
 
-<p>It is required that all <code class="language-smolambda">if</code> statements return
-the same type of value -or no value- and that this is 
-a runtype. Below is an exampe that demonstrates chained
-if-else statements. Use <code class="language-smolambda">:i64</code>
+<p>All branches of <code class="language-smolambda">if</code> statements
+must return either the same runtype or no runtype. 
+Below is an exampe that demonstrates chained if-else statements. 
+Use <code class="language-smolambda">:i64</code>
 to convert numbers to signed integers (unsigned ones are the default)
 and make sure to use the floating point version of numbers, such as
 <code class="language-smolambda">0.0</code>, when involving them in
@@ -1254,7 +1266,7 @@ service main()
 
 <p>The standard library contains implementations for common programming needs.
 Besides overloading pairswise numerical and comparison operators for basic arithmetic types and booleans, 
-it also supports string handling.
+it also supports string handling and contains a backbone for memory management.
 </p>
 
 <p><strong>Jump to:</strong>

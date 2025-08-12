@@ -79,7 +79,6 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                 for(const auto& it : internalTypes.vars[next]->finals) finals[it.first] = finals[it.first]+it.second;
             }
             else {
-                if(internalTypes.vars[next]->name==BUFFER_VAR) imp->error(--p, "Cannot return a buffer alongside other values");
                 for(const Variable& pack : internalTypes.vars[next]->packs) {
                     Variable next_pack = next+pack;
                     if(released[next_pack]) imp->error(--p, "You are returning data after @release: "+pretty_var((next_pack).to_string()));

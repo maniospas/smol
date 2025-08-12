@@ -71,7 +71,6 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             const auto& it = internalTypes.vars.find(expression_outcome);
             if(it==internalTypes.vars.end()) imp->error(assignment_start, "Failed to parse expression");
             if(is_next_assignment) {next_assignments.insert(var);var = NEXT_VAR+var;}
-            if(it->second && it->second->name==BUFFER_VAR) buffer_primitive_associations[var] = buffer_primitive_associations[expression_outcome];
             assign_variable(it->second, var, expression_outcome, imp, p);
         }
         else if(is_next_assignment) imp->error(p, "Expecting assignment to variable after @next");
