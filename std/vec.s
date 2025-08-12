@@ -17,6 +17,8 @@
 
 @unsafe
 @about "Standard library implementation of vectors that are allocated with safe memory management but use C pointers for element access."
+@about print "Prints a vector to the console."
+@about slice "Slices a vector from a given to an ending position. This is a transparent view of vector data."
 
 @include std.builtins
 @include std.rand
@@ -50,7 +52,7 @@ smo at(Vec v, u64 pos)
     @body{f64 value = ((f64*)v__contents)[pos];} 
     -> value
 
-smo set(Vec &v, u64 pos, f64 value)
+smo put(Vec &v, u64 pos, f64 value)
     if pos>=v.size -> fail("Vec out of bounds")
     @body{((f64*)v__contents)[pos] = value;}
     -> v
@@ -64,7 +66,7 @@ smo dot(Vec x1, Vec x2)
                 :add(sum)
     ---> sum 
 
-smo set(Vec &x1, Vec x2)
+smo put(Vec &x1, Vec x2)
     if x1.size!=x2.size -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size

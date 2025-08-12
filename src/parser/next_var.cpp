@@ -153,7 +153,6 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             string inherit_buffer = "";
             next = call_type(i, p, type, unpacks, p-1, method, types);
             if(imp->at(p++)!="]") imp->error(--p, "Expecting : or closing square bracket");
-            continue;
         }
         else break;
     }

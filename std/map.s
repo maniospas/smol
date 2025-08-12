@@ -149,7 +149,7 @@ smo hash(u64 _x)
     -> x
 
 // class Map
-smo Map(nom type, Memory &memory, u64 size, Keys, Values) 
+smo Map(nom type, Memory &memory, u64 size, Keys, Values)
     mem = memory:allocate(size*2, u64)
     range(size*2):while next(u64& i) mem:__unsafe_put(i, 0)
     length = 0

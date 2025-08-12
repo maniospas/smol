@@ -132,9 +132,9 @@ smo allocate_file(Memory& memory, u64 size)
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
     -> nom:WriteFile(contents)
     
-smo next_chunk(Volatile &memory, File &f, str& value)
-    contents = memory.contents.mem
-    size = memory.contents.size
+smo next_chunk(Volatile &reader, File &f, str& value)
+    contents = reader.contents.mem
+    size = reader.contents.size
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -143,13 +143,14 @@ smo next_chunk(Volatile &memory, File &f, str& value)
         if(!bytes_read) ((char*)contents)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
         ptr ret = bytes_read ? (ptr)contents : 0;
         char first = ((char*)contents)[0];
+        reader__length = reader__length + bytes_read;
     }
-    with value = nom:str(ret, bytes_read, first, memory.contents.underlying)
+    with value = nom:str(ret, bytes_read, first, reader.contents.underlying)
     ---> ret:bool
 
-smo next_line(Volatile &memory, File &f, str& value)
-    contents = memory.contents.mem
-    size = memory.contents.size
+smo next_line(Volatile &reader, File &f, str& value)
+    contents = reader.contents.mem
+    size = reader.contents.size
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -162,8 +163,9 @@ smo next_line(Volatile &memory, File &f, str& value)
             if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == '\r') bytes_read--;
             ((char*)reader__contents__mem)[bytes_read] = '\0';
         }
+        reader__length = reader__length + bytes_read;
     }
-    with value = nom:str(ret, bytes_read, first, memory.contents.underlying)
+    with value = nom:str(ret, bytes_read, first, reader.contents.underlying)
     ---> ret:bool
 
 smo next_chunk(Arena &reader, File &f, str& value)
@@ -175,6 +177,7 @@ smo next_chunk(Arena &reader, File &f, str& value)
         if(!bytes_read) ((char*)reader__contents__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
         char first = ((char*)reader__contents__mem)[0];
+        reader__length = reader__length + bytes_read;
     }
     value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
     -> ret:bool
@@ -188,14 +191,20 @@ smo next_line(Arena &reader, File &f, str& value)
         ptr ret = f__contents?(ptr)fgets((char*)reader__contents__mem, reader__contents__size, (FILE*)f__contents):f__contents;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
+        if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == '\n') {
+            bytes_read--;
+            if(bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == '\r') bytes_read--;
+            ((char*)reader__contents__mem)[bytes_read] = '\0';
+        }
+        reader__length = reader__length + bytes_read;
     }
     with value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
     ---> ret:bool
 
-smo next_chunk(File &f, Volatile &memory, str& value) -> next_chunk(memory, f, value)
-smo next_line(File &f, Volatile &memory, str& value) -> next_line(memory, f, value)
-smo next_chunk(File &f, Arena &memory, str& value) -> next_chunk(memory, f, value)
-smo next_line(File &f, Arena &memory, str& value) -> next_line(memory, f, value)
+smo next_chunk(File &f, Volatile &reader, str& value) -> next_chunk(reader, f, value)
+smo next_line(File &f, Volatile &reader, str& value) -> next_line(reader, f, value)
+smo next_chunk(File &f, Arena &reader, str& value) -> next_chunk(reader, f, value)
+smo next_line(File &f, Arena &reader, str& value) -> next_line(reader, f, value)
 
 smo ended(File &f)
     @head{#include <stdio.h>}

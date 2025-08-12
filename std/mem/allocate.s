@@ -25,7 +25,7 @@
 @about allocate     "Allocates memory on a predetermined device given a number of entries and an optional primitive data type. If the data type is not provided, char is assumed so that the number of entries becomes equal to the number of allocated bytes. Other standard library overloads implement allocation for more memory types, derived from the devices. Allocations throughout the standard library track the raw allocated memory so that usage is finally released only when the last dependent variable (e.g., the last string allocated on a heap arena) is no longer used. See ContiguousMemory."
 @about ContiguousMemory "Represents allocated memory management. It keeps track of both currently used pointer addresses, for example if these are offsets of allocated base pointers with finally segments calling free on those, and the underlying pointer addresses. Importantly, not all this information is retained after compilation, as most of it -perhaps all- is optimized away. But this structure still helps the compiler organize where to place memory releases, if needed. Users of the standard library will not generally work with this type, as it is highly unsafe to get its pointer fields and requires annotation for the language to allow that."
 @about at           "Accesses a specific memory position of the corresponding base type. This operation includes bound checks."
-@about __unsafe_put "Can modify an allocated memory. This operation is marked as unsafe and cannot be callsed in safe files."
+@about __unsafe_put "Can modify an allocated memory. This operation cannot be callsed in safe files."
 
 smo Stack(nom) -> @new 
 smo Heap(nom) -> @new

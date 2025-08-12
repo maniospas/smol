@@ -26,10 +26,10 @@ smo Arena(nom type, ContiguousMemory contents)
     ---> type, contents, length
 
 smo Volatile(nom type, ContiguousMemory contents)
-    @noborrow  // we still need this so that controlled_corrupt can properly analyze corruptions
+    @noborrow  // we need this so that controlled_corrupt can properly analyze corruptions
     length = 0
     cycles = 0
-    with contents.Primitive:is(char) 
+    with contents.Primitive:is(char)
     ---> type, contents, length, cycles
 
 smo controlled_corrupt(Volatile &self)
@@ -166,3 +166,24 @@ smo is(Volatile&, Volatile&) --
 smo is(Dynamic&, Dynamic&) --
 union Memory(MemoryDevice, DerivedMemory, Dynamic)
 
+
+smo MemoryGrid(nom type, Memory& memory, Primitive, u64 size, u64 squares)
+    surface = memory:allocate(size*squares, Primitive)
+    -> type, surface, size, squares
+smo GridEntry(nom, MemoryGrid &grid, u64 id) -> @new
+smo at(MemoryGrid &self, u64 id) -> nom:GridEntry(self, id)
+smo at(GridEntry self, u64 pos) 
+    true_pos = pos
+    :mul(self.grid.squares)
+    :add(self.id)
+    -> self.grid.surface[true_pos]
+smo put(GridEntry &self, u64 pos, Primitive value)
+    with Primitive:is(self.MemoryGrid.Primitive) --
+    true_pos = pos
+    :mul(self.grid.squares)
+    :add(self.id)
+    self.grid.surface:__unsafe_put(true_pos, value)
+    --
+smo len(GridEntry self) -> self.grid.size
+smo allocate_grid(Memory& memory, u64 size, u64 squares, Primitive)
+    -> nom:MemoryGrid(memory, Primitive, size, squares)
