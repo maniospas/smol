@@ -18,12 +18,12 @@
 @include std.builtins.num
 @include std.builtins.err
 @unsafe
-@about "Standard library implementation of memory management that accounts for the stack and heap and depends on GCC implementations of malloc and alloca. Stack alloactions cannot be returned from services, as the stack is pruned when programming function calls end. Smo runtypes are not implemented as functions, so it is fine to return stack allocations from them."
+@about "Standard library implementation of memory management that accounts for the stack and heap and depends on the runtime.h implementation of heap memory, and GCC implementation of alloca. Stack alloactions cannot be returned from services, as the stack is pruned when programming function calls end. Smo runtypes are not implemented as functions, so it is fine to return stack allocations from them."
 @about Stack        "Represents call stack memory. Allocating on this is near-zero cost by being just an arithmetic addition but its total size is limited - typically up to a few megabytes. Prefer this for small localized data that need to be processed exceedingly fast."
-@about Heap         "Random access memory (RAM) that can be allocated with malloc. Writing to it and reading from it can be slow for programs that keep. Modern processors optimize heap usage by prefetching and caching nearby areas as the ones you access. For this reason, prefer creating Arena regions when you have a sense of the exact amount of data you will need. Allocating on the heap can leak memory under certain conditions, but the lnaguage's safety mechanism prevents this. Use other allocators in those cases. The standard library provides a Dynamic type that also accesses several heap allocations, though with an additional level of indirection. "
+@about Heap         "Random access memory (RAM) that can be allocated with __runtime_alloc. Writing to it and reading from it can be slow for programs that keep. Modern processors optimize heap usage by prefetching and caching nearby areas as the ones you access. For this reason, prefer creating Arena regions when you have a sense of the exact amount of data you will need. Allocating on the heap can leak memory under certain conditions, but the lnaguage's safety mechanism prevents this. Use other allocators in those cases. The standard library provides a Dynamic type that also accesses several heap allocations, though with an additional level of indirection. "
 @about MemoryDevice "Refers to either stack or heap memory."
 @about allocate     "Allocates memory on a predetermined device given a number of entries and an optional primitive data type. If the data type is not provided, char is assumed so that the number of entries becomes equal to the number of allocated bytes. Other standard library overloads implement allocation for more memory types, derived from the devices. Allocations throughout the standard library track the raw allocated memory so that usage is finally released only when the last dependent variable (e.g., the last string allocated on a heap arena) is no longer used. See ContiguousMemory."
-@about ContiguousMemory "Represents allocated memory management. It keeps track of both currently used pointer addresses, for example if these are offsets of allocated base pointers with finally segments calling free on those, and the underlying pointer addresses. Importantly, not all this information is retained after compilation, as most of it -perhaps all- is optimized away. But this structure still helps the compiler organize where to place memory releases, if needed. Users of the standard library will not generally work with this type, as it is highly unsafe to get its pointer fields and requires annotation for the language to allow that."
+@about ContiguousMemory "Represents allocated memory management. It keeps track of both currently used pointer addresses, for example if these are offsets of allocated base pointers with finally segments calling __runtime_free on those, and the underlying pointer addresses. Importantly, not all this information is retained after compilation, as most of it -perhaps all- is optimized away. But this structure still helps the compiler organize where to place memory releases, if needed. Users of the standard library will not generally work with this type, as it is highly unsafe to get its pointer fields and requires annotation for the language to allow that."
 @about at           "Accesses a specific memory position of the corresponding base type. This operation includes bound checks."
 @about __unsafe_put "Can modify an allocated memory. This operation cannot be callsed in safe files."
 
@@ -46,9 +46,9 @@ smo allocate(Stack, u64 size, Primitive)
 smo allocate(Heap, u64 size, Primitive)
     @head{#include <stdlib.h>}
     Primitive = Primitive
-    @body{ptr mem=malloc(size*sizeof(Primitive));}
+    @body{ptr mem=__runtime_alloc(size*sizeof(Primitive));}
     if mem:bool:not -> fail("Failed a Heap allocation")
-    @finally mem {if(mem)free(mem);mem=0;}
+    @finally mem {if(mem)__runtime_free(mem);mem=0;}
     -> nom:ContiguousMemory(Heap, size, Primitive, mem, mem)
 
 smo allocate(MemoryDevice, u64 size) 

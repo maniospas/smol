@@ -5,8 +5,7 @@ service test(u64 x)
 
 
 service main()
-    test(0)
-    test(1)
-    test(2)
-    test(3)
-    --
+    range(10)
+    :while next(u64& i)
+        test(i)
+    ----

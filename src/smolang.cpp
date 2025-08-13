@@ -613,7 +613,8 @@ int main(int argc, char* argv[]) {
             out << "\n\nint main() {\n";
             //out << "return "<<main_service<<"();";
             out << "struct "<<main_service->raw_signature_state_name()<<" __main_args={0};\n";
-            out << "__smolambda_initialize_service_tasks("<<"main__"<<to_string(main_service->identifier)<<", &__main_args);"<<"\n";
+            out << "__smolambda_initialize_service_tasks("<<"main__"<<to_string(main_service->identifier)<<", &__main_args);\n";
+            out << "return __main_args.err;\n";
             out << "}\n\n";
             //out.close();
             //cout << out.str() << "\n";

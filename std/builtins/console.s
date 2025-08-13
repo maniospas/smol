@@ -72,9 +72,9 @@ smo read(str)
                 char first = ((char*)_contents)[0];
             }
         }
-        else if(_contents) {free(_contents);_contents=0;}
+        else if(_contents) {free((char*)_contents);_contents=0;}
     }
-    @finally _contents {if(_contents)free(_contents);_contents=0;}
+    @finally _contents {if(_contents)free((char*)_contents);_contents=0;}
     if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
     -> nom:str(_contents, length, first, _contents)
 

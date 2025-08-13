@@ -140,7 +140,7 @@ smo next_chunk(Volatile &reader, File &f, str& value)
     @head{#include <stdlib.h>}
     @body{
         u64 bytes_read = f__contents?fread((char*)contents, 1, size, (FILE*)f__contents):0;
-        if(!bytes_read) ((char*)contents)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
+        if(!bytes_read) ((char*)contents)[bytes_read] = 0; // Null-terminate for cstr compatibility of `first`
         ptr ret = bytes_read ? (ptr)contents : 0;
         char first = ((char*)contents)[0];
         reader__length = reader__length + bytes_read;
@@ -158,10 +158,10 @@ smo next_line(Volatile &reader, File &f, str& value)
         ptr ret = f__contents?(ptr)fgets((char*)contents, size, (FILE*)f__contents):f__contents;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)contents)[0];
-        if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == '\n') {
+        if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 10) {
             bytes_read--;
-            if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == '\r') bytes_read--;
-            ((char*)reader__contents__mem)[bytes_read] = '\0';
+            if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 13) bytes_read--;
+            ((char*)reader__contents__mem)[bytes_read] = 0;
         }
         reader__length = reader__length + bytes_read;
     }
@@ -174,7 +174,7 @@ smo next_chunk(Arena &reader, File &f, str& value)
     @head{#include <stdlib.h>}
     @body{
         u64 bytes_read = f__contents?fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)f__contents):0;
-        if(!bytes_read) ((char*)reader__contents__mem)[bytes_read] = '\0'; // Null-terminate for cstr compatibility of `first`
+        if(!bytes_read) ((char*)reader__contents__mem)[bytes_read] = 0; // Null-terminate for cstr compatibility of `first`
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
         char first = ((char*)reader__contents__mem)[0];
         reader__length = reader__length + bytes_read;
@@ -191,10 +191,10 @@ smo next_line(Arena &reader, File &f, str& value)
         ptr ret = f__contents?(ptr)fgets((char*)reader__contents__mem, reader__contents__size, (FILE*)f__contents):f__contents;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
-        if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == '\n') {
+        if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 10) {
             bytes_read--;
-            if(bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == '\r') bytes_read--;
-            ((char*)reader__contents__mem)[bytes_read] = '\0';
+            if(bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 13) bytes_read--;
+            ((char*)reader__contents__mem)[bytes_read] = 0;
         }
         reader__length = reader__length + bytes_read;
     }

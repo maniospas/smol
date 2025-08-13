@@ -41,21 +41,21 @@ union DerivedMemory(Arena, Volatile)
 
 smo Dynamic(nom) 
     @noborrow
-    @body{ptr acquired = malloc(sizeof(ptr**));if(acquired)((ptr**)acquired)[0]=0;}
+    @body{ptr acquired = __runtime_alloc(sizeof(ptr**));if(acquired)((ptr**)acquired)[0]=0;}
     size = 0
     allocated = 0
     @finally acquired {
         if(acquired) {
             for(u64 __dynamic_entry=0;__dynamic_entry<size;++__dynamic_entry) {
-                free(((ptr**)acquired)[0][__dynamic_entry]);                
+                __runtime_free(((ptr**)acquired)[0][__dynamic_entry]);                
             }
-            free(acquired);
+            __runtime_free(acquired);
             acquired=0;
             size = 0;
             allocated = 0;
         } 
     }
-    -> @new, acquired, size, allocated
+    -> @new, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:allocate_dynamic
 
 smo allocate_dynamic(Heap) -> nom:Dynamic
 smo allocate_dynamic(Stack) -> nom:Stack
@@ -69,11 +69,11 @@ smo allocate(Dynamic& self, u64 size, Primitive)
         bool success = true;
         if(next_size>=self__allocated) {
             self__allocated = self__allocated+self__allocated/2+1; // ~50% growth strategy
-            ptr next_acquired = (ptr)(((ptr**)self__acquired)[0]?realloc(((ptr**)self__acquired)[0], self__allocated*sizeof(ptr)):malloc(self__allocated*sizeof(ptr)));
+            ptr next_acquired = (ptr)(((ptr**)self__acquired)[0]?realloc(((ptr**)self__acquired)[0], self__allocated*sizeof(ptr)):__runtime_alloc(self__allocated*sizeof(ptr)));
             if(success=next_acquired) ((ptr**)self__acquired)[0] = (ptr*)next_acquired;
         }
         if(success) {
-            ptr mem=(ptr)malloc(size*sizeof(Primitive));
+            ptr mem=(ptr)__runtime_alloc(size*sizeof(Primitive));
             if(success=mem) {
                 ((ptr**)self__acquired)[0][self__size] = mem;
                 self__size = next_size;

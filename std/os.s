@@ -1,3 +1,21 @@
+// Written in 2025 by Emmanouil Krasanakis (maniospas@hotmail.com)
+//
+// To the extent possible under law, the author has dedicated all copyright
+// and related and neighboring rights to this software to the public domain
+// worldwide.
+// 
+// Permission to use, copy, modify, and/or distribute this software for any
+// purpose with or without fee is hereby granted.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+// WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+// ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+// ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+// IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+
+
 @include std.builtins
 @include std.mem
 @unsafe
@@ -23,7 +41,7 @@ smo open(Process&, cstr command)
         #define pclose _pclose
         #endif
     }
-    @body{ptr contents = (ptr)popen((char*)command, "r");}
+    @body{ptr contents = (ptr)popen((cstr)command, "r");}
     if contents:exists:not @fail{printf("Failed to start process");} --
     @finally contents { if(contents) pclose((FILE*)contents); contents = 0; }
     -> nom:Process(contents)
@@ -119,5 +137,18 @@ smo system(str command)
     --
 
 smo open(Process&, str command)
-    -> Process:open(Stack:copy(command).memory:cstr)
+    mem = Stack:allocate(command.length+1, char)
+    @body{
+        char first = 0;
+        if(mem__mem) {
+            memcpy((char*)mem__mem, command__contents, command__length);
+            ((char*)mem__mem)[command__length] = '\0';
+        }
+        // we need the following line as a means of casting void* to const char*
+        // but we can do this only because Process is @noborrow so that the allocated
+        // stack cannot be leaked (by the way, this would finalize Heap memory, so
+        // we don't do it)
+        cstr mem = (const char*)mem__mem; 
+    }
+    -> Process:open(mem)
 

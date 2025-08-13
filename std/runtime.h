@@ -1,5 +1,71 @@
+// -----------------------  ABOUT  ------------------------------------------
+// This file is used during the compilation of smoλ programs.
+// It contains implementations of system-specific memory allocations,
+// and of runtime co-routines. Its goal is to make the language future-proof
+// by allowing modifications to allow compilation for systems with different
+// memory management capabilities (e.g., where memory management should take
+// place over a static buffer) or threading infrastructure.
+//
+// Calls to the following functions are hard-coded to the language and
+// standard library, so you should NOT change their name or signature:
+// - __runtime_alloc
+// - __runtime_free
+// - __smolambda_add_task
+// - __smolambda_initialize_service_tasks
+// - __smolambda_task_wait
+// - __smolambda_task_destroy
+// - __runtime_apply_linked
+
+// ----------------------- LICENSE ------------------------------------------
+// Written in 2025 by Emmanouil Krasanakis (maniospas@hotmail.com)
+//
+// To the extent possible under law, the author has dedicated all copyright
+// and related and neighboring rights to this software to the public domain
+// worldwide.
+// 
+// Permission to use, copy, modify, and/or distribute this software for any
+// purpose with or without fee is hereby granted.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+// WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+// ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+// ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+// IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
 #include <stdio.h>
 #include <stdlib.h>
+
+/* ---------------- TASK STRUCT ---------------- */
+inline void* __runtime_alloc(size_t size) {return malloc(size);}
+inline void __runtime_free(void* mem) {free(mem);}
+
+
+/* ---------------- TASK STRUCT ---------------- */
+typedef struct __SmolambdaLinkedMemory {
+    void *contents;
+    struct __SmolambdaLinkedMemory* next;
+} __SmolambdaLinkedMemory;
+
+inline __SmolambdaLinkedMemory* __runtime_prepend_linked(__SmolambdaLinkedMemory* memory, void* contents) {
+    __SmolambdaLinkedMemory* mem = (__SmolambdaLinkedMemory*)__runtime_alloc(sizeof(__SmolambdaLinkedMemory));
+    mem->next = memory;
+    mem->contents = contents;
+    return mem;
+}
+
+inline void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *), bool is_destructor) {
+    while(memory->next) {
+        if(memory->contents) func(memory->contents);
+        __SmolambdaLinkedMemory* prev = memory;
+        memory = memory->next;
+        if(is_destructor) __runtime_free(prev);
+    }
+    if(memory && memory->contents) func(memory->contents);
+    if(memory && is_destructor) __runtime_free(memory);
+}
+
 
 #ifdef _WIN32
 #include <windows.h>
@@ -15,7 +81,6 @@ typedef struct Task {
     void (*func)(void *arg);
     void *arg;
     struct Task *next;
-
     int completed;
 #ifdef _WIN32
     CRITICAL_SECTION wait_mutex;
@@ -42,7 +107,7 @@ typedef struct {
 TaskQueue task_queue;
 
 /* ---------------- INIT FUNCTION ---------------- */
-void init_task_queue(TaskQueue *queue) {
+void __smolambda_init_task_queue(TaskQueue *queue) {
     queue->head = NULL;
     queue->stop = 0;
 #ifdef _WIN32
@@ -56,7 +121,7 @@ void init_task_queue(TaskQueue *queue) {
 
 /* ---------------- ADD TASK (returns void*) ---------------- */
 void* __smolambda_add_task(void (*func)(void *), void *arg) {
-    Task *task = (Task*)malloc(sizeof(Task));
+    Task *task = (Task*)__runtime_alloc(sizeof(Task));
     if (!task) return NULL;
     task->func = func;
     task->arg = arg;
@@ -189,7 +254,7 @@ void __smolambda_task_destroy(void *task_ptr) {
     pthread_mutex_destroy(&task->wait_mutex);
     pthread_cond_destroy(&task->wait_cond);
 #endif
-    free(task);
+    __runtime_free(task);
 }
 
 /* ---------------- GET TASK ---------------- */
@@ -281,16 +346,17 @@ int __smolambda_get_core_count() {
 /* ---------------- START SERVICE WITH EXAMPLE ---------------- */
 int __smolambda_initialize_service_tasks(void (*initial_func)(void *), void *initial_arg) {
     int num_threads = __smolambda_get_core_count();
-    printf("Number of threads: %d\n", num_threads);
-    init_task_queue(&task_queue);
+    printf("Compiler: smoλ (https://github.com/maniospas/smol)\n");
+    printf("Threads: %d\n", num_threads);
+    __smolambda_init_task_queue(&task_queue);
 
     /* Create worker threads */
 #ifdef _WIN32
-    HANDLE *threads = (HANDLE*)malloc(sizeof(HANDLE) * num_threads);
+    HANDLE *threads = (HANDLE*)__runtime_alloc(sizeof(HANDLE) * num_threads);
     for (int i = 0; i < num_threads; i++)
         threads[i] = CreateThread(NULL, 0, worker_thread, NULL, 0, NULL);
 #else
-    pthread_t *threads = (pthread_t*)malloc(sizeof(pthread_t) * num_threads);
+    pthread_t *threads = (pthread_t*)__runtime_alloc(sizeof(pthread_t) * num_threads);
     for (int i = 0; i < num_threads; i++)
         pthread_create(&threads[i], NULL, __smolambda_worker_thread, NULL);
 #endif
@@ -310,11 +376,11 @@ int __smolambda_initialize_service_tasks(void (*initial_func)(void *), void *ini
         WaitForSingleObject(threads[i], INFINITE);
         CloseHandle(threads[i]);
     }
-    free(threads);
+    __runtime_free(threads);
     DeleteCriticalSection(&task_queue.mutex);
 #else
     for (int i = 0; i < num_threads; i++) pthread_join(threads[i], NULL);
-    free(threads);
+    __runtime_free(threads);
     pthread_mutex_destroy(&task_queue.mutex);
     pthread_cond_destroy(&task_queue.cond);
 #endif
