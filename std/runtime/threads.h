@@ -42,8 +42,8 @@
 #include <stdlib.h>
 
 /* ---------------- TASK STRUCT ---------------- */
-inline void* __runtime_alloc(size_t size) {return malloc(size);}
-inline void __runtime_free(void* mem) {free(mem);}
+void* __runtime_alloc(size_t size) {return malloc(size);}
+void __runtime_free(void* mem) {free(mem);}
 
 
 /* ---------------- TASK STRUCT ---------------- */
@@ -52,14 +52,14 @@ typedef struct __SmolambdaLinkedMemory {
     struct __SmolambdaLinkedMemory* next;
 } __SmolambdaLinkedMemory;
 
-inline __SmolambdaLinkedMemory* __runtime_prepend_linked(__SmolambdaLinkedMemory* memory, void* contents) {
+__SmolambdaLinkedMemory* __runtime_prepend_linked(__SmolambdaLinkedMemory* memory, void* contents) {
     __SmolambdaLinkedMemory* mem = (__SmolambdaLinkedMemory*)__runtime_alloc(sizeof(__SmolambdaLinkedMemory));
     mem->next = memory;
     mem->contents = contents;
     return mem;
 }
 
-inline void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *), bool is_destructor) {
+void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *), int is_destructor) {
     while(memory->next) {
         if(memory->contents) func(memory->contents);
         __SmolambdaLinkedMemory* prev = memory;
