@@ -14,18 +14,19 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
         const auto& type = internalTypes.vars.find(var)->second;
         if(!type->not_primitive()) ret.push_back(var);
         else if(type->is_service) {
-            if(active_calls[var]) {
-                active_calls[var] = false;
-                implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                implementation += Code(var+ERR_VAR, ASSIGN_VAR, var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
+            if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) {
+                const Variable& call_var = active_calls[var];
+                implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                implementation += Code(var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
                 Variable fail_var = create_temp();
                 internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
-                implementation +=Code(token_if, var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
-                errors = errors+Code(fail_var, token_print,type->name,var, token_failsafe);
+                implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
+                errors = errors+Code(fail_var, token_print, type->name, call_var, token_failsafe);
                 add_preample("#include <stdio.h>");
             }
-            for(size_t i=1;i<type->packs.size();++i) ret.push_back(var+type->packs[i]);
+            for(size_t i=1;i<type->packs.size();++i) ret.push_back(active_calls[var]+type->packs[i]);
+            if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) active_calls[active_calls[var]] = EMPTY_VAR;
         }
         else for(const Variable& pack : type->packs) ret.push_back(var+pack);
         string next = imp->at(p);
@@ -40,18 +41,19 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
         const auto& type = internalTypes.vars[var];
         if(!type->not_primitive()) ret.push_back(var);
         else if(type->is_service) {
-            if(active_calls[var]) {
-                active_calls[var] = false;
-                implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                implementation += Code(var+ERR_VAR, ASSIGN_VAR, var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
+            if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) {
+                const Variable& call_var = active_calls[var];
+                implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                implementation += Code(var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
                 Variable fail_var = create_temp();
                 internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
-                implementation +=Code(token_if,var+ERR_VAR,token_goto,fail_var, SEMICOLON_VAR);
-                errors = errors+Code(fail_var, token_print, type->name, var, token_failsafe);
+                implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
+                errors = errors+Code(fail_var, token_print, type->name, call_var, token_failsafe);
                 add_preample("#include <stdio.h>");
             }
-            for(size_t i=1;i<type->packs.size();++i) ret.push_back(var+type->packs[i]);
+            for(size_t i=1;i<type->packs.size();++i) ret.push_back(active_calls[var]+type->packs[i]);
+            if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) active_calls[active_calls[var]] = EMPTY_VAR;
         }
         else for(const Variable& pack : type->packs) ret.push_back(var+pack);
         next = imp->at(p++);

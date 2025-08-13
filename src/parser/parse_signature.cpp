@@ -62,6 +62,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 for(const auto& final : it.type->finals) finals[arg_name+final.first] = finals[arg_name+final.first] + it.type->rebase(final.second, arg_name); 
                 for(const auto& it : it.type->current_renaming) current_renaming[arg_name+it.first] = arg_name+it.second;
                 for(const auto& it : it.type->alignments) if(it.second) {alignments[arg_name+it.first] = it.second;}
+                for(const auto& it : it.type->active_calls) if(it.second.exists()) {active_calls[arg_name+it.first] = it.second;}
                 errors = errors+it.type->rebase(it.type->errors, arg_name);
                 for(const auto& it2 : it.type->internalTypes.vars) {
                     Variable arg = arg_name+it2.first;

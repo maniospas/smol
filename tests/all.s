@@ -9,13 +9,13 @@ service std_test(String _name)
         Process:open(command):to_end
         printin("[ \033[32mOK\033[0m ] ")
         print(name)
-    ----
+    --->1
 
 service main()
+    std_test("map")
     std_test("effvec")
     std_test("file")
     std_test("finally")
-    std_test("map")
     std_test("mem")
     std_test("memtest")
     --

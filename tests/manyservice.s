@@ -6,12 +6,13 @@ service test3(u64 i)
 
 service test2(u64 i)
     test3(i)
+    print(i*10)
     --
 
 service test(u64 i)
     test2(i)
+    print(i*100)
     --
-
 
 service main()
     test(0)

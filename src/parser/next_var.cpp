@@ -48,6 +48,26 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
         else if(imp->at(p)==".") {
             ++p;
             const string& next_token = imp->at(p++);
+            Variable var = Variable(next);
+            if(active_calls[var].exists()) {
+                if(active_calls[active_calls[var]].exists()) {
+                    static const Variable token_print = Variable(":\nprintf(\"Runtime error from");
+                    static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+                    const Variable& call_var = active_calls[var];
+                    implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                    implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                    implementation += Code(var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
+                    Variable fail_var = create_temp();
+                    internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+                    implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
+                    errors = errors+Code(fail_var, token_print, internalTypes.vars[var]->name, call_var, token_failsafe);
+                    add_preample("#include <stdio.h>");
+                }
+                next = active_calls[var]+next_token;
+                if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) active_calls[active_calls[var]] = EMPTY_VAR;
+                continue;
+            }
+
             if(next.exists() && internalTypes.contains(next) && internalTypes.vars[next]->retrievable_parameters.find(next_token)!=internalTypes.vars[next]->retrievable_parameters.end()) {
                 Type prevType = internalTypes.vars[next];
                 if(prevType->options.size()==1) prevType = *prevType->options.begin();

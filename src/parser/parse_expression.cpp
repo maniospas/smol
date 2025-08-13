@@ -182,6 +182,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         transfer_finals[arg.name] = Code();
     }
     for(const auto& it : type->current_renaming) current_renaming[var+it.first] = var+it.second;
+    for(const auto& it : type->active_calls) if(it.second.exists()) active_calls[var+it.first] = var+it.second;
 
     // prevent memory leaks in loops
     if(uplifiting_is_loop.size() && uplifiting_is_loop.back() && type->finals.size()) {
@@ -201,7 +202,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
         internalTypes.vars[var+TASK_VAR] = types.vars[PTR_VAR];
         internalTypes.vars[var] = type;
-        active_calls[var] = true;
+        active_calls[var] = var;
         for(const Variable& pack : type->packs) if(type->alignments[pack]) alignments[var+pack] = type->alignments[pack];
         for(size_t i=1;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
             const Variable& ret = type->packs[i];
@@ -258,6 +259,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
     errors = errors+type->rebase(type->errors, var);
     for(const auto& it : type->current_renaming) current_renaming[var+it.first] = var+it.second;
+    for(const auto& it : type->active_calls) active_calls[var+it.first] = var+it.second;
     for(const auto& it : type->internalTypes.vars) if(it.second) { // TODO: remove this if (currently it guards against some leftover labels)
         if(!it.second) imp->error(--p, type->name.to_string()+"."+pretty_var(it.first.to_string())+" is undefined");
         internalTypes.vars[var+it.first] = it.second;
@@ -471,18 +473,19 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             if(rhsType->_is_primitive) unpacks.push_back(rhs);
             else if(type->is_service) {
                 Variable fail_var = create_temp();
-                if(active_calls[rhs]) {
-                    active_calls[rhs] = false;
-                    implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,rhs+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                    implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,rhs+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                    implementation += Code(rhs+ERR_VAR, ASSIGN_VAR, rhs+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
+                if(active_calls[rhs].exists() && active_calls[active_calls[rhs]].exists()) {
+                    const Variable& call_var = active_calls[rhs];
+                    implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                    implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                    implementation += Code(rhs+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
                     static const Variable token_err1 = Variable(":\nprintf(\"Runtime error from ");
                     static const Variable token_err2 = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
-                    implementation +=Code(token_if, rhs+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
-                    errors = errors+Code(fail_var, token_err1, rhsType->name, rhs, token_err2);
+                    implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
+                    errors = errors+Code(fail_var, token_err1, rhsType->name, call_var, token_err2);
                     add_preample("#include <stdio.h>");
                 }
-                for(size_t i=1;i<rhsType->packs.size();++i) unpacks.push_back(rhs+rhsType->packs[i]);
+                for(size_t i=1;i<rhsType->packs.size();++i) unpacks.push_back(active_calls[rhs]+rhsType->packs[i]);
+                if(active_calls[rhs].exists() && active_calls[active_calls[rhs]].exists()) active_calls[active_calls[rhs]] = EMPTY_VAR;
             }
             else for(const Variable& pack : rhsType->packs) unpacks.push_back(rhs+pack);
         }

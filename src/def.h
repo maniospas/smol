@@ -162,7 +162,8 @@ public:
     size_t number_of_calls;
     Variable active_context;
     set<string> preample;
-    unordered_map<Variable, bool> active_calls;
+    unordered_map<Variable, Variable> active_calls;
+    unordered_map<Variable, Variable> original_calls;
     unordered_map<Variable, bool> released;
     unordered_map<Variable, bool> has_been_service_arg;
     unordered_map<Variable, Code> finals;              // resource closing code (transferred around)

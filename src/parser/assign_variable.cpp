@@ -1,9 +1,11 @@
 #include "../def.h"
 
 void Def::assign_variable(const Type& type, const Variable& from, const Variable& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives, bool check_mutables) {
+    // from = to; (yes, the order is this)
     current_renaming[from] = to;
     current_renaming[to] = from;
     released[from] = released[to];
+    active_calls[from] = active_calls[to];
     if(check_mutables && internalTypes.contains(from) && mutables.find(from)==mutables.end()) imp->error(--p, "Cannot reassign to non-mutable: "+pretty_var(from.to_string())+"\nMutables are prepended by & in their first declaration");
     if(to.is_private() && internalTypes.contains(to) && internalTypes.vars[to]->noborrow && mutables.find(to)!=mutables.end()) imp->error(--p, "Cannot reassign from @noborrow: "+pretty_var(to.to_string())+"\nArguments and variables of its runtype can only be mutable\nand therefore it becomes impossible to share it\n(mutable variables cannot be assinged anywhere).\nAdd & before the variable name to make it mutable");
     if(type_trackers.find(to)!=type_trackers.end()) type_trackers.insert(from);
