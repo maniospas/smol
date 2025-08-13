@@ -86,24 +86,98 @@ void* __smolambda_add_task(void (*func)(void *), void *arg) {
     return (void*)task;
 }
 
-/* ---------------- WAIT FOR TASK COMPLETION ---------------- */
-void __smolambda_task_wait(void *task_ptr) {
-    Task *task = (Task*)task_ptr;
-    if (!task) return;
+/* ---------------- TRY GET TASK (non-blocking) ---------------- */
+static Task* __smolambda_try_get_task() {
+    Task *task = NULL;
 #ifdef _WIN32
-    EnterCriticalSection(&task->wait_mutex);
-    while (!task->completed) {
-        SleepConditionVariableCS(&task->wait_cond, &task->wait_mutex, INFINITE);
+    if (!TryEnterCriticalSection(&task_queue.mutex)) {
+        return NULL; /* someone else has the lock */
     }
-    LeaveCriticalSection(&task->wait_mutex);
+    if (task_queue.head) {
+        task = task_queue.head;
+        task_queue.head = task->next;
+    }
+    LeaveCriticalSection(&task_queue.mutex);
 #else
-    pthread_mutex_lock(&task->wait_mutex);
-    while (!task->completed) {
-        pthread_cond_wait(&task->wait_cond, &task->wait_mutex);
+    if (pthread_mutex_trylock(&task_queue.mutex) != 0) {
+        return NULL; /* lock busy */
     }
-    pthread_mutex_unlock(&task->wait_mutex);
+    if (task_queue.head) {
+        task = task_queue.head;
+        task_queue.head = task->next;
+    }
+    pthread_mutex_unlock(&task_queue.mutex);
 #endif
+    return task;
 }
+
+
+/* ---------------- WAIT FOR TASK COMPLETION ---------------- */
+/* ---------------- WAIT FOR TASK COMPLETION (helping) ---------------- */
+void __smolambda_task_wait(void *task_ptr) {
+    Task *target = (Task*)task_ptr;
+    if (!target) return;
+
+    for (;;) {
+        /* Fast path: check completion */
+#ifdef _WIN32
+        EnterCriticalSection(&target->wait_mutex);
+        int done = target->completed;
+        LeaveCriticalSection(&target->wait_mutex);
+#else
+        pthread_mutex_lock(&target->wait_mutex);
+        int done = target->completed;
+        pthread_mutex_unlock(&target->wait_mutex);
+#endif
+        if (done) break;
+
+        /* Help: run one available task */
+        Task *task = __smolambda_try_get_task();
+        if (task) {
+            task->func(task->arg);
+
+            /* Signal completion of the task we just ran */
+#ifdef _WIN32
+            EnterCriticalSection(&task->wait_mutex);
+            task->completed = 1;
+            WakeAllConditionVariable(&task->wait_cond);
+            LeaveCriticalSection(&task->wait_mutex);
+#else
+            pthread_mutex_lock(&task->wait_mutex);
+            task->completed = 1;
+            pthread_cond_broadcast(&task->wait_cond);
+            pthread_mutex_unlock(&task->wait_mutex);
+#endif
+            /* If that task was the one we're waiting for, next loop will see done */
+            continue;
+        }
+
+        /* Nothing to help with; do a short timed wait on the target to avoid spinning */
+#ifdef _WIN32
+        EnterCriticalSection(&target->wait_mutex);
+        if (!target->completed) {
+            /* ~1 ms; adjust as desired */
+            SleepConditionVariableCS(&target->wait_cond, &target->wait_mutex, 1);
+        }
+        LeaveCriticalSection(&target->wait_mutex);
+#else
+        pthread_mutex_lock(&target->wait_mutex);
+        if (!target->completed) {
+            struct timespec ts;
+            clock_gettime(CLOCK_REALTIME, &ts);
+            /* +5ms */
+            ts.tv_nsec += 5 * 1000 * 1000;
+            if (ts.tv_nsec >= 1000000000L) {
+                ts.tv_sec += 1;
+                ts.tv_nsec -= 1000000000L;
+            }
+            pthread_cond_timedwait(&target->wait_cond, &target->wait_mutex, &ts);
+        }
+        pthread_mutex_unlock(&target->wait_mutex);
+#endif
+    }
+}
+
 
 /* ---------------- DESTROY TASK ---------------- */
 void __smolambda_task_destroy(void *task_ptr) {
