@@ -1,6 +1,6 @@
-// -----------------------  ABOUT  ------------------------------------------
-// This file is used during the compilation of smoλ programs.
-// It contains implementations of system-specific memory allocations,
+// ----------------------- RUNTIME ------------------------------------------
+// Runtimes are used during the compilation of smoλ programs.
+// They contain implementations of system-specific memory allocations,
 // and of runtime co-routines. Its goal is to make the language future-proof
 // by allowing modifications to allow compilation for systems with different
 // memory management capabilities (e.g., where memory management should take
@@ -15,6 +15,10 @@
 // - __smolambda_task_wait
 // - __smolambda_task_destroy
 // - __runtime_apply_linked
+
+// ----------------------- ABOUT ------------------------------------------
+// This is the default runtime. You can explicitly set it by compiling
+//     smol main.s --runtime multithread
 
 // ----------------------- LICENSE ------------------------------------------
 // Written in 2025 by Emmanouil Krasanakis (maniospas@hotmail.com)

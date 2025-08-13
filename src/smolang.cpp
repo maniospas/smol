@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <filesystem>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define SMOL_POPEN _popen
@@ -33,6 +34,7 @@
 #endif
 
 string compiler = "g++";
+string runtime = "std/runtime/threaded.h";
 
 // Returns 0 on success, or nonzero (compiler exit code or error).
 int compile_from_stringstream_with_flags(
@@ -365,22 +367,35 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if (arg == "--log") log_type_resolution = true;
+        else if (arg == "--runtime") {
+            if(i + 1 >= argc) {cerr << "Error: --runtime requires an argument" << endl;return 1;}
+            runtime = argv[++i];
+            if(runtime.size()<2 || runtime.substr(runtime.size()-2)!=".h") runtime = "std/runtime/"+runtime+".h";
+        }
         else if (arg == "--task") {
-            if(i + 1 >= argc) {cerr << "Error: --task requires an argument (compile, verify, run, lsp)" << endl;return 1;}
+            if(i + 1 >= argc) {cerr << "\033[30;41m ERROR \033[0m --task requires an argument (compile, verify, run, lsp)" << endl;return 1;}
             try {selected_task = parse_task(argv[++i]); } 
-            catch (const invalid_argument& e) {cerr << "Error: " << e.what() << endl; return 1;}
+            catch (const invalid_argument& e) {cerr << "\033[30;41m ERROR \033[0m " << e.what() << endl; return 1;}
         } 
         else if (arg == "--back") {
-            if(i + 1 >= argc) {cerr << "Error: --back requires an argument (e.g., gcc, tcc, g++)" << endl;return 1;}
+            if(i + 1 >= argc) {cerr << "\033[30;41m ERROR \033[0m --back requires an argument (e.g., gcc, tcc, g++)" << endl;return 1;}
             compiler = argv[++i];
         } 
         else if(arg.rfind("--", 0) == 0) {cerr << "Unknown option: " << arg << endl; return 1;}
         else files.push_back(arg);
     }
+    if (!filesystem::exists(runtime)) {
+        cerr << "\033[30;41m ERROR \033[0m Runtime not found at: " << runtime << endl;
+        cerr << "Provide either a valid path or an .h file name from std/runtime/:" << endl;
+        try {
+            for (const auto& entry : filesystem::directory_iterator("std/runtime")) if (entry.is_regular_file() && entry.path().extension() == ".h") cerr << "  --runtime " << entry.path().stem().filename().string() << endl;
+        } catch (const filesystem::filesystem_error& e) {cerr << "Nothin - did not find std/runtime/: " << e.what() << endl;}
+        return 1;
+    }
     if(files.size()==0) files.push_back("main.s");
     string task_report;
     for(const string& file : files) {
-        if(file.size()<2 || file.substr(file.size()-2) != ".s") {cerr << "Error: expecting '.s' extension but got file: " << file << endl; return 1;}
+        if(file.size()<2 || file.substr(file.size()-2) != ".s") {cerr << "\033[30;41m ERROR \033[0m expecting '.s' extension but got file: " << file << endl; return 1;}
         try {
             codegen(included, file, builtins, selected_task, task_report);
 
@@ -487,7 +502,7 @@ int main(int argc, char* argv[]) {
             string globals = 
                 //"#undef _FORTIFY_SOURCE"
                 "#include <string.h>\n"
-                "#include \"std/runtime.h\"\n"
+                "#include \""+runtime+"\"\n"
                 "#define __IS_i64 1\n"
                 "#define __IS_f64 2\n"
                 "#define __IS_u64 3\n"
