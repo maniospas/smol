@@ -34,7 +34,7 @@
 #endif
 
 string compiler = "g++";
-string runtime = "std/runtime/threaded.h";
+string runtime = "std/runtime/threads.h";
 
 // Returns 0 on success, or nonzero (compiler exit code or error).
 int compile_from_stringstream_with_flags(

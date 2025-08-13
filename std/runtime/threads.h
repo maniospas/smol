@@ -182,7 +182,6 @@ static Task* __smolambda_try_get_task() {
 
 
 /* ---------------- WAIT FOR TASK COMPLETION ---------------- */
-/* ---------------- WAIT FOR TASK COMPLETION (helping) ---------------- */
 void __smolambda_task_wait(void *task_ptr) {
     Task *target = (Task*)task_ptr;
     if (!target) return;

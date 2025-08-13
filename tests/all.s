@@ -4,7 +4,7 @@
 service std_test(String _name)
     name = _name:str
     on Heap:allocate_dynamic // memory surface for string concatenations
-        command = "./smol tests/"+name+".s"
+        command = "./smol tests/"+name+".s --runtime seq"
         Process:open(command):to_end
         print("[ \033[32mOK\033[0m ] "+name)
     ----
