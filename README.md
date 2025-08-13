@@ -4,7 +4,7 @@
 
 ![logo](./docs/smol.png)
 
-Declare zero-cost safe abstractions for structural and nominal data. Transpile to performant C++.
+Declare zero-cost safe abstractions for structural and nominal data. Transpile to performant C.
 
 
 **Dependencies:** GCC<br>
@@ -33,10 +33,11 @@ Comma concatenation is flat. The `:` symbol is currying,
 that is, passes the left-hand-side as the first argument.
 Finally `->` is a returned value, `--` is a return with
 no value, and services are runtypes that form failure barriers.
+Grouping returns is a convenient way to also track code complexity.
 
 
 ```rust
-@include std
+@include std.builtins
 
 // overloading a structural type
 smo Point(f64 x, f64 y) -> @new 
@@ -58,19 +59,19 @@ service main()
 
 
 ```rust
-@include std
+@include std.builtins
 
 service main()
     print("Printing squares of 0,1,..,9")
-    // declare i as mutable so that `next`can modify it,
-    // otherwise the compiler will complain with an explanation
+    // declare i as mutable so that `next` can modify it
     range(10) // curried as first argument in the `next` call
     :while next(u64& i) 
         if i>=2 
             squared = i*i
-            print(squared) 
-        -- else print(i)  // concise one-liner
-    ------ // end `if`, then `while`, then `main` in one line
+            -> print(squared) // return from if with no-result (more consise than -- afterwards)
+        else 
+            -> print(i) 
+    ---- // end `while`, then `main`
 ```
 
 

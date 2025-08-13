@@ -51,7 +51,7 @@ string Def::canonic_name() {
 }
 
 string Def::raw_signature() {
-    string ret("");
+    /*string ret("");
     if(is_service) for(size_t i=1;i<packs.size();++i) {
         if(i>=2) ret += ", ";
         ret += ""+internalTypes.vars[packs[i]]->name.to_string()+" *__ref__"+packs[i].to_string();
@@ -59,8 +59,22 @@ string Def::raw_signature() {
     for(const auto& arg : args) {
         if(ret.size()) ret += ", ";
         ret += ""+arg.type->name.to_string()+" "+(arg.mut?"*__ref__":"")+arg.name.to_string();
-    }
+    }*/
+    string ret = "void *__void__state";
     string name = this->name.to_string();
-    if(is_service && name!="main") name += "__"+to_string(identifier);
+    if(is_service) name += "__"+to_string(identifier);
     return name+"("+ret+")";
 }
+string Def::raw_signature_state() {
+    string ret("");
+    ret += "errcode err;";
+    for(size_t i=1;i<packs.size();++i) {
+        ret += ""+internalTypes.vars[packs[i]]->name.to_string()+" *"+packs[i].to_string()+";";
+    }
+    for(const auto& arg : args) {
+        ret += ""+arg.type->name.to_string()+" "+(arg.mut?"*":"")+arg.name.to_string()+";";
+    }
+    string name = raw_signature_state_name();
+    return "struct "+name+"{"+ret+"};";
+}
+string Def::raw_signature_state_name() const {return this->name.to_string()+"__"+to_string(identifier)+"__state";}

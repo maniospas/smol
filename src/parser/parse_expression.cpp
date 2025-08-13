@@ -195,37 +195,37 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
 
     // make actual call
     if(type->is_service) {
-        // vardecl += "errcode "+var+"__err = 0;\n";
-        Code impl = Code(var+ERR_VAR,ASSIGN_VAR,Variable(type->name+to_string(type->identifier)),LPAR_VAR);
+        vardecl += Code(STRUCT_VAR, Variable(type->raw_signature_state_name()), var+STATE_VAR,Variable("={0}"), SEMICOLON_VAR);
+        internalTypes.vars[var+STATE_VAR] = types.vars[STATE_VAR];
+        Code impl = Code();
         internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
+        internalTypes.vars[var+TASK_VAR] = types.vars[PTR_VAR];
         internalTypes.vars[var] = type;
+        active_calls[var] = true;
         for(const Variable& pack : type->packs) if(type->alignments[pack]) alignments[var+pack] = type->alignments[pack];
-        bool toadd = false;
         for(size_t i=1;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
             const Variable& ret = type->packs[i];
             size_t fp = first_token_pos;
             Variable arg = var+ret;
             assign_variable(type->internalTypes.vars[ret], arg, ZERO_VAR, imp, fp);
-            if(toadd) impl = impl+Code(COMMA_VAR);
-            impl += Code(REF_VAR,arg);
             mutables.insert(arg);
-            toadd = true;
+            impl += Code(var+STATE_VAR, DOT_VAR, ret, ASSIGN_VAR, REF_VAR, arg, SEMICOLON_VAR);
             //type->coallesce_finals(ret);
             //finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
         }
         for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+it.first] = it.second;
         for(size_t i=0;i<unpacks.size();++i) {
-            if(toadd) impl = impl+Code(COMMA_VAR);
             notify_service_arg(unpacks[i]);
-            toadd = true;
             if(type->args[i].mut) {
-                impl += Code(REF_VAR, unpacks[i]);
+                impl += Code(var+STATE_VAR, DOT_VAR, type->args[i].name, ASSIGN_VAR, REF_VAR, unpacks[i],SEMICOLON_VAR);
                 type->coallesce_finals(type->args[i].name);
                 finals[unpacks[i]] = finals[unpacks[i]]+type->rename_var(type->finals[type->args[i].name], type->args[i].name, unpacks[i]);
             }
-            else impl += Code(unpacks[i]);
+            else impl += Code(var+STATE_VAR, DOT_VAR, type->args[i].name, ASSIGN_VAR, unpacks[i],SEMICOLON_VAR);
         }
-        impl = impl+Code(Variable(");\n"));
+        impl += Code(var+TASK_VAR, ASSIGN_VAR, Variable("__smolambda_add_task"),LPAR_VAR)
+                +Code(type->name+Variable(to_string(type->identifier)), COMMA_VAR, REF_VAR, var+STATE_VAR)
+                +Code(RPAR_VAR, SEMICOLON_VAR);
         implementation +=impl;
         internalTypes.vars[var] = type->alias_for.exists()?type->internalTypes.vars[type->alias_for]:type;
         return next_var(imp, p, var, types);
@@ -471,11 +471,17 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             if(rhsType->_is_primitive) unpacks.push_back(rhs);
             else if(type->is_service) {
                 Variable fail_var = create_temp();
-                static const Variable token_err1 = Variable(":\nprintf(\"Runtime error from ");
-                static const Variable token_err2 = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
-                implementation +=Code(token_if, rhs+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
-                errors = errors+Code(fail_var, token_err1, rhsType->name, rhs, token_err2);
-                add_preample("#include <stdio.h>");
+                if(active_calls[rhs]) {
+                    active_calls[rhs] = false;
+                    implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,rhs+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                    implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,rhs+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                    implementation += Code(rhs+ERR_VAR, ASSIGN_VAR, rhs+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
+                    static const Variable token_err1 = Variable(":\nprintf(\"Runtime error from ");
+                    static const Variable token_err2 = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+                    implementation +=Code(token_if, rhs+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
+                    errors = errors+Code(fail_var, token_err1, rhsType->name, rhs, token_err2);
+                    add_preample("#include <stdio.h>");
+                }
                 for(size_t i=1;i<rhsType->packs.size();++i) unpacks.push_back(rhs+rhsType->packs[i]);
             }
             else for(const Variable& pack : rhsType->packs) unpacks.push_back(rhs+pack);

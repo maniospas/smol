@@ -487,6 +487,7 @@ int main(int argc, char* argv[]) {
             string globals = 
                 //"#undef _FORTIFY_SOURCE"
                 "#include <string.h>\n"
+                "#include \"std/runtime.h\"\n"
                 "#define __IS_i64 1\n"
                 "#define __IS_f64 2\n"
                 "#define __IS_u64 3\n"
@@ -540,13 +541,18 @@ int main(int argc, char* argv[]) {
             }
             for(const string& pre : preample) out << pre << "\n";
             for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
-                out << "errcode "+service->raw_signature()+";\n";
+                out << service->raw_signature_state()<<"\n";
+                out << "void "+service->raw_signature()+";\n";
             }
+            Type main_service;
             // implement services
             for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
+                if(service->name=="main") main_service = service;
                 out << "\n";
-                out << "errcode ";
-                out << service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
+                out << "void "<<service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
+                out << "struct "<<service->raw_signature_state_name()<<" *__state=(struct "<<service->raw_signature_state_name()<<"*)__void__state;\n";
+                for(const auto& var : service->args) out << var.type->name.to_string()<<" "<<var.name.to_string()<<"=__state->"<<var.name.to_string()<<";\n";
+                out << service->vardecl.to_string();
                 //out << service->vardecl;
                 string finals_on_error = "";
                 string enref_at_end = "";
@@ -558,8 +564,8 @@ int main(int argc, char* argv[]) {
                         service->finals[var] = Code();
                     }
                     if(var!=ERR_VAR) {
-                        out << service->internalTypes.vars[var]->name.to_string()<<" "<<var.to_string() << "= *__ref__" << var.to_string() << ";\n";
-                        enref_at_end += "*__ref__"+var.to_string()+"="+var.to_string()+";\n";
+                        out << service->internalTypes.vars[var]->name.to_string()<<" "<<var.to_string() << "= *__state->" << var.to_string() << ";\n";
+                        enref_at_end += "*__state->"+var.to_string()+"="+var.to_string()+";\n";
                     }
                     service->internalTypes.vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
@@ -571,8 +577,8 @@ int main(int argc, char* argv[]) {
                             finals_on_error += arg.name.to_string()+"=0;\n";
                             service->finals[arg.name] = Code();
                         }
-                        out << arg.type->name.to_string()<<" "<<arg.name.to_string() << "= *__ref__" << arg.name.to_string() << ";\n";
-                        enref_at_end += "*__ref__"+arg.name.to_string()+"="+arg.name.to_string()+";\n";
+                        out << arg.type->name.to_string()<<" "<<arg.name.to_string() << "= *__state->" << arg.name.to_string() << ";\n";
+                        enref_at_end += "*__state->"+arg.name.to_string()+"="+arg.name.to_string()+";\n";
                     }
                     service->internalTypes.vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
@@ -587,14 +593,28 @@ int main(int argc, char* argv[]) {
                 }
                 out << "\n// DEALLOCATE RESOURCES BY ERRORS\n";
                 out << "__failsafe:\n";
+                for(const auto& it : service->active_calls) if(it.second) {
+                    out << Code(Variable("__smolambda_task_wait"),LPAR_VAR,it.first+TASK_VAR,RPAR_VAR,SEMICOLON_VAR).to_string();
+                    // do so here because we may need to deallocate taks resource
+                }
                 out << finals_on_error;
                 out << "\n// HOTPATH SKIPS TO HERE\n";
                 out << "__return:\n"; // resource deallocation
+                for(const auto& it : service->active_calls) if(it.second) {
+                    out << Code(Variable("__smolambda_task_wait"),LPAR_VAR,it.first+TASK_VAR,RPAR_VAR,SEMICOLON_VAR).to_string();
+                    out << Code(Variable("__smolambda_task_destroy"),LPAR_VAR,it.first+TASK_VAR,RPAR_VAR,SEMICOLON_VAR).to_string();
+                }
                 for(const auto& final : service->finals) if(final.second.exists()) out << final.second;
                 out << enref_at_end;
-                out << "return __result__errocode;\n";
+                //out << "return __result__errocode;\n";
+                out << "__state->err =  __result__errocode;\n";
                 out << "}\n\n";
             }
+            out << "\n\nint main() {\n";
+            //out << "return "<<main_service<<"();";
+            out << "struct "<<main_service->raw_signature_state_name()<<" __main_args={0};\n";
+            out << "__smolambda_initialize_service_tasks("<<"main__"<<to_string(main_service->identifier)<<", &__main_args);"<<"\n";
+            out << "}\n\n";
             //out.close();
             //cout << out.str() << "\n";
             for(const auto& it : included[file].vars) {

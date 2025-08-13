@@ -50,11 +50,15 @@ const Variable FI_VAR = Variable("fi");
 const Variable LE_VAR = Variable("le");
 const Variable EL_VAR = Variable("el");
 const Variable LPAR_VAR = Variable("(");
+const Variable RPAR_VAR = Variable(")");
 const Variable COMMA_VAR = Variable(",");
 const Variable ELSE_VAR = Variable("else");
 const Variable WHILE_VAR = Variable("while");
 const Variable LOOP_VAR = Variable("loop");
 const Variable ERR_VAR = Variable("err");
+const Variable TASK_VAR = Variable("__task");
+const Variable STATE_VAR = Variable("__state");
+const Variable STRUCT_VAR = Variable("struct");
 const Variable VALUE_VAR = Variable("__value");
 const Variable AT_VAR = Variable("@");
 const Variable NEW_VAR = Variable("new");
@@ -122,6 +126,7 @@ class Def {
     bool complete_option_resolution(const Types& _types);
     bool start_option_resolution(const Types& _types);
     bool can_mutate(const Variable& _text) {
+        if(has_been_service_arg[_text]) return false;
         string text = _text.to_string();
         if(mutables.find(text)!=mutables.end()) return true;
         size_t pos = 0;
@@ -157,6 +162,7 @@ public:
     size_t number_of_calls;
     Variable active_context;
     set<string> preample;
+    unordered_map<Variable, bool> active_calls;
     unordered_map<Variable, bool> released;
     unordered_map<Variable, bool> has_been_service_arg;
     unordered_map<Variable, Code> finals;              // resource closing code (transferred around)
@@ -169,6 +175,7 @@ public:
     vector<Type> get_lazy_options(Types& types);
     unordered_set<Variable> type_trackers;
     bool has_returned;
+    string raw_signature_state_name() const;
     void add_preample(const string& pre) {if(preample.find(pre)==preample.end()) preample.insert(pre);}
     void coallesce_finals(const Variable& original) {
         unordered_set<Variable> visited;
@@ -208,7 +215,6 @@ public:
             }
             for(const auto& [k, v] : current_renaming) if(v == var && visited.insert(k).second) q.push(k);
         }
-        // Coalesce all finals into the original
         for(const Variable& name : group) released[name] = true;
     }
     void notify_service_arg(const Variable& original) {
@@ -227,7 +233,7 @@ public:
             }
             for(const auto& [k, v] : current_renaming) if(v == var && visited.insert(k).second) q.push(k);
         }
-        // Coalesce all finals into the original
+        for(const Variable& name : group) mutables.erase(name);
         for(const Variable& name : group) has_been_service_arg[name] = true;
     }
 
@@ -246,6 +252,7 @@ public:
     string signature(Types &types);
     string canonic_name();
     string raw_signature();
+    string raw_signature_state();
     Code rebase(const Code& impl, const Variable& var);
     void simplify();
     Code rename_var(const Code& impl, const Variable& from, const Variable& to);
