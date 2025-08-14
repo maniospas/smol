@@ -5,9 +5,9 @@ service main()
     endl = "\n":str[0]
     on ReadFile:open("README.md")
         Stack
-        :allocate_volatile(1024)
+        :new_volatile(1024)
         :while next_line(str &line)
-            if line[line:len-1] == endl 
+            if line:len:bool and line[line:len-1] == endl 
                 line = line[0 to line:len-1]
                 --
             print(line)

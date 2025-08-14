@@ -22,8 +22,9 @@
 smo Arena(nom type, ContiguousMemory contents)
     @noborrow
     length = 0
-    with contents.Primitive:is(char) 
-    ---> type, contents, length
+    size = contents.size
+    with contents.Primitive:is(char)
+    ---> type, contents, length, size
 
 smo Volatile(nom type, ContiguousMemory contents)
     @noborrow  // we need this so that controlled_corrupt can properly analyze corruptions
@@ -55,10 +56,10 @@ smo Dynamic(nom)
             allocated = 0;
         } 
     }
-    -> @new, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:allocate_dynamic
+    -> @new, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:new_dynamic
 
-smo allocate_dynamic(Heap) -> nom:Dynamic
-smo allocate_dynamic(Stack) -> nom:Stack
+smo new_dynamic(Heap) -> nom:Dynamic
+smo new_dynamic(Stack) -> nom:Stack
     
 smo allocate(Dynamic& self, u64 size, Primitive)
     @head{#include <stdlib.h>}
@@ -133,14 +134,14 @@ smo allocate(Volatile &self, u64 _size, Primitive)
     @body{self__length = self__length+size;}
     -> nom:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
-smo allocate_arena(MemoryDevice, u64 size) -> nom:Arena(MemoryDevice:allocate(size, char))
-smo allocate_volatile(MemoryDevice, u64 size) -> nom:Volatile(MemoryDevice:allocate(size, char))
-smo allocate_arena(Arena &self, u64 size) -> _arena(allocate(self, size))
-smo allocate_volatile(Arena &self, u64 size) -> _volatile(allocate(self, size))
-smo allocate_arena(Volatile &self, u64 size) -> _arena(allocate(self, size))
-smo allocate_volatile(Volatile &self, u64 size) -> _volatile(allocate(self, size))
-smo allocate_arena(Dynamic &self, u64 size) -> _arena(allocate(self, size))
-smo allocate_volatile(Dynamic &self, u64 size) -> _volatile(allocate(self, size))
+smo new_arena(MemoryDevice, u64 size) -> nom:Arena(MemoryDevice:allocate(size, char))
+smo new_volatile(MemoryDevice, u64 size) -> nom:Volatile(MemoryDevice:allocate(size, char))
+smo new_arena(Arena &self, u64 size) -> _arena(allocate(self, size))
+smo new_volatile(Arena &self, u64 size) -> _volatile(allocate(self, size))
+smo new_arena(Volatile &self, u64 size) -> _arena(allocate(self, size))
+smo new_volatile(Volatile &self, u64 size) -> _volatile(allocate(self, size))
+smo new_arena(Dynamic &self, u64 size) -> _arena(allocate(self, size))
+smo new_volatile(Dynamic &self, u64 size) -> _volatile(allocate(self, size))
 
 smo read(Arena &self)
     @head{#include <stdio.h>}
@@ -149,16 +150,18 @@ smo read(Arena &self)
         ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));
         if(fgets((char*)_contents, self__contents__size-self__length, stdin)) {
             u64 length = strlen((char*)_contents);
-            if(length > 0 && ((char*)_contents)[length - 1] == '\n') {
+            if(length && ((char*)_contents)[length - 1] == 13) {
                 length -= 1;
-                ((char*)_contents)[length] = '\0';
+                ((char*)_contents)[length] = 0;
+            }
+            if(length) {
                 char first = ((char*)_contents)[0];
                 self__length = self__length+length;
+                length -= 1;
             }
-            else if(length) {_contents = 0;}
         }
     }
-    if _contents:exists:not -> fail("Tried to read more elements than remaining Arena size")
+    if _contents:exists:not -> fail("Error: Tried to read more elements than remaining Arena size")
     -> nom:str(_contents, length, first, self__contents__mem)
 
 smo is(Arena&, Arena&) --
@@ -185,5 +188,5 @@ smo put(GridEntry &self, u64 pos, Primitive value)
     self.grid.surface:__unsafe_put(true_pos, value)
     --
 smo len(GridEntry self) -> self.grid.size
-smo allocate_grid(Memory& memory, u64 size, u64 squares, Primitive)
+smo new_grid(Memory& memory, u64 size, u64 squares, Primitive)
     -> nom:MemoryGrid(memory, Primitive, size, squares)

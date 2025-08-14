@@ -5,12 +5,12 @@
 smo Point(f64 x, f64 y) -> @new
 
 // smo Points(Memory &memory, u64 size)
-//     x = memory:allocate_vector(size)
-//     y = memory:allocate_vector(size)
+//     x = memory:new_vector(size)
+//     y = memory:new_vector(size)
 //     -> x,y
 
 smo Points(Memory &memory, u64 size)
-    grid = memory:allocate_grid(size, 2, f64) // basically points contain subsequent regions
+    grid = memory:new_grid(size, 2, f64) // basically points contain subsequent regions
     x = grid[0]
     y = grid[1]
     -> x,y

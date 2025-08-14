@@ -5,7 +5,7 @@
 service main()
     &console = WriteFile:console()
     console:write("what's your name? ")
-    on Stack:allocate_arena(1024)
+    on Stack:new_arena(1024)
         console:next_line(str& s)
         print("Hi "+s:strip+"!")
         --

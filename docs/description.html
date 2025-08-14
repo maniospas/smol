@@ -47,8 +47,7 @@
   <a href="#flow">Flow</a>
   <a href="#smo">Runtypes</a>
   <a href="#service">Services</a>
-  <a href="#buffers">Buffers</a>
-  <a href="#std">Std</a>
+  <a href="#std">Std & memory</a>
 </div>
 
 <div class="container">
@@ -263,7 +262,7 @@ available in the standard library.
     <tr>
       <td><code class="language-smolambda">while</code></td>
       <td>Loop</td>
-      <td>Can yield a buffer of internal returns</td>
+      <td>Can yield a value from internal returns</td>
     </tr>
     <tr>
       <td><code class="language-smolambda">with</code></td>
@@ -290,11 +289,6 @@ available in the standard library.
       <td><code class="language-smolambda">i64, u64, f64, ...</code></td>
       <td>Builtin runtypes</td>
       <td>Can be called to convert to each other</td>
-    </tr>
-    <tr>
-      <td><code class="language-smolambda">buffer(...)</code></td>
-      <td>Dynamic heap list</td>
-      <td>Variadic input/output</td>
     </tr>
     <tr>
       <td><code class="language-smolambda">[start to end]</code></td>
@@ -483,7 +477,7 @@ service main()
 based on <a href="#currying">currying</a> into loops. Prefer using that 
 when writing finite loops, as it is more resistant against mistakes.
 As a sneak peek, printing numbers <i>0,1,...,9</i> looks like this:
-</i><br>
+</i><br><br>
 <code class="language-smolambda">range(10):while next(u64& i) -> print(i)</code>
 </p>
 
@@ -582,9 +576,9 @@ ergonomic alternative. More on overloading later.</p>
 smo point(f64 x, f64 y) -> @new
 union Elements (vec, point, f64, i64)
 smo first(Elements elements)
-    with ->> elements:vec[0]
-    else ->> elements:point.x
-    else ->> elements:f64
+    with |-> elements:vec[0]
+    else |-> elements:point.x
+    else |-> elements:f64
     --
 
 service main()
@@ -648,11 +642,6 @@ The standard library implements several operations for primitives. The ones buil
 <code class="language-smolambda">i64</code>, <code class="language-smolambda">u64</code>, and <code class="language-smolambda">f64</code>.
 The last one is equivalent to C++'s <code class="language-smolambda">double</code> numbers.</p>
 
-<p>In addition, <code class="language-smolambda">buffer</code> is a special primitive that safely interfaces with heap memory while remaining
-performant. It is the preferred way for moving large chunks of data around and, in general, has enough bells and whistles that a separate
-section is dedicate to describing it later. These previous types are curated to use
-the same number of 64 bits so as not to create alignment issues when stored and retrieved from buffers.</p>
-
 <p>The language also offers a <code class="language-smolambda">ptr</code> type as a means to represent 64-bit address. 
 In most situations you will not use addresses, but they are useful for interweaving more complicated C++ code in ways
 that the compiler can understand (this requires <i>a lot</i> of casts, though you can pack complicated bits in <i>.cpp</i>
@@ -660,28 +649,21 @@ files if you want).
 </p>
 
 <p>For convenience, you can find the <code class="language-smolambda">char</code> and <code class="language-smolambda">bool</code> primitives, 
-which are the C equivalents. If these are stored in buffers, they still use a forcefully imposed 64-bit alignment, unless special
-runtypes, like strings, hand-craft more efficient computations through the C++ interface. Similarly, you can find the
-<code class="language-smolambda">errcode</code> builtin
-as a means of handling failing services. This has an unknown number of bits because it is implemented as a C++ int.</p> 
+which are the C equivalents. The <code class="language-smolambda">errcode</code> builtin
+captures the error values of failing services. nder the hood, it is implemented as a C++ int to remain compatible with the operating system.</p> 
 
 <h3 id="fields">Fields and tail move <a href="#fields" class="anchor-link">🔗</a></h3>
 
-<p>Values returned from runtypes are always organized into a tuple. However, you can access named fields of that
+<p>Values returned from runtypes are always organized into tuples. However, you can access named fields of that
 tuple, given that internal variables are returned. In previous examples, this means that we could access fields like
 <i>x,y,start,end</i> given that they have been internally assigned to variables.
 </p>
 
 <p>Field access works a little differently when there is only one value returned: in this case
-the return is treated as if returning that value directly. That is, you access that value's fields.
+the return is not a tuple but a direct return of the value. That is, you can access the value's fields.
 An example of this concept is presented below, where the overloaded <i>Point</i>
-runtype with no arguments directly returns a version constructed with two arguments.</p>
-<p>
-This mechanism
-allows for wrapper runtypes that perform concise substitution of original functionality. For example,
-you can overload multiple versions of the same runtype that yield the same result from different argumets, 
-like in the example.
-</p>
+runtype with no arguments directly returns a version constructed with two arguments. A common use case
+is to return a primitive value from a runtype.</p>
 
 <pre><code class="language-smolambda">@include std.builtins
 
@@ -699,13 +681,11 @@ service main()
 
 
 <p>The assignment operator copies the outcome of function calls to variables.
-However, only returned symbols can be accessed as fields and only if there are 
+However, only returned symbols can be accessed as field, and only if there are 
 multiple of them packed into a comma-separated tuple.
 For example, below the input variable <code class="language-smolambda">x</code>
 cannot be accessed after computations conclude.
-</p>
-
-<p>We already saw that it may be convenient to unpack all runtype inputs with
+We already saw that it may be convenient to unpack all runtype inputs with
 <code class="language-smolambda">@new</code> to directly declare a structural type
 without internal implementation.
 </p>
@@ -750,6 +730,45 @@ service main()
     --
 </code></pre>
 
+<p>Mutable fields can be mutated only if arguments are mutable too.
+This way, mutations are explicit. Below is an example where, due
+to structural typing of the first <code>Point p</code>, 
+its mutable fields can be normally bassed as mutable arguments. The same
+cannot hold true for the nominally typed <code>Point pt</code>. 
+As a rule of thumb, allow maximal extensibility by only adding <code>&</code> 
+if the compiler complains about mutability.</p>
+
+<pre><code class="language-smolambda">
+@include std.builtins
+
+smo Point(f64 px, f64 py)
+    &x = px
+    &y = py
+    -> x,y
+
+smo Point(nom type, f64 px, f64 py)
+    &x = px
+    &y = py
+    -> type, x,y
+
+smo scale(Point &p, f64 factor) 
+    // & in the signature is required to allow any modification
+    // this is an overloaded method for both smo Point
+    p.x = p.x*factor
+    p.y = p.y*factor
+    --
+
+service main()
+    p = Point(1.0,1.0)  
+    p.x = p.x + 1.0
+    p:scale(5.0)
+    print(p.x) // 10
+
+    tp = nom:Point(1.0,1.0)
+    tp:scale(5.0) // creates an ERROR
+    --
+</code></pre>
+
 
 <h3 id="currying">Currying <a href="#currying" class="anchor-link">🔗</a></h3>
 <p>Runtype calls accept currying notation that transfers a precomputed value to the first argument.
@@ -768,34 +787,35 @@ service main()
 
 <p>In general, runtypes are all first-class citizens of the language in that they cannot be set as variables.
 However, you can pass a known or type as an argument to denote dummy empty objects.
-</p>
-
-
-<p>Currying lets <i>smoλ</i> avoid methods as fields, as the notation <code class="language-smolambda">obj:rt(args)</code>
+Currying lets <i>smoλ</i> avoid methods as fields, as the notation <code class="language-smolambda">obj:runtype(args)</code>
 is conceptually similar. Note that mutability should be explicitly declared if you want <code class="language-smolambda">rt</code>
 to have side-effects.
 </p>
 
-<p>If currying is prepended to <code>if</code> or <code>while</code> then the expression is computed and transferred to
-the computed condition. This let you define runtypes that serve as iterators by modifying a provided
-iterated value by reference. Below is an example, where <code class="language-smolambda">u64 i</code> 
-declares a previously zero-initialized version of the runtype. For safety, this pattern is available
-only if <code>i</code> has not been declared and only for passing arguments.</p>
+<p>If currying is followed by <code>if</code> or <code>while</code> then the curried expression result is transferred to
+the condition. This enables runtypes that serve as iterators by modifying an
+iterated value by reference. Below is an example, where <code class="language-smolambda">u64 &i</code> 
+declares a zero-initialized variable to hold the iteration state. For safety, this pattern is available
+only if <code>i</code> has not been declared. The standard library provides a richer <code>range</code>
+based on the same principles.
+</p>
 
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo range(nom, u64 start, u64 end) -> @new // more on `nom` later
-smo next(range &amp;r, u64 &amp;current) 
-    current = r.start 
-    r.start = r.start + 1
-    -> r.start &lt;= r.end
+
+smo custom_range(u64 start, u64 end) 
+    &pos = start
+    -> pos, end
+smo next(custom_range &r, u64 &current) 
+    current = r.pos 
+    r.pos = r.pos + 1
+    -> r.pos &lt;= r.end
 
 service main()
-    nom:range(0,10):while next(u64 i) 
+    custom_range(0,10):while next(u64 &i) 
         print(i) 
-        --
-    --
+    ----
 </code></pre>
 
 
@@ -805,8 +825,6 @@ service main()
 <p>Overload runtypes that are structurally
 different when converted to a flat representation of primitives 
 (<code class="language-smolambda">i64</code>, <code class="language-smolambda">u64</code>, <code class="language-smolambda">f64</code>, etc).
-Runtypes that are equivalent in their expansion into primitives cannot be used 
-as part of function signatures due to ambiguity. More on circumventing this issue later.
 As an example, the following definitions come from the standard library.</p>
 
 <pre><code class="language-smolambda">smo print(f64 message)
@@ -928,10 +946,7 @@ service main()
 
 <p>So far we have been writing <code class="language-smolambda">service main()</code> as the entrant
 point of programs. Armed with the basics, we can now look at what that <i>service</i> keyword is all about. 
-Functionally, services are runtypes with nameless returned values. That is, their returns are unpacked and 
-can be parts of arguments normally, but do not accept field access because it would be either unsafe or create
-hidden computational costs. More on why later</p>
-<p>
+Functionally, services are runtypes. 
 Below is an example of declaring and calling a service. Syntactically, this is near-identical to working
 with runtypes so that it's easy to change your mind as you write code. 
 You will often not notice anything different.
@@ -939,7 +954,7 @@ You will often not notice anything different.
 
 <pre><code class="language-smolambda">@include std.builtins
 
-service square(f64 x) -> mul(x,x)
+service square(f64 x) -> x*x
 service main()
     y = square(2.0)
     print(y)
@@ -955,14 +970,16 @@ service main()
 
 <h3 id="whysvc">Why services? <a href="#whysvc" class="anchor-link">🔗</a></h3>
 
-<p>Semantically, services are equivalent to runtypes with error handling and the implementation restriction that they
-do not accept arguments by reference. However, they cost some additional operations per call, 
+<p>Semantically, services are equivalent to runtypes with error handling and the restriction that they a)
+do not accept arguments by reference, b) stop further mutation of mutables provided as arguments. 
+However, they cost some additional operations per call, 
 as they need to actually push the call to the stack and cascade
 unhandled errors. So they are less efficient if you, say, call them millions of times per second.
 </p>
 <p>
-That said, they have three distinct advantages. First, they run independently and in parallel. Second, they can call each other regardless of definition order, 
-and even allow recursion (by comparison, simpler runtypes can only "see" previous runtype and service declarations).
+That said, they have three distinct advantages. First, they run independently and in parallel. 
+Second, they can call each other regardless of definition order, 
+and even allow recursion (by comparison, simpler runtypes can only "see" previous declarations).
 And, third, they provide a compartmentalized execution environment that does not let internal errors escape.
 </p>
 
@@ -1058,81 +1075,6 @@ You've seen at least 9 years gone by.
 
 <h1 id="buffers">Buffers <a href="#buffers" class="anchor-link">🔗</a></h1>
 
-<p>Handle dynamic memory with the special <code class="language-smolambda">buffer</code> runtype.
-Think of this as a list where new data are pushed to the back and popped from the front. The
-definition is part of the language and it is how one would handle functions with variadic inputs or outputs too. 
-(<i>Variadic</i> is a fancy way of calling an arbitrary number of inputs or outputs.)
-</p>
-
-<p>Buffers are unpacked into other runtypes by consuming elements from their start.
-However, unpacking feasibility is checked at runtime. Memory deallocation is safe, occurs
-always -even if runtime errors terminate services-
-and is injected automatically by <i>smoλ</i>. Data are stored in buffers without
-even primitive types and correct unpacking either relies solely on the programmer or on
-safe runtypes that will be discussed later.</p>
-
-<p><strong>Jump to:</strong>
-  <a href="#localbuffers">Local buffers</a> ·
-  <a href="#returnbuffers">Returning buffers</a> ·
-  <a href="#slicing">Slicing</a> ·
-  <a href="#concat">Concatenation</a> ·
-  <a href="#nominal">Nominal typing</a>
-</p>
-<br>
-
-<h3 id="localbuffers">Local buffers <a href="#localbuffers" class="anchor-link">🔗</a></h3>
-
-<p>Buffer elements are unpacked from the front until no
-more entries are required for desired runtype calls.
-Popping is memory safe in that buffer overflows smoothly fail any service
-(such as <code class="language-smolambda">main</code>)
-with an appropriate error message. You can check the number of remaining
-elements with the <code class="language-smolambda">len</code> runtype.
-</p>
-
-<pre><code class="language-smolambda">@include std.builtins
-
-smo Point(u64 x, u64 y) -> @new
-smo Field(Point start, Point end) -> @new
-
-service main()
-    buf = buffer(1,2,3,4,5)
-    print(buf:len)    // 5
-    f = buf:Field     // pops front
-    print(f.start.x)  // 1
-    print(buf:u64)    // 5
-    --
-</code></pre>
-
-<h3 id="returnbuffers">Returning buffers <a href="#returnbuffers" class="anchor-link">🔗</a></h3>
-
-<p>Runtypes and services can return buffers, but only if this is the only thing returned.
-The result is interpreted as a buffer again to maintain its special operations.
-For example, services that return buffers do not have an error field
-<code class="language-smolambda">.err</code>  that you can check. Instead, identify failure 
-by checking that the returned buffer has non-zero length. Below is an example.
-</p>
-
-<pre><code class="language-smolambda">@include std.builtins
-
-service test()
-    buf = buffer(0,1,2.0,3,4) // accidentally has an f64
-    iterator = buf
-    while iterator:len:bool
-        print(iterator:u64)
-    ---&gt; buf
-
-service main()
-    buf = test()
-    if buf:len:bool:not -> print("failed to generate buffer")
-    --
-</code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
-0
-1
-Runtime error: buffer element has different primitive type
-failed to generate buffer
-</pre>
 
 
 <h3 id="slicing">Slicing <a href="#slicing" class="anchor-link">🔗</a></h3>

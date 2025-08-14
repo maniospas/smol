@@ -8,15 +8,15 @@ service main()
     // expect an allocator)
     rand = Rand(10)
     on nom:Stack
-        a = rand:allocate_vector(10)
-        b = rand:allocate_vector(10)
-        c = rand:allocate_vector(10)
+        a = rand:new_vector(10)
+        b = rand:new_vector(10)
+        c = rand:new_vector(10)
         --
     // operator results in a preallocated vector 
     // that is eventually returned (only one 
     // allocation but we need operations to apply
     // sequentially)
-    result = on Stack:allocate_vector(10) 
+    result = on Stack:new_vector(10) 
         -> (a*b*c)+a+b+c
     print(result)
     --

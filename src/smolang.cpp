@@ -610,25 +610,17 @@ int main(int argc, char* argv[]) {
                 }
                 out << "\n// DEALLOCATE RESOURCES BY ERRORS\n";
                 out << "__failsafe:\n";
-                /*for(auto& it : service->active_calls) if(it.second.exists() && it.second==it.first) {
-                    out << Code(Variable("__smolambda_task_wait"),LPAR_VAR,it.second+TASK_VAR,RPAR_VAR,SEMICOLON_VAR).to_string();
-                    // do so here because we may need to deallocate taks resource
-                }*/
                 out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);\n";
+                out << finals_on_error;
                 out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);\n";
                 out << "__smolambda_all_tasks = 0;\n"; // prevent the hotpath from doubly freeing
-                out << finals_on_error;
                 out << "\n// HOTPATH SKIPS TO HERE\n";
                 out << "__return:\n"; // resource deallocation
-                /*for(auto& it : service->active_calls) if(it.second.exists() && it.second==it.first) {
-                    out << Code(Variable("__smolambda_task_wait"),LPAR_VAR,it.second+TASK_VAR,RPAR_VAR,SEMICOLON_VAR).to_string();
-                    out << Code(Variable("__smolambda_task_destroy"),LPAR_VAR,it.second+TASK_VAR,RPAR_VAR,SEMICOLON_VAR).to_string();
-                }*/
                 out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);\n";
                 out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);\n";
                 for(const auto& final : service->finals) if(final.second.exists()) out << final.second;
                 out << enref_at_end;
-                out << "__runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 0);\n"; // do this after running all finalization code
+                out << "__runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);\n"; // do this after running all finalization code
                 //out << "return __result__errocode;\n";
                 out << "__state->err =  __result__errocode;\n";
                 out << "}\n\n";

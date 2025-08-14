@@ -143,7 +143,6 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
             static const Variable token_print = Variable(":\nprintf(\"Runtime error from");
             static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
             implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-            implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
             implementation += Code(call_var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
             Variable fail_var = create_temp();
             internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
@@ -189,5 +188,5 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         //internalTypes.vars[next] = types.vars[RELEASED_VAR];
         //if(!imp->allow_unsafe) imp->error(--p, "@release is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     }
-    else imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally, @noshare, @release are allowed here.");
+    else imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally, @noshare, @release, @noborrow are allowed here.");
 }

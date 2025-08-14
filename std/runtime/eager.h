@@ -84,6 +84,7 @@ int __smolambda_initialize_service_tasks(void (*initial_func)(void *), void *ini
     void* t = __smolambda_add_task(initial_func, initial_arg);
     __smolambda_task_wait(t);
     __smolambda_task_destroy(t);
+    //printf("exit code %d", ((int*)initial_arg)[0]);
     return 0;
 }
 

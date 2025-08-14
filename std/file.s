@@ -28,14 +28,14 @@
                   "may also cause service failure if the file already exists - in that case remove it first. On the other hand, a ReadFile must "
                   "already exist to be opened."
 @about to_start   "Go to the beginning of a File. You can continue read or writing from there. May cause service failure due to external factors."
-@about to_end     "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. May cause service failure due to external factors."
+@about to_end     "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. Returns a boolean indicating a successful operation."
 @about len        "Computes the size of a File in bytes."
 @about write      "Writes a string on a WriteFile."
-@about allocate_file "Creates a virtual file by of a given size on top of some memory allocator."
+@about new_file "Creates a virtual file by of a given size on top of some memory allocator."
 @about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories "
                   "and different argument orders that allow you to use either the file or the memory as context."
                   "<br><br>Here is an example where volatile memory is used to avoid repeated or large allocations:"
-                  "<pre>on Heap:allocate_volatile(1024)"
+                  "<pre>on Heap:new_volatile(1024)"
                   "\n    ReadFile"
                   "\n    :open(\"README.md\")"
                   "\n    :while next_chunk(str& chunk)"
@@ -45,7 +45,7 @@
                   "and different argument orders that allow you to use either the file or the memory as context."
                   "<br><br>Here is an example where volatile memory is used to avoid repeated or large allocations:"
                   "<pre>endl=\"n\":str.first // optimized to just setting the new line character"
-                  "\non Heap:allocate_volatile(1024)"
+                  "\non Heap:new_volatile(1024)"
                   "\n    ReadFile(\"README.md\")"
                   "\n    :open(\"README.md\")"
                   "\n    :while next_line(str& line)"
@@ -87,7 +87,7 @@ smo to_start(File &f)
 smo to_end(WriteFile &f) 
     // only useful for moving to the end of write files. For read files, close them instead.
     @body{if(f__contents) fseek((FILE*)f__contents, 0, SEEK_END);}
-    --
+    -> f__contents:exists
 
 smo len(File &f)
     @head{#include <stdio.h>}
@@ -113,7 +113,7 @@ smo write(WriteFile &f, String _s)
     if success:not @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);} --
     ----
 
-smo allocate_file(Memory& memory, u64 size)
+smo new_file(Memory& memory, u64 size)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}

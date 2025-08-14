@@ -42,7 +42,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
         next = parse_expression(imp, p, imp->at(p++), types);
         if(!internalTypes.contains(next)) break;
         if(released[next]) imp->error(--p, "You are returning data after @release: "+pretty_var(next.to_string())+recommend_variable(types, next));
-        if(is_service && finals.find(next)!=finals.end() && finals[next].find(TRANSIENT_VAR) != std::string::npos) imp->error(--p, "You are returning @noshare data from a"+pretty_var(next.to_string())+"\nThose can only be returned from smo runtypes");
+        if(is_service && finals.find(next)!=finals.end() && finals[next].find(TRANSIENT_VAR) != std::string::npos) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next.to_string())+"\nThose can only be returned from smo runtypes");
         if(!internalTypes.vars[next]->not_primitive()) {
             if(internalTypes.contains(next) && internalTypes.vars[next]->name=="nom" && !alignments[next]) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next.to_string())+"\nAdd an align first variable to the signature and return that instead");
             if(is_service && !uplifting_targets.size()) {

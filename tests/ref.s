@@ -5,7 +5,7 @@
 smo copy_state(Arena &arena) -> arena  // this is a workarround to dodge the @noborrow constraint of arenas when @unsafe is enabled
 
 service main()
-    &memory1 = Heap:allocate_arena(100) // allocate 100 bytes, & indicates a mutable variable
+    &memory1 = Heap:new_arena(100) // allocate 100 bytes, & indicates a mutable variable
     &memory2 = copy_state(memory1)
 
     test1 = memory1:copy("123":str)

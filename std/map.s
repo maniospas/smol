@@ -35,7 +35,7 @@
            "the base allocator is also used to reserve space later for string copying to maintain lifetimes. Element insertion may fail if the map or base memory is out of space. "
            "<br><br>Here is an example of a string-based map, where known constant string (cstr) elements are placed by hand "
            "to prevent any additional memory allocation for them."
-           "\n<pre>map = Stack:allocate_arena(32):Map(10, 1, u64) // do everything in 32 bytes with up to 10 entries"
+           "\n<pre>map = Stack:new_arena(32):Map(10, 1, u64) // do everything in 32 bytes with up to 10 entries"
            "\non map // open context to add the map as first argument when needed"
            "\n    1:put(\"entry 1\")"
            "\n    2:put(\"entry 2\")"
@@ -45,7 +45,7 @@
            "\n</pre>"
 @about List "Constructs a list given a memory allocator, a maximum capacity, and the type of its elements."
 
-union Keys(str,u64)
+union Keys(str, u64)
 union Values(str,u64,f64,i64)
 
 smo __unsafe_cast(str, str value) -> value
@@ -95,7 +95,7 @@ smo __unsafe_ret(str, u64 value, ptr context)
     -> nom:str(contents, length, first, context)
 
 smo __map_prepare_key(str value, Memory &memory) 
-    with memory:is(Heap) fail("Cannot directly allocate `Heap` memory for map strings, use anything else (a heap Arena, Dynamic, Stack)") 
+    with memory:is(Heap) fail("Error: Cannot directly allocate `Heap` memory for map strings, use anything else (a heap Arena, Dynamic, Stack)") 
     --else--
     //if value.memory:exists:not |-> value.contents  // cstr wrappers
     mem = memory:allocate(value.length+1, char)
@@ -152,13 +152,13 @@ smo hash(u64 _x)
 smo Map(nom type, Memory &memory, u64 size, Keys, Values)
     mem = memory:allocate(size*2, u64)
     range(size*2):while next(u64& i) mem:__unsafe_put(i, 0)
-    length = 0
+    &length = 0
     ---> type, size, mem, length, memory
-smo Map(Memory &memory, u64 size, Keys, Values) 
+smo new_map(Memory &memory, u64 size, Keys, Values) 
     -> nom:Map(memory, size, Keys, Values)
-smo len(Map self) 
+smo len(Map &self) 
     -> self.length
-smo has(Map self, Keys _key)
+smo has(Map &self, Keys _key)
     with 
         _key:is(self.Keys) 
         --
@@ -179,7 +179,7 @@ smo put(Map &self, Keys _key, Values _val)
     on self.Keys
         while(self.mem[idx]!=0)and((self.mem[idx]:__unsafe_cast)!=(key:__unsafe_cast)) 
             idx = idx + 2 
-            if idx>=self.mem.size -> fail("Map out of space")
+            if idx>=self.mem.size -> fail("Error: Map out of space")
         ----
     if self.mem[idx] == 0 
         @body{self__length = self__length+1;} 
@@ -195,10 +195,10 @@ smo at(Map self, Keys _key)
         while(self.mem[idx]!=0)and((self.mem[idx]:__unsafe_cast)!=(key:__unsafe_cast))
             idx = idx + 2
             if idx>=self.mem.size 
-                -> fail("Map has no such entry")
+                -> fail("Error: Map has no such entry")
         ----
     if self.mem[idx] == 0 
-        -> fail("Map has no such entry")
+        -> fail("Error: Map has no such entry")
     -> on self.Values -> self.mem:at(idx+1):__unsafe_ret(self.mem.underlying)
 
 smo put(Map &self, cstr _mkey, Values _val) 

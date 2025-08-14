@@ -73,12 +73,13 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 internalTypes.vars[arg_name] = argType;
                 if(mut) mutables.insert(arg_name);
                 if(!mut && argType->noborrow) imp->error(--p, "Argument's "+arg_name.to_string()+" runtype has been set as @noborrow\nThis means that arguments and variables of it can only be mutable\nand therefore it becomes impossible to share it\n(mutables cannot be assinged anywhere).\nAdd & before the argument name to make it mutable");
-                for(const Variable& mut : argType->mutables) mutables.insert(arg_name+mut);
+                if(mut) for(const Variable& mut : argType->mutables) mutables.insert(arg_name+mut);
                 for(const auto& itarg : argType->packs) {
                     //cout << name << " " <<itarg << " " << mut << " "<<(argType->mutables.find(itarg)!=argType->mutables.end())<<"\n";
-                    args.emplace_back(arg_name+itarg, argType->internalTypes.vars[itarg], mut || (argType->mutables.find(itarg)!=argType->mutables.end()));
+                    args.emplace_back(arg_name+itarg, argType->internalTypes.vars[itarg], (mut || (argType->mutables.find(itarg)!=argType->mutables.end())));
                     internalTypes.vars[arg_name+itarg] = argType->internalTypes.vars[itarg];
                     for(const auto& it : argType->alignments) if(it.second) alignments[arg_name+it.first] = it.second;
+                    //if(is_service && argType->mutables.find(itarg)!=argType->mutables.end()) imp->error(p-2, "Services do not accept values by reference (even implicit ones): "+pretty_var((arg_name+itarg).to_string())+"\nImplicit services could cause services to race on a shared state and are prevented.\nThis ensures failsafe-compliant extensibility.\nDid you mean to declare a runtype instead?");
                 }
                 for(const auto& itarg : argType->internalTypes.vars) {
                     // TODO: this may be too expensive - consider tracking only packs parents

@@ -22,8 +22,7 @@
 @about "Standard library wrapping of C system calls and of process management using C popen."
 @about Process     "A running process whose stdout can be read as a file-like object."
 @about open        "Opens a Process given a command string. This starts the process and lets you read its output."
-@about to_end      "Reads all remaining output from the process without returning it, moving to EOF."
-@about close       "Closes the process, terminating the pipe and freeing resources."
+@about to_end      "Reads all remaining output from the process without returning it, moving to EOF.  Returns a boolean indicating whether \"Error:\" is part of the output."
 @about next_chunk  "Reads the next chunk of process output into a provided buffer."
 @about next_line   "Reads the next line of process output into a provided buffer."
 
@@ -42,31 +41,21 @@ smo open(Process&, cstr command)
         #endif
     }
     @body{ptr contents = (ptr)popen((cstr)command, "r");}
-    if contents:exists:not @fail{printf("Failed to start process");} --
-    @finally contents { if(contents) pclose((FILE*)contents); contents = 0; }
+    if contents:exists:not @fail{printf("Failed to start process\n");} --
+    @finally contents { if(contents) {pclose((FILE*)contents);} contents = 0; }
     -> nom:Process(contents)
 
 smo to_end(Process &p)
-    // pclose defined by Process anyway
+    @head{#include <string.h>}
     @body{
         if(p__contents) {
             char buf[1024];
-            while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) {}
-            u64 status = pclose((FILE*)p__contents);
-            p__contents = 0;
+            bool err = false;
+            while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) {if(strstr(buf, "Error:")) err = true;}
+
         }
     }
-    if status!=0 -> fail("Process exited with non-zero status")
-    --
-
-smo close(Process &p)
-    // pclose defined by Process anyway
-    @body{
-        if(p__contents) u64 status = pclose((FILE*)p__contents);
-        p__contents = 0;
-    }
-    if status!=0 -> fail("Process exited with non-zero status")
-    --
+    -> err
 
 smo next_chunk(Volatile &memory, Process &p, str& value)
     contents = memory.contents.mem

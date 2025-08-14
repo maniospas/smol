@@ -141,7 +141,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     type = successfullType;
 
     if(type.get()!=successfullType.get()) type->number_of_calls++;
-    if(!type && numberOfErrors) imp->error(first_token_pos, "Not found\n  "+prev_errors+string(markdown_errors?"```rust\n":"")+previousType->name.to_string()+signature_like(types, unpacks)+(markdown_errors?"\n```\n":"")+"\namong "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
+    if(!type && numberOfErrors) imp->error(first_token_pos, "Not found\n"+prev_errors+string(markdown_errors?"```rust\n":"")+previousType->name.to_string()+signature_like(types, unpacks)+(markdown_errors?"\n```\n":"")+"\namong "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":""));
     if(!type) imp->error(first_token_pos, "Not found runtype version: "+first_token.to_string()+" among "+to_string(previousType->options.size())+" candidates of "+previousType->signature(types));
     if(type->lazy_compile) imp->error(pos, "Internal error: Runtype has not been compiled");
 
@@ -198,7 +198,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     if(type->is_service) {
         vardecl += Code(STRUCT_VAR, Variable(type->raw_signature_state_name()+"*"), var+STATE_VAR, ASSIGN_VAR, ZERO_VAR, SEMICOLON_VAR);
         internalTypes.vars[var+STATE_VAR] = types.vars[STATE_VAR];
-        Code impl = Code(var+STATE_VAR, ASSIGN_VAR, Variable("("+type->raw_signature_state_name()+"*)__runtime_calloc(sizeof("+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
+        Code impl = Code(var+STATE_VAR, ASSIGN_VAR, Variable("(struct "+type->raw_signature_state_name()+"*)__runtime_calloc(sizeof(struct "+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
         impl += Code(Variable("__smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results,"), var+STATE_VAR, RPAR_VAR, SEMICOLON_VAR);
         internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
         internalTypes.vars[var+TASK_VAR] = types.vars[PTR_VAR];
@@ -460,7 +460,17 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
     if(types.contains(first_token)) {
         auto type = types.vars.find(first_token)->second;
         vector<Variable> unpacks;
-        if(imp->at(p)=="__consume") {
+        if(p>=imp->size()-1) {
+            if(curry.exists()) {
+                if(!internalTypes.contains(curry)) imp->error(first_token_pos-2, "Not found: "+pretty_var(curry.to_string())+recommend_runtype(types, curry));
+                else if(internalTypes.vars.find(curry)->second->not_primitive()) {
+                    for(const Variable& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry.to_string()+"__"+pack.to_string());
+                    //if(type->args.size() && type->args[0].type->name=="nom") alignments[curry+"__"+type->args[0].name] = alignment_labels[type.get()]; (should be already done)
+                }
+                else unpacks.push_back(curry);
+            }
+        }
+        else if(imp->at(p)=="__consume") {
             if(!curry.exists()) imp->error(p-2, "Unexpected usage of operator\nThere is no left-hand-side");
             if(!internalTypes.contains(curry)) imp->error(first_token_pos-2, "Not found: "+pretty_var(curry.to_string())+recommend_runtype(types, curry));
             else if(internalTypes.vars.find(curry)->second->not_primitive()) {
@@ -537,7 +547,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         }
         else if(((p<imp->size()-1 && imp->at(p)!="(" && (imp->at(p+1)==")" || imp->at(p+1)==",")) || (p<imp->size()-2 && imp->at(p)=="&" && imp->at(p+1)!="(" && (imp->at(p+2)==")" || imp->at(p+2)==",")))){
             Variable var = imp->at(p++);
-            if(var=="&") {
+            if(var==REF_VAR) {
                 var = imp->at(p++);
                 mutables.insert(var);
             }

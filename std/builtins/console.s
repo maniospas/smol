@@ -27,7 +27,7 @@ smo read(i64)
         i64 number = 0;
         char ch = 0;
         i64 result = scanf("%ld%c", &number, &ch);
-        bool success = (result == 2 && ch == "\n"[0]);
+        bool success = (result == 2 && ch == 13);
     }
     if success:not @fail{printf("Error: invalid integer read\n");} --
     -> number
@@ -42,7 +42,7 @@ smo read(u64)
         if (first != "-"[0] && first != EOF) {
             ungetc(first, stdin);
             i64 result = scanf("%lu%c", &number, &ch);
-            success = (result == 2 && ch == "\n"[0]);
+            success = (result == 2 && ch == 13);
         }
     }
     if success:not @fail{printf("Error: invalid unsigned integer read\n");} --
@@ -54,37 +54,7 @@ smo read(f64)
         f64 number = 0;
         char ch = 0;
         i64 result = scanf("%lf%c", &number, &ch);
-        bool success = (result == 2 && ch == "\n"[0]);
+        bool success = (result == 2 && ch == 13);
     }
     if success:not @fail{printf("Error: invalid number read\n");} --
     -> number
-
-smo read(str)
-    @head{#include <stdio.h>}
-    @head{#include <stdlib.h>}
-    @body{
-        ptr _contents = malloc(1024);
-        if(_contents && fgets((char*)_contents, 1024, stdin)) {
-            u64 length = strlen((char*)_contents);
-            if(length > 0 && ((char*)_contents)[length - 1] == "\n"[0]) {
-                length -= 1;
-                ((char*)_contents)[length] = "\0"[0];
-                char first = ((char*)_contents)[0];
-            }
-        }
-        else if(_contents) {free((char*)_contents);_contents=0;}
-    }
-    @finally _contents {if(_contents)free((char*)_contents);_contents=0;}
-    if(_contents:exists:not) @fail{printf("Failed to read str of up to 1023 characters\n");} --
-    -> nom:str(_contents, length, first, _contents)
-
-
-smo read(str, String message)
-    printin(message)
-    -> str:read
-
-smo read(Number, String message)
-    printin(message)
-    -> Number:read
-
-smo __patch() -- // TODO: erroneous detection of premature end file here

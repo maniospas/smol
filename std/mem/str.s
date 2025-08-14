@@ -28,7 +28,7 @@ smo copy(Memory &allocator, str _s)
         char first = 0;
         if(mem__mem) {
             memcpy((char*)mem__mem, s__contents, s__length);
-            ((char*)mem__mem)[s__length] = '\0';
+            ((char*)mem__mem)[s__length] = 0;
         }
     }
     -> nom:str(mem.mem, s.length, first, mem.underlying)
@@ -66,7 +66,7 @@ smo tostr(Memory &allocator, i64 number)
                 ptr contents = malloc(length + 1);
                 if(contents) {
                     memcpy(contents, (char*)readbuf, length);
-                    ((char*)contents)[length] = '\0';
+                    ((char*)contents)[length] = 0;
                     char first = ((char*)contents)[0];
                 }
             }
@@ -88,7 +88,7 @@ smo tostr(Memory &allocator, u64 number)
                 ptr contents = malloc(length + 1);
                 if(contents) {
                     memcpy(contents, (char*)readbuf, length);
-                    ((char*)contents)[length] = '\0';
+                    ((char*)contents)[length] = 0;
                     char first = ((char*)contents)[0];
                 }
             }
@@ -110,7 +110,7 @@ smo tostr(Memory &allocator, f64 number)
                 ptr contents = malloc(length + 1);
                 if(contents) {
                     memcpy(contents, (char*)readbuf, length);
-                    ((char*)contents)[length] = '\0';
+                    ((char*)contents)[length] = 0;
                     char first = ((char*)contents)[0];
                 }
             }
