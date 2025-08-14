@@ -55,8 +55,8 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                     static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
                     const Variable& call_var = active_calls[var];
                     implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                    implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                    implementation += Code(var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
+                    //implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                    implementation += Code(var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, ARROW_VAR, ERR_VAR, SEMICOLON_VAR);
                     Variable fail_var = create_temp();
                     internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
                     implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);

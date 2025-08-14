@@ -63,6 +63,7 @@ const Variable VALUE_VAR = Variable("__value");
 const Variable AT_VAR = Variable("@");
 const Variable NEW_VAR = Variable("new");
 const Variable DOT_VAR = Variable(".");
+const Variable ARROW_VAR = Variable("->");
 const Variable CURRY_VAR = Variable(":");
 const Variable SEMICOLON_VAR = Variable(";\n");
 const Variable COLON_VAR = Variable(":\n");

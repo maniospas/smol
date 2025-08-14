@@ -196,9 +196,10 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
 
     // make actual call
     if(type->is_service) {
-        vardecl += Code(STRUCT_VAR, Variable(type->raw_signature_state_name()), var+STATE_VAR,Variable("={0}"), SEMICOLON_VAR);
+        vardecl += Code(STRUCT_VAR, Variable(type->raw_signature_state_name()+"*"), var+STATE_VAR, ASSIGN_VAR, ZERO_VAR, SEMICOLON_VAR);
         internalTypes.vars[var+STATE_VAR] = types.vars[STATE_VAR];
-        Code impl = Code();
+        Code impl = Code(var+STATE_VAR, ASSIGN_VAR, Variable("("+type->raw_signature_state_name()+"*)__runtime_calloc(sizeof("+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
+        impl += Code(Variable("__smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results,"), var+STATE_VAR, RPAR_VAR, SEMICOLON_VAR);
         internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
         internalTypes.vars[var+TASK_VAR] = types.vars[PTR_VAR];
         internalTypes.vars[var] = type;
@@ -210,7 +211,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             Variable arg = var+ret;
             assign_variable(type->internalTypes.vars[ret], arg, ZERO_VAR, imp, fp);
             mutables.insert(arg);
-            impl += Code(var+STATE_VAR, DOT_VAR, ret, ASSIGN_VAR, REF_VAR, arg, SEMICOLON_VAR);
+            impl += Code(var+STATE_VAR, ARROW_VAR, ret, ASSIGN_VAR, REF_VAR, arg, SEMICOLON_VAR);
             //type->coallesce_finals(ret);
             //finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
         }
@@ -218,15 +219,16 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         for(size_t i=0;i<unpacks.size();++i) {
             notify_service_arg(unpacks[i]);
             if(type->args[i].mut) {
-                impl += Code(var+STATE_VAR, DOT_VAR, type->args[i].name, ASSIGN_VAR, REF_VAR, unpacks[i],SEMICOLON_VAR);
+                impl += Code(var+STATE_VAR, ARROW_VAR, type->args[i].name, ASSIGN_VAR, REF_VAR, unpacks[i],SEMICOLON_VAR);
                 type->coallesce_finals(type->args[i].name);
                 finals[unpacks[i]] = finals[unpacks[i]]+type->rename_var(type->finals[type->args[i].name], type->args[i].name, unpacks[i]);
             }
-            else impl += Code(var+STATE_VAR, DOT_VAR, type->args[i].name, ASSIGN_VAR, unpacks[i],SEMICOLON_VAR);
+            else impl += Code(var+STATE_VAR, ARROW_VAR, type->args[i].name, ASSIGN_VAR, unpacks[i],SEMICOLON_VAR);
         }
         impl += Code(var+TASK_VAR, ASSIGN_VAR, Variable("__smolambda_add_task"),LPAR_VAR)
-                +Code(type->name+Variable(to_string(type->identifier)), COMMA_VAR, REF_VAR, var+STATE_VAR)
+                +Code(type->name+Variable(to_string(type->identifier)), COMMA_VAR, var+STATE_VAR)
                 +Code(RPAR_VAR, SEMICOLON_VAR);
+        impl += Code(Variable("__smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks,"), var+TASK_VAR, RPAR_VAR, SEMICOLON_VAR);
         implementation +=impl;
         internalTypes.vars[var] = type->alias_for.exists()?type->internalTypes.vars[type->alias_for]:type;
         return next_var(imp, p, var, types);
@@ -476,8 +478,8 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 if(active_calls[rhs].exists() && active_calls[active_calls[rhs]].exists()) {
                     const Variable& call_var = active_calls[rhs];
                     implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                    implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                    implementation += Code(rhs+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
+                    //implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+                    implementation += Code(rhs+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, ARROW_VAR, ERR_VAR, SEMICOLON_VAR);
                     static const Variable token_err1 = Variable(":\nprintf(\"Runtime error from ");
                     static const Variable token_err2 = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
                     implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);

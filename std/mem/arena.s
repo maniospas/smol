@@ -69,7 +69,7 @@ smo allocate(Dynamic& self, u64 size, Primitive)
         bool success = true;
         if(next_size>=self__allocated) {
             self__allocated = self__allocated+self__allocated/2+1; // ~50% growth strategy
-            ptr next_acquired = (ptr)(((ptr**)self__acquired)[0]?realloc(((ptr**)self__acquired)[0], self__allocated*sizeof(ptr)):__runtime_alloc(self__allocated*sizeof(ptr)));
+            ptr next_acquired = (ptr)(((ptr**)self__acquired)[0]?__runtime_realloc(((ptr**)self__acquired)[0], self__allocated*sizeof(ptr)):__runtime_alloc(self__allocated*sizeof(ptr)));
             if(success=next_acquired) ((ptr**)self__acquired)[0] = (ptr*)next_acquired;
         }
         if(success) {

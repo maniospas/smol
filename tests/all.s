@@ -1,10 +1,9 @@
 @include std.builtins
 @include std.os
 
-service std_test(String _name)
-    name = _name:str
+service std_test(String name)
     on Heap:allocate_dynamic // memory surface for string concatenations
-        command = "./smol tests/"+name+".s --runtime seq"
+        command = "./smol tests/"+name+".s --runtime eager"
         Process:open(command):to_end
         print("[ \033[32mOK\033[0m ] "+name)
     ----

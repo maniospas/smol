@@ -9,6 +9,7 @@
 // Calls to the following functions are hard-coded to the language and
 // standard library, so you should NOT change their name or signature:
 // - __runtime_alloc
+// - __runtime_realloc
 // - __runtime_free
 // - __smolambda_add_task
 // - __smolambda_initialize_service_tasks
@@ -17,8 +18,9 @@
 // - __runtime_apply_linked
 
 // ----------------------- ABOUT ------------------------------------------
-// This is the default runtime. You can explicitly set it by compiling
-//     smol main.s --runtime multithread
+// This runtime eagerly executes runtype (that is, smo function) calls
+// using a single thread. You can explicitly set it by compiling
+//     smol main.s --runtime eager
 
 // ----------------------- LICENSE ------------------------------------------
 // Written in 2025 by Emmanouil Krasanakis (maniospas@hotmail.com)
@@ -42,9 +44,10 @@
 #include <stdlib.h>
 
 /* ---------------- TASK STRUCT ---------------- */
-inline void* __runtime_alloc(size_t size) {return malloc(size);}
-inline void __runtime_free(void* mem) {free(mem);}
-
+void* __runtime_alloc(size_t size) {return malloc(size);}
+void* __runtime_calloc(size_t size) {return calloc(1, size);}
+void* __runtime_realloc(void* mem, size_t size) {return realloc(mem, size);}
+void __runtime_free(void* mem) {free(mem);}
 
 /* ---------------- TASK STRUCT ---------------- */
 typedef struct __SmolambdaLinkedMemory {
@@ -52,15 +55,15 @@ typedef struct __SmolambdaLinkedMemory {
     struct __SmolambdaLinkedMemory* next;
 } __SmolambdaLinkedMemory;
 
-inline __SmolambdaLinkedMemory* __runtime_prepend_linked(__SmolambdaLinkedMemory* memory, void* contents) {
+__SmolambdaLinkedMemory* __runtime_prepend_linked(__SmolambdaLinkedMemory* memory, void* contents) {
     __SmolambdaLinkedMemory* mem = (__SmolambdaLinkedMemory*)__runtime_alloc(sizeof(__SmolambdaLinkedMemory));
     mem->next = memory;
     mem->contents = contents;
     return mem;
 }
 
-inline void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *), bool is_destructor) {
-    while(memory->next) {
+void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *), int is_destructor) {
+    while(memory && memory->next) {
         if(memory->contents) func(memory->contents);
         __SmolambdaLinkedMemory* prev = memory;
         memory = memory->next;
