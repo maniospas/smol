@@ -7,7 +7,7 @@ void Def::assign_variable(const Type& type, const Variable& from, const Variable
     released[from] = released[to];
     active_calls[from] = active_calls[to];
     if(check_mutables && internalTypes.contains(from) && mutables.find(from)==mutables.end()) imp->error(--p, "Cannot reassign to non-mutable: "+pretty_var(from.to_string())+"\nMutables are prepended by & in their first declaration");
-    if(to.is_private() && internalTypes.contains(to) && internalTypes.vars[to]->noborrow && mutables.find(to)!=mutables.end()) imp->error(--p, "Cannot reassign from @noborrow: "+pretty_var(to.to_string())+"\nArguments and variables of its runtype can only be mutable\nand therefore it becomes impossible to share it\n(mutable variables cannot be assinged anywhere).\nAdd & before the variable name to make it mutable");
+    if(to.is_private() && internalTypes.contains(to) && internalTypes.vars[to]->noborrow && mutables.find(to)!=mutables.end()) imp->error(--p, "Cannot reassign from @noborrow: "+pretty_var(to.to_string())+"\nArguments and variables of its runtype can only be mutable\nand therefore it becomes impossible to share it with services\n(mutable variables cannot be assinged anywhere).\nAdd & before the variable name to make it mutable");
     if(type_trackers.find(to)!=type_trackers.end()) type_trackers.insert(from);
     if(type && type->not_primitive()) {
         if(error_on_non_primitives) imp->error(p, "Failed to resolve "+type->name.to_string()+" "+pretty_var(to.to_string())+" to a primitive");

@@ -15,7 +15,34 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@include std.mem.device
 @include std.mem.arena
-@include std.mem.str
-@include std.mem.grid
+
+smo MemoryGrid(nom type, Memory& memory, Primitive, u64 size, u64 squares)
+    surface = memory:allocate(size*squares, Primitive)
+    -> type, surface, size, squares
+
+smo GridEntry(nom, MemoryGrid &grid, u64 id) 
+    -> @new
+
+smo at(MemoryGrid &self, u64 id) 
+    -> nom:GridEntry(self, id)
+
+smo at(GridEntry self, u64 pos) 
+    true_pos = pos
+    :mul(self.grid.squares)
+    :add(self.id)
+    -> self.grid.surface[true_pos]
+
+smo put(GridEntry &self, u64 pos, Primitive value)
+    with Primitive:is(self.MemoryGrid.Primitive) --
+    true_pos = pos
+    :mul(self.grid.squares)
+    :add(self.id)
+    self.grid.surface:__unsafe_put(true_pos, value)
+    --
+
+smo len(GridEntry self) 
+    -> self.grid.size
+
+smo new_grid(Memory& memory, u64 size, u64 squares, Primitive)
+    -> nom:MemoryGrid(memory, Primitive, size, squares)

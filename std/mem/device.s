@@ -33,7 +33,6 @@ union MemoryDevice(Stack, Heap)
 union Primitive(char, u64, f64, i64)
 smo ContiguousMemory(nom, MemoryDevice, u64 size, Primitive, ptr mem, ptr underlying) -> @new
 smo is(Primitive value, Primitive) --
-smo is(MemoryDevice, MemoryDevice) --
 
 smo allocate(Stack, u64 size, Primitive) 
     @head{#include <stdlib.h>}

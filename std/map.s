@@ -151,9 +151,11 @@ smo hash(u64 _x)
 // class Map
 smo Map(nom type, Memory &memory, u64 size, Keys, Values)
     mem = memory:allocate(size*2, u64)
-    range(size*2):while next(u64& i) mem:__unsafe_put(i, 0)
-    &length = 0
-    ---> type, size, mem, length, memory
+    range(size*2):while next(u64& i) 
+        mem:__unsafe_put(i, 0)
+        --
+    length = 0
+    -> type, size, mem, length, memory
 smo new_map(Memory &memory, u64 size, Keys, Values) 
     -> nom:Map(memory, size, Keys, Values)
 smo len(Map &self) 
@@ -211,7 +213,7 @@ smo put(Map &self, Keys _key, cstr _mval)
     with put(self, _key, _mval:str) 
     ----
 smo at(Map self, cstr _mkey) 
-    with ret = at(self, _mkey:str) 
+    with ret = at(self, _mkey:str)  
     ---> ret
 
 

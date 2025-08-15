@@ -133,7 +133,7 @@ class Def {
         size_t pos = 0;
         while((pos = text.find("__", pos)) != std::string::npos) {
             std::string part = text.substr(0, pos);
-            if (mutables.find(part) != mutables.end())  return true;
+            if (mutables.find(part) != mutables.end()) return true;
             pos += 2; // Move past the current "__"
         }
         return false;

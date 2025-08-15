@@ -15,7 +15,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@include std.mem.allocate
+@include std.mem.device
 @unsafe
 @about "Standard library implementation of arena allocation, marked as @noborrow but unsafely returned from constructors. Pointer arithmetics yield offsets within arenas."
 
@@ -39,6 +39,8 @@ smo controlled_corrupt(Volatile &self)
     --
 
 union DerivedMemory(Arena, Volatile)
+smo len(DerivedMemory &self) 
+    -> self.contents.size
 
 smo Dynamic(nom) 
     @noborrow
@@ -87,32 +89,15 @@ smo allocate(Dynamic& self, u64 size, Primitive)
 smo allocate(Dynamic &self, u64 size) 
     -> allocate(self, size, char)
 
-smo len(Arena &self)
+smo used(Arena &self)
     -> self.length
 
-smo len(Volatile & self)
+smo used(Volatile & self)
     -> 0
 
-smo reserved(DerivedMemory &self) 
-    -> self.contents.size
-
-smo _arena(ContiguousMemory mem) 
-    with &ret = nom:Arena(mem) 
-    ---> ret  // TODO: Fix the reason this runtype is needed
-
-smo _volatile(ContiguousMemory mem) 
-    with &ret = nom:Volatile(mem) 
-    ---> ret  // TODO: Fix the reason this runtype is needed
 
 smo allocate(Arena &self, u64 size)
     if (self.length+size)>self.contents.size -> fail("Failed an Arena allocation")
-    @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
-    @body{self__length = self__length+size;}
-    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
-
-smo allocate(Volatile &self, u64 size)
-    if size>self.contents.size -> fail("Failed an Volatile allocation")
-    @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     -> nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
@@ -125,6 +110,13 @@ smo allocate(Arena &self, u64 _size, Primitive)
     @body{self__length = self__length+size;}
     -> nom:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
+smo allocate(Volatile &self, u64 size)
+    if size>self.contents.size -> fail("Failed an Volatile allocation")
+    @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
+    @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
+    @body{self__length = self__length+size;}
+    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
+
 smo allocate(Volatile &self, u64 _size, Primitive) 
     Primitive = Primitive
     @body{u64 size = _size*sizeof(Primitive);}
@@ -133,15 +125,6 @@ smo allocate(Volatile &self, u64 _size, Primitive)
     @body{ptr _contents = (ptr)((char*)self__contents__mem);}
     @body{self__length = self__length+size;}
     -> nom:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
-
-smo new_arena(MemoryDevice, u64 size) -> nom:Arena(MemoryDevice:allocate(size, char))
-smo new_volatile(MemoryDevice, u64 size) -> nom:Volatile(MemoryDevice:allocate(size, char))
-smo new_arena(Arena &self, u64 size) -> _arena(allocate(self, size))
-smo new_volatile(Arena &self, u64 size) -> _volatile(allocate(self, size))
-smo new_arena(Volatile &self, u64 size) -> _arena(allocate(self, size))
-smo new_volatile(Volatile &self, u64 size) -> _volatile(allocate(self, size))
-smo new_arena(Dynamic &self, u64 size) -> _arena(allocate(self, size))
-smo new_volatile(Dynamic &self, u64 size) -> _volatile(allocate(self, size))
 
 smo read(Arena &self)
     @head{#include <stdio.h>}
@@ -164,29 +147,12 @@ smo read(Arena &self)
     if _contents:exists:not -> fail("Error: Tried to read more elements than remaining Arena size")
     -> nom:str(_contents, length, first, self__contents__mem)
 
-smo is(Arena&, Arena&) --
-smo is(Volatile&, Volatile&) --
-smo is(Dynamic&, Dynamic&) --
 union Memory(MemoryDevice, DerivedMemory, Dynamic)
 
+smo is(Memory&, Memory&) --
 
-smo MemoryGrid(nom type, Memory& memory, Primitive, u64 size, u64 squares)
-    surface = memory:allocate(size*squares, Primitive)
-    -> type, surface, size, squares
-smo GridEntry(nom, MemoryGrid &grid, u64 id) -> @new
-smo at(MemoryGrid &self, u64 id) -> nom:GridEntry(self, id)
-smo at(GridEntry self, u64 pos) 
-    true_pos = pos
-    :mul(self.grid.squares)
-    :add(self.id)
-    -> self.grid.surface[true_pos]
-smo put(GridEntry &self, u64 pos, Primitive value)
-    with Primitive:is(self.MemoryGrid.Primitive) --
-    true_pos = pos
-    :mul(self.grid.squares)
-    :add(self.id)
-    self.grid.surface:__unsafe_put(true_pos, value)
-    --
-smo len(GridEntry self) -> self.grid.size
-smo new_grid(Memory& memory, u64 size, u64 squares, Primitive)
-    -> nom:MemoryGrid(memory, Primitive, size, squares)
+smo new_arena(Memory& self, u64 size) 
+    -> nom:Arena(self:allocate(size))
+    
+smo new_volatile(Memory& self, u64 size) 
+    -> nom:Volatile(self:allocate(size))

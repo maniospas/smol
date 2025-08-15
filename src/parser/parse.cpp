@@ -62,7 +62,10 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         if(var=="=" && p<imp->size()-1 && imp->at(p+1)=="=") var = EMPTY_VAR;
         if(var=="." || var=="=") {
             var = next_var(imp, p, next, types, false);
-            if(is_mutable_assignment) {if(internalTypes.contains(var)) imp->error(--p, "Cannot set as mutable an existing variable: "+var.to_string()+"\nMutability is declared by prepending & to the first occurence"); mutables.insert(var);}
+            if(is_mutable_assignment) {
+                if(internalTypes.contains(var)) imp->error(--p, "Cannot set as mutable an existing variable: "+var.to_string()+"\nMutability is declared by prepending & to the first occurence"); 
+                mutables.insert(var);
+            }
             int assignment_start = p;
             if(imp->at(p++)!="=") {--p;continue;}//imp->error(--p, "Missing assignment");
             next = imp->at(p++);
@@ -71,6 +74,12 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             const auto& it = internalTypes.vars.find(expression_outcome);
             if(it==internalTypes.vars.end()) imp->error(assignment_start, "Failed to parse expression");
             if(is_next_assignment) {next_assignments.insert(var);var = NEXT_VAR+var;}
+            if(is_mutable_assignment && mutables.find(expression_outcome)==mutables.end()) for(const auto& pack : internalTypes.vars[expression_outcome]->packs) {
+                if(internalTypes.vars[expression_outcome]->internalTypes.vars[pack]->name==PTR_VAR 
+                    && mutables.find(var+pack)==mutables.end()) {
+                    imp->error(assignment_start, "Cannot transfer to an immutable ptr packed in an immutable variable to a mutable ptr: "+pretty_var((var+pack).to_string())+"\nThe contents of mutable pointers may be modified.");
+                }
+            }
             assign_variable(it->second, var, expression_outcome, imp, p);
         }
         else if(is_next_assignment) imp->error(p, "Expecting assignment to variable after @next");

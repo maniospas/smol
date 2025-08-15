@@ -41,7 +41,7 @@ smo open(Process&, cstr command)
         #endif
     }
     @body{ptr contents = (ptr)popen((cstr)command, "r");}
-    if contents:exists:not @fail{printf("Failed to start process\n");} --
+    if contents:exists:not @fail{printf("Error: Failed to start process\n");} --
     @finally contents { if(contents) {pclose((FILE*)contents);} contents = 0; }
     -> nom:Process(contents)
 
@@ -57,36 +57,7 @@ smo to_end(Process &p)
     }
     -> err
 
-smo next_chunk(Volatile &memory, Process &p, str& value)
-    contents = memory.contents.mem
-    size = memory.contents.size
-    @head{#include <stdio.h>}
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
-        u64 bytes_read = p__contents ? fread((char*)contents, 1, size, (FILE*)p__contents) : 0;
-        if(size) ((char*)contents)[ (bytes_read < size) ? bytes_read : (size - 1) ] = '\0';
-        ptr ret = bytes_read ? (ptr)contents : 0;
-        char first = ((char*)contents)[0];
-    }
-    with value = nom:str(ret, bytes_read, first, memory.contents.underlying)
-    ---> ret:bool
-
-smo next_line(Volatile &memory, Process &p, str& value)
-    contents = memory.contents.mem
-    size = memory.contents.size
-    @head{#include <stdio.h>}
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
-        ptr ret = p__contents ? (ptr)fgets((char*)contents, size, (FILE*)p__contents) : 0;
-        u64 bytes_read = ret ? strlen((char*)ret) : 0;
-        char first = ((char*)contents)[0];
-    }
-    with value = nom:str(ret, bytes_read, first, memory.contents.underlying)
-    ---> ret:bool
-
-smo next_chunk(Arena &reader, Process &p, str& value)
+smo next_chunk(DerivedMemory &reader, Process &p, str& value)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -96,10 +67,10 @@ smo next_chunk(Arena &reader, Process &p, str& value)
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
-    value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
+    value = nom:str(ret, bytes_read, first, reader.contents.underlying)
     -> ret:bool
 
-smo next_line(Arena &reader, Process &p, str& value)
+smo next_line(DerivedMemory &reader, Process &p, str& value)
     with p.contents:exists --
     @head{#include <stdio.h> #include <string.h> #include <stdlib.h>}
     @body{
@@ -107,18 +78,16 @@ smo next_line(Arena &reader, Process &p, str& value)
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
-    with value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
+    with value = nom:str(ret, bytes_read, first, reader.contents.underlying)
     ---> ret:bool
 
-smo next_chunk(Process &p, Volatile &memory, str& value) -> next_chunk(memory, p, value)
-smo next_line(Process &p, Volatile &memory, str& value) -> next_line(memory, p, value)
-smo next_chunk(Process &p, Arena &memory, str& value) -> next_chunk(memory, p, value)
-smo next_line(Process &p, Arena &memory, str& value) -> next_line(memory, p, value)
+smo next_chunk(Process &p, DerivedMemory &memory, str& value) -> next_chunk(memory, p, value)
+smo next_line(Process &p, DerivedMemory &memory, str& value) -> next_line(memory, p, value)
 
 smo system(cstr command)
     @head{#include <stdlib.h>}
     @body{u64 result = system((char*)command);}
-    if result!=0 -> fail("System call failed")
+    if result!=0 -> fail("Error: System call failed")
     --
 
 smo system(str command) 
