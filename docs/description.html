@@ -25,7 +25,9 @@
     body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
     .navbar {background-color: #333;padding: 2px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
     .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
+    .navbar span {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
     .navbar a:hover {background-color: #555;}
+    .navbar img {width: 40px;height: 40px;}
     .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
     h1, h2, h3 {color: #222;}
     table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
@@ -36,22 +38,132 @@
     pre code {background: none;font-family: 'Courier New', Courier, monospace;font-size: 90%;}
     p strong {color: #444;}
     .section-header {background-color: #eeb;font-weight: bold;color: #000;}
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      max-height: 100vh;
+      overflow-y: auto;
+      background: #fafafa;
+      padding: 1em;
+      border-right: 1px solid #ddd;
+      width: 220px;
+      margin-top: 40px;
+    }
+
+    .sidebar a {
+      text-decoration: none;
+      color: #333;
+    }
+
+    .sidebar a.active {
+      font-weight: bold;
+    }
+
+    .sidebar-title {
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .sidebar-sub {
+      margin-left: 1em;
+      display: none; /* collapsed by default */
+    }
+
+
   </style>
 </head>
 <body>
 
 
 <div class="navbar">
-  <a href="index.html">Smoλ home</a>
-  <a href="#quickstart">Quickstart</a>
-  <a href="#flow">Flow</a>
-  <a href="#smo">Runtypes</a>
-  <a href="#service">Services</a>
-  <a href="#std">Std & memory</a>
+  <img src="smol.png" alt="smoλ">&nbsp;&nbsp;
+  <a href="index.html">Smoλ</a>
+  <a href="https://github.com/maniospas/smol">GitHub</a>
 </div>
+
+<!-- <div class="sidebar">
+  ▶ <a href="#quickstart">Quickstart</a><br>
+  ▶ <a href="#flow">Flow</a><br>
+  ▶ <a href="#smo">Runtypes</a><br>
+  ▶ <a href="#service">Services</a><br>
+  ▶ <a href="#buffers">Buffers</a> <br>
+  ▶ <a href="#std">Std & memory</a>
+  </ul>
+</div> -->
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-title">▶ Quickstart</div>
+    <div class="sidebar-sub">
+      <a href="#about">About</a><br>
+      <a href="#setup">Setup</a><br>
+      <a href="#interesting">Basic structure</a><br>
+      <a href="#cheatsheet">Cheatsheet</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">▶ Control flow</div>
+    <div class="sidebar-sub">
+      <a href="#conditions">Conditions & loops</a><br>
+      <a href="#next">@next</a><br>
+      <a href="#uplifting">Uplifting</a><br>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">▶ Runtypes</div>
+    <div class="sidebar-sub">
+      <a href="#primitives">Primitives</a><br>
+      <a href="#fields">Fields & returns</a><br>
+      <a href="#mutability">Mutability</a><br>
+      <a href="#currying">Currying</a><br>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">▶ Type system</div>
+    <div class="sidebar-sub">
+      <a href="#overloading">Overloading</a><br>
+      <a href="#callbytype">Call by type</a><br>
+      <a href="#unions">Unions</a><br>
+      <a href="#nominal">Nominal typing</a>
+      <a href="#typechecking">Typechecking</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">▶ Services</div>
+    <div class="sidebar-sub">
+      <a href="#whysvc">Why services?</a><br>
+      <a href="#errors">Error handling</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">▶ Std</div>
+    <div class="sidebar-sub">
+      <a href="#beyond">Beyond the core</a><br>
+      <a href="#memory">Memory</a><br>
+      <a href="#console">Console</a><br>
+      <a href="#strings">Strings</a><br>
+      <a href="#files">Files</a><br>
+      <a href="#vectors">Vectors</a><br>
+      <a href="#math">Math</a>
+    </div>
+  </div>
+</div>
+
+
+
 
 <div class="container">
 
+<h1 id="quickstart">Quickstart <a href="#quickstart" class="anchor-link">🔗</a></h1>
+
+<h3 id="about">About <a href="#about" class="anchor-link">🔗</a></h3>
 
 <p><i>Smoλ</i> (pronounced like "small" but with "o" instead of "a") is a low-level language with fast zero-cost abstractions that are organized 
 into failsafe services. Its core is tiny — really tiny! So tiny, in fact, that printing and basic
@@ -67,9 +179,8 @@ The type system is algebraic with overloads, unions, and basic type inference - 
 code simple without hiding behavior. All code is fastly executed on the stack, but there are heap buffers to handle 
 variadic data or exchange data between services.</p>
 
-<h1 id="quickstart">Quickstart <a href="#quickstart" class="anchor-link">🔗</a></h1>
 
-<h3>Setup <a href="#setup" class="anchor-link">🔗</a></h3>
+<h3 id="setup">Setup <a href="#setup" class="anchor-link">🔗</a></h3>
 
 <p>Download <i>smoλ</i> from its <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>
 or build it from source by cloning the repository and running <code class="bash">g++ src/smolang.cpp -o smol -O2 -std=c++23</code>.
@@ -332,7 +443,7 @@ available in the standard library.
 
 
 
-<h1 id="flow">Flow <a href="#flow" class="anchor-link">🔗</a></h1>
+<h1 id="flow">Control Flow <a href="#flow" class="anchor-link">🔗</a></h1>
 
 <p>
 <i>smoλ</i> offers <code class="language-smolambda">if</code>-statements and 
@@ -343,15 +454,7 @@ based on compile-time typechecking. One of smoλ's goals is to give the illusion
 a higher-level counterpart despite providing fast zero cost abstractions over bare metal
 assembly.</p>
 
-<p><strong>Jump to:</strong>
-  <a href="#conditions">Conditions &amp; loops</a> ·
-  <a href="#next">@next</a> ·
-  <a href="#uplifting">Uplifting</a> ·
-  <a href="#typechecking">Conditional typechecking</a>
-</p>
-<br>
-
-<h3 id="conditions">Conditions &amp; loops <a href="#conditions" class="anchor-link">🔗</a></h3>
+<h3 id="conditions">Conditions & loops <a href="#conditions" class="anchor-link">🔗</a></h3>
 
 <p>Since the concepts of conditions and loops are widely known, below is an example, where 
 <code class="language-smolambda">&i=0</code> basically means that this first value can be
@@ -438,7 +541,9 @@ below.</p>
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo test() print("called") -> true
+smo test() 
+  print("called") 
+  -> true
 
 service main()
     print("Normal conditions") // prints
@@ -549,46 +654,6 @@ service main()
     ------
 </code></pre>
 
-<h3 id="typechecking">Conditional typechecking <a href="#typechecking" class="anchor-link">🔗</a></h3>
-
-<p>Before closing this secion on control flow, we will take quick peek
-at a feature that also gives the illusion of altering control flow, 
-namely compile-time typechecking. This effectively tries to execute
-an alternative across several code blocks.
-</p>
-<p>The syntax designates the
-start of a code block with  <code class="language-smolambda">with</code>
-and has at least one follow-up code blocks designated by <code class="language-smolambda">else</code>.
-The first block that compiles without creating an error about invalid runtypes
-is the one selected each time.
-</p>
-
-<p>This feature is particularly useful with <code class="language-smolambda">union</code> types
-that let you write the same generic code once and call it with various kinds of data. In those
-cases, you might want to have code behave differently depending on the obtained data. Below
-is a first glimpse on this dynamism, where <i>first</i> employs a different pattern depending on
-the data it is called with. The implementation could also be overloaded, though code selection is an
-ergonomic alternative. More on overloading later.</p>
-
-<pre><code class="language-smolambda">@include std.builtins
-@include std.vec // more on vectors later
-
-smo point(f64 x, f64 y) -> @new
-union Elements (vec, point, f64, i64)
-smo first(Elements elements)
-    with |-> elements:vec[0]
-    else |-> elements:point.x
-    else |-> elements:f64
-    --
-
-service main()
-    x1 = vec:rand(10)
-    print(x1:first)
-    print(z:first)
-    print(point(1.0,2.0):first)
-    --
-</code></pre>
-
 
 
 <h1 id="smo">Runtypes <a href="#smo" class="anchor-link">🔗</a></h1>
@@ -621,19 +686,6 @@ Note that <i>smoλ</i> does not require semicolons becase boundaries are unique:
 everything ends at return statements, at the end of file, or resides in-between
 parentheses and commas.</p>
 
-
-<p><strong>Jump to:</strong>
-  <a href="#primitives">Primitives</a> ·
-  <a href="#fields">Fields</a> ·
-  <a href="#mutability">Mutability</a> ·
-  <a href="#currying">Currying</a> ·
-  <a href="#overloading">Overloading</a> ·
-  <a href="#callbytype">Call by type</a> ·
-  <a href="#unions">Unions</a> ·
-  <a href="#new">@new</a>
-</p>
-<br>
-
 <h3 id="primitives">Primitives <a href="#primitives" class="anchor-link">🔗</a></h3>
 <p>
 <i>smoλ</i> has several primitive types for building more complicated runtypes. 
@@ -652,7 +704,7 @@ files if you want).
 which are the C equivalents. The <code class="language-smolambda">errcode</code> builtin
 captures the error values of failing services. nder the hood, it is implemented as a C++ int to remain compatible with the operating system.</p> 
 
-<h3 id="fields">Fields and tail move <a href="#fields" class="anchor-link">🔗</a></h3>
+<h3 id="fields">Fields & returns <a href="#fields" class="anchor-link">🔗</a></h3>
 
 <p>Values returned from runtypes are always organized into tuples. However, you can access named fields of that
 tuple, given that internal variables are returned. In previous examples, this means that we could access fields like
@@ -820,6 +872,9 @@ service main()
 
 
 
+<h1 id="typesystem">Type system <a href="#typesystem" class="anchor-link">🔗</a></h1>
+
+
 <h3 id="overloading">Overloading <a href="#overloading" class="anchor-link">🔗</a></h3>
 
 <p>Overload runtypes that are structurally
@@ -917,11 +972,8 @@ service main()
     --
 </code></pre>
 
-
-<h3 id="new">@new <a href="#new" class="anchor-link">🔗</a></h3>
-
 <p>Till now we used <code class="language-smolambda">->@new</code> returns as a shorthand for returning
-input values. However, this type of return also helps disambiguate overloading when there is no clear resolution. 
+input values. However, this also helps disambiguate overloading when there is no clear resolution. 
 In particular, if exactly one of the competing runtypes
 has this kind of return declaration or argument, that is used as the choice that breaks the stalemate.
 </p>
@@ -941,8 +993,82 @@ service main()
 </code></pre>
 
 
+<h3 id="nominal">Nominal typing <a href="#nominal" class="anchor-link">🔗</a></h3>
+
+<p>The mechanism for grouping a runtype's return so that they are treated
+as collection of values that depend on each other is to have the
+<code class="language-smolambda">nom</code> primitive as the first argument.
+This is an expression of the so-called <i>nominal typing</i>: 
+if also contained in the returned tuple, it ties it back to the runtype. You
+cannot normally set values to it.
+</p>
+<p>
+Compiled assembly often ignores nominal typing primitives, as they are mostly
+used for compilation checks, where they disambiguate strucurally equivalent runtypes 
+among overloaded operations, or within unions. Nominal typing has a small dynamic overhead
+when popping values from buffers.
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+smo Type1(nom, f64 value) -> @new
+smo Type2(nom, f64 value) -> @new
+
+smo recognize(Type1 p) print("this is Type1") --
+smo recognize(Type2 p) print("this is Type2") --
+
+service main()
+    p1 = nom:Type1(1.0)
+    p2 = nom:Type2(2.0)
+    recognize(p1) 
+    recognize(p2) 
+    --
+</code></pre>
+
+
+
+<h3 id="typechecking">Typechecking <a href="#typechecking" class="anchor-link">🔗</a></h3>
+
+<p>Compile-time typechecking effectively tries to execute
+an alternative across several code blocks. The syntax designates the
+start of a code block with  <code class="language-smolambda">with</code>
+and has at least one follow-up code blocks designated by <code class="language-smolambda">else</code>.
+The first block that compiles without creating an error about invalid runtypes
+is the one selected each time.
+</p>
+
+<p>This feature is particularly useful with <code class="language-smolambda">union</code> types
+that let you write the same generic code once and call it with various kinds of data. In those
+cases, you might want to have code behave differently depending on the obtained data. Below
+is a first glimpse on this dynamism, where <i>first</i> employs a different pattern depending on
+the data it is called with. The implementation could also be overloaded, though code selection is an
+ergonomic alternative. More on overloading later.</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+@include std.vec // more on vectors later
+
+smo point(f64 x, f64 y) -> @new
+union Elements (vec, point, f64, i64)
+smo first(Elements elements)
+    with |-> elements:vec[0]
+    else |-> elements:point.x
+    else |-> elements:f64
+    --
+
+service main()
+    x1 = vec:rand(10)
+    print(x1:first)
+    print(z:first)
+    print(point(1.0,2.0):first)
+    --
+</code></pre>
+
+
 
 <h1 id="service">Services <a href="#service" class="anchor-link">🔗</a></h1>
+
+
+<h3 id="whysvc">Why services? <a href="#whysvc" class="anchor-link">🔗</a></h3>
 
 <p>So far we have been writing <code class="language-smolambda">service main()</code> as the entrant
 point of programs. Armed with the basics, we can now look at what that <i>service</i> keyword is all about. 
@@ -960,15 +1086,6 @@ service main()
     print(y)
     --
 </code></pre>
-
-<p><strong>Jump to:</strong>
-  <a href="#whysvc">Why services?</a> ·
-  <a href="#errors">Error handling</a>
-</p>
-<br>
-
-
-<h3 id="whysvc">Why services? <a href="#whysvc" class="anchor-link">🔗</a></h3>
 
 <p>Semantically, services are equivalent to runtypes with error handling and the restriction that they a)
 do not accept arguments by reference, b) stop further mutation of mutables provided as arguments. 
@@ -1055,10 +1172,13 @@ service get_age()
     -> age
 
 service main()
-    age = get_age()
-    while age.err:bool age = get_age() --
-    print("You've seen at least \{age-1} years gone by.")
-    --
+    while true
+        age = get_age() 
+        if age.err:bool:not |--
+        --
+    on Heap:new_dynamic
+        print("You've seen at least "+str(age-1)+" years gone by.")
+    ----
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 What's your age?
@@ -1073,153 +1193,30 @@ You've seen at least 9 years gone by.
 </pre>
 
 
-<h1 id="buffers">Buffers <a href="#buffers" class="anchor-link">🔗</a></h1>
-
-
-
-<h3 id="slicing">Slicing <a href="#slicing" class="anchor-link">🔗</a></h3>
-
-<p>
-Buffers can be sliced to obtain a sub-view of elements. This happens irrespectively
-of other operations applied on the original. Slices can be obtained from square brackets that either contain
-their starting element as 
-<code class="language-smolambda">u64</code> number,
-or contain starting and non-inclusive end elements separated by <code class="language-smolambda">to</code>.
-</p>
-
-<p>
-You can change the separating operator to <code class="language-smolambda">upto</code> to make the last element inclusive,
-or <code class="language-smolambda">lento</code> to specify the number of elements in the slice.
-Below is an example of slicing. <i>All operations are near-zero-cost abstractions, 
-with the exception that specifying an end also checks for bounds compared to the enclosing slice.</i>
-</p>
-
-<pre><code class="language-smolambda">@include std.builtins
-
-service main()
-    buf = buffer(0,1,2,3,4,5)
-    slice = buf[1 to 3]
-    print(slice:u64)    // 1 (pops front from slice)
-    print(buf[0]:u64)   // 0 (buf[0] is also a slice)
-    print(buf:u64)      // 0 (slice remains unaffected)
-    print(slice:u64)    // 2 (continuing from where we left)
-    print(slice:u64)    // CREATES RUNTIME ERROR
-    --
-</code></pre>
-
-<h3 id="concat">Concatenation <a href="#concat" class="anchor-link">🔗</a></h3>
-
-<p>Normally, you can have a buffer as the last argument so that popping knows how many elements
-it needs to consume. As an exception, you can have a buffer as a first argument to a buffer too,
-for example to copy it or concatenate it with more data. 
-Furthermore, <code class="language-smolambda">put</code> 
-assigns runtype values to the front elements. 
-If you want highly optimized allocation, 
-prefer using vectors from the standard library instead of buffers.
-Below is an example on buffer concatenation and modification. </p>
-
-
-<pre><code class="language-smolambda">@include std.builtins
-
-smo Point(u64 x, u64 y) -> @new
-
-service main()
-    buf = buffer(1,2):buffer(1,2)
-    buf[2]:put(3,4)
-    p1 = Point(buf)
-    p2 = Point(buf)
-    print(p1.x) // 1
-    print(p2.y) // 4
-    --
-</code></pre>
-
-<p>
-You can provide a buffer as the sole argument of another buffer to
-copy its data. Below is an example.
-</p>
-
-
-<pre><code class="language-smolambda">@include std.builtins
-
-smo Point(f64 x, f64 y) -> @new
-
-service main()
-    buf = buffer(1.0,2.0)
-    buf2 = buf:buffer
-    buf2[0]:put(0.0)
-    print(buf2[0]:f64)
-    print(buf[0]:f64)
-    --
-</code></pre>
-
-<h3 id="nominal">Nominal typing <a href="#nominal" class="anchor-link">🔗</a></h3>
-
-<p>A last feature that has been delayed till this point is how to make
-buffer reads semantically secure in not front-popping unintended runtypes.
-The mechanism for doing so is presented at the runtype level by setting
-an <code class="language-smolambda">nom</code> primitive as the first argument.
-</p>
-<p>This primitive is an expression of the so-called <i>nominal typing</i>: 
-if also contained in the returned tuple, it ties it back to the runtype. You
-cannot normally set values to it.
-</p>
-<p>
-Compiled assembly often ignores nominal typing primitives, as they are mostly
-used for compilation checks, where they disambiguate strucurally equivalent runtypes 
-among overloaded operations, or within unions. Nominal typing has a small dynamic overhead
-when popping values from buffers.
-</p>
-
-<pre><code class="language-smolambda">@include std.builtins
-
-smo Type1(nom, f64 value) -> @new
-smo Type2(nom, f64 value) -> @new
-
-smo recognize(Type1 p) print("this is Type1") --
-smo recognize(Type2 p) print("this is Type2") --
-
-service main()
-    p1 = nom:Type1(1.0)
-    p2 = nom:Type2(2.0)
-    recognize(p1) 
-    recognize(p2) 
-    --
-</code></pre>
-
-<p>
-In general, having nominal typing in runtypes is optional, as it comes with storage costs.
-That said, <b>the standard library is safe</b> by properly attaching all pointer handling
-to other properties with nominal typing.</p>
-
-<pre><code class="language-smolambda">@include std.builtins
-
-smo Point(nom, f64 x, f64 y) -> @new
-
-service main()
-    p = nom:Point(1.0, 2.0)
-    buf()
-    print(buf[1]:f64) // 1.0
-    print(buf:f64) // will create an error - nominal typing ensures correctness 
-    --
-</code></pre>
-
-
 <h1 id="std">Std <a href="#std" class="anchor-link">🔗</a></h1>
+
+<h3 id="beyond">Beyond the core <a href="#beyond" class="anchor-link">🔗</a></h3>
 
 <p>The standard library contains implementations for common programming needs.
 Besides overloading pairswise numerical and comparison operators for basic arithmetic types and booleans, 
 it also supports string handling and contains a backbone for memory management.
 </p>
 
-<p><strong>Jump to:</strong>
-  <a href="#console">Console</a> ·
-  <a href="#strings">Strings</a> ·
-  <a href="#allocators">Allocators</a> ·
-  <a href="#files">Files</a> ·
-  <a href="#vectors">Vectors</a> ·
-  <a href="#math">Math</a>
+
+<h3 id="memory">Memory <a href="#memory" class="anchor-link">🔗</a></h3>
+<p>Perhaps the most important set of operations in <i>smoλ</i>'s standard library is its memory model.
+This leverages functionality from the language's core to. Two types of memory are generally assumed:
+<code>Stack</code> memory that is fastly allocated in the stack of services and <code>Heap</code>
+memory that is a bit slower to manage (and access) but which resides in the main computer memory
+and can be used for large chunks of data. These memory types are provided every time; in devices
+where heap memory is not available, appropriate runtimes can still use a large static buffer under
+the hood.</p>
+
+<p>Memory operations are safe in that there are no memory errors, such as use-after-free or corruptions; 
+  unused memory is released when services end or when resources are invaldiated with <code class="language-smolambda">@release</code>
+  (see next). <b>The main language contract is that memory or other resources can be released only when services end.</b>
 </p>
-<br>
+
 
 <h3 id="console">Console <a href="#console" class="anchor-link">🔗</a></h3>
 <p>Basic functionalities are introduced for the console, namely reading and printing. These support all escape characters
@@ -1270,8 +1267,8 @@ safe implementations are provided, you can reuse those.
 
 <p>Strings are immutable and therefore allow for very fast operations
 for obtaining substrings by increasing pointers and decreasing length
-under the hood. Those operations do aply bound checks but
-do not copy memory and are therefore exceptionally performant. Here is
+under the hood. Those operations apply bound checks but
+do not copy memory and are therefore performant. Here is
 an example of obtaining substrings with the slicing notation.</p>
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -1420,7 +1417,7 @@ Prism.languages.smolambda = {
   },
   'keyword': [
     {
-      pattern: /\b(?:smo|service|if|else|elif|with|include|do|while|union|to|upto|lento|len|and|or)\b/,
+      pattern: /\b(?:smo|service|if|else|elif|with|include|on|while|union|to|upto|lento|len|and|or)\b/,
       greedy: true
     },
     {
@@ -1443,6 +1440,18 @@ Prism.languages.smolambda = {
       if (location.hash === a.getAttribute('href')) e.preventDefault()
     })
   )
+</script>
+
+<script>
+document.querySelectorAll('.sidebar-title').forEach(title => {
+  title.addEventListener('click', () => {
+    const sub = title.nextElementSibling;
+    const expanded = sub.style.display === 'block';
+    sub.style.display = expanded ? 'none' : 'block';
+    const arrow = expanded ? '▶' : '▼';
+    title.innerHTML = arrow + ' ' + title.innerHTML.slice(2);
+  });
+});
 </script>
 
 

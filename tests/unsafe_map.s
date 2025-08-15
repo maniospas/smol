@@ -18,6 +18,5 @@ service main()
         --
     map:put(s, 1)
     map:map_printer // cannot put afterwards because mutables passed to services become immutable
-    
-    print(map["123"])
+
     --
