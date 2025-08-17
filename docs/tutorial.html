@@ -7,7 +7,7 @@
   <meta name="keywords" content="smolambda, low-level language, smoλ, programming language, runtype, safe language, systems programming, DSL">
   <meta name="author" content="Emmanouil (Manios) Krasanakis">
   <meta name="robots" content="index, follow">
-
+  <link rel="icon" href="smol.png" type="image/x-icon">
 
   <title>smoλ</title>
   <link href="vendor/prism/prism.min.css" rel="stylesheet" />
@@ -21,11 +21,13 @@
     h1:hover .anchor-link,
     h2:hover .anchor-link,
     h3:hover .anchor-link { opacity: 1; }
-
     body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
-    .navbar {background-color: #333;padding: 2px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
+    .navbar { background: #fffbf0; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);  padding: 0px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
     .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
-    .navbar a:hover {background-color: #555;}
+    .navbar span {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
+    .navbar a:hover {box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);transform: translateY(-1px);}
+    .navbar a img {width: 40px;height: 40px;margin-top:5px}
+    .navbar a:hover img {width: 45px;height: 45px;margin:0px}
     .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
     h1, h2, h3 {color: #222;}
     table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
@@ -36,18 +38,58 @@
     pre code {background: none;font-family: 'Courier New', Courier, monospace;font-size: 90%;}
     p strong {color: #444;}
     .section-header {background-color: #eeb;font-weight: bold;color: #000;}
+    .sidebar {  position: fixed;  top: 0;  left: 0;  max-height: 100vh;  overflow-y: auto;  background: #fafafa;   padding: 1em;   border-right: 1px solid #ddd;   width: 220px;   margin-top: 50px; }
+    .sidebar a {   text-decoration: none; color: #333;}
+    .sidebar a.active {  font-weight: bold;  color: #177042; }
+    .sidebar-title {  font-weight: none;  cursor: pointer;  user-select: none;  font-size: 0.75em; }
+    .sidebar-name { font-size:1.3em; font-weight: bold;  cursor: pointer;  user-select: none;  color: #73181d; }
+    .sidebar-sub { font-size: 0.9em;  margin-left: 1em; display: none; }
   </style>
 </head>
 <body>
 
-
 <div class="navbar">
-  <a href="index.html">Smoλ home</a>
-  <a href="#hello-world">Hello world</a>
-  <a href="#variables">Variables</a>
-  <a href="#conditions">Conditions</a>
-  <a href="#arguments">Arguments</a>
-  <a href="#returns">Returns</a>
+  &nbsp;&nbsp;
+  <a href="index.html"><img src="smol.png" alt="home"></a>
+  <a href="https://github.com/maniospas/smol" target="_blank"><img src="github.png" alt="github"></a>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-title">▶ <span class="sidebar-name">Get started</span></div>
+    <div class="sidebar-sub">
+      <a href="#hello-world">Hello world</a><br>
+      <a href="#variables">Variables</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">▶ <span class="sidebar-name">Flow</span></div>
+    <div class="sidebar-sub">
+      <a href="#conditions">Conditions</a><br>
+      <a href="#loops">Loops</a><br>
+      <a href="#uplifting">Uplifting</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">▶ <span class="sidebar-name">Calls</span></div>
+    <div class="sidebar-sub">
+      <a href="#arguments">Arguments</a><br>
+      <a href="#mutability">Mutability</a><br>
+      <a href="#typeargs">Type arguments</a><br>
+      <a href="#currying">Currying</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">▶ <span class="sidebar-name">Returns</span></div>
+    <div class="sidebar-sub">
+      <a href="#returns">Returns</a><br>
+      <a href="#fields">Fields</a><br>
+      <a href="#errors">Error handling</a>
+    </div>
+  </div>
 </div>
 
 <div class="container">
@@ -55,29 +97,11 @@
 <h1 id="hello-world">Hello world <a href="#hello-world" class="anchor-link">🔗</a></h1>
 
 <p>
-Let's take our first steps into programming with <i>smoλ</i> (pronounced like "small" but with "o" instead of "a"). 
-I must mention that the language
-is a bit atypical in that it simplifies a lot of traditional programming concepts while keeping the ability
-to write very fast yet safe code. Some level of control is sacrificed in the process, but this means
-that you do not need to worry too much about technical details.
+Let us start with how to run a program and print a message.
+Download the executable from the <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>.  
+Put <code class="language-smolambda">smol</code> and a C/C++ compiler (e.g., GCC) on your system PATH.  
+Create a file named <i>main.s</i> with the text below. Open a terminal in the same folder and run <code class="language-smolambda">smol main.s</code>.
 </p>
-
-<p>
-To start using <i>smoλ</i>, download it from its <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>.
-Ensure that both the <i>smol</i> executable and GCC are in your system path. For code writing prefer VSCode
-and install the smoλ (smolambda) extension to help with syntax highlighting. We are now ready to create and
-run a first program! This tutorial will have source code followed by terminal commands to run it and outputs - execute those
-commands in your operating system's terminal/console or on the terminal provided by VSCode.
-</p>
-
-
-<p>Save the source code file below as <i>main.s</i> and run the command <code>smol main.s</code>. This 
-creates an executable file named <i>main</i> or <i>main.exe</i> whose name depends on the source file
-and the extension depends on your operating system. The command also runs the program right away,
-so you can easily test it. Assuming that everything was set up correctly, you will see "Hello world!" print on the console.
-To only create an executable, an act that is called <i>compiling</i> in all languages that support it,
-run <i>smol main.s --task compile</i>. </p>
-
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
@@ -86,335 +110,191 @@ service main()
     print("Hello world!")
     --
 </code></pre>
+
 <pre style="background-color: #222; color: white;">> smol main.s
 Hello world!
 </pre>
 
 <p>
-We will now look at the anatomy of this first program. To begin with,
-we have a line comment <code class="language-smolambda">// main.s</code>.
-This starts with double slash and ignores the remainder of the line. In
-general, it is useful to comment code so that we can remember what we
-had in mind. But take care not to write too trivial comments that would
-require a lot of effort to keep up to date as your code evolves.</p>
-
-<p>
-Next, we have the <code class="language-smolambda">@include std.builtins</code>
-statement. This includes the contents of the file <i>std/builtins.s</i>
-in our code. If the file cannot be found in your project, it is sought out among the files accompanying
-the <i>smol</i> executable. By the way, <i>std</i> is a common naming convention
-to refer to the standard library of programming languages. This has a lot of common
-functionalities; in our case we import some builtin operations for printing and reading
-from the console, and performing basic math (additions, multiplications, etc). The
-word <code class="language-smolambda">print</code> encountered later is declared
-in the builtins we just imported.
+A quick preview: <code class="language-smolambda">@include std.builtins</code> adds basic tools like <code class="language-smolambda">print</code>.  
+<code class="language-smolambda">service main()</code> is where your program starts. The line with <code class="language-smolambda">--</code> marks the end 
+of the program.
 </p>
-
-<p>Now we get to the mysterious <code class="language-smolambda">service main()</code>
-declaration. In <i>smoλ</i>, services are basically chunks of code that perform a designated
-task. Other services can ask them to run again for some inputs.
-They are like normal functions of other programming languages, but also 
-automatically handle safety details like memory and errors for you (more on this stuff later).
-</p>
-
-<p>After telling the language that we want to create a service with the
-<code class="language-smolambda">service</code> keyword, we set a name as
-well as comma-separated arguments inside parentheses <code class="language-smolambda">()</code>. 
-We will talk about arguments in a bit, but our first service has none of them. By
-convention, in most languages the entry point of programs is the service/function
-called <i>main</i>. In other words, our program is just a call to the <i>main</i> service, 
-which executes all the commands found there.</p>
-
-<p>Now we get to the juicy part; the actual code we are running inside our services!
-Basically everything else is preparation for allowing us to write said code.
-We have two lines of code. Of these, <code class="language-smolambda">print("Hello world!")</code> 
-calls <code class="language-smolambda">print</code> with a string (that is, text inside quotation marks)
-argument. You may wonder whether print is also a service. 
-It is actually a bit more lightweight - something we call a <i>runtype</i>. 
-I will explain what that means in more detail later.
-For now, let us skip the specifics and focus on the last line of code: <code class="language-smolambda">--</code>
-marks the end of our service's implementation.
-</p>
-
 
 <h1 id="variables">Variables <a href="#variables" class="anchor-link">🔗</a></h1>
 
-<p>Many programming languages are centered around the concept of variables that keep track of specific values.
-For example, when computing the circumference of a circle as <code>2πr</code> the radius of the circle
-<code>r</code> may be stored in a variable and the result in yet another one.</p>
-
-<p>Contrary to math, programming variables represent a specific outcome of computations:
-their values remain set once computed and do not change automatically upon each other's changes. 
-In <i>smoλ</i>, declaring a variable
-is as simple as starting from a name that consists of some combination of letters, numbers, or underscores and
-and using the equality symbol <code class="language-smolambda">=</code> to assign the outcome of some expression 
-or constant. Variable names cannot start with a number and may not contain two consecutive underscores (this is reserved
-for some special cases and the language will complain if you use it arbitrarily). 
-An example of setting and using a variable is shown below.</p>
-
-
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
-
-service main()
-    message = "Hello world!"
-    print(message)
-    --
-</code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
-Hello world!
-</pre>
-
-<p>Normally, you cannot reassign a new value to already set variables in <i>smoλ</i>. 
-In many languages we say that such variables are <i>immutable</i>. To be able to
-modify set values you need to prepend the name with the <code class="language-smolambda">&</code>
-symbol the first time you assign a value to it. It seems a bit bothersome to explicitly
-declare which variables can be modified, but the reasons will become more obvious as we
-progress through this tutorial; immutability brings logic safety and helps prevent many errors. 
-Conversely, you need to pay special attention to variables marked for modification 
-as they could be modified by called functions. An example of mofifying values is shown below.</p>
-
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
-
-service main()
-    &message = "hello"
-    print(message)
-    message = "world"
-    print(message)
-    --
-</code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
-hello
-world
-</pre>
-
-
-<p>So far we only worked with printing some strings. But there are more types of
-values built in the language and its standard library - the standard library is a collection
-of helper implementations that usually comes alongside languages to extend their base functionality
-with common operations. You will also be able to 
-define more types of variables later to give structure to complicated data. For 
-now, let us see some basic types.
+<p>
+A variable is a named box that holds a value. You give it a name, then you put a value in it once with the 
+pattern <code class="language-smolambda">variable_name = value</code>. This operation is called an <i>assignmnt</i>.
+Variable names cannot start with numbers or contain
+spaces or special symbols other than the underscore <code class="language-smolambda">_</code>. Having two consecutive
+underscores is also not allowed. Below is an example where we set a constant text (known as <code class="language-smolambda">cstr</code>) 
+to a variable.
 </p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+service main()
+    greeting = "Hello world!"
+    print(greeting)
+    --
+</code></pre>
 
 <p>
-First are integers, which are represented by writing some digits, like <code>0,42,128</code>.
-These can be the subject of binary arithmetic operations like <code>+-*/%</code>, where the last one is the
-modulo operator. By default, integers in <i>smoλ</i> are represented with 64 bits and are <i>unsigned</i> in that
-they are non-negative. For example <code>...0010</code> in binary corresponds to the number <code>2</code>.</p>
-
-<p>This type is commonly known as <code class="language-smolambda">u64</code>
-and being the default makes it convenient to work with memory
-while avoiding a whole host of errors that arise when considering signs. 
-If an operation is invalid, for example if a larger unsigned integer
-is subtracted from a smaller one like <code class="language-smolambda">0-1</code>
-or if there is a division by zero, the current service immediately fails. Below is an 
-example of working with unsigned integers.
+Numbers are values too. There are three kinds you will use often:
 </p>
+<ul>
+  <li><code class="language-smolambda">u64</code> — whole numbers without a sign (0, 1, 2, ...). The default when writing <code class="language-smolambda">2</code> or <code class="language-smolambda">42</code>.</li>
+  <li><code class="language-smolambda">i64</code> — whole numbers with a sign (-1, 0, 1, ...).</li>
+  <li><code class="language-smolambda">f64</code> — numbers with a decimal point. The default when writing <code class="language-smolambda">2.0</code> or <code class="language-smolambda">3.14</code>.</li>
+</ul>
+<p>These are known as unsigned, signed, and float numbers, respectively. We have <i>64</i> next to a mnemonic symbol to also reassure
+experienced programmers that we will use 64 bits to represent the numbers under-the-hood. 
+For safety, you cannot mix operations between different typs of numbers. For example, you cannot subtract a float from <code class="language-smolambda">0</code> but only from <code class="language-smolambda">0.0</code>.
+However, you can convert between number formats with <code class="language-smolambda">value:type</code>.</p>
 
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
+
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    x = 2
-    y = 3
-    print("Integer division of 2/3")
-    print(x/y)
-    --
-</code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
-Integer division of 2/3
-1
-</pre>
-
-<p>In many applications you will need to work with negative integers too, which in <i>smoλ</i> are often
-represented with <i>signed</i> 64-bit representations referred to as <code class="language-smolambda">i64</code>; 
-the sign is indicated by the first bit, but negative numbers
-are stored in what is known as two's complement. Explaining this is perhaps too much detail for this tutorial, but if
-interested in details you can visit the Wikipedia entry <a href="https://en.wikipedia.org/wiki/Two%27s_complement">here</a>. 
-Unsigned integers can represent numbers 
-<code class="language-smolambda">0 upto 2^65-1</code> but signed ones
-can represent numbers <code class="language-smolambda">-2^64 upto 2^64-1</code>.</p>
-
-<p>
-Signed integers have the same available operations as unsigned ones, with the bonus that any subtraction is valid.
-However, you can not natively represent them. Instead, convert to unsigned counterparts to signed ones
-by calling <code class="language-smolambda">i64(value)</code> or, with an equivalent notation that we will explain
-later <code class="language-smolambda">value:i64</code>. A similar call can convert back the representation per 
-<code class="language-smolambda">u64(value)</code>. Below is an example of how to yield minus one. It is deliberately
-a bit harder to work with negative numbers in this language by making it very explicit because they can be
-very hard to debug if we are not careful. For example, you might accidentally add a negative number in some computation
-where you would not consider that possible.
-</p>
-
-
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
-
-service main()
+    print(2/3)      // integer division (u64): 0
+    print(2.0/3.0)  // float division (f64): a decimal result
     minus_one = 0:i64-1:i64
-    print(minus_one)
+    print(minus_one) // -1
     --
 </code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
--1
-</pre>
 
-<p>
-We next visit floating point numbers. Raw numbers are designated by adding
-a dot to separate between the integer and decimal part. For example, <code>3.14159</code> is a floating point
-number. Again, 64 bits are used to hold the repsentation, this time following the IEEE 754 standard, which
-is typically accurate to 15-17 significant digits and <i>smoλ</i>. 
-The float type is called <code class="language-smolambda">f64</code>
-and there exist similar conversions between that and signed and unsigned integers. These conversions may lose
-information. Importantly, <code>0</code> is an unsigned integer and <i>not</i> a float; 
-its float counterpart is <code>0.0</code>. 
-</p>
-<p>
-Notably, the IEEE 754 standard allows invalid operations like
-division by zero and lets them yield positive infinity, negative infinity, or <code>NaN</code> (not a number) values.
-You can check for those properties by correspondingly calling one of <code class="language-smolambda">isinf,isnan</code>.
-Lack of native error checking from the standard results in performant floating point code. 
-Of course, nothing stops you from creating
-safe variations of the float type that are as fast as possible while failing when NaN would be computed.
-</p>
+<p><b>Mutable variables:</b> After setting a variable, that cannot normally change. To allow changes, declare it as <i>mutable</i> 
+by placing <code class="language-smolambda">&</code> before its name in its first assignment. 
+Variables are immutable by default to avoid many logic bugs. Having a marking for mutable ones makes spotting them easier 
+and ensures that any mutation is intended.</p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
 
 service main()
-    x = 2.0
-    y = 3.0
-    print("Float division of 2/3")
-    print(x/y)
-    print("Is float division of 2/0 an infinity?")
-    print(isinf(2.0/0.0))
+    &name = "Ada"
+    print(name)
+    name = "Lovelace" // allowed because we marked it mutable before
+    print(name)
     --
 </code></pre>
+
 <pre style="background-color: #222; color: white;">> smol main.s
-Float division of 2/3
-1.5
-Is float division of 2/0 an infinity?
-true
+Ada
+Lovelace
 </pre>
 
 <h1 id="conditions">Conditions <a href="#conditions" class="anchor-link">🔗</a></h1>
 
 <p>
-The last example also contains a check of whether some property is <code class="language-smolambda">true</code>
-or <code class="language-smolambda">false</code>. This is called a boolean value, or <code class="language-smolambda">bool</code> 
-for short. Boolean values usually hold comparisons. Numeric types also implement 
-comparisons like <code>&gt;</code> (greater than), <code>&lt;</code> (less than), 
-<code>&gt;=</code> (greater than or equal to), <code>&lt;=</code> (less than or equal to), 
-<code>==</code> (equal to), and <code>!=</code> (not equal to). These evaluate to boolean values.
-
-
-The last two are also implemented for boolean values themselves. Below is an example
+Sometimes we only want certain lines to run if a test is true.  
+This is done with an <code class="language-smolambda">if</code> block.  
+The word <code class="language-smolambda">if</code> starts the block, then comes a test, then the code that 
+should run if the test passes. Prefer starting that code in a new line.
+Like before, the block ends at <code class="language-smolambda">--</code>.
+Line changes and indentation are purely cosmetic.
 </p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
 
 service main()
-    print("Is 2 less than 3?")
-    answer = 2&lt;3
-    print(answer)
-    --
+    if true
+        print("this always runs")
+        --
+    -- // could merge both lines into ---- here
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
-Is 2 less than 3?
-true
+this always runs
 </pre>
 
-
 <p>
-In programming you can dynamically determine which of your programm's commandσ run. This is known as the <i>control flow</i>.
-The most common -and default- control flow is to just call one command after the other. But you can also
-have conditional execution that changes which program segment is executed next, depending on some boolean value. In <i>smoλ</i>, the
-syntax for this is <code class="language-smolambda">if condition case_true --</code> 
-or, to also consider the alternative, <code class="language-smolambda">if condition case_true -- else case_false --</code>. 
-The text <code>case_true</code> and code>case_true</code> can in turn be any sequence of commands. Notice that each
-case is terminated with the same <code class="language-smolambda">--</code> symbol as the service's ending. In general, this symbol
-declares the end of the current block of code so that previous control flow can resume. Increase the indentation of each code block
-to make it easy to visually recognize them.
-</p>
-
-<p>
-Below is an example that prints yes/no depending on some boolean condition. For fewer lines of code, merge <code class="language-smolambda">--</code> 
-with other statements of control flow syntax, such as more copies of the same symbol or <code class="language-smolambda">else</code>. 
-Look how multiple copies of the symbol forms a nice visual barrier at the end of the <i>main</i> service. This is a unique
-feature of this language with an added bonus for good code writing: if you cannot easily tell how many blocks are ending,
-you have probably created overcomplicaed code that should be simplified, for example by being split into more manageable segments.
+Here the test is just the value <code class="language-smolambda">true</code>, so the message will always print.  
+If you change the test to <code class="language-smolambda">false</code>, the inside will be skipped. These are 
+known as boolean values.
+More often, the test contains numerical or other comparisons that evaluate to a boolea value. 
+For example, <code class="language-smolambda">2 &lt; 3</code> checks whether two is less than three.
 </p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
 
 service main()
-    print("Is 2 less than 3?")
     if 2&lt;3
-      print("yes")
+        print("yes, two is smaller")
     ----
 </code></pre>
+
 <pre style="background-color: #222; color: white;">> smol main.s
-Is 2 less than 3?
-yes
+yes, two is smaller
 </pre>
 
 <p>
-Conditions are also language expressions in that they may compute to a value.
-The syntax mentioned above does not compute any such value, but you can replace 
-<code class="language-smolambda">--</code> with <code class="language-smolambda">-></code>
-followed by an expression to return the latter's outcome. In this case, the 
-<code class="language-smolambda">else</code> segment is mandatory, and both
-segments should return the same type of value. This is needed because <i>smoλ</i>
-follows the so-called <i>static typing</i> paradigm, in which the type of every value
-needs to be known at compile time. There are some dynamic features, like buffers
-that hold data whose type changes while programs run, but this introductory tutorial
-is not the proper place to learn about those.
+There are several comparison operators you can use - some of these are defined for data other than numbers too:
 </p>
+<ul>
+  <li><code class="language-smolambda">==</code> equal to</li>
+  <li><code class="language-smolambda">!=</code> not equal to</li>
+  <li><code class="language-smolambda">&lt;</code> less than</li>
+  <li><code class="language-smolambda">&lt;=</code> less than or equal</li>
+  <li><code class="language-smolambda">&gt;</code> greater than</li>
+  <li><code class="language-smolambda">&gt;=</code> greater than or equal</li>
+</ul>
 
 <p>
-An example of returning from a conditional statement is presented below. That also
-demonstrates usage of the <code class="language-smolambda">elif</code> keyword, which
-basically translates to the sequence <code class="language-smolambda">else->if</code>.
-All cases return a string, otherwise the language would complain that they
-do no return the same type.
+We can also add <code class="language-smolambda">elif</code> (else if) and <code class="language-smolambda">else</code> branches to cover other cases.  
+Each branch is tried in order until one runs.
 </p>
 
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    x = 1.0-2.0
-    sgn = if   x&gt;0.0 -> "positive"
-          elif x&lt;0.0 -> "negative"
-          else       -> "zero"
-    print(sgn)
+    x = 0.0-2.0
+    sign = if   x&gt;0.0 -> "positive"
+           elif x&lt;0.0 -> "negative"
+           else       -> "zero"
+
+    print(sign)
+    --
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 negative
 </pre>
 
 <p>
-As a final note on conditions, and to keep code easy-to-read, 
-it is fine to return the outcomes of computations that do not yield any value, 
-as long as you do not assign the outcome to a variable. For example, the pattern  
-<code class="language-smolambda">if x&gt;0.0 -> print("positive")</code> is acceptable. Read that as 
-<i>if x is greater than zero end the statement with the outcome of printing "positive"</i>.
+Notice here that, above, each branch returns a string. All branches must return the same type, or nothing.  
+For example, you could also just perform an action inside each branch:
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+service main()
+    x = 5
+    if x&gt;0
+        print("positive")
+        --
+    elif x&lt;0
+        print("negative")
+        --
+    else
+        print("zero")
+        --
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+positive
+</pre>
+
+<p>
+It is okay to keep code compact when it reads naturally, for example by writing one line:  
+<code class="language-smolambda">if x&gt;0 -> print("positive")</code>.
 </p>
 
 
-<p>A variation of conditions are loops. Those keep executing a code block as long
-a condition, which is re-evaluated on each loop, stays <code>true</code>. They take
-the form <code class="language-smolambda">while condition case_true --</code> but 
-they cannot have a return value. Below is a simple loop that prints the integers <code>0,1,2,3,4</code>
-by starting from a zero-valued variable and continuously incrementing it. Recall that <code>&</code>
-before a variable's first assignment allows its value to be modified. Again, the closing
-<code class="language-smolambda">--</code> are merged in one line to create compact code. 
-</p>
+<h1 id="loops">Loops <a href="#loops" class="anchor-link">🔗</a></h1>
 
+<p>A loop repeats a block while a condition is true. If a variable changes inside the loop, make it mutable once at first assignment.</p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
@@ -426,6 +306,7 @@ service main()
         i = i+1
     ----
 </code></pre>
+
 <pre style="background-color: #222; color: white;">> smol main.s
 0
 1
@@ -434,245 +315,228 @@ service main()
 4
 </pre>
 
-<p>
-There is often the need for control flow to also terminate its parent
-flow. In typical languages you can do this with <code>break</code> statements
-or ways to pre-emptively stop functions/services. In <i>smoλ</i> there is 
-a mechanism called <i>uplifting</i> that proives a lot of control but is not completely
-free so that it is easy to recognize the exit point of each block. 
-</p>
-<p>This mechanism
-consists of prepending <code class="language-smolambda">|</code> to the return statements
-of code blocks, for example in the form of <code class="language-smolambda">|--</code> 
-or <code class="language-smolambda">|-&gt;</code>. Below is an example of uplifting that prematurely
-ends a loop under a certain condition. You can have multiple
-levels of uplifting to end/return further upwards in the nested block hierarchy.
-</p>
 
-
+<p>The next snippet shows a pattern for looping through a range of unsigned integers. This is 
+less prone to accidental bugs is a pattern that will be fully explained later.
+This pattern is known as an <i>iterator</i> because it builds on some data that can 
+be traversed and assigns to a variable while traversing them. Here the data is a
+a <code class="language-smolambda">range(5)</code> indicating values <code class="language-smolambda">0 upto 4</code> and
+traversed values are assigned to <code class="language-smolambda">i</code>.
+Iterators are convenient in that you do not need to manually handle the increment, which
+you might forget about or could be complicated. For example, reading from
+files is also implemented as an iterator.
+</p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
+
+service main()
+    range(5):while next(u64 &i) 
+        print(i)
+    ----
+</code></pre>
+
+
+<h1 id="uplifting">Uplifting <a href="#uplifting" class="anchor-link">🔗</a></h1>
+
+<p>
+Sometimes you want to stop not just the current block, but also go one level up immediately.  
+Prepend a return with a vertical bar <code class="language-smolambda">|</code> to “jump up” one level.  
+<code class="language-smolambda">|--</code> ends this block and its parent. <code class="language-smolambda">|-&gt;</code> returns a value and ends the parent.  
+Two bars (<code class="language-smolambda">||</code>) jump two levels, and so on.
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
 
 service main()
     &i = 0
     while true
         print(i)
-        if i==5 |--
+        if i==5 |-- // end loop early
         i = i+1
     ----
 </code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
-0
-1
-2
-3
-4
-5
-</pre>
-
-
-
 
 <h1 id="arguments">Arguments <a href="#arguments" class="anchor-link">🔗</a></h1>
 
-<p>Moving on, let's see how we can declare
-and call services and the more lightweight runtypes. 
-The two share most of the interface, with runtypes being more lightweight by
-zero-cost abstractions over performant machine instructions. But they do need
-to be enclosed in larger services that create clear compartmenization of where
-error messages can be intercepted. The reason why <i>smoλ</i> uses the term
-<i>runtypes</i> instead of declaring that these are simple inlineed functions 
-(that is, whose code is "copy-pasted" by the language when called) will be presented later.
-</p>
 <p>
-As a glimpse on safety, memory that is reserved for operation outcomes, such as keeping
-a vector of numbers, is automatically deallocated only at points when services come at an end,
-but not when runtypes conclude. There are ways to control deallocation, but these are
-too advanced to tackle in this tutorial. Controlling where memory is allocated and deallocated
-is required by security-critical software, where milliseconds of overhead while waiting for
-the operating system to grant the memory could incur huge penalties (delayed responses by 
-vehicle safety systems or medilcal equiment malfunctions).
+You can name a block of code and call it with inputs. These are called arguments.
+There are two kinds of named blocks of code:
+</p>
+<ul>
+  <li><code class="language-smolambda">smo</code> — a lightweight function. It is called a <i>runtype</i>.</li>
+  <li><code class="language-smolambda">service</code> — a safer unit that handles errors and resources for you.</li>
+</ul>
+
+<p>For most simple programs, you will only mostly runtypes. Services are complex pieces of code that run
+independently to each other. Adding arguments to a service is as simple as adding a list of comma-separated
+variable types and names. Types are needed so that the service can know what inputs to expect. 
+For example, <code class="language-smolambda">f64 x</code> denotes an argument that is a float named <code>x</code>.
 </p>
 
-<p>Adding arguments to a service is as simple as adding a list of comma-separated
-variable names. However, those variable names need to be prepended by their type
-so that the service can know what inputs to expect. 
-For example, <code class="language-smolambda">f64 x</code> denotes a service input
-variable that is a float named <code>x</code>. To declared a runtype, change the 
-<code class="language-smolambda">service</code> keyword to <code class="language-smolambda">smo</code>.
-</p>
-
-<p>
-To call a service or runtype, you need a comma-separated list of input arguments, which are matched to variables in its arguments
-based on the order in which they are provided.
-Place inputs in a parenthesis next to the service name, and the latter will run and give you back a result, if any.
-Below is an example that adds two floats and multiplies the result with a third one.
-Since the return statement is very simple and does not require any intermediate computations, we
-put it at the same line as the service. Otherwise, for visual clarity, indent the contents of 
-services as we have done so far.
-</p>
-
-<p>
-Services and runtypes may return no value to their caller, in which case they end with <code class="language-smolambda">--</code>,
-or they can return a value, in which case they end with <code class="language-smolambda">-></code> followed by an 
-expression that computes the value to be returned. This corresponds to return statements of other languages,
-but is also the same notation for all other code blocks in control flow. Returns can declare and return types, but returning
-will be addresse in the next section.
-</p>
-
-
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
+<pre><code class="language-smolambda">@include std.builtins
 
 smo affine(f64 x, f64 y, f64 z) -> (x+y)*z
+
 service main()
     result = affine(1.0, 2.0, 3.0)
-    print(result)
+    print(result) // 9.0
     --
 </code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
-9.0
-</pre>
 
-<p> Up until now, arguments have been passed by value. This means that they cannot be
-modified inside the service. However, <i>smoλ</i> 
-also allows passing arguments by reference, making modifications to propagate back to the caller. 
-To do so, prepend the argument name with an <code class="language-smolambda">&</code> in the parameter 
-list of the service. This makes the internal variable mutable, and must be matched by mutable inputs, 
-since they would not be modifiable otherwise. Below is an example, where
-the variable <code>x</code> in <i>main</i> must also be marked as mutable - the language
-would complain otherwise.</p> 
-
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
-  
-smo update(f64 &x) 
-    x = x + 1.0 
-    -- 
-service main() 
-    &x = 2.0 
-    update(x) 
-    print(x) 
-    -- 
-</code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
-3.0
-</pre>
-<p>You can also provide types (instead of values) as arguments, without attaching them to variables or values. 
-This is useful when you want to operate on a family of types generically, for example when you want a specific output. 
-To pass a type, just use its name as an argument. Below is an example that creates a different </p> 
-
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
-  
-smo zero(f64) -> 0.0
-smo zero(u64) -> 0
-service main() 
-    x = zero(f64) 
-    y = zero(u64) 
-    print(x) 
-    print(y)
-    --
-</code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
-0.0
-0
-</pre>
+<h1 id="mutability">Mutability <a href="#mutability" class="anchor-link">🔗</a></h1>
 
 <p>
-This is an oportune moment to learn how you can read from the console too; the standard library implements a <code>read</code>
-runtype.
+Inputs are passed "by value" (without affecting the call site) unless you explicitly allow changes.  
+Place <code class="language-smolambda">&</code> before argument names to declare that 
+the variable passed as an argument may be modified inside the runtype or service - and hence
+must already be mutable. This also makes the argument variable internally mutable. 
+Below is an example.
 </p>
 
-<p> Currying allows for chaining runtype and service calls in a way that mimics method dispatch. When using the
-<code class="language-smolambda">:</code> operator, the left-hand-side becomes the first argument of the next runtype or service. 
-This keeps code compact and easy to read, especially when chaining operations. Below is an example, which demonstrate
-the advantage of currying in chaining service or runtype calls.</p> 
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
-  
-smo triple(f64 x) -> x * 3.0 
-service main() 
-  print(2:f64:triple) 
-  --
-</code></pre> 
-<pre style="background-color: #222; color: white;">> smol main.s
-6.0
-</pre>
+<pre><code class="language-smolambda">@include std.builtins
 
-<p>The currying notation also extends naturally to loops. If you curry into <code>while</code>, this is transferred as the 
-first argument of the condition, enabling a pattern like <code class="language-smolambda">range(n):while next(u64 &i)</code>, 
-where the variable <code>i</code> is defined and incremented according to the standard lbirar'y implementation
-<code class="language-smolambda">smo next(range self, u64& i)</code>, 
-where the state holding the current progress and ending condition is provided by <code>range</code>.
-Getting the next state also returns a boolean value of whether the loop goes on.</p>
+smo increment(u64 &x)
+    x = x + 1
+    --
 
-<p>Currying into loops is an expressive yet safe pattern of iterating through values. This is why constructs like <code>range</code>
-are commonly known as <i>iterators</i> across programming languages. Importantly, iterators do not allocate memory for each element, 
-but are responsible from generating a next state from the current one.</p>
+service main()
+    &n = 10
+    increment(n)
+    print(n) // 11
+    --
+</code></pre>
 
+<p>
+Similarly to mutable variables declared within blocks of code, 
+mutable arguments make prospective changes happen easy to spot. 
+Conversely, if you do not see <code class="language-smolambda">&</code>, 
+nothing changes.
+</p>
+
+<h1 id="typeargs">Type arguments <a href="#typeargs" class="anchor-link">🔗</a></h1>
+
+<p>
+You can use types as arguments to help disambiguate between similarly-named runtypes.
+This is useful for choosing a behavior without passing a dummy value.
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+smo zero(f64) -> 0.0
+smo zero(u64) -> 0
+
+service main()
+    a = zero(f64)
+    b = zero(u64)
+    print(a) // 0.0
+    print(b) // 0
+    --
+</code></pre>
+
+<h1 id="currying">Currying <a href="#currying" class="anchor-link">🔗</a></h1>
+
+<p>
+The colon <code class="language-smolambda">:</code> sends the value on the left as the first argument on the right.  
+This reads left-to-right and removes extra parentheses when you chain steps.
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+smo triple(f64 x) -> x*3.0
+
+service main()
+    print(2:f64:triple) // 6.0
+    --
+</code></pre>
+
+<p>
+The same colon also works with loops provided by the standard library (like <code class="language-smolambda">range</code>) so you can write readable iterations.
+</p>
 
 <h1 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h1>
 
 <p>
-Uplifting also works when returning from services. Below is an example where the absolute value
-is computed by the programming pattern of returning early from running code.
+A block can return a value using <code class="language-smolambda">-&gt;</code>, or end with no value using <code class="language-smolambda">--</code>.  
+Returning early is just a return higher up the page; use uplifting if you need to jump out of an extra level.
 </p>
 
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
+<pre><code class="language-smolambda">@include std.builtins
 
 smo abs(f64 x)
-  if x&lt;0.0 |-> 0.0-x
-  -> x
+    if x&lt;0.0 |-> 0.0-x
+    -> x
+
 service main()
     x = 0.0-1.0
-    absx = abs(x)
-    print(x)
-    print(absx)
+    print(abs(x)) // 1.0
     --
 </code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
--1.0
-1.0
-</pre>
 
-<p>A final feature of services is that they compartmenize code to execute safely; any errors do not immediately
-stop execution at the place where services are called, but leave you the opportunity to handle what happens in the event of failure.
-Errors will cascade into becoming the calling service's errors only if you do not handle them.
-For example, if there are no error checks, the whole program terminates on the first error. 
-Handling errors consists of checking whether
-<code class="language-smolambda">result.err:bool</code> is <code>true</code>, in which case you should avoid using
-the result variable further down the line. The field <code>.err</code> is automatically added to all services, but 
-is ignored (after a check that they have not failed) when treating them as tuples.
-</p>
+<h1 id="fields">Fields <a href="#fields" class="anchor-link">🔗</a></h1>
 
 <p>
-Error messages are printed in the console, and typically start with <code>Error:</code>. You may trigger an error
-manually with a string message per <code class="language-smolambda">if condition -> fail("Error: custom message here")</code>.
-Errors immediately interupt the calling service, though any resources like open files or memory in use are automatically
-released. This is what makes <i>smoλ</i>'s services to execute, even in long-running programs.
+You can return several named values at once and then access them as fields.  
+<code class="language-smolambda">@new</code> is a shorthand that returns all inputs by name.
 </p>
 
-<pre><code class="language-smolambda">// main.s
-@include std.builtins
+<pre><code class="language-smolambda">@include std.builtins
 
-service affine(u64 x, u64 y, u64 z) -> (x+y)/z
+smo Point(f64 x, f64 y) -> @new
+
+smo moved(Point p, f64 dx, f64 dy)
+    &nx = p.x + dx
+    &ny = p.y + dy
+    -> Point(nx, ny)
+
 service main()
-    result = affine(1, 2, 0)
-    if result.err:bool |-> print("We failed to execute the code")
-    print(result)
+    p = Point(1.0, 2.0)
+    print(p.x) // 1
+    print(p.y) // 2
+    q = p:moved(3.0, 4.0)
+    print(q.x) // 4
+    print(q.y) // 6
     --
 </code></pre>
+
+<p>
+If a runtype returns only one value, you use that directly (no extra field name needed).
+</p>
+
+<h1 id="errors">Error handling <a href="#errors" class="anchor-link">🔗</a></h1>
+
+<p>
+When something is wrong, say it clearly and stop that unit of work.  
+In a service, call <code class="language-smolambda">fail("message")</code>. The caller can check <code class="language-smolambda">result.err:bool</code>.  
+If you don’t check, the error will bubble up until it reaches a place that does.
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+service divide(f64 x, f64 y)
+    if y==0.0 -> fail("Division by zero")
+    -> x/y
+
+service main()
+    r = divide(1.0, 0.0)
+    if r.err:bool
+        print("Could not compute.")
+    else
+        print(r)
+    --
+</code></pre>
+
 <pre style="background-color: #222; color: white;">> smol main.s
-Error: division by zero
-We failed to execute the code
+Division by zero
+Could not compute.
 </pre>
 
-
+<p>
+This approach keeps the main path simple. You try the thing. If it fails, you decide what the next step is (ask again, use a default, stop).
+</p>
 
 </div>
+
 <script src="vendor/prism/prism.min.js"></script>
 <script>
 Prism.languages.smolambda = {
@@ -707,7 +571,17 @@ Prism.languages.smolambda = {
     })
   )
 </script>
-
+<script>
+document.querySelectorAll('.sidebar-title').forEach(title => {
+  title.addEventListener('click', () => {
+    const sub = title.nextElementSibling;
+    const expanded = sub.style.display === 'block';
+    sub.style.display = expanded ? 'none' : 'block';
+    const arrow = expanded ? '▶' : '▼';
+    title.innerHTML = arrow + ' ' + title.innerHTML.slice(2);
+  });
+});
+</script>
 
 </body>
 </html>

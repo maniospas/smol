@@ -6,6 +6,7 @@ service map_printer(Map map)
         map.Keys:is(str) 
         map.Values:is(u64)
         --
+    //map:put("123", 2) // ERROR - map is immutable, but put requires mutability
     //&mutmap = map // ERROR - cannot transfer immutable pointers
     //mutmap:put("123", 2) 
     print(map["123"])
