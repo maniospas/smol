@@ -21,6 +21,22 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         preample += "\n";
         add_preample(preample);
     }
+    else if(next=="link") {
+        if(!imp->allow_unsafe) imp->error(--p, "@link is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+        next = imp->at(p++);
+        if(next!="{") imp->error(--p, "Expected brackets");
+        int depth = 1;
+        string preample("");
+        while(true) {
+            next = imp->at(p++);
+            if(next=="{") depth++;
+            if(next=="}") {depth--;if(depth==0) break;}
+            if(next=="#" && preample.size()) {preample += "\n#"; continue;}
+            string nextnext = imp->at(p);
+            preample += next;
+        }
+        add_linker(preample);
+    }
     else if(next=="body") {
         if(!imp->allow_unsafe) imp->error(--p, "@body is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         next = imp->at(p++);

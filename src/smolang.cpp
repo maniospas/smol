@@ -34,17 +34,18 @@
 #endif
 
 string compiler = "g++";
+string linker = "";
 string runtime = "std/runtime/threads.h";
 
 // Returns 0 on success, or nonzero (compiler exit code or error).
 int compile_from_stringstream_with_flags(
     std::stringstream& out,
     const std::string& output_file,
-    const std::string& extra_flags // Pass "" if none
+    const std::string& extra_flags 
 ) {
     std::string cmd =
         compiler+" -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 -m64 -fpermissive " +
-        extra_flags + " -o \"" + output_file + "\" -x c++ -";
+        extra_flags + " -o \"" + output_file + "\" -x c++ -"+linker;
     FILE* pipe = SMOL_POPEN(cmd.c_str(), "w");
     if (!pipe) return -1; // popen failed
     std::string code = out.str();
@@ -368,7 +369,7 @@ int main(int argc, char* argv[]) {
         string arg = argv[i];
         if (arg == "--log") log_type_resolution = true;
         else if (arg == "--runtime") {
-            if(i + 1 >= argc) {cerr << "Error: --runtime requires an argument" << endl;return 1;}
+            if(i + 1 >= argc) {cerr << "Error: --runtime requires an argument. Provide an unknown name, like 'none', to see available runtimes" << endl;return 1;}
             runtime = argv[++i];
             if(runtime.size()<2 || runtime.substr(runtime.size()-2)!=".h") runtime = "std/runtime/"+runtime+".h";
         }
@@ -386,7 +387,7 @@ int main(int argc, char* argv[]) {
     }
     if (!filesystem::exists(runtime)) {
         cerr << "\033[30;41m ERROR \033[0m Runtime not found at: " << runtime << endl;
-        cerr << "Provide either a valid path or an .h file name from std/runtime/:" << endl;
+        cerr << "Provide either a valid path or a [name] matching std/runtime/[name].h:" << endl;
         try {
             for (const auto& entry : filesystem::directory_iterator("std/runtime")) if (entry.is_regular_file() && entry.path().extension() == ".h") cerr << "  --runtime " << entry.path().stem().filename().string() << endl;
         } catch (const filesystem::filesystem_error& e) {cerr << "Nothin - did not find std/runtime/: " << e.what() << endl;}
@@ -553,6 +554,7 @@ int main(int argc, char* argv[]) {
             unordered_set<string> preample;
             for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
                 for(const string& pre : service->preample) preample.insert(pre);
+                for (const string& pre : service->linker) linker += " " + pre;
             }
             for(const string& pre : preample) out << pre << "\n";
             for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {

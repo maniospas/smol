@@ -19,19 +19,18 @@
 @include std.mem.arena
 @unsafe
 @about "Standard library implementation of string operations using its own allocators and C memory operations."
+@about copy "Copies a string while. The result is nullstr, that is, str-like that can be directly converted to a null-terminated version."
+@about add "Overloads the + operator to concatenate two strings. The result is nullstr, that is, str-like that can be directly converted to a null-terminated version."
 
-smo copy(Memory &allocator, str _s)
+smo copy(Memory &allocator, String _s)
     s = _s:str
-    // strings fresh out from the copy operation are null terminated
     mem = allocator:allocate(s.length+1, char)
     @body{
         char first = 0;
-        if(mem__mem) {
-            memcpy((char*)mem__mem, s__contents, s__length);
-            ((char*)mem__mem)[s__length] = 0;
-        }
+        memcpy((char*)mem__mem, s__contents, s__length);
+        ((char*)mem__mem)[s__length] = 0;
     }
-    -> nom:str(mem.mem, s.length, first, mem.underlying)
+    -> nom:nullstr(mem.mem, s.length, first, mem.underlying)
 
 smo add(Memory &allocator, String _x, IndependentString _y)
     x = _x:str
@@ -41,17 +40,17 @@ smo add(Memory &allocator, String _x, IndependentString _y)
     @body{
         u64 len_x = x__length;
         u64 len_y = y__length;
-        u64 total_len = len_x + len_y;
+        u64 total_len = len_x + len_y ;
+        char first = x__length?x__first:y__first;
     }
-    mem = allocator:allocate(total_len, char)
+    mem = allocator:allocate(total_len+1, char)
     _contents = mem.mem
     @body{
-        if(_contents) {
-            memcpy((char*)_contents, (char*)x__contents, len_x);
-            memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
-        }
+        memcpy((char*)_contents, (char*)x__contents, len_x);
+        memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
+        ((char*)_contents)[total_len] = 0;
     }
-    -> nom:str(_contents, total_len, x.first, mem.underlying)
+    -> nom:nullstr(_contents, total_len, first, mem.underlying)
 
 smo tostr(Memory &allocator, i64 number)
     @head{#include <stdio.h>}
@@ -73,7 +72,7 @@ smo tostr(Memory &allocator, i64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    -> nom:str(contents, length, first, mem.underlying)
+    -> nom:nullstr(contents, length, first, mem.underlying)
 
 smo tostr(Memory &allocator, u64 number)
     @head{#include <stdio.h>}
@@ -95,7 +94,7 @@ smo tostr(Memory &allocator, u64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    -> nom:str(contents, length, first, mem.underlying)
+    -> nom:nullstr(contents, length, first, mem.underlying)
 
 smo tostr(Memory &allocator, f64 number)
     @head{#include <stdio.h>}
@@ -117,4 +116,4 @@ smo tostr(Memory &allocator, f64 number)
         }
     }
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
-    -> nom:str(contents, length, first, mem.underlying)
+    -> nom:nullstr(contents, length, first, mem.underlying)

@@ -163,6 +163,7 @@ public:
     size_t number_of_calls;
     Variable active_context;
     set<string> preample;
+    set<string> linker;
     unordered_map<Variable, Variable> active_calls;
     unordered_map<Variable, Variable> original_calls;
     unordered_map<Variable, bool> released;
@@ -179,6 +180,7 @@ public:
     bool has_returned;
     string raw_signature_state_name() const;
     void add_preample(const string& pre) {if(preample.find(pre)==preample.end()) preample.insert(pre);}
+    void add_linker(const string& pre) {if(linker.find(pre)==linker.end()) linker.insert(pre);}
     void coallesce_finals(const Variable& original) {
         unordered_set<Variable> visited;
         queue<Variable> q;

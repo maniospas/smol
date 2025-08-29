@@ -97,10 +97,17 @@
 <h1 id="hello-world">Hello world <a href="#hello-world" class="anchor-link">🔗</a></h1>
 
 <p>
-Let us start with how to run a program and print a message.
-Download the executable from the <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>.  
-Put <code class="language-smolambda">smol</code> and a C/C++ compiler (e.g., GCC) on your system PATH.  
-Create a file named <i>main.s</i> with the text below. Open a terminal in the same folder and run <code class="language-smolambda">smol main.s</code>.
+Let's take our first steps into programming with <i>smoλ</i> 
+(pronounced like "small" but with "o" instead of "a"). The language is a bit 
+atypical in that it simplifies a lot of traditional programming concepts while keeping the ability to 
+write very fast yet safe code. Some level of control is sacrificed in the process, but this means 
+that you do not need to worry too much about technical details. 
+</p>
+<p>
+Our first program shows how to run a program and print a message.
+Download the <code class="language-smolambda">smol</code> executable from the <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>.
+Place it alongside the <code>std</code> directory and add both the containing folder and a C/C++ compiler (e.g., GCC) to your system PATH.  
+Finally, create a file named <i>main.s</i> with the text below. Open a terminal in the same folder and run <code class="language-smolambda">smol main.s</code>.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -116,8 +123,8 @@ Hello world!
 </pre>
 
 <p>
-A quick preview: <code class="language-smolambda">@include std.builtins</code> adds basic tools like <code class="language-smolambda">print</code>.  
-<code class="language-smolambda">service main()</code> is where your program starts. The line with <code class="language-smolambda">--</code> marks the end 
+As a quick preview, <code class="language-smolambda">@include std.builtins</code> adds basic tools like <code class="language-smolambda">print</code>,  
+<code class="language-smolambda">service main()</code> is where your program starts, and the line with <code class="language-smolambda">--</code> marks the end 
 of the program.
 </p>
 
@@ -125,8 +132,8 @@ of the program.
 
 <p>
 A variable is a named box that holds a value. You give it a name, then you put a value in it once with the 
-pattern <code class="language-smolambda">variable_name = value</code>. This operation is called an <i>assignmnt</i>.
-Variable names cannot start with numbers or contain
+pattern <code class="language-smolambda">variable_name = value</code>. This operation is called an <i>assignment</i>.
+Names cannot start with numbers or contain
 spaces or special symbols other than the underscore <code class="language-smolambda">_</code>. Having two consecutive
 underscores is also not allowed. Below is an example where we set a constant text (known as <code class="language-smolambda">cstr</code>) 
 to a variable.
@@ -148,15 +155,29 @@ Numbers are values too. There are three kinds you will use often:
   <li><code class="language-smolambda">i64</code> — whole numbers with a sign (-1, 0, 1, ...).</li>
   <li><code class="language-smolambda">f64</code> — numbers with a decimal point. The default when writing <code class="language-smolambda">2.0</code> or <code class="language-smolambda">3.14</code>.</li>
 </ul>
-<p>These are known as unsigned, signed, and float numbers, respectively. We have <i>64</i> next to a mnemonic symbol to also reassure
+<p>These are known as unsigned integers, signed integers, and float numbers, respectively. 
+The above names add <i>64</i> next to a mnemonic symbol to reassure
 experienced programmers that we will use 64 bits to represent the numbers under-the-hood. 
-For safety, you cannot mix operations between different typs of numbers. For example, you cannot subtract a float from <code class="language-smolambda">0</code> but only from <code class="language-smolambda">0.0</code>.
-However, you can convert between number formats with <code class="language-smolambda">value:type</code>.</p>
+That is, unsigned integers can represent numbers <code class="language-smolambda">0 upto 2^65-1</code>
+but signed ones can represent numbers <code class="language-smolambda">-2^64 upto 2^64-1</code>.
+Floats follow the IEEE 754 standard, which is typically accurate to 15-17 significant digits.
+</p>
+<p><b>Invalid operations:</b>
+For safety, you cannot mix operations between different types of numbers. For example, you cannot subtract 
+a float from <code class="language-smolambda">0</code> but only from <code class="language-smolambda">0.0</code>.
+However, you can convert between number formats with <code class="language-smolambda">value:type</code>.
+See below for examples. Integer division by zero creates a runtime failure (that you can intercept and handle), although
+the IEEE 754 standard for fats allows invalid operations like division by zero and lets them yield positive infinity, n
+egative infinity, or NaN (not a number) values. You can check for those properties by correspondingly calling one of 
+<code class="language-smolambda">is_inf,is_nan</code> from <code class="language-smolambda"></code>std.math</code> import. 
+Lack of native error checking from the standard results in performant code.
+</p>
 
 
 <pre><code class="language-smolambda">@include std.builtins
 
 service main()
+    print(1+2)      // 3
     print(2/3)      // integer division (u64): 0
     print(2.0/3.0)  // float division (f64): a decimal result
     minus_one = 0:i64-1:i64
@@ -164,7 +185,7 @@ service main()
     --
 </code></pre>
 
-<p><b>Mutable variables:</b> After setting a variable, that cannot normally change. To allow changes, declare it as <i>mutable</i> 
+<p><b>Mutable variables:</b> After setting a variable, its value cannot normally change. To allow changes, declare it as <i>mutable</i> 
 by placing <code class="language-smolambda">&</code> before its name in its first assignment. 
 Variables are immutable by default to avoid many logic bugs. Having a marking for mutable ones makes spotting them easier 
 and ensures that any mutation is intended.</p>
@@ -188,12 +209,12 @@ Lovelace
 <h1 id="conditions">Conditions <a href="#conditions" class="anchor-link">🔗</a></h1>
 
 <p>
-Sometimes we only want certain lines to run if a test is true.  
+Sometimes we only want certain lines to run if a tested condition is true.  
 This is done with an <code class="language-smolambda">if</code> block.  
-The word <code class="language-smolambda">if</code> starts the block, then comes a test, then the code that 
-should run if the test passes. Prefer starting that code in a new line.
+The word <code class="language-smolambda">if</code> starts the block, then comes a condition, 
+then the code that should run if the test passes. Prefer indenting the latter for easier reading, 
+as well as starting it in a new line.
 Like before, the block ends at <code class="language-smolambda">--</code>.
-Line changes and indentation are purely cosmetic.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -211,8 +232,8 @@ this always runs
 
 <p>
 Here the test is just the value <code class="language-smolambda">true</code>, so the message will always print.  
-If you change the test to <code class="language-smolambda">false</code>, the inside will be skipped. These are 
-known as boolean values.
+If you changed the condition to <code class="language-smolambda">false</code>, the inside will be skipped. These are 
+known as boolean values, or <code class="language-smolambda">bool</code> for short.
 More often, the test contains numerical or other comparisons that evaluate to a boolea value. 
 For example, <code class="language-smolambda">2 &lt; 3</code> checks whether two is less than three.
 </p>
@@ -294,7 +315,10 @@ It is okay to keep code compact when it reads naturally, for example by writing 
 
 <h1 id="loops">Loops <a href="#loops" class="anchor-link">🔗</a></h1>
 
-<p>A loop repeats a block while a condition is true. If a variable changes inside the loop, make it mutable once at first assignment.</p>
+<p>A loop repeats a block while a condition is true. Syntactically, it
+starts with <code class="language-smolambda">while</code> followed by a condition 
+and the block's contents. Those must end at <code class="language-smolambda">--</code>.
+If a variable changes inside the loop, make it mutable during its first assignment.</p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
@@ -340,9 +364,12 @@ service main()
 <h1 id="uplifting">Uplifting <a href="#uplifting" class="anchor-link">🔗</a></h1>
 
 <p>
-Sometimes you want to stop not just the current block, but also go one level up immediately.  
-Prepend a return with a vertical bar <code class="language-smolambda">|</code> to “jump up” one level.  
-<code class="language-smolambda">|--</code> ends this block and its parent. <code class="language-smolambda">|-&gt;</code> returns a value and ends the parent.  
+Sometimes you want to stop not just the current block, but also its parent blocks
+up to a certain level. In those cases, 
+put a vertical bar <code class="language-smolambda">|</code> before the return symbol 
+for each level you want to “jump up”. For example,
+<code class="language-smolambda">|--</code> ends the current block and its parent. 
+Similarly, <code class="language-smolambda">|-&gt;</code> returns a to the parent.  
 Two bars (<code class="language-smolambda">||</code>) jump two levels, and so on.
 </p>
 

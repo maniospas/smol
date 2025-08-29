@@ -260,6 +260,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     internalTypes.vars[var] = type->alias_for.exists()?type->internalTypes.vars[type->alias_for]:type;
     implementation +=type->rebase(type->implementation, var)+immediate_finals;
     for(const string& pre : type->preample) add_preample(pre);
+    for(const string& pre : type->linker) add_linker(pre);
 
     //for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); // splt into immediate and delayed finals
     //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)

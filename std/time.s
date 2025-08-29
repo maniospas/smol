@@ -16,10 +16,26 @@
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
 @unsafe
-@about "Standard library wrapping of C++ chrono time."
+@about "Standard library wrapping of C time using POSIX clock_gettime."
 
 smo time()
-    @head{#include <chrono>}
-    @head{auto start = std::chrono::high_resolution_clock::now();}
-    @body{f64 elapsed = std::chrono::duration<double> (std::chrono::high_resolution_clock::now() - start).count();}
+    @head{#include <time.h>}
+    @head{
+
+        static struct timespec __smo_time_start;
+        static int __smo_time_initialized = 0;
+
+        static double __smo_time_eta() {
+            if (!__smo_time_initialized) {
+                clock_gettime(CLOCK_MONOTONIC, &__smo_time_start);
+                __smo_time_initialized = 1;
+                return 0.0;
+            }
+            struct timespec now;
+            clock_gettime(CLOCK_MONOTONIC, &now);
+            return (now.tv_sec - __smo_time_start.tv_sec) +
+                   (now.tv_nsec - __smo_time_start.tv_nsec) / 1000000000.0;
+        }
+    }
+    @body{f64 elapsed = __smo_time_eta();}
     -> elapsed

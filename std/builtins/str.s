@@ -32,11 +32,30 @@
 @about next    "Retrieves the next element over a Split string iteration. Example: <code>Split('I like bananas', ' '):while next(str& word) print(word) --</code>"
 @about Split   "Splits a String given a query String. Optionally, you may also provide a starting position, where the default is 0. The result of the split can be iterated through with <code>next</code>. This does not allocate memory in that a substring is retrieved, so you might consider copying the splits - or store them on data structures like maps that automatically copy data if needed."
 
-smo str(nom, ptr contents, u64 length, char first, ptr memory) -> @new
-union String(cstr, str)
+smo str(nom, ptr contents, u64 length, char first, ptr memory) 
+    -> @new
+
+smo nullstr(nom, ptr contents, u64 length, char first, ptr memory) 
+    -> @new
+
+union String(cstr, str, nullstr)
+union CString(cstr, nullstr)
 smo is(String, String) --
 
+smo str(nullstr other) 
+    -> nom:str(other.contents, other.length, other.first, other.memory)
+
 smo str(cstr raw)
+    @head{#include <string.h>}
+    @body{
+        u64 length=strlen(raw);
+        ptr contents=(ptr)raw;
+        char first=raw[0];
+        ptr noptr = (ptr)noptr; // use this to indicate a cstr
+    }
+    -> nom:str(contents, length, first, noptr)
+
+smo nullstr(cstr raw)
     @head{#include <string.h>}
     @body{
         u64 length=strlen(raw);
@@ -53,9 +72,21 @@ smo str(bool value)
     else @body{cstr _contents=__falsestr;} --
     -> str(_contents)
 
+smo nullstr(bool value)
+    @head{cstr __truestr = "true";}
+    @head{cstr __falsestr = "false";}
+    if value @body{cstr _contents=__truestr;} --
+    else @body{cstr _contents=__falsestr;} --
+    -> str(_contents)
+
 smo print(cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", message);}
+    --
+
+smo print(nullstr message)
+    @head{#include <stdio.h>}
+    @body{printf("%s\n", (char*)message__contents);}
     --
 
 smo print(str message)
@@ -66,6 +97,11 @@ smo print(str message)
 smo printin(cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s", message);}
+    --
+
+smo printin(nullstr message)
+    @head{#include <stdio.h>}
+    @body{printf("%s", (char*)message__contents);}
     --
 
 smo printin(str message)
@@ -137,6 +173,9 @@ smo neq(String _x, IndependentString _y)
 smo len(str x) 
     -> x.length
 
+smo len(nullstr x) 
+    -> x.length
+
 smo len(cstr x)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -149,11 +188,17 @@ smo at(str x, u64 pos)
     @body{char z= (__builtin_constant_p(pos) && pos == 0) ? x__first: ((char*)x__contents)[pos];} 
     -> z
 
+smo at(nullstr x, u64 pos) 
+    if x__length<=pos @fail{printf("String index out of bounds\n");} --
+    // trying to help the compiler below, but maybe it's too clever and it can optimize that
+    @body{char z= (__builtin_constant_p(pos) && pos == 0) ? x__first: ((char*)x__contents)[pos];} 
+    -> z
+
 smo Split(nom, str query, str sep, u64 &pos) 
     -> @new
     
 smo Split(String _query, IndependentString _sep) 
-    -> nom:Split(_query:str, _sep:str, u64 &pos)
+    -> nom:Split(_query:str, _sep:str, u64 &pos) // splits are str (not cstr or nullstr)
 
 smo next(Split &self, str &value)
     ret = self.pos<self.query:len

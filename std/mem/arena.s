@@ -70,9 +70,10 @@ smo allocate(Dynamic& self, u64 size, Primitive)
     @body{
         u64 next_size = self__size+1;
         bool success = true;
+        u64 self__allocated__prev = self__allocated;
         if(next_size>=self__allocated) {
             self__allocated = self__allocated+self__allocated/2+1; // ~50% growth strategy
-            ptr next_acquired = (ptr)(((ptr**)self__acquired)[0]?__runtime_realloc(((ptr**)self__acquired)[0], self__allocated*sizeof(ptr)):__runtime_alloc(self__allocated*sizeof(ptr)));
+            ptr next_acquired = (ptr)(((ptr**)self__acquired)[0]?__runtime_realloc(((ptr**)self__acquired)[0], self__allocated*sizeof(ptr), self__allocated__prev*sizeof(ptr)):__runtime_alloc(self__allocated*sizeof(ptr)));
             if(success=next_acquired) ((ptr**)self__acquired)[0] = (ptr*)next_acquired;
         }
         if(success) {
@@ -120,9 +121,9 @@ smo allocate(Volatile &self, u64 size)
 smo allocate(Volatile &self, u64 _size, Primitive) 
     Primitive = Primitive
     @body{u64 size = _size*sizeof(Primitive);}
-    if size>self.contents.size -> fail("Failed a Volatile alloccation")
+    if size>self.contents.size -> fail("Failed a Volatile allocation")
     @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
-    @body{ptr _contents = (ptr)((char*)self__contents__mem);}
+    @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     -> nom:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 

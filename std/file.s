@@ -240,7 +240,7 @@ smo remove_file(String _path)
     path = _path:str
     @head{#include <stdio.h>}
     @body{u64 status = remove((char*)path__contents);}
-    if status:bool @fail{printf("Failed to remove file - makre sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
+    if status:bool @fail{printf("Failed to remove file - make sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
     ----
 
 smo open(WriteFile&, String _path)

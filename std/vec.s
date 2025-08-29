@@ -45,7 +45,8 @@ smo new_vector(Memory &memory, Rand &rand, u64 size)
         value = rand:next
         @body{((f64*)mem__mem)[i] = value;}
     ---> nom:Vec(mem.mem, size, mem.mem)
-smo new_vector(Rand &rand, Memory &memory, u64 size) -> new_vector(memory, rand, size)
+smo new_vector(Rand &rand, Memory &memory, u64 size) 
+    -> new_vector(memory, rand, size)
 
 smo at(Vec v, u64 pos) 
     if pos>=v.size -> fail("Vec out of bounds")

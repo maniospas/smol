@@ -59,6 +59,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 internalTypes.vars[arg_name+it.name] = it.type;
                 implementation +=it.type->rebase(it.type->implementation, arg_name);
                 for(const string& pre : it.type->preample) add_preample(pre);
+                for(const string& pre : it.type->linker) add_linker(pre);
                 for(const auto& final : it.type->finals) finals[arg_name+final.first] = finals[arg_name+final.first] + it.type->rebase(final.second, arg_name); 
                 for(const auto& it : it.type->current_renaming) current_renaming[arg_name+it.first] = arg_name+it.second;
                 for(const auto& it : it.type->alignments) if(it.second) {alignments[arg_name+it.first] = it.second;}
