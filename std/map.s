@@ -203,16 +203,16 @@ smo at(Map self, Keys _key)
         -> fail("Error: Map has no such entry")
     -> on self.Values -> self.mem:at(idx+1):__unsafe_ret(self.mem.underlying)
 
-smo put(Map &self, cstr _mkey, Values _val) 
+smo put(Map &self, CString _mkey, Values _val) 
     with put(self, _mkey:str, _val) 
     ----
-smo put(Map &self, cstr _mkey, cstr _mval) 
+smo put(Map &self, CString _mkey, CString _mval) 
     with put(self, _mkey:str, _mval:str) 
     ----
-smo put(Map &self, Keys _key, cstr _mval) 
+smo put(Map &self, Keys _key, CString _mval) 
     with put(self, _key, _mval:str) 
     ----
-smo at(Map self, cstr _mkey) 
+smo at(Map self, CString _mkey) 
     with ret = at(self, _mkey:str)  
     ---> ret
 

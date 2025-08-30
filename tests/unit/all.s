@@ -4,7 +4,7 @@
 service std_test(String name)
     on Heap:new_dynamic// memory surface for string concatenations
         redirect = " 2>&1"
-        command = "./smol tests/"+name+".s --runtime eager"+redirect
+        command = "./smol tests/unit/"+name+".s --runtime eager"+redirect
         if Process:open(command):to_end 
             -> print("[ \033[31mERROR\033[0m ] "+name)
         else 

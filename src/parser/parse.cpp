@@ -8,10 +8,10 @@ void Def::end_block(const shared_ptr<Import>& i, size_t& p) {
         if(next=="smo" || next=="service") imp->error(p, "Unexpected end of definition");
         if(next=="-" && p<imp->size()-1) {
             ++p; next = imp->at(p);
-            if(next=="-" && imp->at(p-2)=="|") {}
-            else if(next=="-") {if(depth==0){++p;break;} --depth;}
-            else if(next==">" && imp->at(p-2)=="|") {}
-            else if(next==">") imp->error(p, "Currently unimplemented nesting that ends in symbol other than `--` (`|->` is allowed internally)");
+            //if(next=="-" && imp->at(p-2)=="|") {}
+            if(next=="-") {if(depth==0){++p;break;} --depth;}
+            //else if(next==">" && imp->at(p-2)=="|") {}
+            else if(next==">") imp->error(p, "Currently unimplemented nesting that ends in symbol other than `--`");
         }
         ++p;
     }

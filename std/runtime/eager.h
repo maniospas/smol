@@ -43,6 +43,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <time.h>
+#endif
+
 /* ---------------- TASK STRUCT ---------------- */
 void* __runtime_alloc(size_t size) {return malloc(size);}
 void* __runtime_calloc(size_t size) {return calloc(1, size);}

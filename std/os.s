@@ -30,7 +30,8 @@ smo Process(nom, ptr contents)
     @noborrow
     -> @new
 
-smo open(Process&, cstr command)
+smo open(Process&, CString _command)
+    command = _command:nullstr.contents
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}

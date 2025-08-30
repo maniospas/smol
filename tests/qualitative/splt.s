@@ -1,4 +1,5 @@
 @include std.builtins
+@include std.mem
 
 smo split(str query, str sep)
     &pos = 0
@@ -16,5 +17,6 @@ smo split(str query, str sep)
 
 service main()
     print("Write some text to split:")
-    str:read:split(" ":str)
-    --
+    on Heap:new_arena(4096)
+        Heap:new_arena(4096):read:split(" ":str)
+    ----

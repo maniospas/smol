@@ -1,3 +1,5 @@
+// this file demonstrates various errors that are correctly created
+
 @include std.builtins
 @include std.map
 

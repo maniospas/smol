@@ -96,7 +96,6 @@ smo used(Arena &self)
 smo used(Volatile & self)
     -> 0
 
-
 smo allocate(Arena &self, u64 size)
     if (self.length+size)>self.contents.size -> fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}

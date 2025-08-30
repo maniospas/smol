@@ -2,9 +2,9 @@
 
 service affine(u64 x, u64 y, u64 z) -> (x+y)/z
 service main()
-    a = u64:read("a=")
-    b = u64:read("b=")
-    c = u64:read("c=")
+    printin("a=") a = u64:read
+    printin("b=") b = u64:read
+    printin("c=") c = u64:read // give 0 occasionally to see failure
     result = affine(a,b,c)
     if result.err:bool print("We failed to execute the code") |--
     printin("(a+b)/c=")

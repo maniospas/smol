@@ -15,17 +15,36 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
+@include std.builtins.num
+@include std.builtins.err
+
 @unsafe
 @about "Standard library wrapping of C time using POSIX clock_gettime."
+@about time "Retrieve time elapsed from the start of the program in f64 seconds."
+@about sleep "Make the current service wait for AT LEAST a number of f64 seconds. "
+             "While yielding, other services may be called asynchronously to fill in "
+             "the missing time. There is no guarantee for this, though. "
+             "Sleeping for 0.0 duration does not incur delays, but may still run "
+             "other services. Negative durations skip over this. Use exact_slepp "
+             "to sleep without yield "
+@about exact_sleep "Make the current service wait for exactly a specified number "
+             "of f64 seconds. Control flow is not transferred to other services, "
+             "so use sparingly (e.g., in main game loops)."
+
+smo sleep(f64 duration)
+    if duration<0.0 |--
+    --
+
+smo exact_sleep(f64 duration)
+    if duration<0.0 |--
+    --
 
 smo time()
-    @head{#include <time.h>}
+    // time.h imported by runtime
     @head{
-
         static struct timespec __smo_time_start;
         static int __smo_time_initialized = 0;
-
-        static double __smo_time_eta() {
+        double __smo_time_eta() {
             if (!__smo_time_initialized) {
                 clock_gettime(CLOCK_MONOTONIC, &__smo_time_start);
                 __smo_time_initialized = 1;
