@@ -14,6 +14,7 @@
 // - __smolambda_add_task
 // - __smolambda_initialize_service_tasks
 // - __smolambda_task_wait
+// - __smolambda_task_sleep
 // - __smolambda_task_destroy
 // - __runtime_apply_linked
 
@@ -247,6 +248,82 @@ void __smolambda_task_wait(void *task_ptr) {
 #endif
     }
 }
+
+/* ---------------- TASK SLEEP ---------------- */
+void __smolambda_task_sleep(double secs) {
+    if (secs < 0.0) return;
+    if (secs == 0.0) {
+        Task *task = __smolambda_try_get_task();
+        if (task) {
+            task->func(task->arg);
+#ifdef _WIN32
+            EnterCriticalSection(&task->wait_mutex);
+            task->completed = 1;
+            WakeAllConditionVariable(&task->wait_cond);
+            LeaveCriticalSection(&task->wait_mutex);
+#else
+            pthread_mutex_lock(&task->wait_mutex);
+            task->completed = 1;
+            pthread_cond_broadcast(&task->wait_cond);
+            pthread_mutex_unlock(&task->wait_mutex);
+#endif
+        }
+        return;
+    }
+
+    /* Compute deadline */
+#ifdef _WIN32
+    LARGE_INTEGER freq, start, now;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&start);
+    double deadline = (double)start.QuadPart / (double)freq.QuadPart + secs;
+#else
+    struct timespec start, now;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    double deadline = start.tv_sec + start.tv_nsec / 1e9 + secs;
+#endif
+
+    for (;;) {
+        /* Check if deadline passed */
+#ifdef _WIN32
+        QueryPerformanceCounter(&now);
+        double current = (double)now.QuadPart / (double)freq.QuadPart;
+#else
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        double current = now.tv_sec + now.tv_nsec / 1e9;
+#endif
+        if (current >= deadline) break;
+
+        /* Run a pending task if any */
+        Task *task = __smolambda_try_get_task();
+        if (task) {
+            task->func(task->arg);
+#ifdef _WIN32
+            EnterCriticalSection(&task->wait_mutex);
+            task->completed = 1;
+            WakeAllConditionVariable(&task->wait_cond);
+            LeaveCriticalSection(&task->wait_mutex);
+#else
+            pthread_mutex_lock(&task->wait_mutex);
+            task->completed = 1;
+            pthread_cond_broadcast(&task->wait_cond);
+            pthread_mutex_unlock(&task->wait_mutex);
+#endif
+            continue;
+        }
+
+        /* Nothing to run, so short sleep to avoid busy spinning */
+#ifdef _WIN32
+        Sleep(1); /* ~1 ms granularity */
+#else
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = 1000000L; /* 1 ms */
+        nanosleep(&ts, NULL);
+#endif
+    }
+}
+
 
 
 /* ---------------- DESTROY TASK ---------------- */

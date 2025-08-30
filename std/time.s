@@ -19,42 +19,32 @@
 @include std.builtins.err
 
 @unsafe
-@about "Standard library wrapping of C time using POSIX clock_gettime."
+@about "Standard library wrapping of C time (provided by posix time.h or windows.h)."
 @about time "Retrieve time elapsed from the start of the program in f64 seconds."
-@about sleep "Make the current service wait for AT LEAST a number of f64 seconds. "
-             "While yielding, other services may be called asynchronously to fill in "
-             "the missing time. There is no guarantee for this, though. "
-             "Sleeping for 0.0 duration does not incur delays, but may still run "
-             "other services. Negative durations skip over this. Use exact_slepp "
-             "to sleep without yield "
-@about exact_sleep "Make the current service wait for exactly a specified number "
-             "of f64 seconds. Control flow is not transferred to other services, "
+@about sleep "Make the current service wait for AT LEAST a number of f64 seconds."
+             "While yielding, other services may be called asynchronously to fill in"
+             "the missing time. There is no guarantee for this, though."
+             "Sleeping for 0.0 duration does not incur delays, but may still run"
+             "other services. Negative durations skip over this. Use exact_slepp"
+             "to sleep without yielding and thus get a guarantee on the sleep"
+             "duration. This method's exact implementation is ported from the runtime."
+@about exact_sleep "Make the current service wait for exactly a specified number"
+             "of f64 seconds. Control flow is not transferred to other services,"
              "so use sparingly (e.g., in main game loops)."
 
+// time.h or windows.h imported by all runtimes
+
 smo sleep(f64 duration)
-    if duration<0.0 |--
+    @body{__smolambda_task_sleep(duration);}
     --
 
 smo exact_sleep(f64 duration)
-    if duration<0.0 |--
+    if duration<=0.0 |--
+    @head{#include "std/oscommon.h"}
+    @body{__smo_exact_sleep(duration);}
     --
 
 smo time()
-    // time.h imported by runtime
-    @head{
-        static struct timespec __smo_time_start;
-        static int __smo_time_initialized = 0;
-        double __smo_time_eta() {
-            if (!__smo_time_initialized) {
-                clock_gettime(CLOCK_MONOTONIC, &__smo_time_start);
-                __smo_time_initialized = 1;
-                return 0.0;
-            }
-            struct timespec now;
-            clock_gettime(CLOCK_MONOTONIC, &now);
-            return (now.tv_sec - __smo_time_start.tv_sec) +
-                   (now.tv_nsec - __smo_time_start.tv_nsec) / 1000000000.0;
-        }
-    }
+    @head{#include "std/oscommon.h"}
     @body{f64 elapsed = __smo_time_eta();}
     -> elapsed

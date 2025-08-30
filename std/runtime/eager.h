@@ -14,6 +14,7 @@
 // - __smolambda_add_task
 // - __smolambda_initialize_service_tasks
 // - __smolambda_task_wait
+// - __smolambda_task_sleep
 // - __smolambda_task_destroy
 // - __runtime_apply_linked
 
@@ -83,6 +84,22 @@ void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *
 void* __smolambda_add_task(void (*func)(void *), void *arg) {func(arg);return nullptr;}
 
 void __smolambda_task_wait(void *task_ptr) {}
+
+/* ---------------- TASK SLEEP ---------------- */
+void __smolambda_task_sleep(double secs) {
+    if (secs <= 0.0) return;
+#ifdef _WIN32
+    DWORD ms = (DWORD)(secs * 1000.0);
+    if (ms > 0) Sleep(ms);
+#else
+    struct timespec ts;
+    ts.tv_sec = (time_t)secs;
+    ts.tv_nsec = (long)((secs - ts.tv_sec) * 1e9);
+    if (ts.tv_sec > 0 || ts.tv_nsec > 0)
+        nanosleep(&ts, NULL);
+#endif
+}
+
 void __smolambda_task_destroy(void *task_ptr) {}
 int __smolambda_initialize_service_tasks(void (*initial_func)(void *), void *initial_arg) {
     printf("Compiler: smoλ (https://github.com/maniospas/smol)\n");
