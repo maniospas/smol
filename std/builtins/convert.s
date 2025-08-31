@@ -126,31 +126,20 @@ smo convert(f64, String _s)
         else {
             char *chars = (char*)s__contents;
             u64 i = 0;
-
-            // sign
             if (chars[0] == '-') {
                 negative = true;
                 i++;
-                if (i == s__length) success = false;
+                if(i == s__length) success = false;
             } else if (chars[0] == '+') {
                 i++;
-                if (i == s__length) success = false;
+                if(i == s__length) success = false;
             }
-
-            // integer part
             for (; i < s__length && success; i++) {
                 char c = chars[i];
-                if (c >= '0' && c <= '9') {
-                    number = number * 10.0 + (c - '0');
-                } else if (c == '.') {
-                    i++;
-                    break;
-                } else {
-                    success = false;
-                }
+                if(c >= '0' && c <= '9') {number = number * 10.0 + (c - '0');} 
+                else if(c == '.') {i++;break;} 
+                else {success = false; }
             }
-
-            // fractional part
             if (success && i < s__length) {
                 f64 frac = 0.0;
                 f64 base = 0.1;
@@ -162,36 +151,25 @@ smo convert(f64, String _s)
                     } else if (c == 'e' || c == 'E') {
                         i++;
                         break;
-                    } else {
-                        success = false;
-                    }
+                    } else { success = false; }
                 }
                 number += frac;
             }
-
-            // exponent
-            if (success && i < s__length) {
+            if(success && i < s__length) {
                 bool expNeg = false;
-                if (chars[i] == '-') {
-                    expNeg = true; i++;
-                } else if (chars[i] == '+') {
-                    i++;
-                }
-                if (i == s__length) success = false;
+                if(chars[i] == '-') {expNeg = true; i++;} 
+                else if(chars[i] == '+') {i++;}
+                if(i == s__length) success = false;
                 i64 expVal = 0;
                 for (; i < s__length && success; i++) {
                     char c = chars[i];
-                    if (c >= '0' && c <= '9') {
-                        expVal = expVal * 10 + (c - '0');
-                    } else {
-                        success = false;
-                    }
+                    if(c >= '0' && c <= '9') {expVal = expVal * 10 + (c - '0');} 
+                    else { success = false; }
                 }
-                if (expNeg) expVal = -expVal;
+                if(expNeg) expVal = -expVal;
                 number *= pow(10.0, expVal);
             }
-
-            if (negative) number = -number;
+            if(negative) number = -number;
         }
     }
     if success:not @fail{printf("Error: invalid floating-point conversion from string\n");} --

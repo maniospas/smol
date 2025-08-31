@@ -12,7 +12,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
     if(next==AT_VAR) {
         next = imp->at(p++);
         if(next!=NEW_VAR) imp->error(--p, "Use `->@new`");
-        choice_power++; 
+        choice_power += 4; 
         if(is_service && !uplifting_targets.size())  {
             bool found = false;
             for(const Variable& pack : packs) if(pack==ERR_VAR) {found=true;break;}

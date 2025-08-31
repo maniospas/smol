@@ -55,7 +55,7 @@ service test()
 
             // finalize loop
             window
-            :text(str:convert((accum_fps/60.0):u64)+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
+            :text(str((accum_fps/60.0):u64)+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
             :end
             exact_sleep(0.015-dt)
             --

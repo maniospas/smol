@@ -38,7 +38,11 @@ smo controlled_corrupt(Volatile &self)
     @body{self__length=0;}
     --
 
-union DerivedMemory(Arena, Volatile)
+union DerivedMemory
+    Arena
+    Volatile
+    --
+
 smo len(DerivedMemory &self) 
     -> self.contents.size
 
@@ -60,13 +64,17 @@ smo Dynamic(nom)
     }
     -> @new, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:new_dynamic
 
-smo new_dynamic(Heap) -> nom:Dynamic
-smo new_dynamic(Stack) -> nom:Stack
+smo new_dynamic(Heap) 
+    -> nom:Dynamic
+
+smo new_dynamic(Stack) 
+    -> nom:Stack
     
 smo allocate(Dynamic& self, u64 size, Primitive)
     @head{#include <stdlib.h>}
     Primitive = Primitive
-    if self.acquired:bool:not -> fail("Did not initialize Dynamic")
+    if self.acquired:bool:not 
+        -> fail("Did not initialize Dynamic")
     @body{
         u64 next_size = self__size+1;
         bool success = true;
@@ -84,7 +92,8 @@ smo allocate(Dynamic& self, u64 size, Primitive)
             } 
         }
     }
-    if success:not -> fail("Failed a Dynamic allocation")
+    if success:not 
+        -> fail("Failed a Dynamic allocation")
     -> nom:ContiguousMemory(Heap, size, Primitive, mem, self.acquired)
 
 smo allocate(Dynamic &self, u64 size) 
@@ -97,7 +106,8 @@ smo used(Volatile & self)
     -> 0
 
 smo allocate(Arena &self, u64 size)
-    if (self.length+size)>self.contents.size -> fail("Failed an Arena allocation")
+    if (self.length+size)>self.contents.size 
+        -> fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     -> nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
@@ -105,13 +115,15 @@ smo allocate(Arena &self, u64 size)
 smo allocate(Arena &self, u64 _size, Primitive) 
     Primitive = Primitive
     @body{u64 size = _size*sizeof(Primitive);}
-    if (self.length+size)>self.contents.size -> fail("Failed an Arena allocation")
+    if (self.length+size)>self.contents.size 
+        -> fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     -> nom:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
 smo allocate(Volatile &self, u64 size)
-    if size>self.contents.size -> fail("Failed an Volatile allocation")
+    if size>self.contents.size 
+        -> fail("Failed an Volatile allocation")
     @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
@@ -144,12 +156,18 @@ smo read(Arena &self)
             }
         }
     }
-    if _contents:exists:not -> fail("Error: Tried to read more elements than remaining Arena size")
+    if _contents:exists:not 
+        -> fail("Error: Tried to read more elements than remaining Arena size")
     -> nom:str(_contents, length, first, self__contents__mem)
 
-union Memory(MemoryDevice, DerivedMemory, Dynamic)
+union Memory
+    MemoryDevice
+    DerivedMemory
+    Dynamic
+    --
 
-smo is(Memory&, Memory&) --
+smo is(Memory& self, Memory&) 
+    -> self
 
 smo new_arena(Memory& self, u64 size) 
     -> nom:Arena(self:allocate(size))

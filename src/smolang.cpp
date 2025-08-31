@@ -287,20 +287,17 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 def->name = name;
                 types.vars[name] = def;
                 p++;
-                if(imp->at(p++)!="(") imp->error(--p, "Expecting opening parenthesis");
                 while(true) {
                     string next = imp->at(p++);
+                    if(next=="-" && imp->at(p++)=="-") break;
                     const auto& found_type = types.vars.find(next);
-                    if(found_type==types.vars.end()) imp->error(--p, "Undefined runtype");
+                    if(found_type==types.vars.end()) imp->error(--p, "Undefined runtype: "+next);
                     for(const Type& option : found_type->second->options) {
                         if(option->lazy_compile) imp->error(--p, "Internal error: failed to compile runtype "+option->signature(types));
                         bool found = false;
                         for(const auto& it : def->options) if(it==option) {found=true;break;}
                         if(!found) def->options.push_back(option);
                     }
-                    next = imp->at(p++);
-                    if(next==")") break;
-                    if(next!=",") imp->error(--p, "Missing comma");
                 }
                 --p;
             }

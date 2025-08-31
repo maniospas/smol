@@ -52,7 +52,7 @@ smo add(Memory &allocator, String _x, IndependentString _y)
     }
     -> nom:nullstr(_contents, total_len, first, mem.underlying)
 
-smo convert(Memory &allocator, str, i64 number)
+smo nullstr(Memory &allocator, i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -71,10 +71,12 @@ smo convert(Memory &allocator, str, i64 number)
             }
         }
     }
-    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
+    if contents:exists:not
+        @fail{printf("Failed to allocate str from number\n");} 
+        --
     -> nom:nullstr(contents, length, first, mem.underlying)
 
-smo convert(Memory &allocator, str, u64 number)
+smo nullstr(Memory &allocator, u64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -93,10 +95,12 @@ smo convert(Memory &allocator, str, u64 number)
             }
         }
     }
-    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
+    if contents:exists:not
+        @fail{printf("Failed to allocate str from number\n");} 
+        --
     -> nom:nullstr(contents, length, first, mem.underlying)
 
-smo convert(Memory &allocator, str, f64 number)
+smo nullstr(Memory &allocator, f64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -115,5 +119,17 @@ smo convert(Memory &allocator, str, f64 number)
             }
         }
     }
-    if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
+    if contents:exists:not
+        @fail{printf("Failed to allocate str from number\n");} 
+        --
     -> nom:nullstr(contents, length, first, mem.underlying)
+
+
+smo str(Memory &allocator, u64 number)
+    -> nullstr(allocator, number):str
+
+smo str(Memory &allocator, i64 number)
+    -> nullstr(allocator, number):str
+
+smo str(Memory &allocator, f64 number)
+    -> nullstr(allocator, number):str

@@ -17,11 +17,18 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
     while(true) {
         bool autoconstruct = false;
         bool mut = false;
+        bool nolex = false;
         string next = imp->at(p++);
         if(next==")") break;
         if(args.size()) {
             if(next!=",")imp->error(--p, "Missing comma between arguments");
             next = imp->at(p++);
+        }
+        if(next=="@") {
+            next = imp->at(p++);
+            if(next!="nolex") imp->error(--p, "@nolex is expected here");
+            next = imp->at(p++);
+            nolex = true;
         }
         if(next==":") {
             autoconstruct=true;
@@ -43,6 +50,21 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         }
         if(!accepted_var_name(arg_name.to_string())) imp->error(--p, "Not a valid name");
         if(types.vars.find(arg_name)!=types.vars.end()) imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
+        if(argType->lazy_compile && nolex) {
+            if(argType->options.size()==0) imp->error(--p, "Internal error: no options for argument: "+arg_name.to_string());
+            double option_power = -1;
+            int conflicts = 0;
+            for(const auto& it : argType->options) {
+                if(it->choice_power>option_power) {// && it->name==argType->name) {
+                    option_power = it->choice_power;
+                    argType = it;
+                    conflicts = 0;
+                }
+                else if(it->choice_power==option_power) conflicts++;
+            }
+            if(option_power<0) imp->error(--p, "No options for @nolex argument: "+arg_name.to_string());
+            if(conflicts) imp->error(--p, "There was no criterion for resolving @nolex to one option when multiple are available: "+arg_name.to_string());
+        }
         if(argType->lazy_compile) {
             args.emplace_back(arg_name, argType, mut);
             mutables.insert(arg_name);
@@ -161,7 +183,7 @@ bool Def::start_option_resolution(const Types& _types) {
 
     double power = 0;
     for(const auto& it : this->retrievable_parameters) {
-        power += (1+it.second->choice_power)*0.5;
+        //power += (1+it.second->choice_power)*0.5;
         if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first.to_string());
         if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first.to_string());
         //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
@@ -209,7 +231,7 @@ bool Def::complete_option_resolution(const Types& _types) {
 
     double power = 0;
     for(const auto& it : this->retrievable_parameters) {
-        power += (1+it.second->choice_power)*0.5;
+        //power += (1+it.second->choice_power)*0.5;
         if(!_types.contains(it.first)) imp->error(pos, "Internal error: global typesystem is unaware of runtype "+it.first.to_string());
         if(!it.second) imp->error(pos, "Internal error: null runtype for "+it.first.to_string());
         //if(log_type_resolution) {print_depth();cout<<"- "<<pretty_runtype(it.first)<<" could be "<<it.second->signature(_types)<<" "<<it.second.get()<<"\n";}
@@ -261,13 +283,9 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         def->imp = imp;
         def->name = name;
         def->has_tried_to_resolve_before = false;
-        //def->start_option_resolution(_types);
         if(!def->complete_option_resolution(_types)) continue;
         options.push_back(def);
         all_types.push_back(def);
-        // get back the alignment labels to the real type
-        //_types.alignment_labels[def.get()] = types.alignment_labels[def.get()];
-        //_types.reverse_alignment_labels[_types.alignment_labels[def.get()]] = def.get();
     }
     if(options.size()==0) imp->error(pos, "Failed to resolve to any valid version\nCheck your `with` statements that have no `else`\nor if you have runtypes that serve as constructors of others with the same name or in the same union");
     return options;

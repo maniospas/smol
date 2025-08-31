@@ -3,7 +3,7 @@
 
 
 service main()
-    &map = Dynamic:new_map(1000, str, u64)
+    &map = Heap:new_dynamic:new_map(1000, str, u64)
 
     on Stack:new_volatile(32)
         range(100)

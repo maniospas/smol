@@ -27,12 +27,36 @@
 @about at           "Accesses a specific memory position of the corresponding base type. This operation includes bound checks."
 @about __unsafe_put "Can modify an allocated memory. This operation cannot be callsed in safe files."
 
-smo Stack(nom) -> @new 
-smo Heap(nom) -> @new
-union MemoryDevice(Stack, Heap)
-union Primitive(char, u64, f64, i64)
-smo ContiguousMemory(nom, MemoryDevice, u64 size, Primitive, ptr mem, ptr underlying) -> @new
-smo is(Primitive value, Primitive) --
+smo Stack(nom) 
+    -> @new 
+
+smo Heap(nom) 
+    -> @new
+
+union MemoryDevice
+    Stack
+    Heap
+    --
+
+union Primitive
+    char
+    u64
+    f64
+    i64
+    --
+
+smo ContiguousMemory (
+        nom, 
+        MemoryDevice, 
+        u64 size,
+        Primitive,
+        ptr mem,
+        ptr underlying
+    ) 
+    -> @new
+
+smo is(Primitive self, Primitive) 
+    -> self
 
 smo allocate(Stack, u64 size, Primitive) 
     @head{#include <stdlib.h>}

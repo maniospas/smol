@@ -32,8 +32,7 @@
 @about len        "Computes the size of a File in bytes."
 @about write      "Writes a string on a WriteFile."
 @about new_file "Creates a virtual file by of a given size on top of some memory allocator."
-@about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories "
-                  "and different argument orders that allow you to use either the file or the memory as context."
+@about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories."
                   "<br><br>Here is an example where volatile memory is used to avoid repeated or large allocations:"
                   "<pre>on Heap:new_volatile(1024)"
                   "\n    ReadFile"
@@ -41,8 +40,7 @@
                   "\n    :while next_chunk(str& chunk)"
                   "\n        print(chunk)"
                   "\n    ----</pre>"
-@about next_line  "Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories "
-                  "and different argument orders that allow you to use either the file or the memory as context."
+@about next_line  "Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories."
                   "<br><br>Here is an example where volatile memory is used to avoid repeated or large allocations:"
                   "<pre>endl=\"n\":str.first // optimized to just setting the new line character"
                   "\non Heap:new_volatile(1024)"
@@ -67,7 +65,10 @@ smo WriteFile(nom, ptr contents)
     @noborrow
     -> @new
 
-union File(ReadFile, WriteFile)
+union File
+    ReadFile
+    WriteFile
+    --
 
 smo open(ReadFile&, String _path) 
     path = _path:str
@@ -132,7 +133,7 @@ smo new_file(Memory& memory, u64 size)
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
     -> nom:WriteFile(contents)
     
-smo next_chunk(Volatile &reader, File &f, str& value)
+smo next_chunk(Volatile &reader, File &f, nullstr &value)
     contents = reader.contents.mem
     size = reader.contents.size
     @head{#include <stdio.h>}
@@ -145,10 +146,10 @@ smo next_chunk(Volatile &reader, File &f, str& value)
         char first = ((char*)contents)[0];
         reader__length = reader__length + bytes_read;
     }
-    with value = nom:str(ret, bytes_read, first, reader.contents.underlying)
+    with value = nom:nullstr(ret, bytes_read, first, reader.contents.underlying)
     ---> ret:bool
 
-smo next_line(Volatile &reader, File &f, str& value)
+smo next_line(Volatile &reader, File &f, nullstr &value)
     contents = reader.contents.mem
     size = reader.contents.size
     @head{#include <stdio.h>}
@@ -165,10 +166,10 @@ smo next_line(Volatile &reader, File &f, str& value)
         }
         reader__length = reader__length + bytes_read;
     }
-    with value = nom:str(ret, bytes_read, first, reader.contents.underlying)
+    with value = nom:nullstr(ret, bytes_read, first, reader.contents.underlying)
     ---> ret:bool
 
-smo next_chunk(Arena &reader, File &f, str& value)
+smo next_chunk(Arena &reader, File &f, nullstr &value)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -179,10 +180,10 @@ smo next_chunk(Arena &reader, File &f, str& value)
         char first = ((char*)reader__contents__mem)[0];
         reader__length = reader__length + bytes_read;
     }
-    value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
+    value = nom:nullstr(ret, bytes_read, first, reader.contents.mem:ptr)
     -> ret:bool
 
-smo next_line(Arena &reader, File &f, str& value)
+smo next_line(Arena &reader, File &f, nullstr &value)
     with f.contents:exists -- // verify that we're using the correct read
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -198,13 +199,26 @@ smo next_line(Arena &reader, File &f, str& value)
         }
         reader__length = reader__length + bytes_read;
     }
-    with value = nom:str(ret, bytes_read, first, reader.contents.mem:ptr)
-    ---> ret:bool
+    value = nom:nullstr(ret, bytes_read, first, reader.contents.mem:ptr)
+    -> ret:bool
 
-smo next_chunk(File &f, Volatile &reader, str& value) -> next_chunk(reader, f, value)
-smo next_line(File &f, Volatile &reader, str& value) -> next_line(reader, f, value)
-smo next_chunk(File &f, Arena &reader, str& value) -> next_chunk(reader, f, value)
-smo next_line(File &f, Arena &reader, str& value) -> next_line(reader, f, value)
+smo next_line (
+        Arena &reader,
+        File &f, 
+        @nolex str &value
+    )
+    ret = next_line(reader, f, nullstr &retvalue)
+    value = retvalue:str
+    -> ret
+
+smo next_chunk (
+        Arena &reader, 
+        File &f, 
+        @nolex str &value
+    )
+    ret = next_chunk(reader, f, nullstr &retvalue)
+    value = retvalue:str
+    -> ret
 
 smo ended(File &f)
     @head{#include <stdio.h>}

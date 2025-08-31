@@ -82,8 +82,11 @@ smo next_line(DerivedMemory &reader, Process &p, str& value)
     with value = nom:str(ret, bytes_read, first, reader.contents.underlying)
     ---> ret:bool
 
-smo next_chunk(Process &p, DerivedMemory &memory, str& value) -> next_chunk(memory, p, value)
-smo next_line(Process &p, DerivedMemory &memory, str& value) -> next_line(memory, p, value)
+smo next_chunk(Process &p, DerivedMemory &memory, str& value) 
+    -> next_chunk(memory, p, value)
+
+smo next_line(Process &p, DerivedMemory &memory, str& value) 
+    -> next_line(memory, p, value)
 
 smo system(cstr command)
     @head{#include <stdlib.h>}

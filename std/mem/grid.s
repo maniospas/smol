@@ -17,11 +17,21 @@
 
 @include std.mem.arena
 
-smo MemoryGrid(nom type, Memory& memory, Primitive, u64 size, u64 squares)
+smo MemoryGrid (
+        nom type,
+        Memory& memory,
+        Primitive,
+        u64 size, 
+        u64 squares
+    )
     surface = memory:allocate(size*squares, Primitive)
     -> type, surface, size, squares
 
-smo GridEntry(nom, MemoryGrid &grid, u64 id) 
+smo GridEntry (
+        nom,
+        MemoryGrid &grid,
+        u64 id
+    ) 
     -> @new
 
 smo at(MemoryGrid &self, u64 id) 
@@ -34,7 +44,9 @@ smo at(GridEntry self, u64 pos)
     -> self.grid.surface[true_pos]
 
 smo put(GridEntry &self, u64 pos, Primitive value)
-    with Primitive:is(self.MemoryGrid.Primitive) --
+    with 
+        Primitive:is(self.MemoryGrid.Primitive) 
+        --
     true_pos = pos
     :mul(self.grid.squares)
     :add(self.id)
