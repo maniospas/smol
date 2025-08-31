@@ -9,7 +9,7 @@ service main()
         range(100)
         :while next(u64& i)
             i = i%10
-            key = "entry "+tostr(i) // both operations happen `on` volatile
+            key = "entry "+str:convert(i) // both operations happen `on` volatile
             map:put(key, i)         // map is using its contructor's allocator to manage internal state
             controlled_corrupt()
     ----

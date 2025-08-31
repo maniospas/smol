@@ -40,6 +40,7 @@ smo nullstr(nom, ptr contents, u64 length, char first, ptr memory)
 
 union String(cstr, str, nullstr)
 union CString(cstr, nullstr)
+union AString(cstr, str)
 smo is(String, String) --
 
 smo str(nullstr other) 
@@ -51,7 +52,7 @@ smo str(cstr raw)
         u64 length=strlen(raw);
         ptr contents=(ptr)raw;
         char first=raw[0];
-        ptr noptr = (ptr)noptr; // use this to indicate a cstr
+        ptr noptr=(ptr)noptr; // use this to indicate a cstr
     }
     -> nom:str(contents, length, first, noptr)
 
@@ -126,7 +127,9 @@ smo slice(String self, u64 from, u64 to)
         char first = from==to?'\0':((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
     }
     -> nom:str(contents, to-from, first, s.contents)
-smo slice(String self, u64 from) -> self:slice(from, 0)
+    
+smo slice(String self, u64 from) 
+    -> self:slice(from, 0)
 
 smo strip(String _s)
     s = _s:str

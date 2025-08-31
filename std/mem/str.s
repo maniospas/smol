@@ -52,7 +52,7 @@ smo add(Memory &allocator, String _x, IndependentString _y)
     }
     -> nom:nullstr(_contents, total_len, first, mem.underlying)
 
-smo tostr(Memory &allocator, i64 number)
+smo convert(Memory &allocator, str, i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -74,7 +74,7 @@ smo tostr(Memory &allocator, i64 number)
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
     -> nom:nullstr(contents, length, first, mem.underlying)
 
-smo tostr(Memory &allocator, u64 number)
+smo convert(Memory &allocator, str, u64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -96,7 +96,7 @@ smo tostr(Memory &allocator, u64 number)
     if(contents:exists:not) @fail{printf("Failed to allocate str from number\n");} --
     -> nom:nullstr(contents, length, first, mem.underlying)
 
-smo tostr(Memory &allocator, f64 number)
+smo convert(Memory &allocator, str, f64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}

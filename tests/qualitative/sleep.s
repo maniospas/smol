@@ -11,13 +11,13 @@ service test(f64 duration)
     start = time()
     sleep(duration)  
     eta = time()-start
-    on Heap:new_dynamic
-        print("sleep target "+duration:tostr+" but actual is "+eta:tostr)
+    on Heap:new_volatile(512)
+        print("sleep target "+str:convert(duration)+" but actual is "+str:convert(eta))
     ----
 
 service main()
-    n = 30
-    range(n) // more than the number of test machine threads
+    n = 30      // can comfortable go up to 100000
+    range(n)    // more than the number of test machine threads
     :while next(u64& i)
         test((n-i):f64/n:f64)
     ----
