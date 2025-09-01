@@ -828,8 +828,8 @@ service map_printer(Map map)
     --
 
 service main() 
-    on Heap:new_dynamic // automatically pass dynamic memory as first argument
-        &map = new_map(100, str, u64) // flatmap with 100 slots
+    on Heap:dynamic // automatically pass dynamic memory as first argument
+        &map = map(100, str, u64) // flatmap with 100 slots
         --
     map:put("123", 1)
     map:map_printer
@@ -1198,7 +1198,7 @@ service main()
         age = get_age() 
         if age.err:bool:not |--
         --
-    on Heap:new_dynamic
+    on Heap:dynamic
         print("You've seen at least "+str(age-1)+" years gone by.")
     ----
 </code></pre>

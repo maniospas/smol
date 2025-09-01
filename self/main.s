@@ -18,7 +18,7 @@ smo tokenize(Memory &memory, ReadFile& f)
     &tokens = memory:allocate(program_size, u64)
     &num_tokens = 0
 
-    on memory:new_volatile(1024)
+    on memory:volatile(1024)
         controlled_corrupt()
         f:while next_line(str &line)
             &pos = 0
@@ -50,7 +50,7 @@ smo tokenize(Memory &memory, ReadFile& f)
 service main()
     path = "tests/main.s"
     tok = Heap
-        :new_arena(1000000)
+        :arena(1000000)
         :tokenize(ReadFile:open(path))
     range(tok.num_tokens)
         :while next(u64& i) 

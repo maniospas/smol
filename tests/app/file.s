@@ -1,11 +1,11 @@
 @include std.builtins
-@include std.mem -> Memory, new_arena
+@include std.mem -> Memory, arena
 @include std.file
 
 smo file_reader(String path, Memory &memory)
     &file = ReadFile:open(path)
     endl = "\n":str.first
-    on memory:new_arena(1024)
+    on memory:arena(1024)
         file
         :while next_line(str &line)
             if line:len:bool 
@@ -19,6 +19,6 @@ smo file_reader(String path, Memory &memory)
     --
 
 service main()
-    &memory = Stack:new_arena(1000000)
+    &memory = Stack:arena(1000000)
     file_reader("README.md", memory)
     --

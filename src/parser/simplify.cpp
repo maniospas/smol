@@ -93,8 +93,8 @@ void Def::simplify() {
     implementation = code;
 
 
-    unordered_map<Variable, Code> new_finals;
-    new_finals.reserve(finals.size());
+    unordered_map<Variable, Code> finals;
+    finals.reserve(finals.size());
     for(const auto& it : finals) {
         Code renamed;
         renamed.segments.reserve(it.second.segments.size());
@@ -103,10 +103,10 @@ void Def::simplify() {
             if(renaming.find(var)==renaming.end()) renamed.segments.push_back(var);
             else renamed.segments.push_back(renaming[var]);
         }
-        if(renaming.find(it.first)==renaming.end()) new_finals[it.first] = renamed;
-        else new_finals[renaming[it.first]] = renamed;
+        if(renaming.find(it.first)==renaming.end()) finals[it.first] = renamed;
+        else finals[renaming[it.first]] = renamed;
     }
-    finals = new_finals;
+    finals = finals;
 
     for(size_t i=0;i<packs.size();++i) if(renaming.find(packs[i])!=renaming.end()) packs[i] = renaming[packs[i]];
 
@@ -120,20 +120,20 @@ void Def::simplify() {
     errors = renamed_errors;
 
 
-    unordered_map<Variable, Variable> new_renaming;
+    unordered_map<Variable, Variable> renaming;
     for(const auto& it : current_renaming) {
-        Variable new_first = renaming.find(it.first)==renaming.end()?it.first:renaming[it.first];
-        Variable new_second = renaming.find(it.second)==renaming.end()?it.second:renaming[it.second];
-        new_renaming[new_first] = new_second;
+        Variable first = renaming.find(it.first)==renaming.end()?it.first:renaming[it.first];
+        Variable second = renaming.find(it.second)==renaming.end()?it.second:renaming[it.second];
+        renaming[first] = second;
     }
-    current_renaming = new_renaming;
+    current_renaming = renaming;
 
-    /*unordered_map<Variable, unsigned long> new_alignments;
+    /*unordered_map<Variable, unsigned long> alignments;
     for(const auto& it : alignments) {
-        Variable new_first = renaming.find(it.first)==renaming.end()?it.first:renaming[it.first];
-        if(!new_alignments[new_first]) new_alignments[new_first] = it.second;
+        Variable first = renaming.find(it.first)==renaming.end()?it.first:renaming[it.first];
+        if(!alignments[first]) alignments[first] = it.second;
     }
-    alignments = new_alignments;*/
+    alignments = alignments;*/
 
     //cout << "Simplified impl " << implementation.to_string().size() << " with consumption " <<implementation.size() << "\n";
 

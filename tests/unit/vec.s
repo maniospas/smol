@@ -8,7 +8,7 @@ smo one_hot(Memory &memory, u64 pos, u64 size)
     // when needed. Intermediate values not
     // assigned to variables can be passed
     // as mutable arguments by design.
-    -> on memory:new_vector(size)
+    -> on memory:vector(size)
         // `:` is curries the left hand side
         // into the next call's first argument.
         // But we also have the vector context,
@@ -20,7 +20,7 @@ smo one_hot(Memory &memory, u64 pos, u64 size)
         -> pos:put(1.0)
 
 service main() 
-    &memory = Stack:new_arena(1024)
+    &memory = Stack:arena(1024)
     // `on` context adds a first argument as needed (e.g. could use `on nom:Heap`)
     on memory 
         a = one_hot(1, 10)

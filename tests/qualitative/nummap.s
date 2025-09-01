@@ -3,9 +3,9 @@
 
 
 service main()
-    &map = Heap:new_dynamic:new_map(1000, str, u64)
+    &map = Heap:dynamic:map(1000, str, u64)
 
-    on Stack:new_volatile(32)
+    on Stack:volatile(32)
         range(100)
         :while next(u64& i)
             i = i%10

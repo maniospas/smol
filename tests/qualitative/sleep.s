@@ -11,7 +11,7 @@ service test(f64 duration)
     start = time()
     sleep(duration)  
     eta = time()-start
-    on Heap:new_volatile(512)
+    on Heap:volatile(512)
         print("sleep target "+duration:str+" but actual is "+eta:str)
     ----
 

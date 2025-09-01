@@ -31,10 +31,10 @@
 @about to_end     "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. Returns a boolean indicating a successful operation."
 @about len        "Computes the size of a File in bytes."
 @about write      "Writes a string on a WriteFile."
-@about new_file "Creates a virtual file by of a given size on top of some memory allocator."
+@about file "Creates a virtual file by of a given size on top of some memory allocator."
 @about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories."
                   "<br><br>Here is an example where volatile memory is used to avoid repeated or large allocations:"
-                  "<pre>on Heap:new_volatile(1024)"
+                  "<pre>on Heap:volatile(1024)"
                   "\n    ReadFile"
                   "\n    :open(\"README.md\")"
                   "\n    :while next_chunk(str& chunk)"
@@ -43,7 +43,7 @@
 @about next_line  "Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories."
                   "<br><br>Here is an example where volatile memory is used to avoid repeated or large allocations:"
                   "<pre>endl=\"n\":str.first // optimized to just setting the new line character"
-                  "\non Heap:new_volatile(1024)"
+                  "\non Heap:volatile(1024)"
                   "\n    ReadFile(\"README.md\")"
                   "\n    :open(\"README.md\")"
                   "\n    :while next_line(str& line)"
@@ -114,7 +114,7 @@ smo write(WriteFile &f, String _s)
         @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
     ----
 
-smo new_file(Memory& memory, u64 size)
+smo open(Memory& memory, u64 size)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}

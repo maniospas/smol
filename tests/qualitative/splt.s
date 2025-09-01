@@ -17,6 +17,6 @@ smo split(str query, str sep)
 
 service main()
     print("Write some text to split:")
-    on Heap:new_arena(4096)
-        Heap:new_arena(4096):read:split(" ":str)
+    on Heap:arena(4096)
+        Heap:arena(4096):read:split(" ":str)
     ----

@@ -32,7 +32,7 @@ service test()
     &window = Window:open(800.0, 450.0, "Hello from smoλ+raylib")
     &prev_t = time()
     &accum_fps = 3600.0
-    on Heap:new_volatile(1024)
+    on Heap:volatile(1024)
         while window:is_open
             // time computation
             t = time()

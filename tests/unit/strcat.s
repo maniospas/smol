@@ -10,7 +10,7 @@ smo read_name(Arena &arena)
     // ---> name
 
 service main()
-    name = Heap:new_arena(24):read_name
-    on Heap:new_dynamic
+    name = Heap:arena(24):read_name
+    on Heap:dynamic
         print("Hi "+name+"!")
     ----

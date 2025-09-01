@@ -56,5 +56,5 @@ smo put(GridEntry &self, u64 pos, Primitive value)
 smo len(GridEntry self) 
     -> self.grid.size
 
-smo new_grid(Memory& memory, u64 size, u64 squares, Primitive)
+smo grid(Memory& memory, u64 size, u64 squares, Primitive)
     -> nom:MemoryGrid(memory, Primitive, size, squares)

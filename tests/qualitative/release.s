@@ -5,10 +5,10 @@
 
 
 service test() 
-    &mem = Heap:new_arena(10000)
+    &mem = Heap:arena(10000)
     on mem
         s = "123":str:copy
-        &map = new_map(100, str, u64)
+        &map = map(100, str, u64)
         --
     @release mem
     map:put(s, 1) // ERROR - mem used in map has been released

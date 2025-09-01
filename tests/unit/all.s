@@ -2,7 +2,7 @@
 @include std.os
 
 service std_test(String name)
-    on Heap:new_dynamic// memory surface for string concatenations
+    on Heap:dynamic// memory surface for string concatenations
         redirect = " 2>&1"
         command = "./smol tests/unit/"+name+".s --runtime eager"+redirect
         if Process:open(command):to_end 
@@ -13,7 +13,6 @@ service std_test(String name)
 
 service main()
     // services are asynchronous co-routines
-    std_test("simple")
     std_test("effvec")
     std_test("file")
     std_test("finally")

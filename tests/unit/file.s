@@ -3,7 +3,7 @@
 
 service main()
     endl = "\n":str[0]
-    on Stack:new_volatile(1024)
+    on Stack:volatile(1024)
         ReadFile
         :open("README.md")
         :while next_line(str &line)

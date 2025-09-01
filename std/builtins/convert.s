@@ -29,8 +29,9 @@ smo read(i64)
         i64 result = scanf("%ld%c", &number, &ch);
         bool success = (result == 2 && ch == 13);
     }
-    if success:not @fail{printf("Error: invalid integer read\n");} --
-    -> number
+    if success:not 
+        @fail{printf("Error: invalid integer read\n");} 
+    ---> number
 
 smo read(u64)
     @head{#include <stdio.h>}
@@ -45,8 +46,9 @@ smo read(u64)
             success = (result == 2 && ch == 13);
         }
     }
-    if success:not @fail{printf("Error: invalid unsigned integer read\n");} --
-    -> number
+    if success:not 
+        @fail{printf("Error: invalid unsigned integer read\n");} 
+    ---> number
 
 smo read(f64)
     @head{#include <stdio.h>}
@@ -56,8 +58,9 @@ smo read(f64)
         i64 result = scanf("%lf%c", &number, &ch);
         bool success = (result == 2 && ch == 13);
     }
-    if success:not @fail{printf("Error: invalid number read\n");} --
-    -> number
+    if success:not 
+        @fail{printf("Error: invalid number read\n");} 
+    ---> number
 
 smo convert(i64, String _s)
     s = _s:str
@@ -88,8 +91,9 @@ smo convert(i64, String _s)
             if (negative) number = -number;
         }
     }
-    if success:not @fail{printf("Error: invalid integer conversion from string\n");} --
-    -> number
+    if success:not 
+        @fail{printf("Error: invalid integer conversion from string\n");} 
+    ---> number
 
 
 smo convert(u64, String _s)
@@ -111,8 +115,9 @@ smo convert(u64, String _s)
             }
         }
     }
-    if success:not @fail{printf("Error: invalid unsigned integer conversion from string\n");} --
-    -> number
+    if success:not 
+        @fail{printf("Error: invalid unsigned integer conversion from string\n");} 
+    ---> number
 
 
 smo convert(f64, String _s)
@@ -172,5 +177,6 @@ smo convert(f64, String _s)
             if(negative) number = -number;
         }
     }
-    if success:not @fail{printf("Error: invalid floating-point conversion from string\n");} --
-    -> number
+    if success:not 
+        @fail{printf("Error: invalid floating-point conversion from string\n");} 
+    ---> number

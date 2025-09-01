@@ -62,12 +62,12 @@ smo Dynamic(nom)
             allocated = 0;
         } 
     }
-    -> @new, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:new_dynamic
+    -> @new, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:dynamic
 
-smo new_dynamic(Heap) 
+smo dynamic(Heap) 
     -> nom:Dynamic
 
-smo new_dynamic(Stack) 
+smo dynamic(Stack) 
     -> nom:Stack
     
 smo allocate(Dynamic& self, u64 size, Primitive)
@@ -174,8 +174,8 @@ union BoundedMemory
 smo is(Memory& self, Memory&) 
     -> self
 
-smo new_arena(Memory& self, u64 size) 
+smo arena(Memory &self, u64 size) 
     -> nom:Arena(self:allocate(size))
     
-smo new_volatile(Memory& self, u64 size) 
+smo volatile(Memory &self, u64 size) 
     -> nom:Volatile(self:allocate(size))

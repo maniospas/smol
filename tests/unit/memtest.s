@@ -3,7 +3,7 @@
 @include std.file
 
 smo test(File &file)
-    on Heap:new_volatile(32)
+    on Heap:volatile(32)
         file:while next_chunk(str& chunk)
             printin(chunk)
         ----

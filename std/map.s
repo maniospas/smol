@@ -35,7 +35,7 @@
            "the base allocator is also used to reserve space later for string copying to maintain lifetimes. Element insertion may fail if the map or base memory is out of space. "
            "<br><br>Here is an example of a string-based map, where known constant string (cstr) elements are placed by hand "
            "to prevent any additional memory allocation for them."
-           "\n<pre>map = Stack:new_arena(32):Map(10, 1, u64) // do everything in 32 bytes with up to 10 entries"
+           "\n<pre>map = Stack:arena(32):Map(10, 1, u64) // do everything in 32 bytes with up to 10 entries"
            "\non map // open context to add the map as first argument when needed"
            "\n    1:put(\"entry 1\")"
            "\n    2:put(\"entry 2\")"
@@ -172,7 +172,7 @@ smo Map(
     length = 0
     -> type, size, mem, length, memory
 
-smo new_map(Memory &memory, u64 size, Keys, Values) 
+smo map(Memory &memory, u64 size, Keys, Values) 
     -> nom:Map(memory, size, Keys, Values)
 
 smo len(Map &self) 
