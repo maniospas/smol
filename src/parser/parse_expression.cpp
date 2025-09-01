@@ -53,6 +53,9 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                         +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
                 }
                 arg_progress++;
+                if(arg_type->name==BUFFER_VAR && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) imp->error(first_token_pos, "Not compatible buffer: "+pretty_var(unpacks[i].to_string())+" holds "+buffer_types[unpacks[i]]->signature(types)+" but calls "+type->buffer_types[type->args[i].name]->signature(types));
+                    
+                arg_progress++;
                 if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 
                     throw runtime_error(type->signature(types));     
             }
@@ -114,6 +117,9 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                             +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
                             +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
                     }
+                    arg_progress++;
+                    if(arg_type->name==BUFFER_VAR && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) imp->error(first_token_pos, "Not compatible buffer: "+pretty_var(unpacks[i].to_string())+" holds "+buffer_types[unpacks[i]]->signature(types)+" but passed to "+type->buffer_types[type->args[i].name]->signature(types));
+                  
                     arg_progress++;
                     if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 
                         throw runtime_error(type->signature(types));
@@ -261,6 +267,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     implementation +=type->rebase(type->implementation, var)+immediate_finals;
     for(const string& pre : type->preample) add_preample(pre);
     for(const string& pre : type->linker) add_linker(pre);
+    for(const auto& it : type->buffer_types) buffer_types[var+it.first] = it.second;
 
     //for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); // splt into immediate and delayed finals
     //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
@@ -284,7 +291,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
     static const Variable token_goto = Variable(")goto");
     
     size_t first_token_pos = p-1;
-    if(first_token==DOT_VAR || first_token==CURRY_VAR|| first_token=="[" || first_token=="]" || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
+    if(first_token==DOT_VAR || first_token==CURRY_VAR|| first_token==LBRACKET_VAR || first_token==RBRACKET_VAR || first_token=="{" || first_token=="}" || first_token==";"|| first_token=="&") imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
 
     if(first_token==IF_VAR) {
         Variable temp = create_temp();
@@ -355,6 +362,148 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         uplifiting_is_loop.pop_back();
         return EMPTY_VAR;
     }
+
+    if(first_token=="len" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name==BUFFER_VAR)  {
+        internalTypes.vars[Variable("__buffer_size")] = types.vars[Variable("u64")];
+        implementation += Code(Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
+        return next_var(imp, p, Variable("__buffer_size"), types);
+    }
+    if(first_token=="put" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name==BUFFER_VAR)  {
+        if(imp->at(p++)!="(") imp->error(--p, "Expected opening parenthesis");
+        if(buffer_types.find(curry)==buffer_types.end()) imp->error(--p, "Internal error: buffer has not been properly transferred to scope");
+        if(mutables.find(curry)==mutables.end())  imp->error(--p, "Cannot put into a non-mutable buffer");
+        size_t prev_p = p;
+        string next_tok = imp->at(p++);
+        Variable idx = parse_expression(imp, p, next_tok, types, EMPTY_VAR);
+        if(!idx.exists() || !internalTypes.contains(idx) || internalTypes.vars[idx]->name!=U64_VAR)
+            imp->error(prev_p, "First argument to put must be u64 but got "+ (internalTypes.contains(idx)?internalTypes.vars[idx]->name.to_string():"nothing"));
+        if(imp->at(p++)!=",") imp->error(--p, "Expected comma after buffer index");
+
+        prev_p = p;
+        next_tok = imp->at(p++);
+        Variable val = parse_expression(imp, p, next_tok, types, EMPTY_VAR);
+        if(!val.exists() || !internalTypes.contains(val)) imp->error(prev_p, "Expression does not yield a value within put");
+        if(internalTypes.vars[val].get() != buffer_types[curry].get())
+            imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching is allowed.\nExpected "+
+                            buffer_types[curry]->signature(types)+" but got "+
+                            internalTypes.vars[val]->signature(types));
+
+        if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
+
+        // locals (namespaced)
+        internalTypes.vars[curry+Variable("__buffer_size")]      = types.vars[Variable("u64")];
+        internalTypes.vars[curry+Variable("__buffer_alignment")] = types.vars[Variable("u64")];
+        internalTypes.vars[curry+Variable("__buffer_contents")]  = types.vars[Variable("ptr")];
+
+        // compute count_packs (valid packs only)
+        size_t count_packs = 0;
+        for(const auto& pack : buffer_types[curry]->packs)
+            if(buffer_types[curry]->internalTypes.contains(pack) && buffer_types[curry]->internalTypes.vars[pack]->name!=NOM_VAR)
+                count_packs++;
+
+        implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_packs)), SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
+
+        // range check
+        Variable fail_var = create_temp();
+        internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+        implementation += Code(Variable("if("), idx, Variable(">="), curry+Variable("__buffer_size"),
+                            Variable(")goto"), fail_var, SEMICOLON_VAR);
+        errors = errors + Code(fail_var, Variable(":\nprintf(\"Buffer index out of range\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n"));
+
+        // write element packs at idx
+        size_t pack_index = 0;
+        for(const auto& pack : buffer_types[curry]->packs) {
+            if(buffer_types[curry]->internalTypes.contains(pack) && buffer_types[curry]->internalTypes.vars[pack]->name!=NOM_VAR) 
+            {
+                implementation += Code(
+                    Variable("memcpy(&((u64*)"), curry+Variable("__buffer_contents"), Variable(")["), idx, MUL_VAR, curry+Variable("__buffer_alignment"), Variable("+"+to_string(pack_index)+"], &"),
+                    val+Variable(pack),
+                    Variable(", sizeof(u64));")
+                );
+                pack_index++;
+            }
+        }
+
+        return next_var(imp, p, curry, types);
+    }
+
+
+    if(first_token=="push" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name==BUFFER_VAR)  {
+        if(imp->at(p++)!="(") imp->error(--p, "Expected opening parenthesis");
+        if(buffer_types.find(curry)==buffer_types.end())
+            imp->error(--p, "Internal error: buffer has not been properly transferred to scope");
+        if(mutables.find(curry)==mutables.end()) imp->error(--p, "Cannot push onto a non-mutable buffer");
+        auto prev_p = p;
+        string next = imp->at(p++);
+        Variable var = parse_expression(imp, p, next, types, EMPTY_VAR);
+        if(!var.exists() || !internalTypes.vars[var]) imp->error(prev_p, "Expression does not yield a value within push");
+        if(internalTypes.vars[var].get() != buffer_types[curry].get()) imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching of the types is allowed.\nExpected " + buffer_types[curry]->signature(types) + " but got " + internalTypes.vars[var]->signature(types));
+        if(imp->at(p++)!=")") imp->error(--p, "Expecting closing parenthesis");
+
+        internalTypes.vars[curry+Variable("__buffer_size")]          = types.vars[Variable("u64")];
+        internalTypes.vars[curry+Variable("__buffer_capacity")]      = types.vars[Variable("u64")];
+        internalTypes.vars[curry+Variable("__buffer_prev_capacity")] = types.vars[Variable("u64")];
+        internalTypes.vars[curry+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
+        internalTypes.vars[curry+Variable("__buffer_contents")]      = types.vars[Variable("ptr")];
+
+        // compute count_packs (valid packs only)
+        size_t count_packs = 0;
+        for(const auto& pack : buffer_types[curry]->packs)
+            if(buffer_types[curry]->internalTypes.contains(pack) && buffer_types[curry]->internalTypes.vars[pack]->name!=NOM_VAR)
+                count_packs++;
+        if(buffer_types[curry]->_is_primitive) count_packs++;
+
+        implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_packs)), SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
+        implementation += Code(Variable("((u64*)"), curry, Variable(")[1]"), ASSIGN_VAR, curry+Variable("__buffer_size+1"), SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[2]"), SEMICOLON_VAR);
+
+        implementation += Code(Variable("if("), curry+Variable("__buffer_size"), Variable(">="), curry+Variable("__buffer_capacity"), Variable("){"));
+        implementation += Code(curry+Variable("__buffer_prev_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR); 
+        implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), Variable("+("), curry+Variable("__buffer_capacity"), Variable(">>2)+1;")); // +25%+1 capacity
+        implementation += Code(Variable("if("), curry+Variable("__buffer_size"), Variable(") ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_realloc((u64*)((u64*)"), curry, Variable(")[0], "), curry+Variable("__buffer_capacity"), Variable("*"), curry+Variable("__buffer_alignment"), Variable("*sizeof(u64), "), curry+Variable("__buffer_prev_capacity"), Variable("*"), curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
+        implementation += Code(Variable("else ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_alloc("), curry+Variable("__buffer_capacity"), Variable("*"), curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
+        implementation += Code(Variable("((u64*)"), curry, Variable(")[2]"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
+
+        static const Variable token_if = Variable("if(");
+        static const Variable token_goto = Variable(")goto");
+        static const Variable token_print = Variable(":\nprintf(\"Buffer error");
+        static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
+        Variable fail_var = create_temp();
+        internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+        implementation += Code(token_if, Variable("!"), curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
+        errors = errors+Code(fail_var, token_print, token_failsafe);
+
+        implementation += Code(Variable("} else "));
+        implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
+
+        // final loop: move only valid packs
+        size_t pack_index = 0;
+        if(buffer_types[curry]->_is_primitive) {
+            implementation += Code(
+                Variable("memcpy(&((u64*)"), curry+Variable("__buffer_contents"), Variable(")["), curry+Variable("__buffer_size"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("], &"),
+                var,
+                Variable(", sizeof(u64));")
+            );
+        }
+        else for(const auto& pack : buffer_types[curry]->packs) {
+            if(buffer_types[curry]->internalTypes.contains(pack) &&
+            buffer_types[curry]->internalTypes.vars[pack]->name!=NOM_VAR)
+            {
+                implementation += Code(
+                    Variable("memcpy(&((u64*)"), curry+Variable("__buffer_contents"), Variable(")["), curry+Variable("__buffer_size"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("+"+to_string(pack_index)+"], &"),
+                    var+Variable(pack),
+                    Variable(", sizeof(u64));")
+                );
+                pack_index++;
+            }
+        }
+        return next_var(imp, p, curry, types);
+    }
+
     if(first_token=="on") {
         if(curry.exists()) imp->error(p, "Cannot curry onto `on`");
         if(active_context.exists()) imp->error(p, "There is already an active context in this implementation\nEnd its code block to enter a new context with `on`.");
@@ -464,6 +613,38 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
     }
     if(types.contains(first_token)) {
         auto type = types.vars.find(first_token)->second;
+        if(p<imp->size()-1 && imp->at(p)=="[") {
+            p++;
+            if(imp->at(p)!="]") imp->error(--p, "Given that "+first_token.to_string()+" is a runtype (not a local variable), [] is expected to declare a buffer here");
+            p++;
+            if(type->options.size()==0) imp->error(--p, "Internal error: no options to determine buffer elements "+type->name.to_string());
+            double option_power = -1;
+            int conflicts = 0;
+            auto original_type = type;
+            for(const auto& it : type->options) {
+                if(it->choice_power>option_power) {// && it->name==argType->name) {
+                    option_power = it->choice_power;
+                    type = it;
+                    conflicts = 0;
+                }
+                else if(it->choice_power==option_power) conflicts++;
+            }
+            if(option_power<0) imp->error(--p, "No resolution options for determining buffer elements: "+original_type->name.to_string());
+            if(conflicts) imp->error(--p, "There was no criterion for resolving buffer element to one option: "+original_type->name.to_string()+"\nMultiple options are available");
+        
+            Variable var = create_temp();
+            mutables.insert(var);
+            buffer_types[var] = type;
+            internalTypes.vars[var] = types.vars[BUFFER_VAR];
+            implementation += Code(var,ASSIGN_VAR,Variable("__runtime_calloc(3*sizeof(u64))"),SEMICOLON_VAR); // ZERO OUT MEMORY, SIZE, CAPACITY IMMEDITATELY
+            finals[var] += Code(
+                Variable("if("), var, Variable("){if((u64*)((u64*)"),var,Variable(")[2])"), // deallocate only if we have alloacted any capacity
+                Variable("__runtime_free((u64*)((u64*)"),var,Variable(")[0])"),SEMICOLON_VAR,
+                Variable("__runtime_free("),var,RPAR_VAR,SEMICOLON_VAR,
+                var,ASSIGN_VAR,ZERO_VAR,SEMICOLON_VAR,
+                Variable("}"));
+            return next_var(imp, p, var, types);;
+        }
         vector<Variable> unpacks;
         if(p>=imp->size()-1) {
             if(curry.exists()) {

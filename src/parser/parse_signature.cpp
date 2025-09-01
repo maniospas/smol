@@ -32,12 +32,19 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         }
         if(next==":") {
             autoconstruct=true;
+            imp->error(--p, "Unexpected :"); // deprecated autoconstruct
             next = imp->at(p++);
         }
         if(next==",") next = imp->at(p++);//spaghetios
         if(!accepted_var_name(next)) imp->error(--p, "Not a valid name: "+next);
         if(types.vars.find(next)==types.vars.end()) imp->error(--p, "Missing runtype: "+next);
         Variable arg_name = imp->at(p++);
+        bool arg_is_buffer = false;
+        if(arg_name=="[") {
+            arg_is_buffer = true;
+            if(imp->at(p++)!="]") imp->error(--p, "Expecting [] here to indicate buffer argument");
+            arg_name = imp->at(p++);
+        }
         if(arg_name=="&") {mut = true;arg_name = imp->at(p++);}
         if(mut && is_service) imp->error(p-2, "Services do not accept values by reference\nThis ensures failsafe-compliant extensibility.\nDid you mean to declare a runtype instead?");
         
@@ -73,6 +80,27 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             //for(const auto& it : argType->parametric_types) parametric_types[it.first] = it.second;
             this->lazy_compile = true; // indicate that we want to compile lazily with a second pass across all
         }
+        else if(arg_is_buffer) {
+            if(argType->options.size()==0) imp->error(--p, "Internal error: no options to determine buffer elements "+argType->name.to_string());
+            double option_power = -1;
+            int conflicts = 0;
+            auto original_type = argType;
+            for(const auto& it : argType->options) {
+                if(it->choice_power>option_power) {
+                    option_power = it->choice_power;
+                    argType = it;
+                    conflicts = 0;
+                }
+                else if(it->choice_power==option_power) conflicts++;
+            }
+            if(option_power<0) imp->error(--p, "No resolution options for determining buffer elements: "+original_type->name.to_string());
+            if(conflicts) imp->error(--p, "There was no criterion for resolving buffer element to one option: "+original_type->name.to_string()+"\nMultiple options are available");
+            
+            internalTypes.vars[arg_name] = types.vars[BUFFER_VAR];
+            buffer_types[arg_name] = argType;
+            if(mut) mutables.insert(arg_name);
+            args.emplace_back(arg_name, types.vars[BUFFER_VAR], mut);
+        }
         else if(argType->not_primitive()) {
             retrievable_parameters[argType->name] = argType;
             internalTypes.vars[arg_name] = argType;
@@ -82,6 +110,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 implementation +=it.type->rebase(it.type->implementation, arg_name);
                 for(const string& pre : it.type->preample) add_preample(pre);
                 for(const string& pre : it.type->linker) add_linker(pre);
+                for(const auto& it : it.type->buffer_types) buffer_types[arg_name+it.first] = it.second;
                 for(const auto& final : it.type->finals) finals[arg_name+final.first] = finals[arg_name+final.first] + it.type->rebase(final.second, arg_name); 
                 for(const auto& it : it.type->current_renaming) current_renaming[arg_name+it.first] = arg_name+it.second;
                 for(const auto& it : it.type->alignments) if(it.second) {alignments[arg_name+it.first] = it.second;}

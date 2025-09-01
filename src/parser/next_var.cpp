@@ -122,6 +122,90 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                 if(internalTypes.contains(next) && internalTypes.vars[next]->name=="ptr"&& !imp->allow_unsafe) imp->error(--p, "Direct access of `ptr` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
             }
         }
+        else if(imp->at(p)=="[" && internalTypes.contains(next) && internalTypes.vars[next]->name==BUFFER_VAR) {
+            ++p;
+            Variable idx = parse_expression(i, p, imp->at(p++), types);
+            if(!internalTypes.contains(idx) || internalTypes.vars[idx]->name!=U64_VAR)
+                imp->error(--p, "Buffer index must be u64 but got "+(internalTypes.contains(idx)?internalTypes.vars[idx]->name.to_string():"nothing"));
+            if(imp->at(p++)!="]") imp->error(--p, "Expecting closing square bracket");
+
+            internalTypes.vars[next+Variable("__buffer_size")]      = types.vars[Variable("u64")];
+            internalTypes.vars[next+Variable("__buffer_alignment")] = types.vars[Variable("u64")];
+
+            implementation += Code(next+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), next, Variable(")[1]"), SEMICOLON_VAR);
+
+            size_t count_packs = 0;
+            for (const auto& pack : buffer_types[next]->packs)
+                if (buffer_types[next]->internalTypes.contains(pack) && buffer_types[next]->internalTypes.vars[pack]->name != NOM_VAR)
+                    count_packs++;
+            if(buffer_types[next]->_is_primitive) count_packs++;
+
+            // each valid pack slot is one u64
+            implementation += Code(
+                next+Variable("__buffer_alignment"), ASSIGN_VAR,
+                Variable(to_string(count_packs)), SEMICOLON_VAR
+            );
+
+            Variable fail_var = create_temp();
+            internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+            implementation += Code(Variable("if("), idx, Variable(">="), next+Variable("__buffer_size"),
+                                Variable(")goto"), fail_var, SEMICOLON_VAR);
+            errors = errors + Code(fail_var, Variable(":\nprintf(\"Buffer index out of range\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n"));
+
+            Variable elem = create_temp();
+
+            Variable packname = EMPTY_VAR;
+            if(p < i->size()-1 && i->at(p) == ".") packname = i->at(p+1); 
+
+            size_t pack_index = 0;
+            if(buffer_types[next]->_is_primitive) {
+                Variable tmp = create_temp();
+                internalTypes.vars[tmp] = buffer_types[next];
+
+                // bit-preserving load
+                implementation += Code(
+                    Variable("memcpy(&"), tmp, Variable(", &((u64*)((u64*)"), next, Variable(")[0])["),
+                    idx, Variable("*"), next+Variable("__buffer_alignment"), Variable("+"+ to_string(pack_index)+"], sizeof("), 
+                    buffer_types[next]->name, Variable("))"), SEMICOLON_VAR
+                );
+
+                // assign into elem
+                assign_variable(
+                    buffer_types[next],
+                    elem,
+                    tmp,
+                    i, p
+                );
+
+            }
+            else {
+                internalTypes.vars[elem] = buffer_types[next];
+                for (const auto& pack : buffer_types[next]->packs) if (buffer_types[next]->internalTypes.contains(pack)  && buffer_types[next]->internalTypes.vars[pack]->name != NOM_VAR) {
+                    if(packname.is_empty() || packname==pack) {
+                        Variable tmp = create_temp();
+                        internalTypes.vars[tmp] = buffer_types[next]->internalTypes.vars[pack];
+
+                        // declare + copy the bit pattern
+                        implementation += Code(
+                            Variable("memcpy(&"), tmp, Variable(", &((u64*)((u64*)"), next, Variable(")[0])["),
+                            idx, Variable("*"), next+Variable("__buffer_alignment"), Variable("+"+ to_string(pack_index)+"], sizeof("), 
+                            buffer_types[next]->internalTypes.vars[pack]->name, Variable("))"), SEMICOLON_VAR
+                        );
+
+                        // assign the tmp into elem+pack
+                        assign_variable(
+                            buffer_types[next]->internalTypes.vars[pack],
+                            elem+pack,
+                            tmp,
+                            i, p
+                        );
+                    }
+                    pack_index++;
+                }
+            }
+            next = elem;
+        }
+
         else if(imp->at(p)=="[") {
             if(!internalTypes.contains(next)) imp->error(--p, "Not found: "+pretty_var(next.to_string())+recommend_variable(types, next));
             ++p;

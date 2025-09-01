@@ -357,6 +357,7 @@ int main(int argc, char* argv[]) {
     builtins.vars[Variable("char")] = make_shared<Def>("char");
     builtins.vars[NOM_VAR] = make_shared<Def>("nom");
     builtins.vars[LABEL_VAR] = make_shared<Def>("__label");
+    builtins.vars[BUFFER_VAR] = make_shared<Def>("__buffer");
 
     for(const auto& it : builtins.vars) it.second->options.push_back(it.second);
     for(const auto& it : builtins.vars) all_types.push_back(it.second);
@@ -537,6 +538,7 @@ int main(int argc, char* argv[]) {
                 "#endif\n"
                 "#endif\n"
                 "#include <stdint.h>\n"
+                "typedef void* __buffer;\n"
                 "typedef void* ptr;\n"
                 "typedef int errcode;\n"
                 "typedef const char* cstr;\n"

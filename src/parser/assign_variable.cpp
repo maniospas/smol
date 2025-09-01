@@ -2,6 +2,10 @@
 
 void Def::assign_variable(const Type& type, const Variable& from, const Variable& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives, bool check_mutables) {
     // from = to; (yes, the order is this)
+    if(buffer_types.find(to)!=buffer_types.end()) {
+        if(buffer_types.find(from)==buffer_types.end()) buffer_types[from] = buffer_types[to];
+        else if(buffer_types[from].get()!=buffer_types[to].get()) imp->error(--p, "Mismatched buffer assignment.\nExpected:"+buffer_types[from]->name.to_string()+" but got "+buffer_types[to]->name.to_string());
+    }
     current_renaming[from] = to;
     current_renaming[to] = from;
     released[from] = released[to];

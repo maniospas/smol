@@ -13,6 +13,7 @@ service std_test(String name)
 
 service main()
     // services are asynchronous co-routines
+    std_test("buffers")
     std_test("effvec")
     std_test("file")
     std_test("finally")

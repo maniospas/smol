@@ -29,6 +29,7 @@ struct Def;
 typedef shared_ptr<Def> Type;
 typedef SegmentedString Variable;
 typedef SegmentSequence Code;
+const Variable BUFFER_VAR = Variable("__buffer");
 const Variable LABEL_VAR = Variable("__label");
 const Variable NEXT_VAR = Variable("__next");
 const Variable BOOL_VAR = Variable("bool");
@@ -72,6 +73,8 @@ const Variable COMP_LE_VAR = Variable("<=");
 const Variable COMP_LT_VAR = Variable("<");
 const Variable UNREACHABLE_VAR = Variable("__builtin_unreachable();\n");
 const Variable TRANSIENT_VAR = Variable("__TRANSIENT(");
+const Variable LBRACKET_VAR = Variable("[");
+const Variable RBRACKET_VAR = Variable("]");
 
 class Memory {
 public:
@@ -81,7 +84,6 @@ public:
     inline bool contains(const Variable& var) const {return vars.find(var)!=vars.end();}
     Memory() = default;
 };
-
 
 class Arg {
 public:
@@ -164,6 +166,7 @@ public:
     Variable active_context;
     set<string> preample;
     set<string> linker;
+    unordered_map<Variable, Type> buffer_types;
     unordered_map<Variable, Variable> active_calls;
     unordered_map<Variable, Variable> original_calls;
     unordered_map<Variable, bool> released;
