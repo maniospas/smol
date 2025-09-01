@@ -26,7 +26,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         }
         if(next=="@") {
             next = imp->at(p++);
-            if(next!="nolex") imp->error(--p, "@nolex is expected here");
+            if(next!="struct") imp->error(--p, "@struct is expected here");
             next = imp->at(p++);
             nolex = true;
         }
@@ -62,8 +62,8 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 }
                 else if(it->choice_power==option_power) conflicts++;
             }
-            if(option_power<0) imp->error(--p, "No options for @nolex argument: "+arg_name.to_string());
-            if(conflicts) imp->error(--p, "There was no criterion for resolving @nolex to one option when multiple are available: "+arg_name.to_string());
+            if(option_power<0) imp->error(--p, "No resolution options for @struct argument: "+arg_name.to_string());
+            if(conflicts) imp->error(--p, "There was no criterion for resolving @struct argument to one option: "+arg_name.to_string()+"\nMultiple options are available");
         }
         if(argType->lazy_compile) {
             args.emplace_back(arg_name, argType, mut);

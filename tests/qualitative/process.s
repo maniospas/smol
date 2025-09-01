@@ -5,7 +5,7 @@ service main()
     &process = Process:open("./smol tests/unit/effvec.s")
     on Dynamic:new_volatile(1024)
         process
-        :while next_line(str& x)
+        :while next_line(str &x)
             printin(x)
         ----
     print("")

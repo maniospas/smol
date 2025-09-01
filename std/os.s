@@ -31,7 +31,7 @@ smo Process(nom, ptr contents)
     -> @new
 
 smo open(Process&, CString _command)
-    command = _command:nullstr.contents
+    command = _command:nstr.contents
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -58,7 +58,11 @@ smo to_end(Process &p)
     }
     -> err
 
-smo next_chunk(DerivedMemory &reader, Process &p, str& value)
+smo next_chunk(
+        DerivedMemory &reader, 
+        @struct Process &p, 
+        @struct nstr &value
+    )
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -68,25 +72,40 @@ smo next_chunk(DerivedMemory &reader, Process &p, str& value)
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
-    value = nom:str(ret, bytes_read, first, reader.contents.underlying)
+    value = nom:nstr(ret, bytes_read, first, reader.contents.underlying)
     -> ret:bool
 
-smo next_line(DerivedMemory &reader, Process &p, str& value)
-    with p.contents:exists --
+smo next_line(
+        DerivedMemory &reader, 
+        @struct Process &p, 
+        @struct nstr &value
+    )
     @head{#include <stdio.h> #include <string.h> #include <stdlib.h>}
     @body{
         ptr ret = p__contents ? (ptr)fgets((char*)reader__contents__mem, reader__contents__size, (FILE*)p__contents) : 0;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
-    with value = nom:str(ret, bytes_read, first, reader.contents.underlying)
-    ---> ret:bool
+    value = nom:nstr(ret, bytes_read, first, reader.contents.underlying)
+    -> ret:bool
 
-smo next_chunk(Process &p, DerivedMemory &memory, str& value) 
-    -> next_chunk(memory, p, value)
+smo next_chunk(
+        DerivedMemory &memory, 
+        @struct Process &p, 
+        @struct str &value
+    ) 
+    ret = next_chunk(memory, p, nstr &retvalue)
+    value = retvalue:str
+    -> ret
 
-smo next_line(Process &p, DerivedMemory &memory, str& value) 
-    -> next_line(memory, p, value)
+smo next_line(
+        DerivedMemory &memory, 
+        @struct Process &p, 
+        @struct str &value
+    ) 
+    ret = next_line(memory, p, nstr &retvalue)
+    value = retvalue:str
+    -> ret
 
 smo system(cstr command)
     @head{#include <stdlib.h>}
@@ -98,7 +117,7 @@ smo system(str command)
     system(Stack:copy(command).memory:cstr)
     --
 
-smo open(Process&, str command)
+smo open(Process&, @struct str command)
     mem = Stack:allocate(command.length+1, char)
     @body{
         char first = 0;

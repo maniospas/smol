@@ -63,7 +63,7 @@ smo clear(Window &window, Color color)
     -> window
 
 smo text(Window &window, CString _txt, Position pos, f64 size, Color color)
-    txt = _txt:nullstr
+    txt = _txt:nstr
     @body{DrawText((char*)txt__contents, pos__x, pos__y, size, (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}); }
     -> window
 
@@ -74,7 +74,7 @@ smo Texture(nom, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
     -> @new
 
 smo open(Texture, CString _path)
-    path = _path:nullstr
+    path = _path:nstr
     @head{#define __smolambda_ray_texture(id,width,height,mipmaps,format) {Texture2D ret = LoadTexture((char*)path__contents);id=ret.id;width=ret.width;height=ret.height;mipmaps=ret.mimpas;format=ret.format;}}
     @body{
         u64 id = 0;

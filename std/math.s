@@ -19,29 +19,80 @@
 @unsafe
 @about "Standard library wrapping of C math operations."
 
-smo cos(f64 x)          @head{#include <math.h>} @body{f64 z = cos(x);}      -> z
-smo acos(f64 x)         @head{#include <math.h>} @body{f64 z = acos(x);}     -> z
-smo sin(f64 x)          @head{#include <math.h>} @body{f64 z = sin(x);}      -> z
-smo asin(f64 x)         @head{#include <math.h>} @body{f64 z = asin(x);}     -> z
-smo exp(f64 x)          @head{#include <math.h>} @body{f64 z = exp(x);}      -> z
-smo pi(f64 x)           @head{#include <math.h>} @body{f64 z = x * M_PI;}    -> z
-smo tan(f64 x)          @head{#include <math.h>} @body{f64 z = tan(x);}      -> z
-smo atan(f64 x)         @head{#include <math.h>} @body{f64 z = atan(x);}     -> z
-smo atan2(f64 y, f64 x) @head{#include <math.h>} @body{f64 z = atan2(y, x);} -> z
-smo is_nan(f64 x)       @body{bool z=(x!=x);} -> z
-smo is_inf(f64 x)       @head{#include <cmath>} @body{bool z=std::isinf(x);} -> z
+smo cos(f64 x)
+    @head{#include <math.h>}
+    @body{f64 z = cos(x);}
+    -> z
+
+smo acos(f64 x)
+    @head{#include <math.h>} 
+    @body{f64 z = acos(x);}
+    -> z
+
+smo sin(f64 x)
+    @head{#include <math.h>}
+    @body{f64 z = sin(x);}
+    -> z
+
+smo asin(f64 x)
+    @head{#include <math.h>} 
+    @body{f64 z = asin(x);}
+    -> z
+
+smo exp(f64 x) 
+    @head{#include <math.h>} 
+    @body{f64 z = exp(x);}
+    -> z
+
+smo pi(f64 x) 
+    @head{#include <math.h>} 
+    @body{f64 z = x * M_PI;} 
+    -> z
+
+smo tan(f64 x)
+    @head{#include <math.h>}
+    @body{f64 z = tan(x);}
+    -> z
+
+smo atan(f64 x) 
+    @head{#include <math.h>} 
+    @body{f64 z = atan(x);}
+    -> z
+
+smo atan2(f64 y, f64 x) 
+    @head{#include <math.h>} 
+    @body{f64 z = atan2(y, x);} 
+    -> z
+
+smo is_nan(f64 x) 
+    @body{bool z=(x!=x);} 
+    -> z
+
+smo is_inf(f64 x) 
+    @head{#include <cmath>} 
+    @body{bool z=std::isinf(x);}
+    -> z
+
 smo sqrt(f64 x)
-    if x<0.0 @fail{printf("Root requires positive inputs\n");} --
+    if x<0.0 
+        @fail{printf("Root requires positive inputs\n");} 
+        --
     @head{#include <math.h>}
     @body{f64 z = sqrt(x);}
     -> z
+
 smo pow(f64 base, f64 exponent)
-    if base<0.0 @fail{printf("Exponentiation requires non-negative base\n");} --
+    if base<0.0 
+        @fail{printf("Exponentiation requires non-negative base\n");} 
+        --
     @head{#include <math.h>}
     @body{f64 z = pow(base, exponent);}
     -> z
+    
 smo log(f64 x)
-    if x<=0.0 @fail{printf("Logarithm needs positive inputs\n");} --
+    if x<=0.0 
+        @fail{printf("Logarithm needs positive inputs\n");} 
+        --
     @head{#include <math.h>}
     @body{f64 z = log(x);}
     -> z

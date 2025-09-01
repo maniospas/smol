@@ -166,6 +166,11 @@ union Memory
     Dynamic
     --
 
+union BoundedMemory
+    Arena
+    Volatile
+    --
+
 smo is(Memory& self, Memory&) 
     -> self
 

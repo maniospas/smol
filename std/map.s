@@ -45,8 +45,17 @@
            "\n</pre>"
 @about List "Constructs a list given a memory allocator, a maximum capacity, and the type of its elements."
 
-union Keys(str, u64)
-union Values(str,u64,f64,i64)
+union Keys
+    str
+    u64
+    --
+
+union Values
+    str
+    u64
+    f64
+    i64
+    --
 
 smo __unsafe_cast(str, str value) -> value
 smo __unsafe_cast(str, cstr value) -> value
@@ -84,7 +93,7 @@ smo __unsafe_cast(u64, f64 value) @body{u64 temp_cast = static_cast<u64>(value);
 smo __unsafe_ret(u64, u64 value, ptr context) -> value
 smo __unsafe_ret(f64, u64 value, ptr context) @body{f64 temp_cast = static_cast<f64>(value);} -> temp_cast
 smo __unsafe_ret(i64, u64 value, ptr context) @body{i64 temp_cast = static_cast<i64>(value);} -> temp_cast
-smo __unsafe_ret(str, u64 value, ptr context) 
+smo __unsafe_ret(@struct str, u64 value, ptr context) 
     @head{#include <string.h>}
     @body{cstr raw = (cstr)(value);} 
     @body{
@@ -94,7 +103,7 @@ smo __unsafe_ret(str, u64 value, ptr context)
     }
     -> nom:str(contents, length, first, context)
 
-smo __map_prepare_key(str value, Memory &memory) 
+smo __map_prepare_key(nstr value, Memory &memory) 
     with memory:is(Heap) fail("Error: Cannot directly allocate `Heap` memory for map strings, use anything else (a heap Arena, Dynamic, Stack)") 
     --else--
     //if value.memory:exists:not |-> value.contents  // cstr wrappers
@@ -115,7 +124,7 @@ smo __map_prepare_key(cstr value) -> value
 smo __map_prepare_key(f64 value) -> value
 smo __map_prepare_key(i64 value) -> value
 smo __map_prepare_key(u64 value) -> value+1
-smo __map_prepare_value(str value, Memory &memory)
+smo __map_prepare_value(nstr value, Memory &memory)
     //if value.memory:exists:not |-> value.contents  // cstr wrappers
     mem = memory:allocate(value.length+1, char)
     @body{
@@ -149,17 +158,26 @@ smo hash(u64 _x)
     -> x
 
 // class Map
-smo Map(nom type, Memory &memory, u64 size, Keys, Values)
+smo Map(
+        nom type, 
+        Memory &memory, 
+        u64 size,
+        Keys,
+        Values
+    )
     mem = memory:allocate(size*2, u64)
     range(size*2):while next(u64& i) 
         mem:__unsafe_put(i, 0)
         --
     length = 0
     -> type, size, mem, length, memory
+
 smo new_map(Memory &memory, u64 size, Keys, Values) 
     -> nom:Map(memory, size, Keys, Values)
+
 smo len(Map &self) 
     -> self.length
+
 smo has(Map &self, Keys _key)
     with 
         _key:is(self.Keys) 
@@ -169,8 +187,10 @@ smo has(Map &self, Keys _key)
     on self.Keys
         while(self.mem[idx]!=0)and((self.mem[idx]:__unsafe_cast)!=(key:__unsafe_cast))
             idx = idx + 2 
-            if idx>=self.mem.size |||-> false
+            if idx>=self.mem.size 
+                |||-> false
     -----> self.mem[idx] != 0
+
 smo put(Map &self, Keys _key, Values _val)
     with 
         _key:is(self.Keys)
@@ -181,16 +201,22 @@ smo put(Map &self, Keys _key, Values _val)
     on self.Keys
         while(self.mem[idx]!=0)and((self.mem[idx]:__unsafe_cast)!=(key:__unsafe_cast)) 
             idx = idx + 2 
-            if idx>=self.mem.size -> fail("Error: Map out of space")
+            if idx>=self.mem.size 
+                -> fail("Error: Map out of space")
         ----
     if self.mem[idx] == 0 
         @body{self__length = self__length+1;} 
-        on u64 self.mem:__unsafe_put(idx, _key:__map_prepare_key(self.memory):__unsafe_cast) // copy strings only if no entry there
+        on u64 
+            self.mem:__unsafe_put(idx, _key:__map_prepare_key(self.memory):__unsafe_cast) // copy strings only if no entry there
         ----
-    on u64 self.mem:__unsafe_put(idx+1, _val:__map_prepare_value(self.memory):__unsafe_cast)
+    on u64 
+        self.mem:__unsafe_put(idx+1, _val:__map_prepare_value(self.memory):__unsafe_cast)
     ---- // TODO: find why, if we return self here, we get a double free error (regardless of whether it's mutable)
+
 smo at(Map self, Keys _key)
-    with _key:is(self.Keys) --
+    with 
+        _key:is(self.Keys) 
+        --
     key = _key:__map_prepare_key
     &idx = (_key:hash % self.size)*2
     on self.Keys
@@ -204,16 +230,20 @@ smo at(Map self, Keys _key)
     -> on self.Values -> self.mem:at(idx+1):__unsafe_ret(self.mem.underlying)
 
 smo put(Map &self, CString _mkey, Values _val) 
-    with put(self, _mkey:str, _val) 
+    with 
+        put(self, _mkey:str, _val) 
     ----
 smo put(Map &self, CString _mkey, CString _mval) 
-    with put(self, _mkey:str, _mval:str) 
+    with 
+        put(self, _mkey:str, _mval:str) 
     ----
 smo put(Map &self, Keys _key, CString _mval) 
-    with put(self, _key, _mval:str) 
+    with 
+        put(self, _key, _mval:str) 
     ----
 smo at(Map self, CString _mkey) 
-    with ret = at(self, _mkey:str)  
+    with 
+        ret = at(self, _mkey:str)  
     ---> ret
 
 

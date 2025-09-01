@@ -19,8 +19,8 @@
 @include std.mem.arena
 @unsafe
 @about "Standard library implementation of string operations using its own allocators and C memory operations."
-@about copy "Copies a string while. The result is nullstr, that is, str-like that can be directly converted to a null-terminated version."
-@about add "Overloads the + operator to concatenate two strings. The result is nullstr, that is, str-like that can be directly converted to a null-terminated version."
+@about copy "Copies a string while. The result is nstr, that is, str-like that can be directly converted to a null-terminated version."
+@about add "Overloads the + operator to concatenate two strings. The result is nstr, that is, str-like that can be directly converted to a null-terminated version."
 
 smo copy(Memory &allocator, String _s)
     s = _s:str
@@ -30,7 +30,7 @@ smo copy(Memory &allocator, String _s)
         memcpy((char*)mem__mem, s__contents, s__length);
         ((char*)mem__mem)[s__length] = 0;
     }
-    -> nom:nullstr(mem.mem, s.length, first, mem.underlying)
+    -> nom:nstr(mem.mem, s.length, first, mem.underlying)
 
 smo add(Memory &allocator, String _x, IndependentString _y)
     x = _x:str
@@ -50,9 +50,9 @@ smo add(Memory &allocator, String _x, IndependentString _y)
         memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
         ((char*)_contents)[total_len] = 0;
     }
-    -> nom:nullstr(_contents, total_len, first, mem.underlying)
+    -> nom:nstr(_contents, total_len, first, mem.underlying)
 
-smo nullstr(Memory &allocator, i64 number)
+smo nstr(Memory &allocator, i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -74,9 +74,9 @@ smo nullstr(Memory &allocator, i64 number)
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
         --
-    -> nom:nullstr(contents, length, first, mem.underlying)
+    -> nom:nstr(contents, length, first, mem.underlying)
 
-smo nullstr(Memory &allocator, u64 number)
+smo nstr(Memory &allocator, u64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -98,9 +98,9 @@ smo nullstr(Memory &allocator, u64 number)
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
         --
-    -> nom:nullstr(contents, length, first, mem.underlying)
+    -> nom:nstr(contents, length, first, mem.underlying)
 
-smo nullstr(Memory &allocator, f64 number)
+smo nstr(Memory &allocator, f64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -122,14 +122,14 @@ smo nullstr(Memory &allocator, f64 number)
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
         --
-    -> nom:nullstr(contents, length, first, mem.underlying)
+    -> nom:nstr(contents, length, first, mem.underlying)
 
 
 smo str(Memory &allocator, u64 number)
-    -> nullstr(allocator, number):str
+    -> nstr(allocator, number):str
 
 smo str(Memory &allocator, i64 number)
-    -> nullstr(allocator, number):str
+    -> nstr(allocator, number):str
 
 smo str(Memory &allocator, f64 number)
-    -> nullstr(allocator, number):str
+    -> nstr(allocator, number):str

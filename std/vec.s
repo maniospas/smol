@@ -62,9 +62,10 @@ smo dot(Vec x1, Vec x2)
     if x1.size!=x2.size -> fail("Incompatible Vec sizes")
     &sum = 0.0
     &i=0 while i<x1.size @next i = i+1
-        sum = x1:at(i)
-                :mul(x2:at(i))
-                :add(sum)
+        sum = x1
+        :at(i)
+        :mul(x2:at(i))
+        :add(sum)
     ---> sum 
 
 smo put(Vec &x1, Vec x2)
@@ -151,9 +152,11 @@ smo print(Vec v)
     printin("[")
     range(size)
     :while next(u64 &pos)
-        if pos:bool -> printin(" ")
+        if pos:bool 
+            -> printin(" ")
         printin(v[pos])
         --
-    if size!=v.size -> printin(" ...")
+    if size!=v.size 
+        -> printin(" ...")
     print("]")
     --

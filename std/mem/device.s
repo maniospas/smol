@@ -70,7 +70,8 @@ smo allocate(Heap, u64 size, Primitive)
     @head{#include <stdlib.h>}
     Primitive = Primitive
     @body{ptr mem=__runtime_alloc(size*sizeof(Primitive));}
-    if mem:bool:not -> fail("Failed a Heap allocation")
+    if mem:bool:not 
+        -> fail("Failed a Heap allocation")
     @finally mem {if(mem)__runtime_free(mem);mem=0;}
     -> nom:ContiguousMemory(Heap, size, Primitive, mem, mem)
 

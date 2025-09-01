@@ -76,9 +76,10 @@ smo open(ReadFile&, String _path)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{ptr contents = fopen((char*)path__contents, "r");}
-    if contents:exists:not @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} --
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
-    -> nom:ReadFile(contents)
+    if contents:exists:not 
+        @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} 
+    ---> nom:ReadFile(contents)
 
 smo to_start(File &f) 
     if f.contents:exists:not @fail{printf("Failed to move to start of closed file");} --
@@ -95,11 +96,9 @@ smo len(File &f)
     @body{
         u64 pos = ftell((FILE*)f__contents);
         u64 size = 0;
-        if (pos != -1L) {
-            if (fseek((FILE*)f__contents, 0, SEEK_END) == 0) {
-                size = ftell((FILE*)f__contents);
-                fseek((FILE*)f__contents, pos, SEEK_SET);
-            }
+        if(pos != -1L && fseek((FILE*)f__contents, 0, SEEK_END) == 0) {
+            size = ftell((FILE*)f__contents);
+            fseek((FILE*)f__contents, pos, SEEK_SET);
         }
     }
     -> size
@@ -111,29 +110,33 @@ smo write(WriteFile &f, String _s)
         u64 bytes_written = fwrite((char*)s__contents, 1, s__length, (FILE*)f__contents);
         bool success = (bytes_written == s__length);
     }
-    if success:not @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);} --
+    if success:not 
+        @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
     ----
 
 smo new_file(Memory& memory, u64 size)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
-    // @head{
-    //     #if defined(_WIN32) || defined(_WIN64)
-    //         static FILE* fmemopen(void *buf, size_t size, const char *mode) {
-    //             FILE *f = tmpfile();
-    //             if (!f) return NULL;
-    //             //if (buf && size > 0) {fwrite(buf, 1, size, f);rewind(f);}
-    //             return f;
-    //         }
-    //     #endif
-    // }
+    @head{#if defined(_WIN32) || defined(_WIN64)
+    static FILE* fmemopen(void *buf, size_t size, const char *mode) {
+        FILE *f = tmpfile();
+        if (!f) return NULL;
+        //if (buf && size > 0) {fwrite(buf, 1, size, f);rewind(f);}
+        return f;
+    }
+#endif
+    }
     mem = memory:allocate(size)
-    @body {ptr contents = fmemopen(mem__mem, size, "w+");}
+    @body{ptr contents = fmemopen(mem__mem, size, "w+");}
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
     -> nom:WriteFile(contents)
     
-smo next_chunk(Volatile &reader, File &f, nullstr &value)
+smo next_chunk (
+        Volatile &reader, 
+        File &f,
+        @struct nstr &value
+    )
     contents = reader.contents.mem
     size = reader.contents.size
     @head{#include <stdio.h>}
@@ -146,10 +149,14 @@ smo next_chunk(Volatile &reader, File &f, nullstr &value)
         char first = ((char*)contents)[0];
         reader__length = reader__length + bytes_read;
     }
-    with value = nom:nullstr(ret, bytes_read, first, reader.contents.underlying)
-    ---> ret:bool
+    value = nom:nstr(ret, bytes_read, first, reader.contents.underlying)
+    -> ret:bool
 
-smo next_line(Volatile &reader, File &f, nullstr &value)
+smo next_line (
+        Volatile &reader, 
+        File &f, 
+        @struct nstr &value
+    )
     contents = reader.contents.mem
     size = reader.contents.size
     @head{#include <stdio.h>}
@@ -166,10 +173,14 @@ smo next_line(Volatile &reader, File &f, nullstr &value)
         }
         reader__length = reader__length + bytes_read;
     }
-    with value = nom:nullstr(ret, bytes_read, first, reader.contents.underlying)
-    ---> ret:bool
+    value = nom:nstr(ret, bytes_read, first, reader.contents.underlying)
+    -> ret:bool
 
-smo next_chunk(Arena &reader, File &f, nullstr &value)
+smo next_chunk (
+        Arena &reader, 
+        File &f, 
+        nstr &value
+    )
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -180,10 +191,10 @@ smo next_chunk(Arena &reader, File &f, nullstr &value)
         char first = ((char*)reader__contents__mem)[0];
         reader__length = reader__length + bytes_read;
     }
-    value = nom:nullstr(ret, bytes_read, first, reader.contents.mem:ptr)
+    value = nom:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
     -> ret:bool
 
-smo next_line(Arena &reader, File &f, nullstr &value)
+smo next_line(Arena &reader, File &f, nstr &value)
     with f.contents:exists -- // verify that we're using the correct read
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -199,24 +210,24 @@ smo next_line(Arena &reader, File &f, nullstr &value)
         }
         reader__length = reader__length + bytes_read;
     }
-    value = nom:nullstr(ret, bytes_read, first, reader.contents.mem:ptr)
+    value = nom:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
     -> ret:bool
 
 smo next_line (
-        Arena &reader,
+        BoundedMemory &reader,
         File &f, 
-        @nolex str &value
+        @struct str &value
     )
-    ret = next_line(reader, f, nullstr &retvalue)
+    ret = next_line(reader, f, nstr &retvalue)
     value = retvalue:str
     -> ret
 
 smo next_chunk (
-        Arena &reader, 
+        BoundedMemory &reader, 
         File &f, 
-        @nolex str &value
+        @struct str &value
     )
-    ret = next_chunk(reader, f, nullstr &retvalue)
+    ret = next_chunk(reader, f, nstr &retvalue)
     value = retvalue:str
     -> ret
 
@@ -272,7 +283,8 @@ smo open(WriteFile&, String _path)
         ptr contents = 0;
         __SMOLANG_CREATE_FILE(path__contents, contents);
     }
-    if contents:exists:not @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
+    if contents:exists:not 
+        @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
     ---> nom:WriteFile(contents)
 
 smo create_dir(String _path)
@@ -290,7 +302,8 @@ smo create_dir(String _path)
         __SMOLANG_CREATE_DIR(path__contents, status);
         bool created = (status == 0);
     }
-    if created:not @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
+    if created:not 
+        @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
     ----
     
 smo console(WriteFile&)
