@@ -11,5 +11,5 @@ service main()
         --
     print("Press enter...")
     @release console
-    str:read
+    Heap:arena(2):read
     --

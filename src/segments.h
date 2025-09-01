@@ -119,12 +119,12 @@ public:
     SegmentedString operator+(const SegmentedString& other) const {
         if (size == 0) return other;
         if (other.size == 0) return *this;
-        size_t size = size + other.size;
-        unsigned int* segments = (unsigned int*)malloc(sizeof(unsigned int) * (size - 1));
-        if (size > 1) memcpy(segments, segments, sizeof(unsigned int) * (size - 1));
-        segments[size - 1] = other.first_segment;
-        if (other.size > 1) memcpy(segments + size, other.segments, sizeof(unsigned int) * (other.size - 1));
-        return SegmentedString(segments, size, first_segment);
+        size_t new_size = size + other.size;
+        unsigned int* new_segments = (unsigned int*)malloc(sizeof(unsigned int) * (new_size - 1));
+        if (size > 1) memcpy(new_segments, segments, sizeof(unsigned int) * (size - 1));
+        new_segments[size - 1] = other.first_segment;
+        if (other.size > 1) memcpy(new_segments + size, other.segments, sizeof(unsigned int) * (other.size - 1));
+        return SegmentedString(new_segments, new_size, first_segment);
     }
 
     bool operator==(const SegmentedString& other) const {

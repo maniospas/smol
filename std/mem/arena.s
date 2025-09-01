@@ -149,7 +149,10 @@ smo read(Arena &self)
                 length -= 1;
                 ((char*)_contents)[length] = 0;
             }
-            if(length) {
+            else if (!feof(stdin)) {
+                _contents = 0;
+            }
+            else if(length) {
                 char first = ((char*)_contents)[0];
                 self__length = self__length+length;
                 length -= 1;

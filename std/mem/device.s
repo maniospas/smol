@@ -59,6 +59,7 @@ smo is(Primitive self, Primitive)
     -> self
 
 smo allocate(Stack, u64 size, Primitive) 
+    if size==0 -> fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
     Primitive = Primitive
     @body{ptr mem=alloca(size*sizeof(Primitive));}
@@ -67,6 +68,7 @@ smo allocate(Stack, u64 size, Primitive)
     -> nom:ContiguousMemory(Stack, size, Primitive, mem, mem)
 
 smo allocate(Heap, u64 size, Primitive)
+    if size==0 -> fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
     Primitive = Primitive
     @body{ptr mem=__runtime_alloc(size*sizeof(Primitive));}

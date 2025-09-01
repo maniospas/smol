@@ -82,13 +82,13 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     type = successfullType;
     string prev_errors("");
     if(!type && active_context.exists()) { // 
-        vector<Variable> unpacks;
-        if(internalTypes.vars[active_context]->_is_primitive) unpacks.push_back(active_context);
-        else for(const Variable& pack : internalTypes.vars[active_context]->packs) unpacks.push_back(active_context+pack);
-        for(const Variable& pack : unpacks) unpacks.push_back(pack);
+        vector<Variable> new_unpacks;
+        if(internalTypes.vars[active_context]->_is_primitive) new_unpacks.push_back(active_context);
+        else for(const Variable& pack : internalTypes.vars[active_context]->packs) new_unpacks.push_back(active_context+pack);
+        for(const Variable& pack : unpacks) new_unpacks.push_back(pack);
         prev_errors = string(markdown_errors?"```rust\n":"")+previousType->name.to_string()+signature_like(types, unpacks)+(markdown_errors?"\n```\n":"")+"\namong "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":"")+"\nand not found `on` context\n  ";
         overloading_errors = "";
-        unpacks = unpacks;
+        unpacks = new_unpacks;
 
         // COPY OF ABOVE CODE HERE TO RETRY
         for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
@@ -572,7 +572,6 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 type = option;
                 candidates += "\n"+option->signature(types);
             }
-            if(num_choices==0) imp->error(--p, "Overloaded or union runtype has no alternative");
             if(num_choices!=1) imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@new return\nto break the priority stalemate.\nCandidates:"+candidates);
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
                 internalTypes.vars[var+type->args[i].name] = type->args[i].type;
