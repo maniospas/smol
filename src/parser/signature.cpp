@@ -28,7 +28,7 @@ string Def::signature(Types& types) {
             ret += pretty_runtype(types.reverse_alignment_labels[alignments[args[i].name]]->name.to_string())+""+(args[i].mut?"\033[31m&\033[0m":"")+"["+to_string(types.reverse_alignment_labels[alignments[args[i].name]]->packs.size())+"]";
             i += types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()-1;
         }
-        else if(args[i].type->name=="nom" && types.reverse_alignment_labels[alignments[args[i].name]]!=this && args[i].type->packs.size()>=1) {
+        else if(args[i].type->name==NOM_VAR && types.reverse_alignment_labels[alignments[args[i].name]]!=this && args[i].type->packs.size()>=1) {
             ret += pretty_runtype(args[i].type->name.to_string())+""+(args[i].mut?"\033[31m&\033[0m":"")+"["+to_string(args[i].type->packs.size())+"]";
             i += args[i].type->packs.size()-1;
         }

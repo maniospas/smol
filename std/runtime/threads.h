@@ -44,10 +44,10 @@
 #include <stdlib.h>
 
 /* ---------------- TASK STRUCT ---------------- */
-void* __runtime_alloc(size_t size) {return malloc(size);}
-void* __runtime_calloc(size_t size) {return calloc(1, size);}
-void* __runtime_realloc(void* mem, size_t size, size_t prev_sze) {return realloc(mem, size);}
-void __runtime_free(void* mem) {free(mem);}
+static inline void* __runtime_alloc(size_t size) {return malloc(size);}
+static inline void* __runtime_calloc(size_t size) {return calloc(1, size);}
+static inline void* __runtime_realloc(void* mem, size_t size, size_t prev_sze) {return realloc(mem, size);}
+static inline void __runtime_free(void* mem) {free(mem);}
 
 
 /* ---------------- TASK STRUCT ---------------- */

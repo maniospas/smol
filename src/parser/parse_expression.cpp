@@ -44,7 +44,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i].to_string()));
                 if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i].to_string())) 
                     throw runtime_error(type->signature(types));
-                if(type->not_primitive() && arg_type->_is_primitive && arg_type->name=="nom" && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
+                if(type->not_primitive() && arg_type->_is_primitive && arg_type->name==NOM_VAR && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
                     if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
                     if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i].to_string()+" argument "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
                     if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) {}//REMINDER THAT THIS IS AN ERROR THAT POLUTES NEXT LOOP: alignments[unpacks[i]] = type->alignments[type->args[i].name];
@@ -420,7 +420,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 implementation += Code(
                     Variable("memcpy(&((u64*)"), curry+Variable("__buffer_contents"), Variable(")["), idx, MUL_VAR, curry+Variable("__buffer_alignment"), Variable("+"+to_string(pack_index)+"], &"),
                     val+Variable(pack),
-                    Variable(", sizeof(u64));")
+                    Variable(", sizeof("+buffer_types[curry]->internalTypes.vars[pack]->name.to_string()+"));")
                 );
                 pack_index++;
             }
@@ -457,13 +457,12 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
 
         implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_packs)), SEMICOLON_VAR);
         implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
-        implementation += Code(Variable("((u64*)"), curry, Variable(")[1]"), ASSIGN_VAR, curry+Variable("__buffer_size+1"), SEMICOLON_VAR);
         implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[2]"), SEMICOLON_VAR);
 
         implementation += Code(Variable("if("), curry+Variable("__buffer_size"), Variable(">="), curry+Variable("__buffer_capacity"), Variable("){"));
         implementation += Code(curry+Variable("__buffer_prev_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR); 
         implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), Variable("+("), curry+Variable("__buffer_capacity"), Variable(">>2)+1;")); // +25%+1 capacity
-        implementation += Code(Variable("if("), curry+Variable("__buffer_size"), Variable(") ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_realloc((u64*)((u64*)"), curry, Variable(")[0], "), curry+Variable("__buffer_capacity"), Variable("*"), curry+Variable("__buffer_alignment"), Variable("*sizeof(u64), "), curry+Variable("__buffer_prev_capacity"), Variable("*"), curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
+        implementation += Code(Variable("if("), curry+Variable("__buffer_size"), Variable(") ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_realloc((u64*)((u64*)"), curry, Variable(")[0], "), curry+Variable("__buffer_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("*sizeof(u64), "), curry+Variable("__buffer_prev_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
         implementation += Code(Variable("else ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_alloc("), curry+Variable("__buffer_capacity"), Variable("*"), curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
         implementation += Code(Variable("((u64*)"), curry, Variable(")[2]"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR);
         implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
@@ -479,6 +478,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
 
         implementation += Code(Variable("} else "));
         implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
+        implementation += Code(Variable("((u64*)"), curry, Variable(")[1]"), ASSIGN_VAR, curry+Variable("__buffer_size"), Variable("+1"), SEMICOLON_VAR);
 
         // final loop: move only valid packs
         size_t pack_index = 0;
@@ -496,7 +496,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 implementation += Code(
                     Variable("memcpy(&((u64*)"), curry+Variable("__buffer_contents"), Variable(")["), curry+Variable("__buffer_size"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("+"+to_string(pack_index)+"], &"),
                     var+Variable(pack),
-                    Variable(", sizeof(u64));")
+                    Variable(", sizeof("+buffer_types[curry]->internalTypes.vars[pack]->name.to_string()+"));")
                 );
                 pack_index++;
             }

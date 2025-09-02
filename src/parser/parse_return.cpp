@@ -26,7 +26,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
             if(internalTypes.vars[next]->_is_primitive) packs.push_back(next);
             else for(const Variable& pack : internalTypes.vars[next]->packs) {
                 packs.push_back(next+pack);
-                if(internalTypes.contains(next+pack) && internalTypes.vars[next+pack]->name=="nom" && !alignments[next+pack]) imp->error(--p, "You are returning an unset align "+pretty_var(next.to_string()+"__"+pack.to_string())+"\nAdd an align first variable to the signature and return that instead");
+                if(internalTypes.contains(next+pack) && internalTypes.vars[next+pack]->name==NOM_VAR && !alignments[next+pack]) imp->error(--p, "You are returning an unset align "+pretty_var(next.to_string()+"__"+pack.to_string())+"\nAdd an align first variable to the signature and return that instead");
             }
         }
         p++;
@@ -44,7 +44,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
         if(released[next]) imp->error(--p, "You are returning data after @release: "+pretty_var(next.to_string())+recommend_variable(types, next));
         if(is_service && finals.find(next)!=finals.end() && finals[next].find(TRANSIENT_VAR) != std::string::npos) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next.to_string())+"\nThose can only be returned from smo runtypes");
         if(!internalTypes.vars[next]->not_primitive()) {
-            if(internalTypes.contains(next) && internalTypes.vars[next]->name=="nom" && !alignments[next]) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next.to_string())+"\nAdd an align first variable to the signature and return that instead");
+            if(internalTypes.contains(next) && internalTypes.vars[next]->name==NOM_VAR && !alignments[next]) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next.to_string())+"\nAdd an align first variable to the signature and return that instead");
             if(is_service && !uplifting_targets.size()) {
                 implementation +=Code(VALUE_VAR,ASSIGN_VAR,next,SEMICOLON_VAR);
                 if(internalTypes.contains(VALUE_VAR) && internalTypes.vars[VALUE_VAR]!=internalTypes.vars[next]) imp->error(--p, "Returning single value of multiple types "+internalTypes.vars[VALUE_VAR]->name.to_string()+" and "+internalTypes.vars[next]->name.to_string());
@@ -72,7 +72,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                         if(finals.find(next+pack)!=finals.end() && finals[next+pack].find(TRANSIENT_VAR) != std::string::npos) imp->error(--p, "You are returning @noshare data from a service: "+pretty_var(next.to_string()+"__"+pack.to_string())+"\nThose can only be returned from smo runtypes");
                     }
                     packs.push_back(pack);
-                    if(internalTypes.contains(pack) && internalTypes.vars[pack]->name=="nom" && !alignments[pack]) imp->error(--p, "You are returning an unset align "+pretty_var(pack.to_string())+"\nAdd an align first variable to the signature and return that instead");
+                    if(internalTypes.contains(pack) && internalTypes.vars[pack]->name==NOM_VAR && !alignments[pack]) imp->error(--p, "You are returning an unset align "+pretty_var(pack.to_string())+"\nAdd an align first variable to the signature and return that instead");
                 }
                 mutables.clear();
                 for(const Variable& mut : internalTypes.vars[next]->mutables) mutables.insert(mut);

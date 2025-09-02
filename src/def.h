@@ -81,7 +81,7 @@ public:
     unordered_map<Variable, Type> vars;
     unordered_map<string, string> all_errors;
     unordered_map<string, size_t> suppressed;
-    inline bool contains(const Variable& var) const {return vars.find(var)!=vars.end();}
+    inline bool contains(const Variable& var) const {return vars.find(var)!=vars.end() && vars.find(var)->second;}
     Memory() = default;
 };
 
@@ -109,7 +109,7 @@ vector<Type> all_types;
 
 class Def {
     static int temp;
-    vector<Variable> map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types,  bool is_zero_level);
+    vector<Variable> map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types, bool is_zero_level);
     static string create_temp() {return "__"+numberToVar(++temp);}
     unordered_map<Variable, Variable> current_renaming;
     void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);

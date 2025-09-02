@@ -49,7 +49,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         if(mut && is_service) imp->error(p-2, "Services do not accept values by reference\nThis ensures failsafe-compliant extensibility.\nDid you mean to declare a runtype instead?");
         
         if(!types.contains(next)) imp->error(--p, "Missing runtype: "+next);
-        if(next=="nom" && args.size()) imp->error(--p, "Misplaced align\nCan only be the first argument of a runtype\nor the argument of dependent runtypes");
+        if(next==NOM_VAR && args.size()) imp->error(--p, "Misplaced align\nCan only be the first argument of a runtype\nor the argument of dependent runtypes");
         Type argType = types.vars[next];
         if(arg_name=="," || arg_name==")") {
             arg_name = create_temp();
