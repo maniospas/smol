@@ -81,7 +81,7 @@ void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *
 }
 
 
-void* __smolambda_add_task(void (*func)(void *), void *arg) {func(arg);return nullptr;}
+void* __smolambda_add_task(void (*func)(void *), void *arg) {func(arg);return 0;}
 
 void __smolambda_task_wait(void *task_ptr) {}
 

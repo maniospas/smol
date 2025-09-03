@@ -40,7 +40,7 @@ smo read(u64)
         char ch = 0;
         bool success = false;
         char first = getchar();
-        if (first != "-"[0] && first != EOF) {
+        if(first != "-"[0] && first != EOF) {
             ungetc(first, stdin);
             i64 result = scanf("%lu%c", &number, &ch);
             success = (result == 2 && ch == 13);
@@ -127,7 +127,7 @@ smo convert(f64, String _s)
         bool success = true;
         bool negative = false;
 
-        if (s__length == 0) success = false;
+        if(s__length == 0) success = false;
         else {
             char *chars = (char*)s__contents;
             u64 i = 0;
