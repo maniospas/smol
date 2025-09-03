@@ -175,8 +175,8 @@ The language server offers tooltips, error traces, and jumping to definitions.</
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Point(f64 x, f64 y) -> @new
-smo Field(nom, Point start, Point end) -> @new
+smo Point(f64 x, f64 y) -> @struct
+smo Field(nom, Point start, Point end) -> @struct
 
 service main()
     // raw numbers you write are either 
@@ -200,7 +200,7 @@ Nothing exciting yet.</p>
 <p>Next are some so-called <i>runtypes</i>, declared by the <code class="language-smolambda">smo</code>
 keyword. These merge the concept of types and functions, where <code class="language-smolambda">-></code>
 returns a value or tuple. If variable names are part of the returned tuple, they can be accessed as fields
-from the result. <code class="language-smolambda">@new</code> is a shorthand for
+from the result. <code class="language-smolambda">@struct</code> is a shorthand for
 returning a tuple of all arguments. It is useful for declaring structural data without functionality - though
 those data may make runtime assertions.</p>
 
@@ -314,7 +314,7 @@ available in the standard library.
       <td>E.g., escape loops from inside conditions</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">@new</code></td>
+      <td><code class="language-smolambda">@struct</code></td>
       <td>Return all inputs</td>
       <td>Prioritized on runtype conflicts</td>
     </tr>
@@ -701,7 +701,7 @@ runtype with no arguments directly returns a version constructed with two argume
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Point(f64 x, f64 y) -> @new
+smo Point(f64 x, f64 y) -> @struct
 smo Point() 
     start = Point(0.0, 0.0)
     -> start // as a single argument it is directly unpacked
@@ -720,7 +720,7 @@ However, only returned symbols can be accessed as fields.
 For example, below the input variable <code class="language-smolambda">x</code>
 cannot be accessed after computations conclude.
 We already saw that it may be convenient to unpack all runtype inputs with
-<code class="language-smolambda">@new</code> to directly declare a structural type
+<code class="language-smolambda">@struct</code> to directly declare a structural type
 without internal implementation.
 </p>
 
@@ -974,7 +974,7 @@ where they are defined.</p>
 <pre><code class="language-smolambda">@include std.builtins
 
 union Type(i64, f64, u64)
-smo Point(Type x, Type y) -> @new
+smo Point(Type x, Type y) -> @struct
 smo inc(Point &p)
     p.x = add(p.x, Type(1))
     p.y = add(p.y, Type(1))
@@ -988,7 +988,7 @@ service main()
     --
 </code></pre>
 
-<p>Till now we used <code class="language-smolambda">->@new</code> returns as a shorthand for returning
+<p>Till now we used <code class="language-smolambda">->@struct</code> returns as a shorthand for returning
 input values. However, this also helps disambiguate overloading when there is no clear resolution. 
 In particular, if exactly one of the competing runtypes
 has this kind of return declaration or argument, that is used as the choice that breaks the stalemate.
@@ -1027,8 +1027,8 @@ when popping values from buffers.
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Type1(nom, f64 value) -> @new
-smo Type2(nom, f64 value) -> @new
+smo Type1(nom, f64 value) -> @struct
+smo Type2(nom, f64 value) -> @struct
 
 smo recognize(Type1 p) print("this is Type1") --
 smo recognize(Type2 p) print("this is Type2") --
@@ -1069,7 +1069,7 @@ ergonomic alternative. More on overloading later.</p>
 <pre><code class="language-smolambda">@include std.builtins
 @include std.vec // more on vectors later
 
-smo point(f64 x, f64 y) -> @new
+smo point(f64 x, f64 y) -> @struct
 union Elements (vec, point, f64, i64)
 smo first(Elements elements)
     with |-> elements:vec[0]

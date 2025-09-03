@@ -46,7 +46,7 @@ smo str (
         char first, 
         ptr memory
     ) 
-    -> @new
+    -> @struct
 
 smo nstr (
         nom, 
@@ -55,7 +55,7 @@ smo nstr (
         char first, 
         ptr memory
     )  
-    -> @new
+    -> @struct
 
 union String
     cstr
@@ -227,7 +227,7 @@ smo at(nstr x, u64 pos)
     -> z
 
 smo Split(nom, str query, str sep, u64 &pos) 
-    -> @new
+    -> @struct
     
 smo Split(String _query, IndependentString _sep) 
     -> nom:Split(_query:str, _sep:str, u64 &pos) // splits are str (not cstr or nstr)

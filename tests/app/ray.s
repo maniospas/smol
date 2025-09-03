@@ -12,9 +12,9 @@ smo Sphere(
         f64 dx, 
         f64 dy
     ) 
-    -> @new
+    -> @struct
 
-smo process(Sphere s, f64 dt)
+smo process(Sphere &s, f64 dt)
     &nx = s.x:add(s.dx * dt)
     &ny = s.y:add(s.dy * dt)
     &ndx = s.dx
@@ -35,17 +35,24 @@ smo process(Sphere s, f64 dt)
         ny = 450.0 - s.r
         ndy = ndy:negative
         --
-    -> Sphere(nx, ny, s.r, ndx, ndy)
+    s = Sphere(nx, ny, s.r, ndx, ndy)
+    --
 
 
 smo draw(Sphere sphere, Window &window)
     window:circ(sphere.x, sphere.y, sphere.r, Color(200, 50, 50))
     --
 
+// smo test()
+//     s = Sphere[]:new(100.0, 100.0, 30.0, 1000.0, 650.0)
+//     --
+
 smo process(Sphere[] &spheres, f64 dt)
     range(spheres:len)
     :while next(u64& i)
-        spheres:put(i, spheres[i]:process(dt))
+        &s = spheres[i]
+        s:process(dt)
+        spheres:put(i, s)
     ----
 
 service test()
@@ -60,23 +67,20 @@ service test()
     &accum_fps = 3600.0
     on Heap:volatile(1024)
         while window:is_open
+            spheres
+            :process(dt)
 
-            spheres:process(dt)
-
-            // prepare
             window
             :begin
             :clear(Color(50,50,80))
 
-            // process and draw
             range(spheres:len)
             :while next(u64 &i)
                 spheres[i]:draw(window)
                 --
 
-            // finalize loop
             window
-            :text(str((accum_fps/60.0):u64)+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
+            :text((accum_fps/60.0):u64:str+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
             :end
             
             // time computation

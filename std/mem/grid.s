@@ -32,7 +32,7 @@ smo GridEntry (
         MemoryGrid &grid,
         u64 id
     ) 
-    -> @new
+    -> @struct
 
 smo at(MemoryGrid &self, u64 id) 
     -> nom:GridEntry(self, id)

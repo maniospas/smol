@@ -124,7 +124,6 @@ smo nstr(Memory &allocator, f64 number)
         --
     -> nom:nstr(contents, length, first, mem.underlying)
 
-
 smo str(Memory &allocator, u64 number)
     -> nstr(allocator, number):str
 

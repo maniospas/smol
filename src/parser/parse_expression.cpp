@@ -551,7 +551,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             if(num_choices==0) 
                 imp->error(--p, "Overloaded or union runtype has no alternative");
             if(num_choices!=1) 
-                imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@new return\nto break the priority stalemate.\nCandidates:"+candidates);
+                imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@struct return\nto break the priority stalemate.\nCandidates:"+candidates);
             
             if(type->not_primitive()) for(size_t i=0;i<type->args.size();++i) {
                 Variable var = create_temp();
@@ -595,7 +595,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 candidates += "\n"+option->signature(types);
             }
             if(num_choices!=1) 
-                imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@new return\nto break the priority stalemate.\nCandidates:"+candidates);
+                imp->error(--p, "Overloaded or union runtype names are ambiguous.\nConsider defining exactly one of them with ->@struct return\nto break the priority stalemate.\nCandidates:"+candidates);
             if(type->not_primitive()) 
                 for(size_t i=0;i<type->args.size();++i) {
                     internalTypes.vars[var+type->args[i].name] = type->args[i].type;

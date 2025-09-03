@@ -28,10 +28,10 @@
 @about __unsafe_put "Can modify an allocated memory. This operation cannot be callsed in safe files."
 
 smo Stack(nom) 
-    -> @new 
+    -> @struct 
 
 smo Heap(nom) 
-    -> @new
+    -> @struct
 
 union MemoryDevice
     Stack
@@ -53,7 +53,7 @@ smo ContiguousMemory (
         ptr mem,
         ptr underlying
     ) 
-    -> @new
+    -> @struct
 
 smo is(Primitive self, Primitive) 
     -> self

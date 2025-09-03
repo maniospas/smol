@@ -11,7 +11,7 @@ smo TPoint(nom type, f64 px, f64 py)
     -> type, x,y
 
 
-smo IPoint(nom type, f64 x, f64 y) -> @new
+smo IPoint(nom type, f64 x, f64 y) -> @struct
 
 smo scale(Point &p, f64 factor) 
     // & in the signature is required to allow any modification

@@ -17,13 +17,13 @@ smo Color(u64 r, u64 g, u64 b, u64 a)
     if g>255 -> fail("Color g greater than 255")
     if b>255 -> fail("Color b greater than 255")
     if a>255 -> fail("Color a greater than 255")
-    -> @new
+    -> @struct
 
 smo Position(f64 x, f64 y)
-    -> @new
+    -> @struct
 
 smo Size(f64 w, f64 h)
-    -> @new
+    -> @struct
 
 smo Window(nom)
     @noborrow
@@ -36,7 +36,7 @@ smo Window(nom)
     @link{-lpthread}
     @link{-lGL}
     @link{-lX11}
-    -> @new
+    -> @struct
 
 smo open(Window& window, Size size, cstr _title)
     title = _title:str
@@ -71,7 +71,7 @@ smo Color(u64 r, u64 g, u64 b)
     -> Color(r, g, b, 255)
 
 smo Texture(nom, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
-    -> @new
+    -> @struct
 
 smo open(Texture, CString _path)
     path = _path:nstr

@@ -60,10 +60,10 @@
 
 smo ReadFile(nom, ptr contents)
     @noborrow
-    -> @new
+    -> @struct
 smo WriteFile(nom, ptr contents)
     @noborrow
-    -> @new
+    -> @struct
 
 union File
     ReadFile

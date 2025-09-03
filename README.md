@@ -15,63 +15,52 @@ Declare zero-cost safe abstractions for structural and nominal data. Transpile t
 
 ## Quickstart
 
-Here's two snippets that showcase several features on 
-data structures and control flow respectively.
-Visit the docs above for a comprehensive breakdown, 
-but here's a summary of important commands. Everything,
-from file I/O to string handling, is built from safe, near-zero-cost 
-abstractions over bare-metal operations.
-
-Data structures are structurally or nominally typed,
-where in the nominal case the argument list starts with the special
-`nom` type that is later returned. 
-`smo` are functions that run 
-and produce a list of outputs that work as a type. So
-they are called *runtypes*. Named outputs can be accessed 
-as fields. Use `@new` to refer to the list of inputs. 
-Comma concatenation is flat. The `:` symbol is currying,
-that is, passes the left-hand-side as the first argument.
-Finally `->` is a returned value, `--` is a return with
-no value, and services are runtypes that form failure barriers.
-Grouping returns is a convenient way to also track code complexity.
-
+Here's what smoλ programs look like.
+<ul>
+<li><code class="language-smolambda">smo</code> are inlined and could fail. Results are treated as both tuples and types.
+</li><li><code class="language-smolambda">service</code> denotes functions that, on internal failure (e.g., of called smo or other services), safely deallocate resources. Result errors can be checked or -if not- cascade into more failures.
+</li><li><code class="language-smolambda">nom</code> needed for calls whose results is attached to a specific name for safety (nominal type).
+</li><li><code class="language-smolambda">:</code> passes the left-hand-side as the first argument ("currying"). <code class="language-smolambda">()</code> is ommitted. Currying into a loop passes the value into first call in the condition; in this case <code class="language-smolambda">next(chunks&, str&)</code> is called to progress the iteration.
+</li>
+<li><code class="language-smolambda">&</code> if prepended to the first variable assignment indicates mutable variables that can be overwriten.</li>
+<li><code class="language-smolambda">--,-></code> are code block ends and returns respectively.</li>
+</ul>
 
 ```rust
 @include std.builtins
+@include std.mem -> Memory, arena
+@include std.file
 
-// overloading a structural type
-smo Point(f64 x, f64 y) -> @new 
-smo Point(u64 x, u64 y) -> @new
-// Field is nominal, Point will be the same for start and end
-smo Field(nom, Point start, Point end) -> @new
-smo operation(Field f, f64 multiple) 
-    value = f.start.x + f.end.y
-    -> value*multiple
+smo file_stats(nom, u64 lines, u64 chars) 
+    -> @struct
 
-service main()
-    // type inference based on arguments
-    p = Point(3.0,5.0)
-    f = nom:Field(1.0,2.0,p)
-    m = f64:read             // types can be args to determine type version
-    print(f:operation(m))    // prints 6*m
+smo print(file_stats stats)
+    printin(stats.lines)
+    printin(" lines, ")
+    printin(stats.chars)
+    print(" bytes")
     --
-```
 
-
-```rust
-@include std.builtins
+smo file_reader(String path, Memory &memory)
+    &stat_lines = 0
+    &stat_chars = 0
+    &file = ReadFile:open(path)
+    endl = "\n":str.first
+    on memory:arena(1024)
+        file
+        :while next_line(str &line)
+            printin("| ")
+            print(line)
+            stat_lines = stat_lines + 1
+            stat_chars = stat_chars + line:len
+        ----
+    -> nom:file_stats(stat_lines, stat_chars)
 
 service main()
-    print("Printing squares of 0,1,..,9")
-    // declare i as mutable so that `next` can modify it
-    range(10) // curried as first argument in the `next` call
-    :while next(u64& i) 
-        if i>=2 
-            squared = i*i
-            -> print(squared) // return from if with no-result (more consise than -- afterwards)
-        else 
-            -> print(i) 
-    ---- // end `while`, then `main`
+    &memory = Stack:arena(1048576) // 1MB
+    stats = file_reader("README.md", memory)
+    print(stats)
+    --
 ```
 
 

@@ -11,8 +11,8 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
     }
     if(next==AT_VAR) {
         next = imp->at(p++);
-        if(next!=NEW_VAR) 
-            imp->error(--p, "Use `->@new`");
+        if(next!=STRUCT_VAR) 
+            imp->error(--p, "Use `->@struct`");
         choice_power += 4; 
         if(is_service && !uplifting_targets.size())  
             if (!ranges::any_of(packs, [](const Variable& pack) {return pack == ERR_VAR;})) {

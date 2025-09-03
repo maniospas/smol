@@ -145,7 +145,7 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
     unordered_set<string> imported;
     size_t p = 0;
     size_t warnings = 0;
-    while(p<imp->tokens.size()-1) {
+    if(imp->tokens.size()) while(p<imp->tokens.size()-1) {
         try {
             if (imp->at(p) == "@" && imp->at(p + 1) == "unsafe") {
                 imp->allow_unsafe = true;
