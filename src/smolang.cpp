@@ -3,17 +3,19 @@
 // g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
 
 #include "def.h"
-#include "parser/recommendations.cpp"
+#include "parser/tostr/recommendations.cpp"
 #include "parser/gather_tuple.cpp"
 #include "parser/next_var.cpp"
 #include "parser/assign_variable.cpp"
 #include "parser/parse_signature.cpp"
 #include "parser/parse_directive.cpp"
 #include "parser/parse_expression.cpp"
-#include "parser/signature.cpp"
+#include "parser/call_type.cpp"
+#include "parser/tostr/signature.cpp"
 #include "parser/rebase.cpp"
 #include "parser/parse.cpp"
-#include "parser/parse_return.cpp"
+#include "parser/returns/parse_return.cpp"
+#include "parser/returns/map_to_return.cpp"
 #include "parser/simplify.cpp"
 #include <regex>
 #include <map>

@@ -12,15 +12,15 @@
 #include <unordered_map>
 #include <cctype>
 #include "parser/tokenize.h"
-#include "parser/common.h"
-#include "parser/faststring.h"
-#include "parser/base64.cpp"
+#include "utils/common.h"
+#include "utils/faststring.h"
+#include "utils/base64.cpp"
 #include <cctype>
 #include <cstdlib>
 #include <unordered_set>
 #include <set>
 #include <queue>  
-#include "segments.h"
+#include "utils/segments.h"
 
 
 using namespace std;

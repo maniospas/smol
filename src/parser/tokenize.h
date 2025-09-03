@@ -9,7 +9,7 @@
 #include <memory>
 #include <unordered_map>
 #include <cctype>
-#include "common.h"
+#include "../utils/common.h"
 #include <sstream>
 using namespace std;
 
@@ -24,14 +24,14 @@ inline size_t parse_integer_suffix(const string& line, size_t i) {
         if ((c == 'u' || c == 'U') && !found_u) {
             found_u = true;
             ++i;
-        } else if ((c == 'l' || c == 'L') && l_count < 2) {
+        } 
+        else if ((c == 'l' || c == 'L') && l_count < 2) {
             ++l_count;
             ++i;
-        } else {
+        } 
+        else 
             break;
-        }
     }
-
     // Accept if at least one valid suffix was found and
     // total suffix length equals i - start (no extra chars)
     // (actually, we can always accept up to here; tokenizer only calls this at number end)
@@ -51,10 +51,14 @@ public:
     vector<Token> tokens;
     string& at(size_t pos);
     void error(size_t pos, const string& message);
-    size_t size() {return tokens.size();}
+    size_t size() {
+        return tokens.size();
+    }
 };
-bool is_symbol(char c) {return ispunct(c) && c != '_';}
 
+bool is_symbol(char c) {
+    return ispunct(c) && c != '_';
+}
 
 class Token {
 public:
@@ -63,50 +67,83 @@ public:
     size_t character;
     shared_ptr<Import> imp;
     Token() {}
-    Token(const string& n, size_t l, size_t c, const shared_ptr<Import>& i) : name(n), line(l), character(c), imp(i) {}
+    Token(
+        const string& n, 
+        size_t l, 
+        size_t c, 
+        const shared_ptr<Import>& i
+    ) : name(n), line(l), character(c), imp(i) {}
+    
     string show() const {
-        if (!imp || imp->path.empty()) return "[no file]";
+        if (!imp || imp->path.empty()) 
+            return "[no file]";
         ifstream file(imp->path);
-        if (!file) return imp->path;
+        if (!file) 
+            return imp->path;
         string current;
         size_t current_line = 1;
-        while (getline(file, current)) {
-            if (current_line == line) break;
+        while(getline(file, current)) {
+            if(current_line == line) 
+                break;
             current_line++;
         }
-        if (current_line != line) return imp->path;
+        if(current_line != line)
+            return imp->path;
         string expanded_line;
-        for (char c : current) {
-            if (c == '\t') expanded_line += "    ";
-            else expanded_line += c;
+        for(char c : current) {
+            if(c == '\t') 
+                expanded_line += "    ";
+            else 
+                expanded_line += c;
         }
         size_t display_col = 0;
-        for (size_t i = 0, col = 1; i < current.size() && col < character; ++i) {
+        for(size_t i = 0, col = 1; i < current.size() && col < character; ++i) {
             if (current[i] == '\t') {
                 display_col += 4;
                 col++;
-            } else {
-                display_col += 1;
-                col++;
-            }
+                continue;
+            } 
+            display_col += 1;
+            col++;
         }
-        string red_marker = "\033[31m" + string(display_col, ' ') +"^" + string(name.size()-1, '^') + "\033[0m";
-        return "at \033[90m "+imp->path+" line "+to_string(line)+" col "+to_string(character)+"\033[0m\n"+expanded_line + "\n" + red_marker;
+        string red_marker = 
+            "\033[31m" 
+            + string(display_col, ' ') 
+            +"^" 
+            + string(name.size()-1, '^') 
+            + "\033[0m";
+        return 
+            "at \033[90m "
+            +imp->path
+            +" line "+to_string(line)
+            +" col "+to_string(character)
+            +"\033[0m\n"
+            +expanded_line 
+            + "\n" 
+            + red_marker;
     }
 };
 
 string& Import::at(size_t pos) {
-    if(pos<0) ERROR("Tried to read before the beginning of file: "+path);
-    if(pos>=tokens.size()) ERROR("Premature end of file: "+path+"\n"+tokens[pos-1].show());
+    if(pos<0) 
+        ERROR("Tried to read before the beginning of file: "+path);
+    if(pos>=tokens.size()) 
+        ERROR("Premature end of file: "+path+"\n"+tokens[pos-1].show());
     return tokens[pos].name;
 }
+
 void Import::error(size_t pos, const string& message) {
-    if(pos<0) ERROR("Tried to read before the beginning of file: "+path);
-    if(pos>=tokens.size()) ERROR("Premature end of file: "+path+"\n"+tokens[pos-1].show());
+    if(pos<0) 
+        ERROR("Tried to read before the beginning of file: "+path);
+    if(pos>=tokens.size()) 
+        ERROR("Premature end of file: "+path+"\n"+tokens[pos-1].show());
     ERROR(message+"\n"+tokens[pos].show());
-}auto tokenize(const string& path) {
+}
+
+shared_ptr<Import> tokenize(const string& path) {
     ifstream file(path);
-    if (!file) ERROR("Could not open file: " + path);
+    if(!file) 
+        ERROR("Could not open file: " + path);
     string line;
     size_t line_num = 0;
     auto main_file = make_shared<Import>(path);

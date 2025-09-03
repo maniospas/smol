@@ -20,20 +20,34 @@ public:
             if(id==(size_t)-1) ERROR("Too many unique tokens in source code (should normally be impossible)");
             name2id[name] = id;
             id2name[id] = name;
-        } else id = name2id[name];
+        } 
+        else 
+            id = name2id[name];
     }
     ReusableString(const ReusableString& other) = default;
     ReusableString(ReusableString&& other) noexcept = default;
     ReusableString& operator=(const ReusableString& other) = default;
     ReusableString& operator=(ReusableString&& other) noexcept = default;
-    bool operator==(const ReusableString& other) const {return id==other.id;}
-    bool operator!=(const ReusableString& other) const {return id!=other.id;}
-    size_t get_id() const { return id; }
-    const string& name() const { return id2name.at(id); }
+    bool operator==(const ReusableString& other) const {
+        return id==other.id;
+    }
+    bool operator!=(const ReusableString& other) const {
+        return id!=other.id;
+    }
+    size_t get_id() const {
+        return id;
+    }
+    const string& name() const {
+        return id2name.at(id); 
+    }
 };
 unordered_map<string, size_t> ReusableString::name2id;
 unordered_map<size_t, string> ReusableString::id2name;
-namespace std {template<> struct hash<ReusableString> {size_t operator()(const ReusableString& rs) const {return hash<size_t>()(rs.get_id());}};}
+namespace std {template<> struct hash<ReusableString> {
+    size_t operator()(const ReusableString& rs) const {
+        return hash<size_t>()(rs.get_id());}
+    };
+}
 
 class ReusableText {
 public:
@@ -52,15 +66,22 @@ public:
                     in_str = !in_str;
                     continue;
                 }
-                if(in_str) {output += line[i++];continue;}
-                while(i < line.size() && isspace(line[i])) {output += line[i++];}
-                if(i >= line.size()) break;
+                if(in_str) {
+                    output += line[i++];
+                    continue;
+                }
+                while(i < line.size() && isspace(line[i])) {
+                    output += line[i++];
+                }
+                if(i >= line.size()) 
+                    break;
                 if (is_symbol(string(1, line[i]))) {
                     contents.emplace_back(string(1, line[i++]));
                     continue;
                 }
                 int start = i;
-                while (i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) i++;
+                while(i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) 
+                    i++;
                 string token = line.substr(start, i - start);
                 contents.emplace_back(token);
             }
@@ -68,7 +89,8 @@ public:
     }
     string text() {
         string ret;
-        for(ReusableString token : contents) ret += token.name()+" ";
+        for(ReusableString token : contents) 
+            ret += token.name()+" ";
         return ret;
     }
 };

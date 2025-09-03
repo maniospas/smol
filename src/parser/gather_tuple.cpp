@@ -10,9 +10,14 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
     vector<Variable> ret;
     if(curry.exists()) {
         Variable var = curry;
-        if(!internalTypes.contains(var)) imp->error(p, "Not found: "+pretty_var(var.to_string())+recommend_variable(types, var));
+        if(!internalTypes.contains(var)) 
+            imp->error(p, "Not found: "
+                +pretty_var(var.to_string())
+                +recommend_variable(types, var)
+            );
         const auto& type = internalTypes.vars.find(var)->second;
-        if(!type->not_primitive()) ret.push_back(var);
+        if(!type->not_primitive()) 
+            ret.push_back(var);
         else if(type->is_service) {
             if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) {
                 const Variable& call_var = active_calls[var];
@@ -20,25 +25,35 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
                 implementation += Code(var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, ARROW_VAR, ERR_VAR, SEMICOLON_VAR);
                 Variable fail_var = create_temp();
                 internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
-                implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
-                errors = errors+Code(fail_var, token_print, type->name, call_var, token_failsafe);
+                implementation += Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
+                errors += Code(fail_var, token_print, type->name, call_var, token_failsafe);
                 add_preample("#include <stdio.h>");
             }
-            for(size_t i=1;i<type->packs.size();++i) ret.push_back(active_calls[var]+type->packs[i]);
-            if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) active_calls[active_calls[var]] = EMPTY_VAR;
+            for(size_t i=1;i<type->packs.size();++i) 
+                ret.push_back(active_calls[var]+type->packs[i]);
+            if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) 
+                active_calls[active_calls[var]] = EMPTY_VAR;
         }
-        else for(const Variable& pack : type->packs) ret.push_back(var+pack);
+        else 
+            for(const Variable& pack : type->packs) 
+                ret.push_back(var+pack);
         string next = imp->at(p);
-        if(next==")") return ret;
+        if(next==")") 
+            return ret;
     }
     while(true) {
         int expression_start = p;
         string next = imp->at(p++);
-        if(next==")") {--p;break;}
+        if(next==")") {
+            --p;
+            break;
+        }
         Variable var = parse_expression(imp, p, next, types);
-        if(!internalTypes.contains(var)) imp->error(expression_start, "Failed to parse expression");
+        if(!internalTypes.contains(var)) 
+            imp->error(expression_start, "Failed to parse expression");
         const auto& type = internalTypes.vars[var];
-        if(!type->not_primitive()) ret.push_back(var);
+        if(!type->not_primitive()) 
+            ret.push_back(var);
         else if(type->is_service) {
             if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) {
                 const Variable& call_var = active_calls[var];
@@ -50,13 +65,21 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
                 errors = errors+Code(fail_var, token_print, type->name, call_var, token_failsafe);
                 add_preample("#include <stdio.h>");
             }
-            for(size_t i=1;i<type->packs.size();++i) ret.push_back(active_calls[var]+type->packs[i]);
-            if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) active_calls[active_calls[var]] = EMPTY_VAR;
+            for(size_t i=1;i<type->packs.size();++i) 
+                ret.push_back(active_calls[var]+type->packs[i]);
+            if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) 
+                active_calls[active_calls[var]] = EMPTY_VAR;
         }
-        else for(const Variable& pack : type->packs) ret.push_back(var+pack);
+        else 
+            for(const Variable& pack : type->packs)
+                ret.push_back(var+pack);
         next = imp->at(p++);
-        if(next==")") {--p;break;}
-        if(next!=",") imp->error(--p, "Missing comma");
+        if(next==")") {
+            --p;
+            break;
+        }
+        if(next!=",") 
+            imp->error(--p, "Missing comma");
     }
     return ret;
 }
