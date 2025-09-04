@@ -26,7 +26,7 @@
     .navbar { background: #fffbf0; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);  padding: 0px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
     .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
     .navbar span {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
-    .navbar a:hover {box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);transform: translateY(-1px);}
+    .navbar a:hover {box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);transform: translateY(-1px);border-radius: 20px;}
     .navbar a img {width: 40px;height: 40px;margin-top:5px}
     .navbar a:hover img {width: 45px;height: 45px;margin:0px}
     .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
@@ -45,6 +45,7 @@
     .sidebar-title {  font-weight: none;  cursor: pointer;  user-select: none;  font-size: 0.75em; }
     .sidebar-name { font-size:1.3em; font-weight: bold;  cursor: pointer;  user-select: none;  color: #73181d; }
     .sidebar-sub { font-size: 0.9em;  margin-left: 1em; display: none; }
+    .token.special-amp {color: red;font-weight: bold; }
   </style>
 </head>
 <body>
@@ -613,8 +614,10 @@ a simple example.
 
 service main()
     &i = 511 while i&lt;10 @next i = i+1
-        if i%7==0 |-- // break
-        if i%2==0 -> print(i)
+        if i%7==0 
+            |-- // break
+        if i%2==0 
+            -> print(i)
     ---- // ends `while`, then `main`
 </code></pre>
 
@@ -631,7 +634,8 @@ service main()
     &i=0 while i&lt;10 @next i = i+1
     &j=0 while j&lt;10 @next j = j+1
         print(i:str+" "+j:str)
-        if 5==i+j |||-> print("done") 
+        if 5==i+j 
+            |||-> print("done") 
     ------
 </code></pre>
 
@@ -701,11 +705,12 @@ runtype with no arguments directly returns a version constructed with two argume
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Point(f64 x, f64 y) -> @struct
+smo Point(f64 x, f64 y) 
+    -> @struct
+
 smo Point() 
     start = Point(0.0, 0.0)
     -> start // as a single argument it is directly unpacked
-
 
 service main()
     s = Point()
@@ -725,9 +730,11 @@ without internal implementation.
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins
+
 smo multi_out(u64 x)
     xinc = add(x,1)
     -> xinc, x
+
 smo single_out(u64 x)
     x = add(x,1)
     -> x
@@ -785,7 +792,7 @@ smo Point(nom type, f64 px, f64 py)
 
 smo scale(Point &p, f64 factor) 
     // & in the signature is required to allow any modification
-    // this is an overloaded method for both smo Point
+    // this is an overloaded method for both Point implementations
     p.x = p.x*factor
     p.y = p.y*factor
     --
@@ -1019,19 +1026,26 @@ if also contained in the returned tuple, it ties it back to the runtype. You
 cannot normally set values to it.
 </p>
 <p>
-Compiled assembly often ignores nominal typing primitives, as they are mostly
-used for compilation checks, where they disambiguate strucurally equivalent runtypes 
-among overloaded operations, or within unions. Nominal typing has a small dynamic overhead
-when popping values from buffers.
+Compilation outcomes ignore <code class="language-smolambda">nom</code> (e.g., it 
+does not take up storage), as it is mostly used for disambiguating between strucurally 
+equivalent runtypes.
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Type1(nom, f64 value) -> @struct
-smo Type2(nom, f64 value) -> @struct
+smo Type1(nom, f64 value) 
+    -> @struct
+    
+smo Type2(nom, f64 value) 
+    -> @struct
 
-smo recognize(Type1 p) print("this is Type1") --
-smo recognize(Type2 p) print("this is Type2") --
+smo recognize(Type1 p) 
+    print("this is Type1") 
+    --
+
+smo recognize(Type2 p) 
+    print("this is Type2") 
+    --
 
 service main()
     p1 = nom:Type1(1.0)
@@ -1042,21 +1056,81 @@ service main()
 </code></pre>
 
 
+<h3 id="nominal">Buffers <a href="#buffers" class="anchor-link">🔗</a></h3>
+
+<p>All types admit a buffered variation that can hold an arbitrary number of copies.
+Declare buffers by appending type names with <code class="language-smolambda">[]</code>.
+The language accepts three special runtypes: <code class="language-smolambda">push</code>
+to grow the buffer with an additional item at its end, 
+<code class="language-smolambda">at</code> that is also used for bracket-based
+indexing, and <code class="language-smolambda">len</code> to count the number of elements
+in the buffer. Below is a simple example:
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+@include std.mem
+
+service main()
+    boxes = str[]
+    :push("buffer start":str)
+    :push("buffer end":str)
+    b = boxes[0]
+    print(b) 
+    --
+</code></pre>
+
+<pre style="background-color: #222; color: white;">> smol main.s
+Buffer start
+</pre>
+
+<p><i>Immutable buffers have immutable contents</i>. This includes not allowing
+retrieval of <code class="language-smolambda">ptr</code> data to accidentally 
+place them on mutable variables. There is a lot of flexibility in defining your
+own buffers, but <i>smoλ</i> actively promotes the faster memory management of
+its standard library
+</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+smo strbuf(nom, str[] &ref)
+    -> @struct
+
+smo strbuf(String value)
+    -> nom:strbuf(str[]:push(value:str))
+
+smo put(strbuf &buf, String value)
+    -> buf.ref:put(0, value:str)
+
+smo str(strbuf &buf)
+    -> buf.ref[0]:str
+
+service main()
+    &boxes = strbuf[]  // must be mutable to grant mutable access
+    :push("first element":strbuf)
+    :push("second element":strbuf)
+    &b = boxes[0]
+    // the line bellow is fancier than b:put("overwritten element")
+    on b 
+        -> "overwritten element":put 
+    print(b:str) 
+    --
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+overwritten element
+</pre>
+
 
 <h3 id="typechecking">Typechecking <a href="#typechecking" class="anchor-link">🔗</a></h3>
 
-<p>There is also the option to generate code
-based on compile-time typechecking. One of smoλ's goals is to give the illusion of 
-a higher-level counterpart despite providing fast zero cost abstractions over bare metal
-assembly.
+<p>There is the option to perform compile-time typechecking. This capability is provided because
+one of smoλ's goals is to give the illusion of a higher-level counterpart despite providing fast 
+zero cost abstractions over bare metal assembly.
 </p>
 
-<p>Compile-time typechecking effectively tries to execute
-an alternative across several code blocks. The syntax designates the
-start of a code block with  <code class="language-smolambda">with</code>
-and has at least one follow-up code blocks designated by <code class="language-smolambda">else</code>.
-The first block that compiles without creating an error about invalid runtypes
-is the one selected each time.
+<p>This feature tries to compile several alternative code blocks, picking up the first valid
+one (validity is checked only in terms of runtype arguments). 
+It does so by designating the start of a code block with  <code class="language-smolambda">with</code>
+and having at least zero or more follow-up block designated by <code class="language-smolambda">else</code>.
 </p>
 
 <p>This feature is particularly useful with <code class="language-smolambda">union</code> types
@@ -1069,13 +1143,26 @@ ergonomic alternative. More on overloading later.</p>
 <pre><code class="language-smolambda">@include std.builtins
 @include std.vec // more on vectors later
 
-smo point(f64 x, f64 y) -> @struct
-union Elements (vec, point, f64, i64)
-smo first(Elements elements)
-    with |-> elements:vec[0]
-    else |-> elements:point.x
-    else |-> elements:f64
+smo point(f64 x, f64 y) 
+    -> @struct
+
+union Elements 
+    vec
+    point
+    f64
+    i64
     --
+
+smo first(Elements elements)
+    with 
+        res = elements:vec[0]
+        --
+    else
+        res = elements:point.x
+        --
+    else 
+        res = elements:f64
+    ---> res
 
 service main()
     x1 = vec:rand(10)
@@ -1102,7 +1189,9 @@ You will often not notice anything different.
 
 <pre><code class="language-smolambda">@include std.builtins
 
-service square(f64 x) -> x*x
+service square(f64 x) 
+    -> x*x
+
 service main()
     y = square(2.0)
     print(y)
@@ -1162,6 +1251,7 @@ the hotpath.
 service square(f64 x) 
     fail("Don't wanna!") // manually fail
     -> mul(x,x)
+
 service main()
     y = square(2.0)
     if y.err:bool -> print("Something went wrong")
@@ -1187,16 +1277,20 @@ service fail too.
 
 service get_age() 
     print("What's your age?")
-    age = u64:read()
-    if age&lt;=1   -> fail("Too young for this stuff")
-    if age<5    -> fail("Still too young")
-    if age>=140 -> fail("Too old for this stuff")
+    age = u64:read
+    if age&lt;=1
+        -> fail("Too young for this stuff")
+    if age<5
+        -> fail("Still too young")
+    if age>=140 
+        -> fail("Too old for this stuff")
     -> age
 
 service main()
     while true
         age = get_age() 
-        if age.err:bool:not |--
+        if age.err:bool:not 
+            |--
         --
     on Heap:dynamic
         print("You've seen at least "+str(age-1)+" years gone by.")
@@ -1272,8 +1366,10 @@ to enable fast comparison without going through heap data.
 service main()
     i = 0
     while i&lt;=10 
-        if 0==i%2 -> print("Even "+i:str)
-        else      -> print("Odd  "+i:str)
+        if 0==i%2 
+            -> print("Even "+i:str)
+        else      
+            -> print("Odd  "+i:str)
         i = i+1
     ---- // end while and main with no return
 </code></pre>
@@ -1346,8 +1442,11 @@ smo dot(allocate x, allocate y)
     i = 0
     while i&lt;x.size
         @next i = i+1 
-        with sum = sum + x[i]*y[i]
-    -- else -----&gt; sum // all closing statements
+        with 
+            sum = sum + x[i]*y[i]
+            --
+        else 
+    -----&gt; sum // all closing statements
 
 service main()
     n = 10000
@@ -1447,7 +1546,11 @@ Prism.languages.smolambda = {
       greedy: true
     }
   ],
-  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\b/,
+  'special-amp': {
+    pattern: /&/,
+    alias: 'operator' // optional, gives Prism’s operator style too
+  },
+  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

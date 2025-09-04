@@ -25,7 +25,7 @@
     .navbar { background: #fffbf0; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);  padding: 0px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
     .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
     .navbar span {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
-    .navbar a:hover {box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);transform: translateY(-1px);}
+    .navbar a:hover {box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);transform: translateY(-1px);border-radius: 20px;}
     .navbar a img {width: 40px;height: 40px;margin-top:5px}
     .navbar a:hover img {width: 45px;height: 45px;margin:0px}
     .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
@@ -44,6 +44,7 @@
     .sidebar-title {  font-weight: none;  cursor: pointer;  user-select: none;  font-size: 0.75em; }
     .sidebar-name { font-size:1.3em; font-weight: bold;  cursor: pointer;  user-select: none;  color: #73181d; }
     .sidebar-sub { font-size: 0.9em;  margin-left: 1em; display: none; }
+    .token.special-amp {color: red;font-weight: bold; }
   </style>
 </head>
 <body>
@@ -105,9 +106,12 @@ that you do not need to worry too much about technical details.
 </p>
 <p>
 Our first program shows how to run a program and print a message.
-Download the <code class="language-smolambda">smol</code> executable from the <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>.
-Place it alongside the <code>std</code> directory and add both the containing folder and a C/C++ compiler (e.g., GCC) to your system PATH.  
-Finally, create a file named <i>main.s</i> with the text below. Open a terminal in the same folder and run <code class="language-smolambda">smol main.s</code>.
+Download the <code class="language-smolambda">smol</code> executable 
+from the <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>.
+Place it alongside the <code>std</code> directory and add both the containing folder 
+and a C/C++ compiler (e.g., GCC) to your system PATH. Finally, create a file named <i>main.s</i> 
+with the text below. Open a terminal in the same folder and run 
+<code class="language-smolambda">smol main.s</code>.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -123,19 +127,22 @@ Hello world!
 </pre>
 
 <p>
-As a quick preview, <code class="language-smolambda">@include std.builtins</code> adds basic tools like <code class="language-smolambda">print</code>,  
-<code class="language-smolambda">service main()</code> is where your program starts, and the line with <code class="language-smolambda">--</code> marks the end 
+As a quick preview, <code class="language-smolambda">@include std.builtins</code> 
+adds basic tools like <code class="language-smolambda">print</code>,  
+<code class="language-smolambda">service main()</code> is where your program starts, 
+and the line with <code class="language-smolambda">--</code> marks the end 
 of the program.
 </p>
 
 <h1 id="variables">Variables <a href="#variables" class="anchor-link">🔗</a></h1>
 
 <p>
-A variable is a named box that holds a value. You give it a name, then you put a value in it once with the 
-pattern <code class="language-smolambda">variable_name = value</code>. This operation is called an <i>assignment</i>.
-Names cannot start with numbers or contain
-spaces or special symbols other than the underscore <code class="language-smolambda">_</code>. Having two consecutive
-underscores is also not allowed. Below is an example where we set a constant text (known as <code class="language-smolambda">cstr</code>) 
+A variable is a named box that holds a value. You give it a name, then 
+put a value in it once with the pattern <code class="language-smolambda">variable_name = value</code>. 
+This process is called an <i>assignment</i>. Names cannot start with numbers or contain
+spaces or special symbols other than the underscore <code class="language-smolambda">_</code>. 
+Having two consecutive underscores is also not allowed. Below is an example where we set a 
+constant text known during program creation (<code class="language-smolambda">cstr</code>) 
 to a variable.
 </p>
 
@@ -152,7 +159,7 @@ Numbers are values too. There are three kinds you will use often:
 </p>
 <ul>
   <li><code class="language-smolambda">u64</code> — whole numbers without a sign (0, 1, 2, ...). The default when writing <code class="language-smolambda">2</code> or <code class="language-smolambda">42</code>.</li>
-  <li><code class="language-smolambda">i64</code> — whole numbers with a sign (-1, 0, 1, ...).</li>
+  <li><code class="language-smolambda">i64</code> — whole numbers with a sign (-1, +0, +1, ...) obtained by transforming <code class="language-smolambda">u64</code> values.</li>
   <li><code class="language-smolambda">f64</code> — numbers with a decimal point. The default when writing <code class="language-smolambda">2.0</code> or <code class="language-smolambda">3.14</code>.</li>
 </ul>
 <p>These are known as unsigned integers, signed integers, and float numbers, respectively. 
@@ -166,10 +173,14 @@ Floats follow the IEEE 754 standard, which is typically accurate to 15-17 signif
 For safety, you cannot mix operations between different types of numbers. For example, you cannot subtract 
 a float from <code class="language-smolambda">0</code> but only from <code class="language-smolambda">0.0</code>.
 However, you can convert between number formats with <code class="language-smolambda">value:type</code>.
-See below for examples. Integer division by zero creates a runtime failure (that you can intercept and handle), although
-the IEEE 754 standard for fats allows invalid operations like division by zero and lets them yield positive infinity, n
-egative infinity, or NaN (not a number) values. You can check for those properties by correspondingly calling one of 
-<code class="language-smolambda">is_inf,is_nan</code> from <code class="language-smolambda"></code>std.math</code> import. 
+You would be surprised how many bugs are prevented by requiring explicit data conversions.
+</p>
+<p>
+See below for examples. Integer division by zero creates a runtime failure that you can intercept and handle at the level
+of services. For floats, the IEEE 754 standard allows invalid operations like division by zero and lets them yield positive infinity, 
+negative infinity, or NaN (not a number) values. You can check for those properties by correspondingly calling one of 
+<code class="language-smolambda">is_inf</code> or <code class="language-smolambda">is_nan</code> 
+that can be imported from <code class="language-smolambda"></code>std.math</code>. 
 Lack of native error checking from the standard results in performant code.
 </p>
 
@@ -187,8 +198,8 @@ service main()
 
 <p><b>Mutable variables:</b> After setting a variable, its value cannot normally change. To allow changes, declare it as <i>mutable</i> 
 by placing <code class="language-smolambda">&</code> before its name in its first assignment. 
-Variables are immutable by default to avoid many logic bugs. Having a marking for mutable ones makes spotting them easier 
-and ensures that any mutation is intended.</p>
+Variables are immutable by default to avoid many logic bugs. Look out for the marking to spot values 
+that can may change.</p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
@@ -264,7 +275,8 @@ There are several comparison operators you can use - some of these are defined f
 </ul>
 
 <p>
-We can also add <code class="language-smolambda">elif</code> (else if) and <code class="language-smolambda">else</code> branches to cover other cases.  
+We can also add <code class="language-smolambda">elif</code> (else if) 
+and <code class="language-smolambda">else</code> branches to cover other cases.  
 Each branch is tried in order until one runs.
 </p>
 
@@ -272,9 +284,12 @@ Each branch is tried in order until one runs.
 
 service main()
     x = 0.0-2.0
-    sign = if   x&gt;0.0 -> "positive"
-           elif x&lt;0.0 -> "negative"
-           else       -> "zero"
+    sign = if x&gt;0.0 
+          -> "positive"
+        elif x&lt;0.0 
+          -> "negative"
+        else
+          -> "zero"
 
     print(sign)
     --
@@ -308,7 +323,7 @@ positive
 </pre>
 
 <p>
-It is okay to keep code compact when it reads naturally, for example by writing one line:  
+If you prefer, it is okay to keep code compact when it reads naturally, for example by writing one line:  
 <code class="language-smolambda">if x&gt;0 -> print("positive")</code>.
 </p>
 
@@ -403,7 +418,8 @@ For example, <code class="language-smolambda">f64 x</code> denotes an argument t
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo affine(f64 x, f64 y, f64 z) -> (x+y)*z
+smo affine(f64 x, f64 y, f64 z) 
+    -> (x+y)*z
 
 service main()
     result = affine(1.0, 2.0, 3.0)
@@ -450,8 +466,11 @@ This is useful for choosing a behavior without passing a dummy value.
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo zero(f64) -> 0.0
-smo zero(u64) -> 0
+smo zero(f64) 
+    -> 0.0
+
+smo zero(u64) 
+    -> 0
 
 service main()
     a = zero(f64)
@@ -470,7 +489,8 @@ This reads left-to-right and removes extra parentheses when you chain steps.
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo triple(f64 x) -> x*3.0
+smo triple(f64 x) 
+    -> x*3.0
 
 service main()
     print(2:f64:triple) // 6.0
@@ -491,7 +511,8 @@ Returning early is just a return higher up the page; use uplifting if you need t
 <pre><code class="language-smolambda">@include std.builtins
 
 smo abs(f64 x)
-    if x&lt;0.0 |-> 0.0-x
+    if x&lt;0.0 
+        |-> 0.0-x
     -> x
 
 service main()
@@ -541,16 +562,18 @@ If you don’t check, the error will bubble up until it reaches a place that doe
 <pre><code class="language-smolambda">@include std.builtins
 
 service divide(f64 x, f64 y)
-    if y==0.0 -> fail("Division by zero")
+    if y==0.0 
+        -> fail("Division by zero")
     -> x/y
 
 service main()
     r = divide(1.0, 0.0)
     if r.err:bool
         print("Could not compute.")
+        --
     else
         print(r)
-    --
+    ----
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -578,11 +601,15 @@ Prism.languages.smolambda = {
       greedy: true
     },
     {
-      pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|&|=)/,
+      pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/,
       greedy: true
     }
   ],
-  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\b/,
+  'special-amp': {
+    pattern: /&/,
+    alias: 'operator' // optional, gives Prism’s operator style too
+  },
+  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

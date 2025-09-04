@@ -225,10 +225,13 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             }
             else {
                 internalTypes.vars[elem] = buffer_types[next];
-                if(mutables.find(next)!=mutables.end()) mutables.insert(elem);
+                if(mutables.find(next)!=mutables.end()) 
+                    mutables.insert(elem);
                 for (const auto& pack : buffer_types[next]->packs) {
                     if(!buffer_types[next]->internalTypes.contains(pack)) 
-                        imp->error(--p, "Internal error: failed to unpack value stored on buffer due to unknown type: "+pack.to_string());
+                        imp->error(--p, "Internal error: failed to unpack value stored on buffer due to unknown type: "
+                            +pack.to_string()
+                        );
                     else if(buffer_types[next]->internalTypes.vars[pack]->name == NOM_VAR) {
                         Variable tmp = create_temp();
                         internalTypes.vars[tmp] = buffer_types[next]->internalTypes.vars[pack];
@@ -269,6 +272,8 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             if(packname.is_empty()) 
                 for(const auto& it : buffer_types[next]->internalTypes.vars) 
                     internalTypes.vars[elem+it.first] = it.second;
+            for(const auto& it : buffer_types[next]->buffer_types)
+                buffer_types[elem+it.first] = it.second;
             next = elem;
         }
 

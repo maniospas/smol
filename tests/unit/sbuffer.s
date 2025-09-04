@@ -2,9 +2,9 @@
 @include std.mem
 
 service main()
-    &boxes = str[]
-    :push("100":str)
-    :push("200":str)
+    boxes = str[]
+    :push("buffer start":str)
+    :push("buffer end":str)
     b = boxes[0]
     print(b) // 100
     --

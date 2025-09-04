@@ -83,8 +83,13 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         if(types.vars.find(arg_name)!=types.vars.end()) 
             imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
         if(argType->lazy_compile && nolex) {
-            if(argType->options.size()==0) imp->error(--p, "Internal error: no options for argument: "
+            if(argType->options.size()==0) imp->error(--p, "No options for argument: "
                 +arg_name.to_string()
+                +"\nAdding @struct before the argument's type may resolve this issue"
+                +"\nby forcing usage of the a runtype with ->@struct in its return"
+                +"\namong those overloaded with the same name/union."
+                +"\nThis annoation directly interleaves the type in the definition"
+                +"\nand removes its lexical scoping."
             );
             double option_power = -1;
             int conflicts = 0;
@@ -117,7 +122,14 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         }
         else if(arg_is_buffer) {
             if(argType->options.size()==0) 
-                imp->error(--p, "Internal error: no options to determine buffer elements "+argType->name.to_string());
+                imp->error(--p, "No options to determine buffer elements "
+                    +argType->name.to_string()
+                    +"\nAdding @struct before the argument's type may resolve this issue"
+                    +"\nby forcing usage of the a runtype with ->@struct in its return"
+                    +"\namong those overloaded with the same name/union."
+                    +"\nThis annoation directly interleaves the type in the definition"
+                    +"\nand removes its lexical scoping."
+                );
             double option_power = -1;
             int conflicts = 0;
             auto original_type = argType;
@@ -198,6 +210,8 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                     // TODO: this may be too expensive - consider tracking only packs parents
                     internalTypes.vars[arg_name+itarg.first] = itarg.second;
                 }
+                for(const auto& it : argType->buffer_types)
+                    buffer_types[arg_name+it.first] = it.second;
             }
         }
         else {

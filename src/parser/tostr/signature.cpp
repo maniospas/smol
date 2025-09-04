@@ -6,7 +6,13 @@ string Def::signature_like(Types& types, vector<Variable> args) {
         size_t prev_i = i;
         if(ret.size()) 
             ret += ",";
-        if(alignments[args[i]] 
+        if(internalTypes.contains(args[i]) && internalTypes.vars[args[i]]->canonic_name()==BUFFER_VAR && buffer_types.find(args[i])!=buffer_types.end()) {
+            ret += pretty_runtype(buffer_types[args[i]]->name.to_string())+"[]";
+        }
+        else if(internalTypes.contains(args[i]) && internalTypes.vars[args[i]]->name==BUFFER_VAR && buffer_types.find(args[i])==buffer_types.end()) {
+            ret += "\033[0m???[]";
+        }
+        else if(alignments[args[i]] 
             && types.reverse_alignment_labels[alignments[args[i]]] 
             && types.reverse_alignment_labels[alignments[args[i]]]!=this 
             && types.reverse_alignment_labels[alignments[args[i]]]->packs.size()>=1
@@ -32,10 +38,14 @@ string Def::signature(Types& types) {
         size_t prev_i = i;
         if(ret.size()) 
             ret += ",";
-        if(alignments[args[i].name] 
-            && !types.reverse_alignment_labels[alignments[args[i].name]]
-        ) 
-            ERROR("Internal error: variable type does not exist with id "+to_string(alignments[args[i].name])+" in type of "+pretty_var(name.to_string()+"__"+args[i].name.to_string()));
+        if(args[i].type->name==BUFFER_VAR && buffer_types.find(args[i].name)!=buffer_types.end()) {
+            ret += pretty_runtype(buffer_types[args[i].name]->name.to_string())+"[]"+(args[i].mut?"\033[31m&\033[0m":"");
+        }
+        else if(alignments[args[i].name] && !types.reverse_alignment_labels[alignments[args[i].name]]) 
+            ERROR("Internal error: variable type does not exist with id "
+                +to_string(alignments[args[i].name])
+                +" in type of "+pretty_var(name.to_string()+"__"+args[i].name.to_string())
+            );
         if(alignments[args[i].name] 
             && types.reverse_alignment_labels[alignments[args[i].name]]!=this 
             && types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()>=1
@@ -68,11 +78,10 @@ string Def::signature(Types& types) {
         +")\033[0m";
 }
 
-
-string Def::canonic_name() {
-    string ret = name.to_string();
+Variable Def::canonic_name() {
+    Variable ret = name;
     for(const auto& arg : args) 
-        ret += "__"+arg.type->canonic_name();
+        ret = ret+arg.type->canonic_name();
     return ret;
 }
 

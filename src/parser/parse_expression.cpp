@@ -142,7 +142,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         if(imp->at(p++)!="(") 
             imp->error(--p, "Expected opening parenthesis");
         if(buffer_types.find(curry)==buffer_types.end()) 
-            imp->error(--p, "Internal error: buffer has not been properly transferred to scope");
+            imp->error(--p, "Internal error: buffer has not been properly transferred to scope: "+curry.to_string());
         if(mutables.find(curry)==mutables.end()) 
             imp->error(--p, "Cannot put into a non-mutable buffer");
         size_t prev_p = p;
@@ -418,7 +418,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
     }
     if(internalTypes.contains(first_token)) {
         if(curry.exists()) 
-            imp->error(p, "Expecting runtype but got variable: "+first_token.to_string());
+            imp->error(p, "Expecting runtype but got variable: "
+                +first_token.to_string()
+            );
         return next_var(imp, p, first_token, types); //ASSIGNMENT TO ALREADY EXISTING VARIABLE
     }
     if(types.contains(first_token)) {
@@ -426,10 +428,20 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         if(p<imp->size()-1 && imp->at(p)=="[") {
             p++;
             if(imp->at(p)!="]") 
-                imp->error(--p, "Given that "+first_token.to_string()+" is a runtype (not a local variable), [] is expected to declare a buffer here");
+                imp->error(--p, "Given that "
+                    +first_token.to_string()
+                    +" is a runtype (not a local variable), [] is expected to declare a buffer here"
+                );
             p++;
             if(type->options.size()==0) 
-                imp->error(--p, "Internal error: no options to determine buffer elements "+type->name.to_string());
+                imp->error(--p, "No options to determine buffer elements "
+                    +type->name.to_string()
+                    +"\nAdding @struct before the argument's type may resolve this issue"
+                    +"\nby forcing usage of the a runtype with ->@struct in its return"
+                    +"\namong those overloaded with the same name/union."
+                    +"\nThis annoation directly interleaves the type in the definition"
+                    +"\nand removes its lexical scoping."
+                );
             double option_power = -1;
             int conflicts = 0;
             auto original_type = type;

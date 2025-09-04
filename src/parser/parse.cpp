@@ -131,9 +131,9 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                         || internalTypes.vars[expression_outcome]->internalTypes.vars[pack]->name==BUFFER_VAR)
                     && mutables.find(var+pack)==mutables.end()
                 ) 
-                    imp->error(assignment_start, "Cannot transfer to an immutable ptr packed in an immutable variable to a mutable ptr: "
+                    imp->error(assignment_start, "Cannot transfer an immutable ptr packed in an immutable variable to a mutable ptr: "
                         + pretty_var((var+pack).to_string())
-                        + "\nThis error is presented because, by convention, the contents (but not addresses) "
+                        + "\nThis error occurs because, by convention, the contents (but not addresses) "
                         + "\nof mutable pointers may be freely modified when runtypes gain a hold of them."
                     );
             }

@@ -256,7 +256,7 @@ public:
     Variable next_var(const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test=true);
     string signature_like(Types& types, vector<Variable> args);
     string signature(Types &types);
-    string canonic_name();
+    Variable canonic_name();
     string raw_signature();
     string raw_signature_state();
     Code rebase(const Code& impl, const Variable& var);
