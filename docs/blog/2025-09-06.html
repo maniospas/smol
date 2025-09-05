@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Exploring how smoλ handles memory safety with arenas and failsafe services.">
+  <meta name="keywords" content="smolambda, smoλ, programming language, memory safety, arenas, services, systems programming">
+  <meta name="author" content="Emmanouil (Manios) Krasanakis">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="smol.png" type="image/x-icon">
+
+  <title>smoλ Blog – Memory safety via delayed freeing & failsafe services </title>
+  <link href="../vendor/prism/prism.min.css" rel="stylesheet" />
+  <style>
+    html {scroll-behavior: smooth;}
+    h1 {scroll-margin-top: 60px;}
+    h2 {scroll-margin-top: 60px;}
+    h3 {scroll-margin-top: 60px;}
+    h1[id], h2[id], h3[id] { position: relative; }
+    .anchor-link {text-decoration: none;font-size: 0.9em;margin-left: 8px;opacity: 0;transition: opacity 0.2s;}
+    h1:hover .anchor-link,
+    h2:hover .anchor-link,
+    h3:hover .anchor-link { opacity: 1; }
+    body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
+    .navbar {background-color: #333;padding: 2px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
+    .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
+    .navbar a:hover {background-color: #555;}
+    .container {max-width: 800px;margin: 20px auto;padding: 0 20px;}
+    h1, h2, h3 {color: #222;}
+    table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
+    th, td {border: 1px solid #ccc;padding: 10px;text-align: left;vertical-align: top;}
+    th {background-color: #eee;}
+    code {background: #eee;padding: 2px 0px;border-radius: 4px;font-family: 'Courier New', Courier, monospace;font-size: 95%;}
+    pre {padding: 15px;border-radius: 8px;overflow-x: auto;font-size: 90%;margin-bottom: 2em;}
+    pre code {background: none;font-family: 'Courier New', Courier, monospace;font-size: 90%;}
+    p strong {color: #444;}
+    .token.special-amp {color: red;font-weight: bold; }
+    .section-header {background-color: #eeb;font-weight: bold;color: #000;}
+    .info-box {display: flex;align-items: center;gap: 15px; background: #fffbf0; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);  border-radius: 12px;  padding: 20px;  margin: 20px 0;  transition: transform 0.2s ease, box-shadow 0.2s ease;  text-decoration: none;  color: inherit; }
+    .info-box:hover {transform: translateY(-5px);box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);}
+    .info-box img {width: 48px;height: 48px;}
+    .info-box h2 {margin: 0 0 4px;font-size: 1.4em;}
+    .info-box div {font-size: 1em;color: #333;}
+    .info-box-text {display: flex; flex-direction: column;}
+    .explain-button { position: absolute;  bottom: 10px; right: 10px;  padding: 6px 12px; font-size: 0.9em;  background-color: #ffffff; color: #333; border: 1px solid #aaa; border-radius: 6px; cursor: pointer; transition:  background-color 0.3s ease,  color 0.3s ease,  box-shadow 0.3s ease,  transform 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+    .explain-button:hover {background-color: #aafbf0;color: #333;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transform: translateY(-2px); border-radius: 30px;}
+    .post-meta {font-size: 0.9em; color: #777; margin-bottom: 2em;}
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div>
+    <span id="post-title" style="font-size: 2.4em; font-weight: bold;">Memory Safety with Arenas in smoλ</span><br>
+    <div class="post-meta">by Emmanouil (Manios) Krasanakis – September 5, 2025</div>
+  </div>
+
+  <p>
+    <i>"Yet another take on memory safety. Aren't there enough out there?"</i> If you
+    even a little bit familiar with programming language design, this will probably be your first reaction
+    to this blog post. And, honestly, you are mostly right. But 
+    I believe there is a useful insight or two here. 
+  </p>
+  <p>
+    Not to mention that snippets like the following
+    from <i>smoλ's</i> standard library are not going to explain themselves
+    as a comprehensive system. So I might as well give a full explanation <i>somewhere</i>. 
+  </p>
+
+
+  <pre><code class="language-smolambda">// from std/mem.device.s
+smo ContiguousMemory (
+        nominal, 
+        MemoryDevice, 
+        u64 size,
+        Primitive,
+        ptr mem,
+        ptr underlying
+    ) 
+    -> @args
+
+// from std/mem/arena.s
+smo Arena(nominal type, ContiguousMemory contents)
+    @noborrow
+    length = 0
+    size = contents.size
+    with contents.Primitive:is(char)
+    ---> type, contents, length, size</code></pre>
+
+  <p>
+    This blog post covers the design principles of <i>smoλ</i> that grant
+    developers low-level control without sacrificing safety. Our focus will be on
+    memory safety, but the same principles hold true for other types of resources too,
+    such as files. Importantly, those implementations reside in the standard library
+    and can be extended and maintained using existing language features.
+  </p>
+
+  <p>
+    Before starting, a brief recap on the language is that it's centered 
+    around the concept of <i>runtypes</i>, that is, functions whose results serve
+    as both tuples and type fields. For example, the following declares a nominal
+    type with fields <code>.x</code> and <code>.y</code>; 
+    without <code class="language-smolambda">nominal</code> (which an abstraction 
+    removed away by the compiler) it would match any pair of <code class="language-smolambda">f64</code> value.
+  </p>
+
+  <pre><code class="language-smolambda">smo point2(nominal, f64 _x, f64 _y) 
+  x = 2*_x 
+  y = 2*_y 
+  -> x,y // return statement</code></pre>
+  
+  <p>
+    Now, there are two main ways to declare runtypes; as <code class="language-smolambda">smo</code> delcarations,
+    like above, or as <code class="language-smolambda">service</code>s. The main difference is that the former are inlined,
+    whereas services are implemented as co-routines and give the opportunity error handling - to be addressed in
+    another post.
+  </p>
+  <p>
+    The reason the above distinction is important is because resources like memory are gathered 
+    are always released at the end of service calls. So a checkmark for those that care about delays:
+    you <i>know</i> when your systems are going to do work. 
+    Releasing all related +resources to a variable can also be achieved pre-emptively with 
+    <code class="language-smolambda">@release var</code>, in which case your compiler will complain if you try
+    to use/leak the resource later.
+  </p>
+
+  <p>
+    So, let's start 
+  </p>
+    
+
+  <div style="position: relative; margin-bottom: 2em;">
+<pre><code class="language-smolambda">@include std.mem -> Memory, arena
+
+smo demo_arena()
+    &arena = Stack:arena(4096) // 4KB
+    on arena
+        &buffer = [u64; 128]
+        buffer[0] = 42
+        print(buffer[0])
+    ----
+    --
+</code></pre>
+  </div>
+
+  <div id="example-block" style="display: none;">
+    This snippet shows how arenas scope memory allocation:
+    <ul>
+      <li><code class="language-smolambda">on arena</code> introduces a region where memory
+      is borrowed from the arena.</li>
+      <li>When the block ends, resources are automatically released.</li>
+      <li>If a <code class="language-smolambda">smo</code> fails inside, the arena cleans up safely.</li>
+    </ul>
+  </div>
+
+  <h2 id="why-arenas">Why Arenas?<a class="anchor-link" href="#why-arenas">#</a></h2>
+  <p>
+    Arenas are predictable, fast, and avoid fragmentation. Unlike garbage collection,
+    they don’t defer cleanup — all allocations tied to the arena vanish at once
+    when its scope ends.
+  </p>
+
+  <h2 id="failsafe-services">Failsafe Services<a class="anchor-link" href="#failsafe-services">#</a></h2>
+  <p>
+    Combining arenas with <code class="language-smolambda">service</code> functions ensures
+    that even in failure scenarios, resources are handled gracefully. This creates
+    a <strong>failsafe execution model</strong>.
+  </p>
+
+  <h3 id="example-service">Example Service<a class="anchor-link" href="#example-service">#</a></h3>
+<pre><code class="language-smolambda">service main()
+    &arena = Stack:arena(8192)
+    demo_arena()
+    print("Finished safely")
+    --
+</code></pre>
+
+  <p>
+    Here, <code>main</code> calls <code>demo_arena</code> with its own scoped arena.
+    Even if something fails inside, <code>service</code> ensures cleanup.
+  </p>
+
+  <hr>
+
+  <p><em>This post is part of the smoλ language's material. For more resources, check out these links:</em></p>
+
+<div style="display: flex; gap: 12px; margin-top: 10px;">
+  <a href="../index.html" class="navbar-link">
+    <img src="../smol.png" alt="home" style="width: 24px; height: 24px;">
+    Home
+  </a>
+  <a href="https://github.com/maniospas/smol" target="_blank" class="navbar-link">
+    <img src="../github.png" alt="github" style="width: 24px; height: 24px;">
+    GitHub
+  </a>
+</div>
+
+<style>
+  .navbar-link {
+    color: #177042;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 18px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  .navbar-link:hover {
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+    background: #eefdf7;
+  }
+  .navbar-link img {
+    transition: transform 0.2s ease;
+  }
+  .navbar-link:hover img {
+    transform: scale(1.15);
+  }
+</style>
+
+</div>
+
+<script src="../vendor/prism/prism.min.js"></script>
+<script>
+Prism.languages.smolambda = {
+  'comment': /\/\/.*/,
+  'directive': {
+    pattern: /@\w+/,
+    alias: 'important'
+  },
+  'keyword': [
+    {
+      pattern: /\b(?:smo|service|if|else|elif|with|include|on|while|union|to|upto|lento|len|and|or)\b/,
+      greedy: true
+    },
+    {
+      pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/,
+      greedy: true
+    }
+  ],
+  'special-amp': {
+    pattern: /&/,
+    alias: 'operator' // optional, gives Prism’s operator style too
+  },
+  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\b/,
+  'punctuation': /[{}();,\[\]]/,
+  'number': /\b\d+\b/,
+  'string': {
+    pattern: /"(?:\\.|[^"\\])*"/,
+    greedy: true
+  }
+};
+</script>
+<script>
+  document.querySelectorAll('a.anchor-link').forEach(a =>
+    a.addEventListener('click', e => {
+      if (location.hash === a.getAttribute('href')) e.preventDefault()
+    })
+  )
+</script>
+
+
+
+</body>
+</html>

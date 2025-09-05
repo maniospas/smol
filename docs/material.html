@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="smoλ materials – blog posts, whitepapers, and PDFs on the language’s design and theory.">
+  <meta name="keywords" content="smolambda, smoλ, programming language, blog, materials, whitepapers, PDFs">
+  <meta name="author" content="Emmanouil (Manios) Krasanakis">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="smol.png" type="image/x-icon">
+
+  <title>smoλ – Materials</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .title {text-align: center;}
+
+    /* Slim Navbar */
+    .navbar {
+      background: #fdfaf9;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      padding: 2px 10px;  /* smaller padding */
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      height: 48px; /* tighter yellow bar */
+    }
+    .navbar a {
+      color: #177042;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1em; /* keep original text size */
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .navbar a:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-1px);
+      background: #eefdf7;
+    }
+    .navbar a img {
+      width: 28px;  /* keep good icon size */
+      height: 28px;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+    .navbar a:hover img {
+      transform: scale(1.15); /* enlarge smoothly */
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      color: #222;
+      font-size: 2em;
+      margin-bottom: 0.5em;
+    }
+
+    /* Grid of materials */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .info-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fffbf0;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      padding: 15px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      min-height: 160px;
+      text-align: center;
+    }
+    .info-box:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    }
+    .info-box img {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 10px;
+    }
+    .info-box h2 {
+      margin: 0 0 6px;
+      font-size: 1.1em;
+      color: #222;
+    }
+    .info-box div {
+      font-size: 0.9em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+  <a href="index.html"><img src="smol.png" alt="home">Index</a>
+  <a href="https://github.com/maniospas/smol" target="_blank"><img src="github.png" alt="github">GitHub</a>
+</div>
+
+<div class="container">
+
+  <div class="title">
+    <span id="home" style="font-size: 3em; font-weight: bold;">smoλ material</span><br>
+    <em style="font-size: 1em; font-weight: normal;">Blog posts, design notes, and PDF whitepapers
+    about the language, its type system, and its safe low-level abstractions.</em><br><br>
+  </div>
+
+  <div class="grid">
+
+    <!-- PDF -->
+    <a class="info-box" href="papers/smol_types.pdf" target="_blank">
+      <img src="smol.png" alt="smoλ">
+      <h2>Type theory - pdf</h2>
+      <div>A smoλ theory of structural and nominal typing.<br><i>17 June 2025</i></div>
+    </a>
+
+    <!-- Blog post -->
+    <a class="info-box" href="blog/2025-09-06.html">
+      <img src="smol.png" alt="smoλ">
+      <h2>Safety - blog</h2>
+      <div>Memory safety via delayed freeing & failsafe services.<br><i>6 September 2025</i></div>
+    </a>
+
+  </div>
+</div>
+
+</body>
+</html>

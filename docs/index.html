@@ -9,122 +9,91 @@
   <meta name="robots" content="index, follow">
   <link rel="icon" href="smol.png" type="image/x-icon">
 
-
   <title>smoλ</title>
   <link href="vendor/prism/prism.min.css" rel="stylesheet" />
   <style>
-    html {scroll-behavior: smooth;}
-    h1 {scroll-margin-top: 60px;}
-    h2 {scroll-margin-top: 60px;}
-    h3 {scroll-margin-top: 60px;}
-    h1[id], h2[id], h3[id] { position: relative; }
-    .anchor-link {text-decoration: none;font-size: 0.9em;margin-left: 8px;opacity: 0;transition: opacity 0.2s;}
-    h1:hover .anchor-link,
-    h2:hover .anchor-link,
-    h3:hover .anchor-link { opacity: 1; }
     body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
-    .navbar {background-color: #333;padding: 2px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
-    .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
-    .navbar a:hover {background-color: #555;}
-    .container {max-width: 800px;margin: 20px auto;padding: 0 20px;}
-    h1, h2, h3 {color: #222;}
-    table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
-    th, td {border: 1px solid #ccc;padding: 10px;text-align: left;vertical-align: top;}
-    th {background-color: #eee;}
+    .navbar {background: #fdfaf9;box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);padding: 2px 8px;position: sticky;top: 0;z-index: 1000;display: flex;align-items: center;justify-content: center;height: 48px;}
+    .navbar a {color: #177042;text-decoration: none;font-weight: bold;font-size: 1em;display: flex;align-items: center;gap: 6px;padding: 4px 8px;border-radius: 20px;transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;}
+    .navbar a:hover {box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);transform: translateY(-1px);background: #eefdf7;}
+    .navbar a img {width: 28px;height: 28px;transition: transform 0.2s ease;}
+    .navbar a:hover img {transform: scale(1.15);}
+    .container {max-width: 1000px;margin: 20px auto;padding: 0 20px;}
+    .grid {display: grid;grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));gap: 15px;margin: 20px 0;}
+    .info-box {display: flex;flex-direction: column;align-items: center;justify-content: center;background: #fffbf0;box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);border-radius: 10px;padding: 15px;text-decoration: none;color: inherit;transition: transform 0.2s ease, box-shadow 0.2s ease;min-height: 150px;text-align: center;}
+    .info-box:hover {transform: translateY(-3px);box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);}
+    .info-box img {width: 56px;height: 56px;margin-bottom: 8px;}
+    .info-box h2 {margin: 0 0 6px;font-size: 1.1em;color: #222;}
+    .info-box div {font-size: 0.9em;color: #555;}
     code {background: #eee;padding: 2px 0px;border-radius: 4px;font-family: 'Courier New', Courier, monospace;font-size: 95%;}
-    pre {background: #272822;padding: 15px;border-radius: 8px;overflow-x: auto;font-size: 90%;margin-bottom: 2em;}
+    pre {padding: 15px;border-radius: 8px;overflow-x: auto;font-size: 90%;margin-bottom: 2em;}
     pre code {background: none;font-family: 'Courier New', Courier, monospace;font-size: 90%;}
-    p strong {color: #444;}
-    .token.special-amp {color: red;font-weight: bold; }
-    .section-header {background-color: #eeb;font-weight: bold;color: #000;}
-    .info-box {display: flex;align-items: center;gap: 15px; background: #fffbf0; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);  border-radius: 12px;  padding: 20px;  margin: 20px 0;  transition: transform 0.2s ease, box-shadow 0.2s ease;  text-decoration: none;  color: inherit; }
-    .info-box:hover {transform: translateY(-5px);box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);}
-    .info-box img {width: 48px;height: 48px;}
-    .info-box h2 {margin: 0 0 4px;font-size: 1.4em;}
-    .info-box div {font-size: 1em;color: #333;}
-    .info-box-text {display: flex; flex-direction: column;}
-    .explain-button { position: absolute;  bottom: 10px; right: 10px;  padding: 6px 12px; font-size: 0.9em;  background-color: #ffffff; color: #333; border: 1px solid #aaa; border-radius: 6px; cursor: pointer; transition:  background-color 0.3s ease,  color 0.3s ease,  box-shadow 0.3s ease,  transform 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-    .explain-button:hover {background-color: #aafbf0;color: #333;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transform: translateY(-2px); border-radius: 30px;}
-</style>
+    .explain-button {position: absolute;bottom: 10px;right: 10px;padding: 6px 12px;font-size: 0.9em;background-color: #ffffff;color: #333;border: 1px solid #aaa;border-radius: 6px;cursor: pointer;transition: background-color 0.3s ease,color 0.3s ease,box-shadow 0.3s ease,transform 0.2s ease;box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+    .explain-button:hover {background-color: #aafbf0;color: #333;box-shadow: 0 4px 12px rgba(0,0,0,0.2);transform: translateY(-2px);border-radius: 30px;}
+    .title {text-align: center;}
+  </style>
 </head>
 <body>
 
+<!-- Navbar -->
+<div class="navbar">
+  <a href="https://github.com/maniospas/smol" target="_blank"><img src="github.png" alt="github">GitHub</a>
+</div>
+
 <div class="container">
-  <div>
+  <div class="title">
     <span id="home" style="font-size: 3em; font-weight: bold;">smoλ </span><br>
     <em style="font-size: 1em; font-weight: normal;">A safe & fast low-level language.</em>
-    <br>
   </div>
 
-
-  <a class="info-box" href="tutorial.html">
-    <img src="smol.png" alt="smoλ">
-    <div class="info-box-text">
+  <div class="grid">
+    <a class="info-box" href="tutorial.html">
+      <img src="smol.png" alt="smoλ">
       <h2>Tutorial</h2>
-      <div>for beginners.</div>
-    </div>
-  </a>
-
-  <a class="info-box" href="description.html">
-    <img src="smol.png" alt="smoλ">
-    <div class="info-box-text">
-      <h2>Description</h2>
-      <div>for those familiar with other languages.</div>
-    </div>
-  </a>
-
-  <a class="info-box" href="std.html">
-    <img src="smol.png" alt="smoλ">
-    <div class="info-box-text">
+      <div>for beginners</div>
+    </a>
+    <a class="info-box" href="description.html">
+      <img src="smol.png" alt="smoλ">
+      <h2>Onboarding</h2>
+      <div>from other languages</div>
+    </a>
+    <a class="info-box" href="std.html">
+      <img src="smol.png" alt="smoλ">
       <h2>Std</h2>
-      <div>is the standard library documentation.</div>
-    </div>
-  </a>
+      <div>the standard library</div>
+    </a>
+    <a class="info-box" href="material.html">
+      <img src="smol.png" alt="smoλ">
+      <h2>Materials</h2>
+      <div>whitepapers and blog posts</div>
+    </a>
+  </div>
 
-  <a class="info-box" href="index.html">
-    <img src="smol.png" alt="smoλ">
-    <div class="info-box-text">
-      <h2>Material</h2>
-      <div>like white papers and blog posts.</div>
-    </div>
-  </a>
-  
+  <div style="position: relative; margin-bottom: 2em;">
+<pre><code class="language-smolambda">@include std.builtins
+@include std.mem
 
+smo Segment(nominal, str value)
+    -> @args // return all inputs
 
-    <div style="position: relative; margin-bottom: 2em;">
-    <pre><code class="language-smolambda">@include std.builtins
-@include std.mem -> Memory, arena
-@include std.file
+smo Segment(String _value)
+    value = _value:str 
+    -> nominal:Segment(value)
 
-smo file_stats(nominal, u64 lines, u64 chars) 
-    -> @args
-
-smo print(file_stats stats)
-    printin(stats.lines)
-    printin(" lines, ")
-    printin(stats.chars)
-    print(" bytes")
-    --
-
-smo file_reader(String path, Memory &memory)
-    &stat_lines = 0
-    &stat_chars = 0
-    &file = ReadFile:open(path)
-    endl = "\n":str.first
-    on memory:arena(1024)
-        file
-        :while next_line(str &line)
-            printin("| ")
-            print(line)
-            stat_lines = stat_lines + 1
-            stat_chars = stat_chars + line:len
-        ----
-    -> nominal:file_stats(stat_lines, stat_chars)
+smo combine(Segment[] segments)
+    &s = "":str  // mutable
+    on Stack:arena(1024)
+        range(segments:len)
+        :while next(u64 &i)
+            // from null-termiated nstr result to str
+            s = str(s+segments[i].value+" ")
+    -- -- -> combined // end block x2, return
 
 service main()
-    &memory = Stack:arena(1048576) // 1MB
-    stats = file_reader("README.md", memory)
-    print(stats)
+    segments = Segment[] 
+    :push("I think.":Segment)
+    :push("Therefore I am.":Segment)
+    print(segments:combine)
     --
 </code></pre>
 
@@ -134,63 +103,40 @@ service main()
   </div>
 
   <div id="example-block" style="display: none;">
-    Above is a performant example for computing file sizes without string allocations while iterating
-    through contents. This demonstrates some core language concepts in action, all of which are very exlicit:
+    In the example, freeing the arena is safely delayed until printing. All operations are also zero-cost abstractions
+    over performant implementations at the core of the standard library. Furthermore:
     <ul>
-    <li><code class="language-smolambda">smo</code> are inlined and could fail. Results are treated as both tuples and types.
-    </li><li><code class="language-smolambda">service</code> denotes functions that, on internal failure (e.g., of called smo or other services), safely deallocate resources. Result errors can be checked or -if not- cascade into more failures.
-    </li><li><code class="language-smolambda">nom</code> needed for calls whose results is attached to a specific name for safety (nominal type).
-    </li><li><code class="language-smolambda">:</code> passes the left-hand-side as the first argument ("currying"). <code class="language-smolambda">()</code> is ommitted. Currying into a loop passes the value into first call in the condition; in this case <code class="language-smolambda">next(chunks&, str&)</code> is called to progress the iteration.
-    </li>
-    <li><code class="language-smolambda">&</code> if prepended to the first variable assignment indicates mutable variables that can be overwriten.</li>
-    <li><code class="language-smolambda">--,-></code> are code block ends and returns respectively.</li>
+      <li><code class="language-smolambda">smo</code> definitions can fail and produce nominal values.</li>
+      <li><code class="language-smolambda">nominal</code> declares a nominal type variation.</li>
+      <li><code class="language-smolambda">service</code> runs safely; if a smo fails, memory is cleaned up.</li>
+      <li><code class="language-smolambda">&</code> denotes mutable variables.</li>
+      <li><code class="language-smolambda">on</code> is automatically added as first argument (here to store string addition on a fast arena allocator).</li>
+      <li><code class="language-smolambda">:</code> curries arguments.</li>
+      <li><code class="language-smolambda">[]</code> declares buffers.</li>
+      <li><code class="language-smolambda">--, -></code> mark block ends and returns.</li>
     </ul>
   </div>
-
-
 </div>
+
 <script src="vendor/prism/prism.min.js"></script>
 <script>
 Prism.languages.smolambda = {
   'comment': /\/\/.*/,
-  'directive': {
-    pattern: /@\w+/,
-    alias: 'important'
-  },
+  'directive': { pattern: /@\w+/, alias: 'important' },
   'keyword': [
-    {
-      pattern: /\b(?:smo|service|if|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|on|&amp;)\b/,
-      greedy: true
-    },
-    {
-      pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/,
-      greedy: true
-    }
+    { pattern: /\b(?:smo|service|if|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|on|&amp;)\b/, greedy: true },
+    { pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/, greedy: true }
   ],
-  'special-amp': {
-    pattern: /&/,
-    alias: 'operator' // optional, gives Prism’s operator style too
-  },
-  'builtin': /\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\b/,
+  'special-amp': { pattern: /&/, alias: 'operator' },
+  'builtin': /\b(?:i64|u64|f64|nominal|ptr|str|buffer|main|copy|bool|concat|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
-  'string': {
-    pattern: /"(?:\\.|[^"\\])*"/,
-    greedy: true
-  }
+  'string': { pattern: /"(?:\\.|[^"\\])*"/, greedy: true }
 };
-</script>
-<script>
-  document.querySelectorAll('a.anchor-link').forEach(a =>
-    a.addEventListener('click', e => {
-      if (location.hash === a.getAttribute('href')) e.preventDefault()
-    })
-  )
 </script>
 <script>
   const toggleBtn = document.getElementById('toggle-example');
   const exampleBlock = document.getElementById('example-block');
-
   toggleBtn.addEventListener('click', () => {
     const visible = exampleBlock.style.display === 'block';
     exampleBlock.style.display = visible ? 'none' : 'block';

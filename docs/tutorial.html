@@ -22,12 +22,48 @@
     h2:hover .anchor-link,
     h3:hover .anchor-link { opacity: 1; }
     body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
-    .navbar { background: #fffbf0; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);  padding: 0px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
-    .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
-    .navbar span {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
-    .navbar a:hover {box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);transform: translateY(-1px);border-radius: 20px;}
-    .navbar a img {width: 40px;height: 40px;margin-top:5px}
-    .navbar a:hover img {width: 45px;height: 45px;margin:0px}
+
+    /* Tighter navbar */
+    .navbar {
+      background: #fdfaf9;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      padding: 2px 8px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      height: 48px; /* fixed tighter height */
+    }
+    .navbar a {
+      color: #177042; /* green text */
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 18px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .navbar a:hover {
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+      transform: translateY(-1px);
+      background: #eefdf7;
+    }
+    .navbar a img {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+    .navbar a:hover img {
+      transform: scale(1.15);
+    }
+
     .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
     h1, h2, h3 {color: #222;}
     table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
@@ -52,15 +88,15 @@
       .sidebar-toggle {display: block;}
       .container {margin-left: 0 !important;}
     }
-  </style>
+</style>
 </head>
 <body>
 
 <div class="navbar">
-  &nbsp;&nbsp;
-  <a href="index.html"><img src="smol.png" alt="home"></a>
-  <a href="https://github.com/maniospas/smol" target="_blank"><img src="github.png" alt="github"></a>
+  <a href="index.html"><img src="smol.png" alt="home">Index</a>
+  <a href="https://github.com/maniospas/smol" target="_blank"><img src="github.png" alt="github">GitHub</a>
 </div>
+
 
 <div class="sidebar">
   <div class="sidebar-section">

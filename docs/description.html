@@ -23,12 +23,48 @@
     h2:hover .anchor-link,
     h3:hover .anchor-link { opacity: 1; }
     body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
-    .navbar { background: #fffbf0; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);  padding: 0px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
-    .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
-    .navbar span {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
-    .navbar a:hover {box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);transform: translateY(-1px);border-radius: 20px;}
-    .navbar a img {width: 40px;height: 40px;margin-top:5px}
-    .navbar a:hover img {width: 45px;height: 45px;margin:0px}
+
+    /* Tighter navbar */
+    .navbar {
+      background: #fdfaf9;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      padding: 2px 8px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      height: 48px; /* fixed tighter height */
+    }
+    .navbar a {
+      color: #177042; /* green text */
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 18px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .navbar a:hover {
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+      transform: translateY(-1px);
+      background: #eefdf7;
+    }
+    .navbar a img {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+    .navbar a:hover img {
+      transform: scale(1.15);
+    }
+
     .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
     h1, h2, h3 {color: #222;}
     table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
@@ -53,16 +89,15 @@
       .sidebar-toggle {display: block;}
       .container {margin-left: 0 !important;}
     }
-  </style>
+</style>
 </head>
 <body>
 
-
 <div class="navbar">
-  &nbsp;&nbsp;
-  <a href="index.html"><img src="smol.png" alt="home"></a>
-  <a href="https://github.com/maniospas/smol" target="_blank"><img src="github.png" alt="github"></a>
+  <a href="index.html"><img src="smol.png" alt="home">Home</a>
+  <a href="https://github.com/maniospas/smol" target="_blank"><img src="github.png" alt="github">GitHub</a>
 </div>
+
 
 <!-- <div class="sidebar">
   ▶ <a href="#quickstart">Quickstart</a><br>
@@ -218,10 +253,11 @@ those data may make runtime assertions.</p>
 <p>In general, runtypes are structural in that they are identified by their primitive
 layout. For example, <code class="language-smolambda">Point2D</code> is recognized at any place
 where two <code class="language-smolambda">f64</code> values exist. You
-can switch to nomal typing that ensures only a type-resolved version is applied by having 
-<code class="language-smolambda">nominal</code> as an argument. This is needed as the first argument during calls later on,
-where <code class="language-smolambda">:</code> is the currying notations that passes a left-hand-side
-value as the first argument of a runtype. That is, <code class="language-smolambda">obj:method(args)</code> is
+can switch to nomal typing that ensures only a type-resolved version is applied by accepting and returning a
+<code class="language-smolambda">nominal</code> first argument. This is a primitive that is removed during
+compilation, but is needed in calls later on. The currying notation 
+<code class="language-smolambda">:</code> passes a left-hand-side
+value as the first argument of a runtype; <code class="language-smolambda">obj:method(args)</code> is
 equivalent to <code class="language-smolambda">method(obj, args)</code>.</p>
 
 <p>Write something like <code class="language-smolambda">p = Point(...)</code> 
@@ -1054,12 +1090,15 @@ to allow various conversions to other primitives. However, we are still able to 
 which in turn is used to identify and call <code class="language-smolambda">str:read</code>.</p>
 
 <pre><code class="language-smolambda">@include std.builtins
+@include std.mem
 
 service main()
     print("What's your name?")
     name = str:read
-    print("Hi "+name+"!")
-    --
+    // volatile memory buffer to make string allocations for addition
+    on Stack:volatile(1024)
+        print("Hi "+name+"!")
+    ----
 </code></pre>
 
 <h3 id="unions">Unions <a href="#unions" class="anchor-link">🔗</a></h3>
@@ -1088,16 +1127,17 @@ union Type
     u64
     --
 
-smo Point(Type x, Type y) 
+smo Point(Type &x, Type &y) 
     -> @args
 
 smo inc(Point &p)
-    p.x = add(p.x, Type(1))
-    p.y = add(p.y, Type(1))
+    p.x = p.x+Point.Type(1)
+    p.y = p.y+Point.Type(1)
     --
 
 service main()
-    value = f64:read()
+    printin("Give a value: ")
+    value = f64:read // f64 will trickle to Point and inc
     p = Point(value, value)
     p:inc()
     print(p.x)
