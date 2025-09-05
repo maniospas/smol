@@ -530,7 +530,7 @@ You can return several named values at once and then access them as fields.
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Point(f64 x, f64 y) -> @struct
+smo Point(f64 x, f64 y) -> @args
 
 smo moved(Point p, f64 dx, f64 dy)
     &nx = p.x + dx

@@ -60,6 +60,7 @@ const Variable ERR_VAR = Variable("err");
 const Variable TASK_VAR = Variable("__task");
 const Variable STATE_VAR = Variable("__state");
 const Variable STRUCT_VAR = Variable("struct");
+const Variable ARGS_VAR = Variable("args");
 const Variable VALUE_VAR = Variable("__value");
 const Variable AT_VAR = Variable("@");
 const Variable DOT_VAR = Variable(".");

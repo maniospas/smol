@@ -27,7 +27,7 @@
 
 smo range(u64 start, u64 end, u64 step) 
     &pos = start 
-    -> @struct, pos
+    -> @args, pos
 smo range(u64 start, u64 end) -> range(start,end,1)
 smo range(u64 end)  -> range(0,end,1)
 smo next(range &self, u64 &value)

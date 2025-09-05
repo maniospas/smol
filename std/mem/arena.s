@@ -62,7 +62,7 @@ smo Dynamic(nom)
             allocated = 0;
         } 
     }
-    -> @struct, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:dynamic
+    -> @args, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:dynamic
 
 smo dynamic(Heap) 
     -> nom:Dynamic

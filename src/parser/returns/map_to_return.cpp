@@ -11,14 +11,16 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
     }
     if(next==AT_VAR) {
         next = imp->at(p++);
-        if(next!=STRUCT_VAR) 
-            imp->error(--p, "Use `->@struct`");
+        if(next!=ARGS_VAR) 
+            imp->error(--p, "Use `->@args`");
         //choice_power += 4; 
-        if(is_service && !uplifting_targets.size())  
-            if (!ranges::any_of(packs, [](const Variable& pack) {return pack == ERR_VAR;})) {
-                packs.push_back(ERR_VAR);
-                internalTypes.vars[ERR_VAR] = types.vars[ERRCODE_VAR];
-            }
+        if(is_service 
+            && !uplifting_targets.size() 
+            && !ranges::any_of(packs, [](const Variable& pack) {return pack == ERR_VAR;})
+        ) {
+            packs.push_back(ERR_VAR);
+            internalTypes.vars[ERR_VAR] = types.vars[ERRCODE_VAR];
+        }
         for (const auto& arg : args) {
             Variable next = arg.name;
             if(internalTypes.vars[next]->_is_primitive) 

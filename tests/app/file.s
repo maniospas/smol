@@ -3,7 +3,7 @@
 @include std.file
 
 smo file_stats(nom, u64 lines, u64 chars) 
-    -> @struct
+    -> @args
 
 smo print(file_stats stats)
     printin(stats.lines)

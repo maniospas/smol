@@ -2,7 +2,7 @@
 @include std.mem
 @include std.vec
 
-smo Point(f64 x, f64 y) -> @struct
+smo Point(f64 x, f64 y) -> @args
 
 // smo Points(Memory &memory, u64 size)
 //     x = memory:vector(size)

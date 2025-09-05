@@ -5,15 +5,15 @@
 // - Only nominal typing is applied to ensure that distinct properties
 //   keep track of their nature.
 
-smo x(nom) -> @struct
-smo y(nom) -> @struct
-smo z(nom) -> @struct
-smo zero(nom) -> @struct
+smo x(nom) -> @args
+smo y(nom) -> @args
+smo z(nom) -> @args
+smo zero(nom) -> @args
 union Var(x,y,z)       // one of x,y,z
 union Number(Var,zero) // all members of Var plus zero
 union Number2(Number)
 
-smo neg(nom,Var) -> @struct
+smo neg(nom,Var) -> @args
 smo neg(nom,neg arg) -> arg.Var
 smo neg(nom,zero) -> nom:zero
 smo add(nom,Var,neg) 

@@ -2,7 +2,7 @@
 
 
 smo strbuf(nom, str[] &ref)
-    -> @struct
+    -> @args
 
 smo strbuf(String value)
     -> nom:strbuf(str[]:push(value:str))

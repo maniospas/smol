@@ -12,7 +12,7 @@ smo Sphere(
         f64 dx, 
         f64 dy
     ) 
-    -> @struct
+    -> @args
 
 smo process(Sphere &s, f64 dt)
     &nx = s.x:add(s.dx * dt)

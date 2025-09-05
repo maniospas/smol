@@ -176,8 +176,11 @@ The language server offers tooltips, error traces, and jumping to definitions.</
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Point(f64 x, f64 y) -> @struct
-smo Field(nom, Point start, Point end) -> @struct
+smo Point(f64 x, f64 y) 
+    -> @args
+
+smo Field(nom, Point start, Point end) 
+    -> @args
 
 service main()
     // raw numbers you write are either 
@@ -706,7 +709,7 @@ runtype with no arguments directly returns a version constructed with two argume
 <pre><code class="language-smolambda">@include std.builtins
 
 smo Point(f64 x, f64 y) 
-    -> @struct
+    -> @args
 
 smo Point() 
     start = Point(0.0, 0.0)
@@ -981,7 +984,7 @@ where they are defined.</p>
 <pre><code class="language-smolambda">@include std.builtins
 
 union Type(i64, f64, u64)
-smo Point(Type x, Type y) -> @struct
+smo Point(Type x, Type y) -> @args
 smo inc(Point &p)
     p.x = add(p.x, Type(1))
     p.y = add(p.y, Type(1))
@@ -1034,10 +1037,10 @@ equivalent runtypes.
 <pre><code class="language-smolambda">@include std.builtins
 
 smo Type1(nom, f64 value) 
-    -> @struct
+    -> @args
     
 smo Type2(nom, f64 value) 
-    -> @struct
+    -> @args
 
 smo recognize(Type1 p) 
     print("this is Type1") 
@@ -1093,7 +1096,7 @@ its standard library
 <pre><code class="language-smolambda">@include std.builtins
 
 smo strbuf(nom, str[] &ref)
-    -> @struct
+    -> @args
 
 smo strbuf(String value)
     -> nom:strbuf(str[]:push(value:str))
@@ -1144,7 +1147,7 @@ ergonomic alternative. More on overloading later.</p>
 @include std.vec // more on vectors later
 
 smo point(f64 x, f64 y) 
-    -> @struct
+    -> @args
 
 union Elements 
     vec

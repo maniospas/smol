@@ -24,7 +24,7 @@
 @include std.rand
 @include std.mem
 
-smo Vec(nom, ptr contents, u64 size, ptr surface) -> @struct
+smo Vec(nom, ptr contents, u64 size, ptr surface) -> @args
 smo vector(Memory &memory, u64 size)
     mem = memory:allocate(size,f64)
     range(size):while next(u64 &i) 

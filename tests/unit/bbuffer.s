@@ -1,7 +1,7 @@
 @include std.builtins
 
 smo data(u64 id, u64[] &values) 
-    -> @struct
+    -> @args
 
 service main()
     &vals = u64[]:push(1):push(2)

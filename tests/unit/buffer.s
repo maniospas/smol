@@ -1,7 +1,7 @@
 @include std.builtins
 
 smo point(f64 x, f64 y) 
-    -> @struct
+    -> @args
 
 smo point2(f64 x, f64 y) 
     -> point(x*2.0, y*2.0)

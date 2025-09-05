@@ -28,7 +28,7 @@
 
 smo Process(nom, ptr contents)
     @noborrow
-    -> @struct
+    -> @args
 
 smo open(Process&, CString _command)
     command = _command:nstr.contents

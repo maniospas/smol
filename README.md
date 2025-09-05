@@ -36,7 +36,7 @@ smo Stats(
         u64 lines, 
         u64 chars
     )
-    -> @struct // return all inputs
+    -> @args // return all inputs
 
 smo print(file_stats stats)
     printin(stats.lines)
