@@ -80,7 +80,11 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         if(internalTypes.vars[active_context]->_is_primitive) new_unpacks.push_back(active_context);
         else for(const Variable& pack : internalTypes.vars[active_context]->packs) new_unpacks.push_back(active_context+pack);
         for(const Variable& pack : unpacks) new_unpacks.push_back(pack);
-        prev_errors = string(markdown_errors?"```rust\n":"")+previousType->name.to_string()+signature_like(types, unpacks)+(markdown_errors?"\n```\n":"")+"\namong "+to_string(numberOfErrors)+" candidates"+(markdown_errors?"\n```rust":"")+overloading_errors+(markdown_errors?"\n```\n":"")+"\nand not found `on` context\n  ";
+        prev_errors = previousType->name.to_string()
+            +signature_like(types, unpacks)
+            +"\namong "+to_string(numberOfErrors)
+            +" candidates"+overloading_errors
+            +"\nand not found `on` context\n  ";
         overloading_errors = "";
         unpacks = new_unpacks;
 
@@ -232,7 +236,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             );
         if(type->not_primitive() 
             && arg_type->_is_primitive 
-            && arg_type->name=="nom" 
+            && arg_type->name==NOM_VAR
             && alignments[unpacks[i]]!=type->alignments[type->args[i].name]
         ) {
             if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) 

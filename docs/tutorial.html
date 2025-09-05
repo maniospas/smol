@@ -525,7 +525,7 @@ service main()
 
 <p>
 You can return several named values at once and then access them as fields.  
-<code class="language-smolambda">@struct</code> is a shorthand that returns all inputs by name.
+<code class="language-smolambda">@nominal</code> is a shorthand that returns all inputs by name.
 </p>
 
 <pre><code class="language-smolambda">@include std.builtins
@@ -609,7 +609,7 @@ Prism.languages.smolambda = {
     pattern: /&/,
     alias: 'operator' // optional, gives Prism’s operator style too
   },
-  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\b/,
+  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

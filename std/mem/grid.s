@@ -18,7 +18,7 @@
 @include std.mem.arena
 
 smo MemoryGrid (
-        nom type,
+        nominal type,
         Memory& memory,
         Primitive,
         u64 size, 
@@ -28,14 +28,14 @@ smo MemoryGrid (
     -> type, surface, size, squares
 
 smo GridEntry (
-        nom,
+        nominal,
         MemoryGrid &grid,
         u64 id
     ) 
     -> @args
 
 smo at(MemoryGrid &self, u64 id) 
-    -> nom:GridEntry(self, id)
+    -> nominal:GridEntry(self, id)
 
 smo at(GridEntry self, u64 pos) 
     true_pos = pos
@@ -57,4 +57,4 @@ smo len(GridEntry self)
     -> self.grid.size
 
 smo grid(Memory& memory, u64 size, u64 squares, Primitive)
-    -> nom:MemoryGrid(memory, Primitive, size, squares)
+    -> nominal:MemoryGrid(memory, Primitive, size, squares)

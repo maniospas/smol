@@ -25,6 +25,9 @@
 
 using namespace std;
 
+#define CODE_START() string(markdown_errors?"\n```rust\n":"")
+#define CODE_END() string(markdown_errors?"```\n":"")
+
 struct Def;
 typedef shared_ptr<Def> Type;
 typedef SegmentedString Variable;
@@ -41,7 +44,7 @@ const Variable MUL_VAR = Variable("*");
 const Variable REF_VAR = Variable("&");
 const Variable MINUS_VAR = Variable("-");
 const Variable GT_VAR = Variable(">");
-const Variable NOM_VAR = Variable("nom");
+const Variable NOM_VAR = Variable("nominal");
 const Variable U64_VAR = Variable("u64");
 const Variable RELEASED_VAR = Variable("__released");
 const Variable PTR_VAR = Variable("ptr");
@@ -57,6 +60,7 @@ const Variable ELSE_VAR = Variable("else");
 const Variable WHILE_VAR = Variable("while");
 const Variable LOOP_VAR = Variable("loop");
 const Variable ERR_VAR = Variable("err");
+const Variable ALL_VAR = Variable("all");
 const Variable TASK_VAR = Variable("__task");
 const Variable STATE_VAR = Variable("__state");
 const Variable STRUCT_VAR = Variable("struct");
@@ -184,6 +188,18 @@ public:
     string raw_signature_state_name() const;
     void add_preample(const string& pre) {if(preample.find(pre)==preample.end()) preample.insert(pre);}
     void add_linker(const string& pre) {if(linker.find(pre)==linker.end()) linker.insert(pre);}
+    void assert_options_validity(const shared_ptr<Import>& imp, size_t& p) {
+        size_t count_nom = 0;
+        size_t count_nonnom = 0;
+        for(const auto& it : options) {
+            if(it->choice_power) 
+                count_nom++;
+            else
+                count_nonnom++;
+        }
+        if(count_nom>1 && count_nonnom)
+            imp->error(p, "More than one nominal declarations for: "+name.to_string());
+    }
     void coallesce_finals(const Variable& original) {
         unordered_set<Variable> visited;
         queue<Variable> q;
@@ -245,7 +261,7 @@ public:
     }
 
 
-    Def(const string& builtin): choice_power(0), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), name(builtin), number_of_calls(0), has_returned(false) {}
+    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), name(builtin), number_of_calls(0), has_returned(false) {}
     Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), name(""), number_of_calls(0), has_returned(false) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;

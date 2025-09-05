@@ -32,7 +32,7 @@ Here's what smoλ programs look like.
 @include std.file
 
 smo Stats(
-        nom, // nominal type (prevents structural matching when used as argument)
+        nominal, // nominal type (prevents structural matching when used as argument)
         u64 lines, 
         u64 chars
     )
@@ -58,7 +58,7 @@ smo file_reader(String path, Memory &memory)
             stat_lines = stat_lines + 1
             stat_chars = stat_chars + line:len
         ----
-    -> nom:Stats(stat_lines, stat_chars)
+    -> nominal:Stats(stat_lines, stat_chars)
 
 service main()
     &memory = Stack.arena(1048576) // 1MB

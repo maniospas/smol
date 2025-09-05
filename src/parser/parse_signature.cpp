@@ -25,25 +25,12 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
     while(true) {
         bool autoconstruct = false;
         bool mut = false;
-        bool nolex = false;
         string next = imp->at(p++);
         if(next==")") 
             break;
         if(args.size()) {
             if(next!=",")
                 imp->error(--p, "Missing comma between arguments");
-            next = imp->at(p++);
-        }
-        if(next=="@") {
-            next = imp->at(p++);
-            if(next!="struct") 
-                imp->error(--p, "@struct is expected here");
-            next = imp->at(p++);
-            nolex = true;
-        }
-        if(next==":") {
-            autoconstruct=true;
-            imp->error(--p, "Unexpected :"); // deprecated autoconstruct
             next = imp->at(p++);
         }
         if(next==",") 
@@ -86,17 +73,13 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             imp->error(--p, "Not a valid name");
         if(types.vars.find(arg_name)!=types.vars.end()) 
             imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
-        if(argType->lazy_compile && nolex) {
-            if(argType->options.size()==0) imp->error(--p, "No options for argument: "
-                +arg_name.to_string()
-                +"\nAdding @struct before the argument's type may resolve this issue"
-                +"\nby forcing usage of the a runtype with ->@struct in its return"
-                +"\namong those overloaded with the same name/union."
-                +"\nThis annoation directly interleaves the type in the definition"
-                +"\nand removes its lexical scoping."
+        if(argType->lazy_compile) {
+            if(argType->options.size()==0) imp->error(--p, "Internal error: No options for type: "
+                +argType->name.to_string()
             );
             double option_power = -1;
             int conflicts = 0;
+            Type prev_argType = argType;
             for(const auto& it : argType->options) {
                 if(it->choice_power>option_power) {// && it->name==argType->name) {
                     option_power = it->choice_power;
@@ -106,15 +89,8 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 else if(it->choice_power==option_power) 
                     conflicts++;
             }
-            if(option_power<0) 
-                imp->error(--p, "No resolution options for @struct argument: "
-                    +arg_name.to_string()
-                );
             if(conflicts) 
-                imp->error(--p, "There was no criterion for resolving @struct argument to one option: "
-                    +arg_name.to_string()
-                    +"\nMultiple options are available"
-                );
+                argType = prev_argType;
         }
         if(argType->lazy_compile) {
             args.emplace_back(arg_name, argType, mut);
@@ -128,8 +104,8 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             if(argType->options.size()==0) 
                 imp->error(--p, "No options to determine buffer elements "
                     +argType->name.to_string()
-                    +"\nAdding @struct before the argument's type may resolve this issue"
-                    +"\nby forcing usage of the a runtype with ->@struct in its return"
+                    +"\nAdding before the argument's type may resolve this issue"
+                    +"\nby forcing usage of the a runtype with ->in its return"
                     +"\namong those overloaded with the same name/union."
                     +"\nThis annoation directly interleaves the type in the definition"
                     +"\nand removes its lexical scoping."

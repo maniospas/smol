@@ -122,32 +122,6 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                 else assign_variable(type, next, ZERO_VAR, imp, p, true);
                 type_trackers.insert(next);
             }
-            /*else if(type_trackers.find(next)!=type_trackers.end() && internalTypes.contains(next)) {
-                Type prevType = internalTypes.vars[next];
-                if(prevType->options.size()==1) prevType = *prevType->options.begin();
-                if(prevType->lazy_compile) {
-                    if(parametric_types.find(next)==parametric_types.end()) imp->error(--p, "Internal error: has no compiled lazy type "+prevType->signature(types));
-                    prevType = parametric_types[next];
-                }
-                Type type(nullptr);
-                for(const auto& arg : prevType->args) 
-                    if(arg.type->name==next_token) {type=arg.type;break;} 
-                    else if(arg.type->name=="nom" && alignments[arg.name] && types.reverse_alignment_labels[alignments[arg.name]]->name==next_token)
-                        {type=types.reverse_alignment_labels[alignments[arg.name]];break;}
-                if(!type) imp->error(--p, "Cannot find type "+pretty_var(next_token)+" as any of the arguments of "+prevType->signature(types));
-                if(type->options.size()!=1) imp->error(--p, "Ambiguous type "+pretty_var(next_token)+" in the arguments of "+prevType->signature(types));
-                type = *type->options.begin();
-                next = create_temp();
-                if(type->not_primitive()) {
-                    for(size_t i=0;i<type->args.size();++i) {
-                        assign_variable(type->args[i].type, next+"__"+type->args[i].name, "0", imp, p, true);
-                        if(type->args[i].type->name=="nom") alignments[next+"__"+type->args[i].name] = types.alignment_labels[type.get()];
-                    }
-                    internalTypes.vars[next] = type;
-                }
-                else assign_variable(type, next, "0", imp, p, true);
-                type_trackers.insert(next);
-            }*/
             else {
                 if(type_trackers.find(next)!=type_trackers.end())
                     imp->error(--p, "Not found "+next_token+" in "+internalTypes.vars[next]->signature(types));

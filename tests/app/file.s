@@ -2,7 +2,7 @@
 @include std.mem -> Memory, arena
 @include std.file
 
-smo file_stats(nom, u64 lines, u64 chars) 
+smo file_stats(nominal, u64 lines, u64 chars) 
     -> @args
 
 smo print(file_stats stats)
@@ -25,7 +25,7 @@ smo file_reader(String path, Memory &memory)
             stat_lines = stat_lines + 1
             stat_chars = stat_chars + line:len
         ----
-    -> nom:file_stats(stat_lines, stat_chars)
+    -> nominal:file_stats(stat_lines, stat_chars)
 
 service main()
     &memory = Stack:arena(1048576) // 1MB

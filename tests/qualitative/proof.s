@@ -5,26 +5,26 @@
 // - Only nominal typing is applied to ensure that distinct properties
 //   keep track of their nature.
 
-smo x(nom) -> @args
-smo y(nom) -> @args
-smo z(nom) -> @args
-smo zero(nom) -> @args
+smo x(nominal) -> @args
+smo y(nominal) -> @args
+smo z(nominal) -> @args
+smo zero(nominal) -> @args
 union Var(x,y,z)       // one of x,y,z
 union Number(Var,zero) // all members of Var plus zero
 union Number2(Number)
 
-smo neg(nom,Var) -> @args
-smo neg(nom,neg arg) -> arg.Var
-smo neg(nom,zero) -> nom:zero
-smo add(nom,Var,neg) 
+smo neg(nominal,Var) -> @args
+smo neg(nominal,neg arg) -> arg.Var
+smo neg(nominal,zero) -> nominal:zero
+smo add(nominal,Var,neg) 
     with 
         &equals=Var 
         equals=neg.Var 
-    ---> nom:zero
-smo add(nom,Var,zero) -> Var
-smo sub(nom,Number,Number2) with result = nom:add(Number,nom:neg(Number2)) ---> result
+    ---> nominal:zero
+smo add(nominal,Var,zero) -> Var
+smo sub(nominal,Number,Number2) with result = nominal:add(Number,nominal:neg(Number2)) ---> result
 
 service main() 
-    &equals = nom:sub(nom:neg(nom:neg(x)), zero) // (0-(0-x))-zero == x
-    equals = nom:x // this would have an error if we used nom:z
+    &equals = nominal:sub(nominal:neg(nominal:neg(x)), zero) // (0-(0-x))-zero == x
+    equals = nominal:x // this would have an error if we used nominal:z
     --

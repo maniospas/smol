@@ -93,7 +93,7 @@
 // smo __unsafe_ret(u64, u64 value, ptr context) -> value
 // smo __unsafe_ret(f64, u64 value, ptr context) @body{f64 temp_cast = static_cast<f64>(value);} -> temp_cast
 // smo __unsafe_ret(i64, u64 value, ptr context) @body{i64 temp_cast = static_cast<i64>(value);} -> temp_cast
-// smo __unsafe_ret(@struct str, u64 value, ptr context) 
+// smo __unsafe_ret(str, u64 value, ptr context) 
 //     @head{#include <string.h>}
 //     @body{cstr raw = (cstr)(value);} 
 //     @body{
@@ -101,7 +101,7 @@
 //         ptr contents=(ptr)raw;
 //         char first=raw[0];
 //     }
-//     -> nom:str(contents, length, first, context)
+//     -> nominal:str(contents, length, first, context)
 
 // smo __map_prepare_key(nstr value, Memory &memory) 
 //     with memory:is(Heap) fail("Error: Cannot directly allocate `Heap` memory for map strings, use anything else (a heap Arena, Dynamic, Stack)") 
@@ -159,7 +159,7 @@
 
 // // class Map
 // smo Map(
-//         nom type, 
+//         nominal type, 
 //         Memory &memory, 
 //         u64 size,
 //         Keys,
@@ -173,7 +173,7 @@
 //     -> type, size, mem, length, memory
 
 // smo map(Memory &memory, u64 size, Keys, Values) 
-//     -> nom:Map(memory, size, Keys, Values)
+//     -> nominal:Map(memory, size, Keys, Values)
 
 // smo len(Map &self) 
 //     -> self.length
@@ -247,14 +247,14 @@
 //     ---> ret
 
 
-// // smo List(nom, Memory &memory, u64 capacity, Values)
+// // smo List(nominal, Memory &memory, u64 capacity, Values)
 // //     mem = memory:allocate(capacity, u64)
 // //     //range(capacity):while next(u64& i) mem:__unsafe_put(i, 0)
 // //     length = 0
 // //     ---> capacity, mem, length, memory, Values
 
 // // smo List(Memory &memory, u64 capacity, Values)
-// //     -> nom:List(memory, capacity, Values)
+// //     -> nominal:List(memory, capacity, Values)
 
 // // smo len(List self) -> self.length
 

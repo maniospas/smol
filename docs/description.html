@@ -179,14 +179,14 @@ The language server offers tooltips, error traces, and jumping to definitions.</
 smo Point(f64 x, f64 y) 
     -> @args
 
-smo Field(nom, Point start, Point end) 
+smo Field(nominal, Point start, Point end) 
     -> @args
 
 service main()
     // raw numbers you write are either 
     // f64 (floats) or u64 (unsigned ints)
     p = Point(3.0,5.0)
-    f = nom:Field(1.0,2.0,p)
+    f = nominal:Field(1.0,2.0,p)
     print(f.start.x + f.end.y) // 6
     --
 </code></pre>
@@ -204,7 +204,7 @@ Nothing exciting yet.</p>
 <p>Next are some so-called <i>runtypes</i>, declared by the <code class="language-smolambda">smo</code>
 keyword. These merge the concept of types and functions, where <code class="language-smolambda">-></code>
 returns a value or tuple. If variable names are part of the returned tuple, they can be accessed as fields
-from the result. <code class="language-smolambda">@struct</code> is a shorthand for
+from the result. <code class="language-smolambda">@nominal</code> is a shorthand for
 returning a tuple of all arguments. It is useful for declaring structural data without functionality - though
 those data may make runtime assertions.</p>
 
@@ -318,7 +318,7 @@ available in the standard library.
       <td>E.g., escape loops from inside conditions</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">@struct</code></td>
+      <td><code class="language-smolambda">@nominal</code></td>
       <td>Return all inputs</td>
       <td>Prioritized on runtype conflicts</td>
     </tr>
@@ -728,7 +728,7 @@ However, only returned symbols can be accessed as fields.
 For example, below the input variable <code class="language-smolambda">x</code>
 cannot be accessed after computations conclude.
 We already saw that it may be convenient to unpack all runtype inputs with
-<code class="language-smolambda">@struct</code> to directly declare a structural type
+<code class="language-smolambda">@nominal</code> to directly declare a structural type
 without internal implementation.
 </p>
 
@@ -788,7 +788,7 @@ smo Point(f64 px, f64 py)
     &y = py
     -> x,y
 
-smo Point(nom type, f64 px, f64 py)
+smo Point(nominal type, f64 px, f64 py)
     &x = px
     &y = py
     -> type, x,y
@@ -806,7 +806,7 @@ service main()
     p:scale(5.0)
     print(p.x) // 10
 
-    tp = nom:Point(1.0,1.0)
+    tp = nominal:Point(1.0,1.0)
     tp:scale(5.0) // creates an ERROR
     --
 </code></pre>
@@ -998,7 +998,7 @@ service main()
     --
 </code></pre>
 
-<p>Till now we used <code class="language-smolambda">->@struct</code> returns as a shorthand for returning
+<p>Till now we used <code class="language-smolambda">->@nominal</code> returns as a shorthand for returning
 input values. However, this also helps disambiguate overloading when there is no clear resolution. 
 In particular, if exactly one of the competing runtypes
 has this kind of return declaration or argument, that is used as the choice that breaks the stalemate.
@@ -1036,10 +1036,10 @@ equivalent runtypes.
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Type1(nom, f64 value) 
+smo Type1(nominal, f64 value) 
     -> @args
     
-smo Type2(nom, f64 value) 
+smo Type2(nominal, f64 value) 
     -> @args
 
 smo recognize(Type1 p) 
@@ -1051,8 +1051,8 @@ smo recognize(Type2 p)
     --
 
 service main()
-    p1 = nom:Type1(1.0)
-    p2 = nom:Type2(2.0)
+    p1 = nominal:Type1(1.0)
+    p2 = nominal:Type2(2.0)
     recognize(p1) 
     recognize(p2) 
     --
@@ -1095,11 +1095,11 @@ its standard library
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo strbuf(nom, str[] &ref)
+smo strbuf(nominal, str[] &ref)
     -> @args
 
 smo strbuf(String value)
-    -> nom:strbuf(str[]:push(value:str))
+    -> nominal:strbuf(str[]:push(value:str))
 
 smo put(strbuf &buf, String value)
     -> buf.ref:put(0, value:str)
@@ -1432,7 +1432,7 @@ service main()
 @include std.mem
 
 smo zero(Memory, u64 n)
-    v = nom:allocate(Memory, n, f64)
+    v = nominal:allocate(Memory, n, f64)
     i = 0 
     while i&lt;n
         @next i = i+1
@@ -1553,7 +1553,7 @@ Prism.languages.smolambda = {
     pattern: /&/,
     alias: 'operator' // optional, gives Prism’s operator style too
   },
-  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\b/,
+  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

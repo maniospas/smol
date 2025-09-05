@@ -40,7 +40,7 @@
 @about Split   "Splits a String given a query String. Optionally, you may also provide a starting position, where the default is 0. The result of the split can be iterated through with <code>next</code>. This does not allocate memory in that a substring is retrieved, so you might consider copying the splits - or store them on data structures like maps that automatically copy data if needed."
 
 smo str (
-        nom, 
+        nominal, 
         ptr contents, 
         u64 length, 
         char first, 
@@ -49,7 +49,7 @@ smo str (
     -> @args
 
 smo nstr (
-        nom, 
+        nominal, 
         ptr contents, 
         u64 length, 
         char first, 
@@ -76,7 +76,7 @@ smo is(String self, String)
     -> self
 
 smo str(nstr other)
-    -> nom:str(other.contents, other.length, other.first, other.memory)
+    -> nominal:str(other.contents, other.length, other.first, other.memory)
 
 smo str(cstr raw)
     @head{#include <string.h>}
@@ -86,7 +86,7 @@ smo str(cstr raw)
         char first=raw[0];
         ptr noptr=(ptr)noptr; // use this to indicate a cstr
     }
-    -> nom:str(contents, length, first, noptr)
+    -> nominal:str(contents, length, first, noptr)
 
 smo nstr(cstr raw)
     @head{#include <string.h>}
@@ -96,7 +96,7 @@ smo nstr(cstr raw)
         char first=raw[0];
         ptr noptr = (ptr)noptr; // use this to indicate a cstr
     }
-    -> nom:nstr(contents, length, first, noptr)
+    -> nominal:nstr(contents, length, first, noptr)
 
 smo str(bool value) 
     @head{cstr __truestr = "true";}
@@ -158,7 +158,7 @@ smo slice(String self, u64 from, u64 to)
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from==to?'\0':((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
     }
-    -> nom:str(contents, to-from, first, s.contents)
+    -> nominal:str(contents, to-from, first, s.contents)
     
 smo slice(String self, u64 from) 
     -> self:slice(from, 0)
@@ -221,18 +221,22 @@ smo at(str x, u64 pos)
     -> z
 
 smo at(nstr x, u64 pos) 
-    if x__length<=pos @fail{printf("String index out of bounds\n");} --
-    // trying to help the compiler below, but maybe it's too clever and it can optimize that
-    @body{char z= (__builtin_constant_p(pos) && pos == 0) ? x__first: ((char*)x__contents)[pos];} 
-    -> z
+    -> at(x:str, pos)
 
-smo Split(nom, str query, str sep, u64 &pos) 
+smo Split(nominal, 
+        str query,
+        str sep, 
+        u64 &pos
+    ) 
     -> @args
     
 smo Split(String _query, IndependentString _sep) 
-    -> nom:Split(_query:str, _sep:str, u64 &pos) // splits are str (not cstr or nstr)
+    -> nominal:Split(_query:str, _sep:str, u64 &pos) // splits are str (not cstr or nstr)
 
-smo next(Split &self, str &value)
+smo next(
+        Split &self, 
+        str &value
+    )
     ret = self.pos<self.query:len
     if ret 
         &searching = true

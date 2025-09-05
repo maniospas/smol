@@ -175,7 +175,7 @@ smo add(i64 x, i64 y)
     @body{i64 z=x+y;} 
     -> z
 
-smo mod(i64 x, i64 y) 
+smo mod(i64 x, i64 y)
     if y<=0:i64
         @fail{printf("Error: modulo by non-positive\n");} 
         --

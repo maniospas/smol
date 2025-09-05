@@ -30,7 +30,7 @@ smo copy(Memory &allocator, String _s)
         memcpy((char*)mem__mem, s__contents, s__length);
         ((char*)mem__mem)[s__length] = 0;
     }
-    -> nom:nstr(mem.mem, s.length, first, mem.underlying)
+    -> nominal:nstr(mem.mem, s.length, first, mem.underlying)
 
 smo add(Memory &allocator, String _x, IndependentString _y)
     x = _x:str
@@ -50,7 +50,7 @@ smo add(Memory &allocator, String _x, IndependentString _y)
         memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
         ((char*)_contents)[total_len] = 0;
     }
-    -> nom:nstr(_contents, total_len, first, mem.underlying)
+    -> nominal:nstr(_contents, total_len, first, mem.underlying)
 
 smo nstr(Memory &allocator, i64 number)
     @head{#include <stdio.h>}
@@ -74,7 +74,7 @@ smo nstr(Memory &allocator, i64 number)
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
         --
-    -> nom:nstr(contents, length, first, mem.underlying)
+    -> nominal:nstr(contents, length, first, mem.underlying)
 
 smo nstr(Memory &allocator, u64 number)
     @head{#include <stdio.h>}
@@ -98,7 +98,7 @@ smo nstr(Memory &allocator, u64 number)
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
         --
-    -> nom:nstr(contents, length, first, mem.underlying)
+    -> nominal:nstr(contents, length, first, mem.underlying)
 
 smo nstr(Memory &allocator, f64 number)
     @head{#include <stdio.h>}
@@ -122,7 +122,7 @@ smo nstr(Memory &allocator, f64 number)
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
         --
-    -> nom:nstr(contents, length, first, mem.underlying)
+    -> nominal:nstr(contents, length, first, mem.underlying)
 
 smo str(Memory &allocator, u64 number)
     -> nstr(allocator, number):str

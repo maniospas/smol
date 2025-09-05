@@ -1,11 +1,11 @@
 @include std.builtins
 
 
-smo strbuf(nom, str[] &ref)
+smo strbuf(nominal, str[] &ref)
     -> @args
 
 smo strbuf(String value)
-    -> nom:strbuf(str[]:push(value:str))
+    -> nominal:strbuf(str[]:push(value:str))
 
 smo put(strbuf &buf, String value)
     -> buf.ref:put(0, value:str)

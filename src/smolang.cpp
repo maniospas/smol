@@ -186,12 +186,16 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 }
                 for(const auto& it : files[path].vars) {
                     const Variable& name = it.first;
-                    if(filter.size() && filter.find(name)==filter.end()) continue;
+                    if(filter.size() && filter.find(name)==filter.end()) 
+                        continue;
                     Type impl = it.second;
                     //cout<<file<<" imports "<<path<<" "<<impl->signature(types) << "\n";
-                    if(impl->_is_primitive) continue;
-                    if(!types.contains(name)) types.vars[name] = impl;
-                    else if(types.vars[name]==impl) {}
+                    if(impl->_is_primitive) 
+                        continue;
+                    if(!types.contains(name)) 
+                        types.vars[name] = impl;
+                    else if(types.vars[name]==impl) {
+                    }
                     else {
                         auto def = make_shared<Def>(types);
                         for(const auto& option : types.vars[name]->options) {
@@ -201,20 +205,29 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                         }
                         for(const auto& option : impl->options) {
                             bool found = false;
-                            for(const auto& it : def->options) if(it==option) {found=true;break;}
-                            if(!found) def->options.push_back(option);
+                            for(const auto& it : def->options) if(it==option) {
+                                found=true;
+                                break;
+                            }
+                            if(!found) 
+                                def->options.push_back(option);
                         }
                         all_types.push_back(def);
                         def->imp = imp;
                         def->lazy_compile = true;//treat as union
                         def->name = name;
                         types.vars[def->name]->pos = p;
-                        types.vars[name]  = def;
+                        types.vars[name] = def;
+                        def->assert_options_validity(imp, p);
                     }
                 }
-                for(const auto& it : files[path].alignment_labels) types.alignment_labels[it.first] = it.second;
-                for(const auto& it : files[path].reverse_alignment_labels) types.reverse_alignment_labels[it.first] = it.second;
-                if(files[path].all_errors.size()) if(Def::markdown_errors) imp->error(p, "Errors in included file: "+path);
+                for(const auto& it : files[path].alignment_labels) 
+                    types.alignment_labels[it.first] = it.second;
+                for(const auto& it : files[path].reverse_alignment_labels) 
+                    types.reverse_alignment_labels[it.first] = it.second;
+                if(files[path].all_errors.size()) 
+                    if(Def::markdown_errors) 
+                        imp->error(p, "Errors in included file: "+path);
                 p++;
                 continue;
             }
@@ -223,16 +236,43 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 stack<pair<string, int>> brackets;
                 for(;p<imp->size();++p) {
                     string next = imp->at(p);
-                    if(next=="(" || next=="{" || next=="[") brackets.push(make_pair(next, p));
-                    if(next==")") {if(!brackets.size()) imp->error(p, "Never opened parenthesis"); if(brackets.top().first!="(") imp->error(brackets.top().second, "Never closed parenthesis");brackets.pop();continue;}
-                    if(next=="}") {if(!brackets.size()) imp->error(p, "Never opened bracket "); if(brackets.top().first!="{") imp->error(brackets.top().second, "Never closed bracket");brackets.pop();continue;}
-                    if(next=="]") {if(!brackets.size()) imp->error(p, "Never opened square bracket"); if(brackets.top().first!="[") imp->error(brackets.top().second, "Never closed square bracket");brackets.pop();continue;}
-                    if(next=="smo" || next=="service") break;
+                    if(next=="(" || next=="{" || next=="[") 
+                        brackets.push(make_pair(next, p));
+                    if(next==")") {
+                        if(!brackets.size()) 
+                            imp->error(p, "Never opened parenthesis"); 
+                        if(brackets.top().first!="(") 
+                            imp->error(brackets.top().second, "Never closed parenthesis");
+                        brackets.pop();
+                        continue;
+                    }
+                    if(next=="}") {
+                        if(!brackets.size()) 
+                            imp->error(p, "Never opened bracket "); 
+                        if(brackets.top().first!="{") 
+                            imp->error(brackets.top().second, "Never closed bracket");
+                        brackets.pop();
+                        continue;
+                    }
+                    if(next=="]") {
+                        if(!brackets.size()) 
+                            imp->error(p, "Never opened square bracket"); 
+                        if(brackets.top().first!="[") 
+                            imp->error(brackets.top().second, "Never closed square bracket");
+                        brackets.pop();
+                        continue;
+                    }
+                    if(next=="smo" || next=="service") 
+                        break;
                 }
-                if(brackets.size() && brackets.top().first=="(") imp->error(brackets.top().second, "Never closed parenthesis");
-                if(brackets.size() && brackets.top().first=="{") imp->error(brackets.top().second, "Never closed bracket");
-                if(brackets.size() && brackets.top().first=="[") imp->error(brackets.top().second, "Never closed square bracket");
-                if(brackets.size()) imp->error(brackets.top().second, "Never closed");
+                if(brackets.size() && brackets.top().first=="(") 
+                    imp->error(brackets.top().second, "Never closed parenthesis");
+                if(brackets.size() && brackets.top().first=="{") 
+                    imp->error(brackets.top().second, "Never closed bracket");
+                if(brackets.size() && brackets.top().first=="[") 
+                    imp->error(brackets.top().second, "Never closed square bracket");
+                if(brackets.size()) 
+                    imp->error(brackets.top().second, "Never closed");
                 p = start_p;
 
                 auto def = make_shared<Def>(types);
@@ -241,7 +281,8 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 def->parse(imp, p, types);
                 vector<Type> lazy_options;
                 if(def->lazy_compile) lazy_options = def->get_lazy_options(types);
-                if(!types.contains(def->name)) types.vars[def->name] = def;
+                if(!types.contains(def->name)) 
+                    types.vars[def->name] = def;
                 else if(!types.vars[def->name]->lazy_compile) {
                     // if the previous was a normal implementation move that to a union
                     auto prev = types.vars[def->name];
@@ -253,30 +294,46 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     types.vars[def->name]->name = prev->name;
                     for(const auto& d : prev->options) {
                         bool found = false;
-                        for(const auto& it : types.vars[def->name]->options) if(it==d) {found=true;break;}
-                        if(!found) types.vars[def->name]->options.push_back(d);
+                        for(const auto& it : types.vars[def->name]->options) 
+                            if(it==d) {
+                                found=true;
+                                break;
+                            }
+                        if(!found) 
+                            types.vars[def->name]->options.push_back(d);
                     }
                 }
-
                 if(def->lazy_compile) {
                     Def::log_depth = 0;
                     for(const auto& d : lazy_options) {
-                        if(d->lazy_compile) imp->error(--p, "Internal error: failed to compile "+d->signature(types));
+                        if(d->lazy_compile) 
+                            imp->error(--p, "Internal error: failed to compile "+d->signature(types));
                         bool found = false;
-                        for(const auto& it : types.vars[def->name]->options) if(it==d) {found=true;break;}
-                        if(!found) types.vars[def->name]->options.push_back(d);
+                        for(const auto& it : types.vars[def->name]->options) 
+                            if(it==d) {
+                                found=true;
+                                break;
+                            }
+                        if(!found) 
+                            types.vars[def->name]->options.push_back(d);
                     }
                     p--;
                     while(p<imp->size()-1) {
                         p++;
-                        if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
-                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
-                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="unsafe") break;
-                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="about") break;
+                        if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") 
+                            break;
+                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") 
+                            break;
+                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="unsafe") 
+                            break;
+                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="about") 
+                            break;
                     }
                     --p;
                 }
-                else types.vars[def->name]->options.push_back(def);
+                else 
+                    types.vars[def->name]->options.push_back(def);
+                def->assert_options_validity(imp, p);
             }
             else if(imp->at(p)=="union") {
                 string name = imp->at(++p);
@@ -293,15 +350,31 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     string next = imp->at(p++);
                     if(next=="-" && imp->at(p++)=="-") break;
                     const auto& found_type = types.vars.find(next);
-                    if(found_type==types.vars.end()) imp->error(--p, "Undefined runtype: "+next);
+                    if(found_type==types.vars.end()) 
+                        imp->error(--p, "Undefined runtype: "+next);
+                    bool added = false;
                     for(const Type& option : found_type->second->options) {
-                        if(option->lazy_compile) imp->error(--p, "Internal error: failed to compile runtype "+option->signature(types));
+                        if(!option->choice_power)
+                            continue;
+                        if(option->lazy_compile) 
+                            imp->error(--p, "Internal error: failed to compile runtype "+option->signature(types));
                         bool found = false;
-                        for(const auto& it : def->options) if(it==option) {found=true;break;}
-                        if(!found) def->options.push_back(option);
+                        for(const auto& it : def->options) 
+                            if(it==option) {
+                                found=true;
+                                break;
+                            }
+                        if(!found) {
+                            def->options.push_back(option);
+                            added = true;
+                        }
                     }
+                    if(!added)
+                        imp->error(--p, "Missing nominal variation"
+                            "\nCannot create a runtype union that includes non-nominal types (those would be ignored)");
                 }
                 --p;
+                def->assert_options_validity(imp, p);
             }
             else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union`, `@include`, `@about`, or `@unsafe` allowed");
             p++;
@@ -357,7 +430,7 @@ int main(int argc, char* argv[]) {
     builtins.vars[Variable("cstr")] = make_shared<Def>("cstr");
     builtins.vars[BOOL_VAR] = make_shared<Def>("bool");
     builtins.vars[Variable("char")] = make_shared<Def>("char");
-    builtins.vars[NOM_VAR] = make_shared<Def>("nom");
+    builtins.vars[NOM_VAR] = make_shared<Def>("nominal");
     builtins.vars[LABEL_VAR] = make_shared<Def>("__label");
     builtins.vars[BUFFER_VAR] = make_shared<Def>("__buffer");
 
@@ -424,7 +497,7 @@ int main(int argc, char* argv[]) {
                     "    { pattern: /\\b(?:smo|service|if|else|elif|with|include|do|while|on|union|to|upto|lento|len|and|or)\\b/, greedy: true },\n"
                     "    { pattern: /(?:\\|\\|\\|->|\\|\\|->|\\|\\|--|\\|->|\\|--|->|--|:|=)/, greedy: true }\n"
                     "  ],\n"
-                    "  'builtin': /\\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nom)\\b/,\n"
+                    "  'builtin': /\\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\\b/,\n"
                     "  'punctuation': /[{}();,\\[\\]]/,\n"
                     "  'number': /\\b\\d+\\b/,\n"
                     "  'string': { pattern: /\"(?:\\\\.|[^\"\\\\])*\"/, greedy: true }\n"
@@ -512,7 +585,7 @@ int main(int argc, char* argv[]) {
                 "#define __IS_errcode 6\n"
                 "#define __IS_cstr 7\n"
                 "#define __IS_bool 8\n"
-                "#define __IS_nom 9\n"
+                "#define __IS_nominal 9\n"
                 "#ifdef __cplusplus\n"
                 "#define __NULL nullptr\n"
                 "#else\n"
@@ -546,7 +619,7 @@ int main(int argc, char* argv[]) {
                 "typedef const char* cstr;\n"
                 "typedef uint64_t u64;\n"
                 "typedef long i64;\n"
-                "typedef uint64_t nom;\n"
+                "typedef uint64_t nominal;\n"
                 "typedef double f64;\n\n";
             //std::fstream out("__smolambda__temp__main.cpp");
             std::stringstream out("");

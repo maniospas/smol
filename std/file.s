@@ -55,14 +55,14 @@
 @about ended      "Checks if the ending of the file has been reached. This is normal to be true for WriteFile."
 @about is_file    "Checks if a String path is a file system file."
 @about is_dir     "Checks if a String path is a file system directory."
-@about create_dir  "Creates a directory given a String path. May cause service failure due to external factors or if the directory already exists."
+@about create_dir "Creates a directory given a String path. May cause service failure due to external factors or if the directory already exists."
 @about remove_file "Deletes a file from the system. May cause service failure due to external factors or if the file is already open."
 
-smo ReadFile(nom, ptr contents)
+smo ReadFile(nominal, ptr contents)
     @noborrow
     -> @args
 
-smo WriteFile(nom, ptr contents)
+smo WriteFile(nominal, ptr contents)
     @noborrow
     -> @args
 
@@ -80,10 +80,12 @@ smo open(ReadFile&, String _path)
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
     if contents:exists:not 
         @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} 
-    ---> nom:ReadFile(contents)
+    ---> nominal:ReadFile(contents)
 
 smo to_start(File &f) 
-    if f.contents:exists:not @fail{printf("Failed to move to start of closed file");} --
+    if f.contents:exists:not 
+        @fail{printf("Failed to move to start of closed file");} 
+        --
     @body{fseek((FILE*)f__contents, 0, SEEK_SET);}
     --
 
@@ -131,12 +133,12 @@ smo open(Memory& memory, u64 size)
     mem = memory:allocate(size)
     @body{ptr contents = fmemopen(mem__mem, size, "w+");}
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
-    -> nom:WriteFile(contents)
+    -> nominal:WriteFile(contents)
     
 smo next_chunk (
         Volatile &reader, 
         File &f,
-        @struct nstr &value
+        nstr &value
     )
     contents = reader.contents.mem
     size = reader.contents.size
@@ -150,13 +152,13 @@ smo next_chunk (
         char first = ((char*)contents)[0];
         reader__length = reader__length + bytes_read;
     }
-    value = nom:nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
     -> ret:bool
 
 smo next_line (
         Volatile &reader, 
         File &f, 
-        @struct nstr &value
+        nstr &value
     )
     contents = reader.contents.mem
     size = reader.contents.size
@@ -174,12 +176,12 @@ smo next_line (
         }
         reader__length = reader__length + bytes_read;
     }
-    value = nom:nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
     -> ret:bool
 
 smo next_chunk (
         Arena &reader, 
-        File &f, 
+        File &f,
         nstr &value
     )
     @head{#include <stdio.h>}
@@ -192,11 +194,14 @@ smo next_chunk (
         char first = ((char*)reader__contents__mem)[0];
         reader__length = reader__length + bytes_read;
     }
-    value = nom:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
+    value = nominal:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
     -> ret:bool
 
-smo next_line(Arena &reader, File &f, nstr &value)
-    with f.contents:exists -- // verify that we're using the correct read
+smo next_line(
+        Arena &reader,
+        File &f,
+        nstr &value
+    )
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -211,13 +216,13 @@ smo next_line(Arena &reader, File &f, nstr &value)
         }
         reader__length = reader__length + bytes_read;
     }
-    value = nom:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
+    value = nominal:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
     -> ret:bool
 
 smo next_line (
         BoundedMemory &reader,
         File &f, 
-        @struct str &value
+        str &value
     )
     ret = next_line(reader, f, nstr &retvalue)
     value = retvalue:str
@@ -226,7 +231,7 @@ smo next_line (
 smo next_chunk (
         BoundedMemory &reader, 
         File &f, 
-        @struct str &value
+        str &value
     )
     ret = next_chunk(reader, f, nstr &retvalue)
     value = retvalue:str
@@ -286,7 +291,7 @@ smo open(WriteFile&, String _path)
     }
     if contents:exists:not 
         @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
-    ---> nom:WriteFile(contents)
+    ---> nominal:WriteFile(contents)
 
 smo create_dir(String _path)
     path = _path:str
@@ -345,8 +350,8 @@ smo console(WriteFile&)
         if((getenv("MSYSTEM") || getenv("CYGWIN")) && !has_display) has_gui = false;
         if(!has_gui && isatty(STDIN_FILENO)) has_gui = false;
     }
-    if has_gui:not -> fail("Cannot open a console in the current environment")
-
+    if has_gui:not 
+        -> fail("Cannot open a console in the current environment")
     @body{
         ptr f = 0;
         SMOLAMBDA_CONSOLE(f)
@@ -355,4 +360,4 @@ smo console(WriteFile&)
         SMOLAMBDA_CONSOLE_CLOSE(f)
         f = 0;
     }
-    -> nom:WriteFile(f)
+    -> nominal:WriteFile(f)

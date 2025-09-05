@@ -19,14 +19,14 @@
 @unsafe
 @about "Standard library implementation of arena allocation, marked as @noborrow but unsafely returned from constructors. Pointer arithmetics yield offsets within arenas."
 
-smo Arena(nom type, ContiguousMemory contents)
+smo Arena(nominal type, ContiguousMemory contents)
     @noborrow
     length = 0
     size = contents.size
     with contents.Primitive:is(char)
     ---> type, contents, length, size
 
-smo Volatile(nom type, ContiguousMemory contents)
+smo Volatile(nominal type, ContiguousMemory contents)
     @noborrow  // we need this so that controlled_corrupt can properly analyze corruptions
     length = 0
     cycles = 0
@@ -46,7 +46,7 @@ union DerivedMemory
 smo len(DerivedMemory &self) 
     -> self.contents.size
 
-smo Dynamic(nom) 
+smo Dynamic(nominal) 
     @noborrow
     @body{ptr acquired = __runtime_alloc(sizeof(ptr**));if(acquired)((ptr**)acquired)[0]=0;}
     size = 0
@@ -65,10 +65,10 @@ smo Dynamic(nom)
     -> @args, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:dynamic
 
 smo dynamic(Heap) 
-    -> nom:Dynamic
+    -> nominal:Dynamic
 
 smo dynamic(Stack) 
-    -> nom:Stack
+    -> nominal:Stack
     
 smo allocate(Dynamic& self, u64 size, Primitive)
     @head{#include <stdlib.h>}
@@ -94,7 +94,7 @@ smo allocate(Dynamic& self, u64 size, Primitive)
     }
     if success:not 
         -> fail("Failed a Dynamic allocation")
-    -> nom:ContiguousMemory(Heap, size, Primitive, mem, self.acquired)
+    -> nominal:ContiguousMemory(Heap, size, Primitive, mem, self.acquired)
 
 smo allocate(Dynamic &self, u64 size) 
     -> allocate(self, size, char)
@@ -110,7 +110,7 @@ smo allocate(Arena &self, u64 size)
         -> fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
+    -> nominal:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
 
 smo allocate(Arena &self, u64 _size, Primitive) 
     Primitive = Primitive
@@ -119,7 +119,7 @@ smo allocate(Arena &self, u64 _size, Primitive)
         -> fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
+    -> nominal:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
 smo allocate(Volatile &self, u64 size)
     if size>self.contents.size 
@@ -127,7 +127,7 @@ smo allocate(Volatile &self, u64 size)
     @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
+    -> nominal:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
 
 smo allocate(Volatile &self, u64 _size, Primitive) 
     Primitive = Primitive
@@ -136,7 +136,7 @@ smo allocate(Volatile &self, u64 _size, Primitive)
     @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    -> nom:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
+    -> nominal:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
 smo read(Arena &self)
     @head{#include <stdio.h>}
@@ -161,7 +161,7 @@ smo read(Arena &self)
     }
     if _contents:exists:not 
         -> fail("Error: Tried to read more elements than remaining Arena size")
-    -> nom:str(_contents, length, first, self__contents__mem)
+    -> nominal:str(_contents, length, first, self__contents__mem)
 
 union Memory
     MemoryDevice
@@ -178,7 +178,7 @@ smo is(Memory& self, Memory&)
     -> self
 
 smo arena(Memory &self, u64 size) 
-    -> nom:Arena(self:allocate(size))
+    -> nominal:Arena(self:allocate(size))
     
 smo volatile(Memory &self, u64 size) 
-    -> nom:Volatile(self:allocate(size))
+    -> nominal:Volatile(self:allocate(size))

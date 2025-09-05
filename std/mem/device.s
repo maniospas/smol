@@ -27,10 +27,10 @@
 @about at           "Accesses a specific memory position of the corresponding base type. This operation includes bound checks."
 @about __unsafe_put "Can modify an allocated memory. This operation cannot be callsed in safe files."
 
-smo Stack(nom) 
+smo Stack(nominal) 
     -> @args 
 
-smo Heap(nom) 
+smo Heap(nominal) 
     -> @args
 
 union MemoryDevice
@@ -46,7 +46,7 @@ union Primitive
     --
 
 smo ContiguousMemory (
-        nom, 
+        nominal, 
         MemoryDevice, 
         u64 size,
         Primitive,
@@ -59,40 +59,64 @@ smo is(Primitive self, Primitive)
     -> self
 
 smo allocate(Stack, u64 size, Primitive) 
-    if size==0 -> fail("Cannot allocate zero size")
+    if size==0 
+        -> fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
     Primitive = Primitive
     @body{ptr mem=alloca(size*sizeof(Primitive));}
-    if mem:bool:not -> fail("Failed a Stack allocation")
+    if mem:bool:not 
+        -> fail("Failed a Stack allocation")
     @noshare mem
-    -> nom:ContiguousMemory(Stack, size, Primitive, mem, mem)
+    -> nominal:ContiguousMemory(Stack, size, Primitive, mem, mem)
 
 smo allocate(Heap, u64 size, Primitive)
-    if size==0 -> fail("Cannot allocate zero size")
+    if size==0 
+        -> fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
     Primitive = Primitive
     @body{ptr mem=__runtime_alloc(size*sizeof(Primitive));}
     if mem:bool:not 
         -> fail("Failed a Heap allocation")
     @finally mem {if(mem)__runtime_free(mem);mem=0;}
-    -> nom:ContiguousMemory(Heap, size, Primitive, mem, mem)
+    -> nominal:ContiguousMemory(Heap, size, Primitive, mem, mem)
 
 smo allocate(MemoryDevice, u64 size) 
     -> allocate(MemoryDevice, size, char)
 
 smo at(ContiguousMemory v, u64 pos) 
     if pos>=v.size -> fail("ContiguousMemory out of bounds")
-    with v.Primitive:is(u64) @body{u64 value = ((u64*)v__mem)[pos];}
-    -- else v.Primitive:is(i64) @body{i64 value = ((i64*)v__mem)[pos];}
-    -- else v.Primitive:is(f64) @body{f64 value = ((f64*)v__mem)[pos];}
-    -- else v.Primitive:is(char) @body{char value = ((char*)v__mem)[pos];}
+    with 
+        v.Primitive:is(u64) 
+        @body{u64 value = ((u64*)v__mem)[pos];}
+        -- 
+    else 
+        v.Primitive:is(i64) 
+        @body{i64 value = ((i64*)v__mem)[pos];}
+        --
+    else 
+        v.Primitive:is(f64) 
+        @body{f64 value = ((f64*)v__mem)[pos];}
+        --
+    else 
+        v.Primitive:is(char) 
+        @body{char value = ((char*)v__mem)[pos];}
     ---> value
     
 smo __unsafe_put(ContiguousMemory v, u64 pos, Primitive value)
-    with v.Primitive:is(Primitive) --
-    if pos>=v.size -> fail("ContiguousMemory out of bounds")
-    with value:is(u64) @body{((u64*)v__mem)[pos] = value;}
-    -- else value:is(i64) @body{((i64*)v__mem)[pos] = value;}
-    -- else value:is(f64) @body{((f64*)v__mem)[pos] = value;} 
-    -- else value:is(char) @body{((char*)v__mem)[pos] = value;}
+    with 
+        v.Primitive:is(Primitive) 
+        --
+    if pos>=v.size 
+        -> fail("ContiguousMemory out of bounds")
+    with value:is(u64) 
+        @body{((u64*)v__mem)[pos] = value;}
+        --
+    else value:is(i64) 
+        @body{((i64*)v__mem)[pos] = value;}
+        --
+    else value:is(f64) 
+        @body{((f64*)v__mem)[pos] = value;} 
+        --
+    else value:is(char) 
+        @body{((char*)v__mem)[pos] = value;}
     ---> v

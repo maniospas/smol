@@ -159,7 +159,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                                 +"\nThose can only be returned from smo runtypes"
                             );
                     }
-                    if(internalTypes.contains(next_pack) && internalTypes.vars[next_pack]->name=="nom" && !alignments[next_pack]) 
+                    if(internalTypes.contains(next_pack) && internalTypes.vars[next_pack]->name==NOM_VAR && !alignments[next_pack]) 
                         imp->error(--p, "You are returning an unset align "
                             +pretty_var(next.to_string()+"__"+pack.to_string())
                             +"\nAdd an align first variable to the signature and return that instead"

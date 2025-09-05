@@ -63,7 +63,7 @@ string pretty_runtype(const string& name) {
         || name=="f64" 
         || name=="ptr" 
         || name=="bool" 
-        || name=="nom" 
+        || name=="nominal" 
         || name=="char" 
         || name=="u64" 
         || name=="cstr") 

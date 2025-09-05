@@ -26,7 +26,7 @@
 @about next_chunk  "Reads the next chunk of process output into a provided buffer."
 @about next_line   "Reads the next line of process output into a provided buffer."
 
-smo Process(nom, ptr contents)
+smo Process(nominal, ptr contents)
     @noborrow
     -> @args
 
@@ -42,9 +42,18 @@ smo open(Process&, CString _command)
         #endif
     }
     @body{ptr contents = (ptr)popen((cstr)command, "r");}
-    if contents:exists:not @fail{printf("Error: Failed to start process\n");} --
-    @finally contents { if(contents) {pclose((FILE*)contents);} contents = 0; }
-    -> nom:Process(contents)
+    if contents:exists:not 
+        @fail{
+            printf("Error: Failed to start process\n");
+        } 
+        --
+    @finally contents { 
+        if(contents) {
+            pclose((FILE*)contents);
+        } 
+        contents = 0; 
+    }
+    -> nominal:Process(contents)
 
 smo to_end(Process &p)
     @head{#include <string.h>}
@@ -52,33 +61,35 @@ smo to_end(Process &p)
         if(p__contents) {
             char buf[1024];
             bool err = false;
-            while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) {if(strstr(buf, "Error:")) err = true;}
-
+            while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) 
+                if(strstr(buf, "Error:")) 
+                    err = true;
         }
     }
     -> err
 
 smo next_chunk(
         DerivedMemory &reader, 
-        @struct Process &p, 
-        @struct nstr &value
+        Process &p,
+        nstr &value
     )
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
         u64 bytes_read = p__contents ? fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)p__contents) : 0;
-        if(reader__contents__size) ((char*)reader__contents__mem)[ (bytes_read < reader__contents__size) ? bytes_read : (reader__contents__size - 1) ] = '\0';
+        if(reader__contents__size) 
+            ((char*)reader__contents__mem)[ (bytes_read < reader__contents__size) ? bytes_read : (reader__contents__size - 1) ] = '\0';
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
-    value = nom:nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
     -> ret:bool
 
 smo next_line(
         DerivedMemory &reader, 
-        @struct Process &p, 
-        @struct nstr &value
+        Process &p, 
+        nstr &value
     )
     @head{#include <stdio.h> #include <string.h> #include <stdlib.h>}
     @body{
@@ -86,13 +97,13 @@ smo next_line(
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
-    value = nom:nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
     -> ret:bool
 
 smo next_chunk(
         DerivedMemory &memory, 
-        @struct Process &p, 
-        @struct str &value
+        Process &p, 
+        str &value
     ) 
     ret = next_chunk(memory, p, nstr &retvalue)
     value = retvalue:str
@@ -100,8 +111,8 @@ smo next_chunk(
 
 smo next_line(
         DerivedMemory &memory, 
-        @struct Process &p, 
-        @struct str &value
+        Process &p, 
+        str &value
     ) 
     ret = next_line(memory, p, nstr &retvalue)
     value = retvalue:str
@@ -117,7 +128,7 @@ smo system(str command)
     system(Stack:copy(command).memory:cstr)
     --
 
-smo open(Process&, @struct str command)
+smo open(Process&, str command)
     mem = Stack:allocate(command.length+1, char)
     @body{
         char first = 0;

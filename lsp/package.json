@@ -3,7 +3,7 @@
   "displayName": "Smoλ (smolambda)",
   "description": "Support for development in the smoλ language.",
   "publisher": "maniospas",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "engines": {
     "vscode": "^1.70.0"
   },

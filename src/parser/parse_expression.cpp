@@ -436,8 +436,8 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             if(type->options.size()==0) 
                 imp->error(--p, "No options to determine buffer elements "
                     +type->name.to_string()
-                    +"\nAdding @struct before the argument's type may resolve this issue"
-                    +"\nby forcing usage of the a runtype with ->@struct in its return"
+                    +"\nAdding before the argument's type may resolve this issue"
+                    +"\nby forcing usage of the a runtype with ->in its return"
                     +"\namong those overloaded with the same name/union."
                     +"\nThis annoation directly interleaves the type in the definition"
                     +"\nand removes its lexical scoping."
@@ -483,7 +483,6 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                     imp->error(first_token_pos-2, "Not found: "+pretty_var(curry.to_string())+recommend_runtype(types, curry));
                 else if(internalTypes.vars.find(curry)->second->not_primitive()) {
                     for(const Variable& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry.to_string()+"__"+pack.to_string());
-                    //if(type->args.size() && type->args[0].type->name=="nom") alignments[curry+"__"+type->args[0].name] = alignment_labels[type.get()]; (should be already done)
                 }
                 else 
                     unpacks.push_back(curry);
@@ -536,7 +535,6 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             else if(internalTypes.vars.find(curry)->second->not_primitive()) {
                 for(const Variable& pack : internalTypes.vars.find(curry)->second->packs) 
                     unpacks.push_back(curry.to_string()+"__"+pack.to_string());
-                //if(type->args.size() && type->args[0].type->name=="nom") alignments[curry+"__"+type->args[0].name] = alignment_labels[type.get()]; (should be already done)
             }
             else unpacks.push_back(curry);
         }
@@ -639,7 +637,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 }
             else 
                 unpacks.push_back(var);
-            if(type->args.size() && type->args[0].type->name=="nom") 
+            if(type->args.size() && type->args[0].type->name==NOM_VAR) 
                 alignments[var+type->args[0].name] = types.alignment_labels[type.get()];
             internalTypes.vars[var] = type;
             return var;
@@ -652,7 +650,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 mutables.insert(var);
             for(const Variable& pack : type->packs) 
                 assign_variable(type->internalTypes.vars[pack], var+pack, ZERO_VAR, imp, first_token_pos);
-            if(type->args.size() && type->args[0].type->name=="nom") 
+            if(type->args.size() && type->args[0].type->name==NOM_VAR) 
                 alignments[var+type->args[0].name] = types.alignment_labels[type.get()];
             return next_var(imp, p, var, types);
         }

@@ -5,13 +5,13 @@ smo Point(f64 px, f64 py)
     &y = py
     -> x,y
 
-smo TPoint(nom type, f64 px, f64 py)
+smo TPoint(nominal type, f64 px, f64 py)
     &x = px
     &y = py
     -> type, x,y
 
 
-smo IPoint(nom type, f64 x, f64 y) -> @args
+smo IPoint(nominal type, f64 x, f64 y) -> @args
 
 smo scale(Point &p, f64 factor) 
     // & in the signature is required to allow any modification
@@ -25,7 +25,7 @@ smo zero(Point &p)
     --
 
 smo zero(IPoint &p)
-    p = nom:IPoint(0.0, 0.0)
+    p = nominal:IPoint(0.0, 0.0)
     // p.x = 2 // creates an ERROR (p is mutable as a whole only)
     --
 
@@ -37,12 +37,12 @@ service main()
     zero(p)
     print(p.x) // 0
 
-    &ip = nom:IPoint(1.0,1.0)
+    &ip = nominal:IPoint(1.0,1.0)
     print(ip.x) // 1 
     zero(ip)
     print(ip.x) // 0
 
 
-    tp = nom:TPoint(1.0,1.0)
+    tp = nominal:TPoint(1.0,1.0)
     //tp:scale(5.0) // creates an ERROR
     --

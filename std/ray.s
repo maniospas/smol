@@ -25,7 +25,7 @@ smo Position(f64 x, f64 y)
 smo Size(f64 w, f64 h)
     -> @args
 
-smo Window(nom)
+smo Window(nominal)
     @noborrow
     @head{#include "raylib.h"}
     @link{-Istd/raylib/raylib-5.5_linux_amd64/include}
@@ -70,7 +70,7 @@ smo text(Window &window, CString _txt, Position pos, f64 size, Color color)
 smo Color(u64 r, u64 g, u64 b)
     -> Color(r, g, b, 255)
 
-smo Texture(nom, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
+smo Texture(nominal, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
     -> @args
 
 smo open(Texture, CString _path)
@@ -85,7 +85,7 @@ smo open(Texture, CString _path)
         __smolambda_ray_texture(id,width,heigh,mipmaps,format);
     }
     @finally mipmaps {UnloadTexture((Texture2D){id, width, height, mipmaps, format});}
-    -> nom:Texture(id, width, height, mipmaps, format)
+    -> nominal:Texture(id, width, height, mipmaps, format)
 
 smo draw(Window &window, Texture tex, Position pos, Color color)
     @body{ 

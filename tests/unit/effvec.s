@@ -7,7 +7,7 @@ service main()
     // random vector constructors (those 
     // expect an allocator)
     rand = Rand(10)
-    on nom:Stack
+    on nominal:Stack
         a = rand:vector(10)
         b = rand:vector(10)
         c = rand:vector(10)
