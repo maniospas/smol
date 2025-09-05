@@ -28,9 +28,9 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
             else for(const Variable& pack : internalTypes.vars[next]->packs) {
                 packs.push_back(next+pack);
                 if(internalTypes.contains(next+pack) && internalTypes.vars[next+pack]->name==NOM_VAR && !alignments[next+pack]) 
-                    imp->error(--p, "You are returning an unset align "
-                        +pretty_var((next+pack).to_string())
-                        +"\nAdd an align first variable to the signature and return that instead"
+                    imp->error(--p, "Returned an unset nominal value "
+                        +pretty_var(next.to_string()+"__"+pack.to_string())
+                        +"\nAdd a nominal variable as the first argument to the signature and return that instead."
                     );
             }
         }
@@ -54,9 +54,9 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
         if(!internalTypes.contains(next)) 
             break;
         if(released[next]) 
-            imp->error(--p, "You are returning data after @release: "
-                +pretty_var(next.to_string())
-                +recommend_variable(types, next)
+            imp->error(--p, "Returned a releaased resource: "
+                +pretty_var((next).to_string())
+                +"\nA previous @release has already ran any attached finalization and invalidataed the variable."
             );
         if(is_service && finals.find(next)!=finals.end() && finals[next].find(TRANSIENT_VAR) != std::string::npos) 
             imp->error(--p, "You are returning @noshare data from a service: "
@@ -93,19 +93,22 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                 alias_for = next;
                 noborrow = internalTypes.vars[alias_for]->noborrow;
                 if(noborrow && !imp->allow_unsafe) 
-                    imp->error(--p, "Rerurning a @noborrow type for variable "
+                    imp->error(--p, "Rerurned a @noborrow variable "
                         +pretty_var(alias_for.to_string())
-                        +" is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)"
+                        +"\nThis is unsafe behavior. Declare the file as @unsafe by placing this at the top level (typically right after imports)."
                     );
-                if(internalTypes.vars[alias_for]->alias_for.exists()) alias_for = next+internalTypes.vars[alias_for]->alias_for;
+                if(internalTypes.vars[alias_for]->alias_for.exists()) 
+                    alias_for = next+internalTypes.vars[alias_for]->alias_for;
                 for(const Variable& pack : internalTypes.vars[next]->packs) {
-                    if(released[next+pack]) imp->error(--p, "You are returning data after @release: "
-                        +pretty_var((next+pack).to_string())
-                    );
+                    if(released[next+pack]) 
+                        imp->error(--p, "Returned a releaased resource: "
+                            +pretty_var((next+pack).to_string())
+                            +"\nA previous @release has already ran any attached finalization and invalidataed the variable."
+                        );
                     if(internalTypes.contains(pack) && internalTypes.vars[pack]!=internalTypes.vars[next]->internalTypes.vars[pack]) 
-                        imp->error(--p, "Mismatching types for: "
+                        imp->error(--p, "Mismatched types for: "
                             +pretty_var(pack.to_string())
-                            +"\nYou are wrapping a base runtype that declares the same internal variable name under a different type"
+                            +"\nThe current declaration wraps a base type that declares the same internal variable name with a different type."
                         );
                     assign_variable(
                         internalTypes.vars[next]->internalTypes.vars[pack], 
@@ -120,16 +123,16 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                         coallesce_finals(next+pack);
                         if(finals.find(next+pack)!=finals.end() && finals[next+pack].find(TRANSIENT_VAR) != std::string::npos) 
                             imp->error(--p, 
-                                "You are returning @noshare data from a service: "
+                                "Returned @noshare data from a service: "
                                 +pretty_var(next.to_string()+"__"+pack.to_string())
-                                +"\nThose can only be returned from smo runtypes"
+                                +"\nThose can only be returned from smo runtypes. Create those data in the caller (or in a wrapper runtype) and pass them to the service."
                             );
                     }
                     packs.push_back(pack);
                     if(internalTypes.contains(pack) && internalTypes.vars[pack]->name==NOM_VAR && !alignments[pack]) 
                         imp->error(--p, "You are returning an unset align "
                             +pretty_var(pack.to_string())
-                            +"\nAdd an align first variable to the signature and return that instead"
+                            +"\nAdd an align first variable to the signature and return that instead."
                         );
                 }
                 mutables.clear();
@@ -142,27 +145,28 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                 for(const Variable& pack : internalTypes.vars[next]->packs) {
                     Variable next_pack = next+pack;
                     if(released[next_pack]) 
-                        imp->error(--p, "You are returning data after @release: "
+                        imp->error(--p, "Returned a releaased resource: "
                             +pretty_var((next_pack).to_string())
+                            +"\nA previous @release has already ran any attached finalization and invalidataed the variable."
                         );
                     if(internalTypes.contains(next_pack) && internalTypes.vars[next_pack]->noborrow) 
-                        imp->error(--p, "Rerurning a @noborrow type for variable "
+                        imp->error(--p, "Rerurned a @noborrow variable "
                             +pretty_var(next.to_string()+"__"+pack.to_string())
-                            +" is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)"
+                            +"\nThis is unsafe behavior. Declare the file as @unsafe by placing this at the top level (typically right after imports)."
                         );
                     packs.push_back(next_pack);
                     if(is_service) {
                         coallesce_finals(next_pack);
                         if(finals.find(next_pack)!=finals.end() && finals[next_pack].find(TRANSIENT_VAR) != std::string::npos) 
-                            imp->error(--p, "You are returning @noshare data from a service: "
+                            imp->error(--p, "Returned @noshare data from a service: "
                                 +pretty_var((next+pack).to_string())
-                                +"\nThose can only be returned from smo runtypes"
+                                +"\nThose can only be returned from smo runtypes. Create those data in the caller (or in a wrapper runtype) and pass them to the service."
                             );
                     }
                     if(internalTypes.contains(next_pack) && internalTypes.vars[next_pack]->name==NOM_VAR && !alignments[next_pack]) 
-                        imp->error(--p, "You are returning an unset align "
+                        imp->error(--p, "Returned an unset nominal value "
                             +pretty_var(next.to_string()+"__"+pack.to_string())
-                            +"\nAdd an align first variable to the signature and return that instead"
+                            +"\nAdd a nominal variable as the first argument to the signature and return that instead."
                         );
                 }
             }

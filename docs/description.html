@@ -46,6 +46,13 @@
     .sidebar-name { font-size:1.3em; font-weight: bold;  cursor: pointer;  user-select: none;  color: #73181d; }
     .sidebar-sub { font-size: 0.9em;  margin-left: 1em; display: none; }
     .token.special-amp {color: red;font-weight: bold; }
+
+    @media (max-width: 768px) {
+      .sidebar {transform: translateX(-100%); }
+      .sidebar.open {transform: translateX(0);}
+      .sidebar-toggle {display: block;}
+      .container {margin-left: 0 !important;}
+    }
   </style>
 </head>
 <body>
@@ -212,7 +219,7 @@ those data may make runtime assertions.</p>
 layout. For example, <code class="language-smolambda">Point2D</code> is recognized at any place
 where two <code class="language-smolambda">f64</code> values exist. You
 can switch to nomal typing that ensures only a type-resolved version is applied by having 
-<code class="language-smolambda">nom</code> as an argument. This is needed as the first argument during calls later on,
+<code class="language-smolambda">nominal</code> as an argument. This is needed as the first argument during calls later on,
 where <code class="language-smolambda">:</code> is the currying notations that passes a left-hand-side
 value as the first argument of a runtype. That is, <code class="language-smolambda">obj:method(args)</code> is
 equivalent to <code class="language-smolambda">method(obj, args)</code>.</p>
@@ -370,7 +377,7 @@ available in the standard library.
     </tr>
     <tr class="section-header"><td colspan="3"><u>Builtins</u></td></tr>
     <tr>
-      <td><code class="language-smolambda">nom</code></td>
+      <td><code class="language-smolambda">nominal</code></td>
       <td>Nominal type checking</td>
       <td>Automatic unique value in arguments</td>
     </tr>
@@ -906,49 +913,81 @@ service main()
 <p>Overload runtypes that are structurally
 different when converted to a flat representation of primitives 
 (<code class="language-smolambda">i64</code>, <code class="language-smolambda">u64</code>, <code class="language-smolambda">f64</code>, etc).
-As an example, the following definitions come from the standard library.</p>
+Consider nominal types presented later as primitives. For now, you can see the automatic application of the appropriate runtype.
+Do note that conflicting definitions will create errors.
 
-<pre><code class="language-smolambda">smo print(f64 message)
-    @head{#include &lt;stdio.h>}
-    @body{printf("%.6f\n", message);}
+<pre><code class="language-smolambda">@include std.builtins 
+
+smo point(f64 x, f64 y)
+    -> @args
+
+smo circle(point center, f64 r)
+    -> @args
+
+smo print(point p)
+    printin("point (") // print without changing line
+    printin(p.x)
+    printin(",")
+    printin(p.y)
+    print(")")
     --
-smo print(i64 message)
-    @head{#include &lt;stdio.h>}
-    @body{printf("%ld\n", message);}
+
+smo print(circle c)
+    printin("circle radious ")
+    printin(c.r)
+    printin(" centered at ")
+    print(c.center)
     --
-smo add(u64 x, u64 y) @body{u64 z=x+y;} -> z
-smo add(f64 x, f64 y) @body{f64 z=x+y;} -> z
+
+smo add(point a, point b) 
+    -> point(a.x+b.x, a.y+b.y)
+
+smo add(circle a, circle b) 
+    -> circle(a.center, a.r+b.r)
 
 service main()
-    print(add(1,1)) // 2
-    print(add(0.2,0.3)) // 0.5
+    p1 = point(1.0, 2.0)
+    p2 = point(3.0, 4.0)
+    c1 = circle(p1, 10.0)
+    c2 = circle(p2, 10.0)
+    print(add(p1,p2))
+    print(add(c1,c2))
+    print(0.0, 0.0, 0.0) // understood as a circle
     --
 </code></pre>
 
+<pre style="background-color: #222; color: white;">> smol main.s
+point (4.000000,6.000000)
+circle radious 20.000000 centered at point (1.000000,2.000000)
+circle radious 0.000000 centered at point (0.000000,0.000000)
+</pre>
 
 <h3 id="callbytype">Call by type <a href="#callbytype" class="anchor-link">🔗</a></h3>
 
 <p>
 You might want to choose a runtype's version based on another without actually passing data. For example,
-something different should be called based on the expected outcome. In those cases, you can skip
-declaring variable names in signatures, and you can omit parenthesis-based argumets that would create dummy data.
+something different should be called based on the expected outcome. In those cases, you can add signature
+variable that does not have a name. Similarly, pass the type of the variable as an argument.
 </p>
 <p>
-Below is a segment of the standard library that shows how the correct version of
+Below is a segment of the standard library that demonstrates how the correct version of
 an evoked method is applied. Runtypes without
 parentheses refer to zeroed out input data.
 You can also use a value as reference - that would be ignored.</p>
 
-<pre><code class="language-smolambda">smo not(bool x) @body{bool z=!x;} -> z
+<pre><code class="language-smolambda">smo not(bool x) @body{bool z=!x;} 
+    -> z
 smo print(f64 message)
     @head{#include &lt;stdio.h>}
     @body{printf("%.6f\n", message);}
     --
+
 smo read(i64)
     @head{#include &lt;stdio.h>}
     @body{i64 number = 0; bool success = scanf("%ld", &number);}
     if success:not @fail{printf("Invalid integer\n");} --
     -> number
+
 smo read(f64)
     @head{#include &lt;stdio.h>}
     @body{f64 number = 0; bool success = scanf("%lf", &number);}
@@ -962,74 +1001,18 @@ service main()
 </code></pre>
 
 
-
-<h3 id="unions">Unions <a href="#unions" class="anchor-link">🔗</a></h3>
-<p>Sometimes, you want to define code that is automatically adjusted to different runtypes.
-This can be achieved by declaring runtype unions, which are resolved to one of their
-options. The resolution persists to dependent calls, create separate unions for independent resolution.
-Unions are resolved during compilation and, like many features of <i>smoλ</i>, are zero-cost
-abstractions. They can also unpack unions provided as arguments.</p>
-
-<p>
-For example, the <code class="language-smolambda">Type</code> union
-below is determined to be <code class="language-smolambda">f64</code> while
-calling <code class="language-smolambda">inc</code> to match the <code class="language-smolambda">Point</code>
-argument and carries over to the internal
-implementation. Therefore, the <code class="language-smolambda">f64</code> primitive is used for reading, constructing
-a two-dimensional point, for casting the value of <i>1</i> to the appropriate type,
-and calling the corresponding overloaded addition.
-Unions account for overloads of their options up to the point
-where they are defined.</p>
-
-<pre><code class="language-smolambda">@include std.builtins
-
-union Type(i64, f64, u64)
-smo Point(Type x, Type y) -> @args
-smo inc(Point &p)
-    p.x = add(p.x, Type(1))
-    p.y = add(p.y, Type(1))
-    --
-
-service main()
-    value = f64:read()
-    p = Point(value, value)
-    p:inc()
-    print(p.x)
-    --
-</code></pre>
-
-<p>Till now we used <code class="language-smolambda">->@nominal</code> returns as a shorthand for returning
-input values. However, this also helps disambiguate overloading when there is no clear resolution. 
-In particular, if exactly one of the competing runtypes
-has this kind of return declaration or argument, that is used as the choice that breaks the stalemate.
-</p>
-
-<p>For example, consider the following very simple program that reads from the console and manipulates strings
-with a standard library implementation. The <code class="language-smolambda">str</code> runtype is overloaded
-to allow various conversions to other primitives. However, we are still able to identify a specific variation, 
-which in turn is used to identify and call <code class="language-smolambda">str:read</code>.</p>
-
-<pre><code class="language-smolambda">@include std.builtins
-
-service main()
-    print("What's your name?")
-    name = str:read
-    print("Hi "+name+"!")
-    --
-</code></pre>
-
-
 <h3 id="nominal">Nominal typing <a href="#nominal" class="anchor-link">🔗</a></h3>
 
-<p>The mechanism for grouping a runtype's return so that they are treated
-as collection of values that depend on each other is to have the
-<code class="language-smolambda">nom</code> primitive as the first argument.
-This is an expression of the so-called <i>nominal typing</i>: 
-if also contained in the returned tuple, it ties it back to the runtype. You
-cannot normally set values to it.
+<p>Often we want runtypes to enforce certain relations between their values that
+are registered on the runtype name. This is achieved by setting the runtype by 
+providing a <code class="language-smolambda">nominal</code> first argument and
+ensuring that this is returned. The returned tuple adheres to the so-called 
+<i>nominal typing</i>. Do note that
+<code class="language-smolambda">nominal</code>values are zero-cost in that they
+do not consume runtime resources; they just enforce type comparisons.
 </p>
 <p>
-Compilation outcomes ignore <code class="language-smolambda">nom</code> (e.g., it 
+Compilation outcomes ignore <code class="language-smolambda">nominal</code> (e.g., it 
 does not take up storage), as it is mostly used for disambiguating between strucurally 
 equivalent runtypes.
 </p>
@@ -1055,6 +1038,69 @@ service main()
     p2 = nominal:Type2(2.0)
     recognize(p1) 
     recognize(p2) 
+    --
+</code></pre>
+
+
+<p>Till now we used <code class="language-smolambda">->@nominal</code> returns as a shorthand for returning
+input values. However, this also helps disambiguate overloading when there is no clear resolution. 
+In particular, if exactly one of the competing runtypes
+has this kind of return declaration or argument, that is used as the choice that breaks the stalemate.
+</p>
+
+<p>For example, consider the following very simple program that reads from the console and manipulates strings
+with a standard library implementation. The <code class="language-smolambda">str</code> runtype is overloaded
+to allow various conversions to other primitives. However, we are still able to identify a specific variation, 
+which in turn is used to identify and call <code class="language-smolambda">str:read</code>.</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+service main()
+    print("What's your name?")
+    name = str:read
+    print("Hi "+name+"!")
+    --
+</code></pre>
+
+<h3 id="unions">Unions <a href="#unions" class="anchor-link">🔗</a></h3>
+<p>Sometimes, you want to define code that is automatically adjusted to different runtypes.
+This can be achieved by declaring runtype unions, which are resolved to one of their
+options. The resolution persists to dependent calls, so create separate unions for independent resolution.
+Unions are resolved during compilation and, like many features of <i>smoλ</i>, are zero-cost
+abstractions. They can also contain other unions or nominal types.</p>
+
+<p>
+For example, the <code class="language-smolambda">Type</code> union
+below is determined to be <code class="language-smolambda">f64</code> while
+calling <code class="language-smolambda">inc</code> to match the <code class="language-smolambda">Point</code>
+argument and carries over to the internal
+implementation. Therefore, the <code class="language-smolambda">f64</code> primitive is used for reading, constructing
+a two-dimensional point, for casting the value of <i>1</i> to the appropriate type,
+and calling the corresponding overloaded addition.
+Unions account for overloads of their options up to the point
+where they are defined.</p>
+
+<pre><code class="language-smolambda">@include std.builtins
+
+union Type
+    i64 
+    f64 
+    u64
+    --
+
+smo Point(Type x, Type y) 
+    -> @args
+
+smo inc(Point &p)
+    p.x = add(p.x, Type(1))
+    p.y = add(p.y, Type(1))
+    --
+
+service main()
+    value = f64:read()
+    p = Point(value, value)
+    p:inc()
+    print(p.x)
     --
 </code></pre>
 

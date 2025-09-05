@@ -45,6 +45,13 @@
     .sidebar-name { font-size:1.3em; font-weight: bold;  cursor: pointer;  user-select: none;  color: #73181d; }
     .sidebar-sub { font-size: 0.9em;  margin-left: 1em; display: none; }
     .token.special-amp {color: red;font-weight: bold; }
+
+    @media (max-width: 768px) {
+      .sidebar {transform: translateX(-100%); }
+      .sidebar.open {transform: translateX(0);}
+      .sidebar-toggle {display: block;}
+      .container {margin-left: 0 !important;}
+    }
   </style>
 </head>
 <body>

@@ -96,6 +96,8 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                 next = active_calls[var]+next_token;
                 if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) 
                     active_calls[active_calls[var]] = EMPTY_VAR;
+                if(!imp->allow_unsafe && internalTypes.contains(next) && internalTypes.vars[next]->name==NOM_VAR)
+                    imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
                 continue;
             }
 
@@ -121,6 +123,8 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                 }
                 else assign_variable(type, next, ZERO_VAR, imp, p, true);
                 type_trackers.insert(next);
+                if(!imp->allow_unsafe && internalTypes.contains(next) && internalTypes.vars[next]->name==NOM_VAR)
+                    imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
             }
             else {
                 if(type_trackers.find(next)!=type_trackers.end())
@@ -138,6 +142,8 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                     imp->error(--p, "Direct access of `ptr` fields is unsafe."
                         "\nDeclare the file as @unsafe by placing this at the top level (typically after imports)"
                     );
+                if(!imp->allow_unsafe && internalTypes.contains(next) && internalTypes.vars[next]->name==NOM_VAR)
+                    imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
             }
         }
         else if(imp->at(p)=="[" && internalTypes.contains(next) && internalTypes.vars[next]->name==BUFFER_VAR) {
