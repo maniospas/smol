@@ -28,11 +28,15 @@ Here's what smoλ programs look like.
 
 ```rust
 @include std.builtins
-@include std.mem -> Memory, arena
+@include std.mem
 @include std.file
 
-smo file_stats(nom, u64 lines, u64 chars) 
-    -> @struct
+smo Stats(
+        nom, // nominal type (prevents structural matching when used as argument)
+        u64 lines, 
+        u64 chars
+    )
+    -> @struct // return all inputs
 
 smo print(file_stats stats)
     printin(stats.lines)
@@ -44,7 +48,7 @@ smo print(file_stats stats)
 smo file_reader(String path, Memory &memory)
     &stat_lines = 0
     &stat_chars = 0
-    &file = ReadFile:open(path)
+    &file = ReadFile:open(path) // the ReadFile type as the first argument to open
     endl = "\n":str.first
     on memory:arena(1024)
         file
@@ -54,10 +58,10 @@ smo file_reader(String path, Memory &memory)
             stat_lines = stat_lines + 1
             stat_chars = stat_chars + line:len
         ----
-    -> nom:file_stats(stat_lines, stat_chars)
+    -> nom:Stats(stat_lines, stat_chars)
 
 service main()
-    &memory = Stack:arena(1048576) // 1MB
+    &memory = Stack.arena(1048576) // 1MB
     stats = file_reader("README.md", memory)
     print(stats)
     --

@@ -221,6 +221,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             args.emplace_back(arg_name, argType, mut);
             internalTypes.vars[arg_name] = argType;
             if(argType->name==NOM_VAR) {
+                choice_power += 1;
                 alignments[arg_name] = types.alignment_labels[this];
                 if(!types.alignment_labels[this]) 
                     imp->error(--p, "Internal error: Failed to assign itself as an alignment label");
@@ -328,7 +329,7 @@ bool Def::start_option_resolution(const Types& _types) {
     log_depth -= 1;
     if(lazy_compile) 
         imp->error(pos, "Failed to resolve all dependent types");
-    choice_power += power;
+    //choice_power += power;
     if(log_type_resolution) {
         print_depth();cout << signature(types) <<"\n";
         for(const auto& it : retrievable_parameters) {
@@ -393,7 +394,7 @@ bool Def::complete_option_resolution(const Types& _types) {
     //if(args.size() && args[0].type && args[0].type->name=="nom") def->alignments[def->args[0].name] = types.alignment_labels[def.get()];
     if(lazy_compile) 
         imp->error(pos, "Failed to resolve all dependent types");
-    choice_power += power;
+    //choice_power += power;
     if(log_type_resolution) {
         print_depth();cout << signature(types) <<"\n";
         for(const auto& it : retrievable_parameters) {

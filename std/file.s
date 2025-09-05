@@ -61,6 +61,7 @@
 smo ReadFile(nom, ptr contents)
     @noborrow
     -> @struct
+
 smo WriteFile(nom, ptr contents)
     @noborrow
     -> @struct
