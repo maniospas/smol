@@ -9,7 +9,7 @@
   <meta name="robots" content="index, follow">
   <link rel="icon" href="smol.png" type="image/x-icon">
 
-  <title>smoλ Blog – Memory safety via delayed freeing & failsafe services </title>
+  <title>smoλ blog – Memory safety via delayed freeing</title>
   <link href="../vendor/prism/prism.min.css" rel="stylesheet" />
   <style>
     html {scroll-behavior: smooth;}
@@ -56,16 +56,17 @@
     <div class="post-meta">by Emmanouil (Manios) Krasanakis – September 6, 2025</div>
   </div>
 
+  <p>This post is Part I of a series on how <i>smoλ</i> handles resources. And I can already hear you sighing.</p>
+
   <p>
     <i>"Yet another take on memory safety. Aren't there enough out there?"</i>
   </p>
   <p>If you are
-    a little bit familiar with programming language design, this is a probable first reaction
-    to this blog post. And, honestly, you would be mostly right. But 
-    I believe there is a useful insight or two here. 
-    Not to mention that snippets like the following
-    from <i>smoλ's</i> standard library are not going to explain themselves. 
-    So I might as well give a full explanation <i>somewhere</i>. 
+    a little bit familiar with programming language design, this is a probable first reaction. 
+    And, honestly, you would be right. But 
+    I believe there is a useful insight or two here. Not to mention that snippets like the next one
+    are not going to explain themselves within <i>smoλ's</i> standard library. 
+    So I might as well give an explanation <i>somewhere</i>. 
   </p>
 
 
@@ -89,32 +90,35 @@ smo Arena(nominal type, ContiguousMemory contents)
     ---> type, contents, length, size</code></pre>
 
   <p>
-    I already see with your first reaction: skipping the above snippet because
-    it makes zero sense out-of-context. 😉 This is what I would do, at least.
-    If you are more careful than me, you may look more closely and decide that, 
-    with data structures like these to move around, who needs chromium in every app? - we 
-    are going to consume all memory ourselves first!
+    Don't feel guilty if your first reaction was to skip the above snippet.
+    It's exactly what I would have done, too, because it makes little sense out-of-context.
+    If you are more careful than me, you could also look more closely and decide that, 
+    with bloated data structures like these to move around, who needs chromium in every app
+    munchin on our memory? - we are going to consume it all ourselves first! And, wait,
+    did I not say something about safety? Where's that?
   </p>
   <p>
-    These concerns are all valid.
+    I will address these concerns with a series of blog posts, starting from the 
+    very basics of how one can have a safe memory release model in this one. I will cover 
+    mutability and a fast memory system that can easily pivot between arenas
+    and dynamic memory in next installments.
   </p>
   <p>
-    Soooo... let me address them by explaining some of the zero-cost 
-    design principles of <i>smoλ</i> that end up granting low-level control without sacrificing safety. 
-    I will focus on memory safety, but other types of resources, such as files, use the same system.
-    To keep things simple, I will also delegate description of mutability semantics to a different post 
-    - <b>here consider all memory and contents to be immutable once allocated and data are inserted.</b>
+    In particular, here I will explain some of the zero-cost 
+    design principles of <i>smoλ</i> that help delay resource cleanup until it's safe.
+    Principles discussed apply to any 
+    resource, such as several kinds of memory management and files. 
   </p>
 
 
   <h2 id="recap">Recap on language concepts<a class="anchor-link" href="#recap">#</a></h2>
 
   <p>
-    <b>Runtypes -</b> Before starting, a brief recap on the language is that it's centered 
-    around the concept of <i>runtypes</i>. These are functions whose results serve
+    <b>Runtypes -</b> Before starting, a brief recap that <i>smoλ</i> is centered 
+    around <i>runtypes</i>; functions whose returned values serve
     as both tuples and type fields. For example, the following declares a nominal
     type, so that if you write <code class="language-smolambda">p=nominal:point2(x,y)</code> 
-    you get fields <code  class="language-smolambda">p.x</code> and <code  class="language-smolambda">p.y</code>.
+    you can access fields <code  class="language-smolambda">p.x</code> and <code  class="language-smolambda">p.y</code>.
   </p>
 
   <pre><code class="language-smolambda">smo point2(nominal, f64 _x, f64 _y) 
@@ -123,16 +127,15 @@ smo Arena(nominal type, ContiguousMemory contents)
   -> x,y // return statement</code></pre>
   
   <p>
-    <b>Nominal types -</b> I shamelessly inserted two more concepts in the above explanation, 
-    because they are pretty important and we will need them to read code later. First is
-    <code class="language-smolambda">nominal</code>, which is a value indicating the type 
-    and wch prevents matching any pair of <code class="language-smolambda">f64</code> values
-    or other types containing the same values. 
-    The language's typing is static though, so <code class="language-smolambda">nominal</code> indicators
-    are removed by the compiler and are not available during execution. 
+    <b>Nominal types -</b> I shamelessly forced upon you a couple more concepts in the above explanation, 
+    because they are pretty important. First is
+    <code class="language-smolambda">nominal</code>, which is a value indicating a type
+    matched to its name instead of structure (two <code class="language-smolambda">f64</code> values).
+    The language's typing is static, so <code class="language-smolambda">nominal</code> indicators
+    are used for checked during compilation but are removed and do not affect execution.
   </p>
   <p>
-    <b>Currying -</b> Second is the language's currying symbol <code class="language-smolambda">:</code>, which 
+    <b>Currying -</b> The language's currying symbol <code class="language-smolambda">:</code> 
     transfers the left-hand-sight as the first argument to the right. For example, 
     <code class="language-smolambda">obj:fun</code> means <code class="language-smolambda">fun(obj)</code>
     and <code class="language-smolambda">obj:fun(arg1,arg2)</code> means <code class="language-smolambda">fun(obj,arg1,arg2)</code>,
@@ -140,7 +143,7 @@ smo Arena(nominal type, ContiguousMemory contents)
   </p>
   
   <p>
-    <b>Smo vs services -</b> In general, there are two ways to declare runtypes; as <code class="language-smolambda">smo</code> delcarations,
+    <b>Smo vs services -</b> In general, there are two ways to declare runtypes; as <code class="language-smolambda">smo</code> declarations,
     like above, or as <code class="language-smolambda">service</code>s. The main difference is that the former are inlined,
     whereas services are implemented as co-routines and give the opportunity of error handling when errors occur inside - to be addressed in
     another post.
@@ -149,60 +152,187 @@ smo Arena(nominal type, ContiguousMemory contents)
 
   <h2 id="no-memory">Where memory is <i>not</i> used <a class="anchor-link" href="#no-memory">#</a></h2>
   <p>
-    A nice feature of <i>smoλ</i> is that its default runtype manipulation mechanism does not use heap memory but
-    registers and th stack store local variables. For example, the previous <code class="language-smolambda">point2</code>
+    A nice feature of <i>smoλ</i> is that its default runtype manipulation mechanism does not use heap memory. Instead,
+    registers and the stack store fields as local variables. For example, the previous <code class="language-smolambda">point2</code>
     runtype is simply stored into underlying variables <code class="language-smolambda">p__x.p__y</code>.
   </p>
   </p>
-    Remember that smo definitions are inlined, so we can have very complex data transfers be zero cost by performing variable substitution
+    Remember that smo definitions are inlined, so we can have very complex data transfers be zero cost (or faster-than-zero-cost, depending
+    on how you look at it) by performing variable substitution
     and elimination. Currently, the language transpiles to an unholy subset of C with <code class="language-smolambda">goto</code> as 
-    its intermediate representation. Mostly because I kinda dislike the bloat of working with the LLVM stack. So these optimization are 
-    performed by modern C compilers (by default: <i>gcc</i>). Those compilers are exceptionally good at
-    reasoning over simple named variables and assignments if we have already done the complicated analysis for them.
+    its intermediate representation. Mostly because I am uncomfortable around the LLVM stack's bloat. So these variable
+    optimizations are deliberately delegated to modern C compilers (by default: <i>gcc</i>), which are very adept at them. 
+    What is C, after all, if not portable assembly!
   </p>
   <p>
     For example, if the value <code class="language-smolambda">p.y</code> is never used, <code class="language-smolambda">p__y</code> 
-    will be eliminated by the compilation process completely. Even if it's used elsewhere, inlining eventually means that we
-    do not need to (re)load <code class="language-smolambda">p.y</code> from memory because it already resides in the stack.
-    In the end, <b>we are free to keep "metadata" variables
-    that help us track resource properties</b>, such as <code class="language-smolambda">ptr underlying</code> 
-    to track the common allocated memory and <code class="language-smolambda">u64 size</code> for the current accessible size.
-    These will either be eliminated or -if actually useful for runtime code- be kept at one place without moving around.
-    Such optimization do not occur for service arguments, since these are proper stack-based functions, but the cost there
-    is negligible compared to co-routine switching (which is already lightweight but uses mutexes).
+    will be eliminated by the compilation process completely. Even if used elsewhere, inlining eventually means that we
+    do not need to load <code class="language-smolambda">p.y</code> from memory because if it is already in the cache. Of course,
+    cache locality is still key. But our implementation is equipped with the tools to allow compilation to actually optimize for the cache.
   </p>
+  <p>
+    The end result: <b>we are free to keep "metadata" variables
+    that help us track resource properties</b>, such as <code class="language-smolambda">ptr underlying</code> 
+    to track the common allocated memory, and <code class="language-smolambda">u64 size</code> to track the current accessible size.
+    The costs of those variables are either eliminated by removing dead computations or would have been payed either way. 
+    For example, <code class="language-smolambda">z=point2(point2(x,y).x,y) print(z.x+z.y)</code> has the same compilation 
+    outcome as the minal required operations <code class="language-smolambda">print(2*2*x+2*y)</code>. 
+  </p>
+  <p>
+    As a final note, optimizations do not occur for service arguments, since these are proper functions. But the cost there
+    is negligible compared to co-routine switching (which is already reasonably lightweight but incures costs due to mutexes).
+    Importantly, only one variable -typically of a pointer builtin type <code class="language-smolambda">ptr</code>- is sufficient
+    to hold attached resources.</p>
+  <p>For example, generic strings are declared as follows, where <code>memory</code> represents the memory resource
+    they have been attached to, and <code>first</code> the first character to reduce cache misses when comparing strings by comparing
+    that instead of the <code>contents</code>.
+  </p>
+
+  <div style="position: relative; margin-bottom: 2em;">
+<pre><code class="language-smolambda">// from std/builtins/str.s
+
+smo str (
+        nominal, // no storage or runtime cost
+        ptr contents, 
+        u64 length, 
+        char first, 
+        ptr memory 
+    ) 
+    -> @args
+</code></pre>
+  </div>
 
   <h2 id="release">Release timing <a class="anchor-link" href="#release">#</a></h2>
   <p>
-    I previously made a point to explain the difference between <code class="language-smolambda">smo</code>
-    and <code class="language-smolambda">service</code> because resources like memory are gathered
-    by the compiler and their release code is inserted at the end of service calls. Those working in domains where 
-    delays are critical now <i>know</i> at which point systems are going to do work. But we also
-    have the benefit that, upon critical failures, like invalid file reads, 
-    we know how to safely terminate the service without leaking resources. Error handling is also not for
-    now, though.
-  </p>
+    Concurency aside, the main difference between <code class="language-smolambda">smo</code>
+    and <code class="language-smolambda">service</code> is that resources like memory are gathered
+    by the compiler and their release code is inserted at the end of service calls. Those working in domains 
+    where delays are critical are now aware of exactly when systems are going to do work. But we also
+    have the benefit that, upon failures like invalid file reads, 
+    we can safely terminate the service without leaking resources. 
+    Error handling is also not for now, though.
+  </p> 
   <p>
     In the simplest case, there would only be the <code class="language-smolambda">main</code> service and 
-    all releases occur at its end - just before program termination. 
+    all releases would occur at its end - just before program termination. 
     By the way, releasing all resources related to a variable can also be done manually 
     with <code class="language-smolambda">@release var</code>. In this case, <i>smoλ</i> will complain if you try
     to use/leak a resource later.
   </p>
   <p>
-    Something important to consider is <b>what happens to returned data</b>. In those cases, we just 
-    delay the freeing of resources until a point where they are not used anymore - as if they
-    were allocated by the calling service. The mechanism for doing so consists of detecting resource
-    frees at compile time and delegating them to the caller service. 
+    Something important to consider is <b>what happens to returned data</b>. For those, we just 
+    delay freeing until they are not used anymore - as if they
+    were allocated by the calling service. The mechanism for doing so consists of detecting 
+    resource frees at compile time and delegating them to the caller. In short: if A calls B, 
+    the act of releasing resources on which B's return depends is delegated to A.
   </p>
-  <p><b>Declaring freeing code -</b> <i>Smoλ</i> aims to automate resource allocation and deallocation
-    for higher level data types. Still ,you might be curious what interfaces the language provides
-    to allow the addition of new resource type. The way to transfer freeing code is by attaching it to 
-    underlying variables and moving it alongside those variables' values during compilation. I repeat: 
+
+  <p><b>Practical example -</b> Below is an example using the language's built-in buffer 
+    system, indicated by <code class="language-smolambda">[]</code>. Default buffers reside on the 
+    heap to account for their dynamic nature, though this can be adjusted for systems with different memory models
+    by adding new runtimes in the <i>std/runtimes/</i> folder.
+    Fast implementations from the standard library for strings and vectors use other memory constructs 
+    described next.
+  </p>
+
+  <div style="position: relative; margin-bottom: 2em;">
+<pre><code class="language-smolambda">@include std.builtins // basic arithmetics, etc
+
+service samples()
+    buf = u64[]
+    :push(42)
+    :push(10)
+    -> buf // return statement
+
+service main()
+    buf = samples()
+    print(buf[0]) // prints 42
+    -- // end block, buffer is deallocated here
+</code></pre>
+  </div>
+
+  <p>
+    <b>Formalism</b> - A particular family of programming fans 
+    may be ready to point out that I follow linear logic for ownership (hello there, Rust enthusiasts!). 
+    This is not entirely true, however, because I actually use linear time logic (LTL); the statement 
+    I am making is that <i>"<b>eventually</b> allocated memory is deallocated and at the end of a services 
+    after which it is not referenced anymore"</i>. 
+    <i>Ahem!</i> Trying very hard not spam notation here. 
+    For reals. But I promise to release a white paper for this... <i>eventually.</i> 
+   </p>
+
+
+  <p><b>Safe arenas -</b> The same principle is in action for other types of resources, such as arenas. 
+    I am not going into full details of the memory model implemented by the 
+    standard library here, so it suffices to know that arenas (per their common definition)
+    are pre-allocated chunks of memory where new allocations are as simple as incrementing 
+    pointers. The downside is that their size should be fixed beforehand.
+  </p>
+  <p>
+    Without going into syntax details, in <i>smoλ</i> one can open an arena context
+    with the syntax <code class="language-smolambda">on Heap:arena(size)</code>. Memory contexts
+    assentially provide the allocation mechanism for string concatenations and vector numeric operators results. 
+    You can also replace the heap with <code>Stack</code> if you plan to remain within a service's call 
+    stack. But the compiler will create an error if you would try to return stack memory from a service.
+    Or you could use <code class="language-smolambda">on Heap:dynamic</code> to allow
+    dynamic allocations that are all freed up together.
+  </p>
+  <p>
+    The example below uses and arena for string concatenations. Do note that the language 
+    has three types of strings: <code class="language-smolambda">cstr</code> corresponding to raw text enclosed in quotations, 
+    like <code class="language-smolambda">"there"</code>,
+    null terminated strings <code class="language-smolambda">nstr</code>, which are normally the outcome of concatenation, 
+    and <code class="language-smolambda">str</code> that are either null-terminated or a zero-cost substring view. 
+    Each of those types is convertible to subsequent ones through zero-cost 
+    abstractions. The reason I am mentioning string types is to explain 
+    why need to conciously convert <code class="language-smolambda">"there"</code>
+    to <code class="language-smolambda">str</code> in the code.
+  </p>
+
+  <div style="position: relative; margin-bottom: 2em;">
+<pre><code class="language-smolambda">@include std.builtins // basic arithmetics, etc
+
+service greet(str name)
+    on Heap:arena(1024) // preallocate 1kB on the heap
+        greeting = "Hi "+name+"!"
+    ----> greeting
+
+service main()
+    greeting = greet("there":str)
+    print(greeting)
+    -- // end block, arena is deallocated here
+</code></pre>
+  </div>
+
+  <p>
+    Type details out of the way, we allocated a disproportionately large arena for string concatenation
+    in the code. Then, this arena's freeing code is attached to the allocated pointer, with string results keeping track of it.
+    Hence, when the <code>greeting</code> string is returned, it is also accompanied by the whole arena and its deallocated code.
+    Of course "returning" the arena has no execution overhead other than moving a pointer.
+  </p>
+  <p> 
+    Automatic releases are similar to declaring destructors, but deallcation code is identified statically.
+    Furthermore, despited the slightly bloated memory consumption in this case,
+    speed gains from arenas (or fixed-size buffers) are what people often refer to when 
+    they mention the term <i>"blazingly fast"</i>.
+  </p>
+
+  <h2 id="declare-release">Declaring releases <a class="anchor-link" href="#declare-release">#</a></h2>
+
+  <p><i>Smoλ</i> aims to automate resource allocation and deallocation
+    for higher level data types. Still, you might be curious what interfaces the language provides
+    to allow the addition of new resource types. The way to transfer freeing code is by attaching it to 
+    underlying variables and moving it alongside those variables' values during compilation. I repeat,
+    because it is worth repeating: 
     we track VALUES during compilation, not variables. Because we need to reason about memory.
   <p>
   </p>
-    Below is an example of how free declarations look in practice. The code is a bit of a mess
+    Below is an example of how resource acquisition looks like; this is how <code>Heap</code>
+    memory can allocate a contiguous memory segment, for example to be used by arenas. Allocation
+    code is different for different types of memory; for instance, arenas themselves implement
+    <code>allocate</code> based on pointer additions.
+  </p>
+  <p>The code below is a bit of a mess
     because it interweaves raw C. Any data that stores
     <code>mem</code>'s value retains a link to the freeing code, and there is an additional dependency
     exploration during returns to have only one of those (either <code>mem</code> or -preferred if it exists- a 
@@ -268,66 +398,8 @@ smo allocate(Heap, u64 size, Primitive)
     for numbers or 8-bit for char primitives).
   </p>
 
-  <p><b>Practical example -</b> Before moving on to seeing memory implementations in action, 
-    look at the language's built-in buffer 
-    system, indicated by <code class="language-smolambda">[]</code>. Default buffers reside on the 
-    heap to account for their dynamic nature, though this can be adjusted for systems with unavailable heaps.
-    Fast implementations from the standard library for strings and vectors use other memory constructs 
-    described next.
-  </p>
 
-  <div style="position: relative; margin-bottom: 2em;">
-<pre><code class="language-smolambda">@include std.builtins // basic arithmetics, etc
 
-service samples()
-    buf = u64[]
-    :push(42)
-    :push(10)
-    -> buf // return statement
-
-service main()
-    buf = samples()
-    print(buf[0]) // prints 42
-    -- // end block, buffer is deallocated here
-</code></pre>
-  </div>
-
-  <div id="example-block" style="display: none;">
-    This snippet shows how arenas scope memory allocation:
-    <ul>
-      <li><code class="language-smolambda">on arena</code> introduces a region where memory
-      is borrowed from the arena.</li>
-      <li>When the block ends, resources are automatically released.</li>
-      <li>If a <code class="language-smolambda">smo</code> fails inside, the arena cleans up safely.</li>
-    </ul>
-  </div>
-
-  <h2 id="why-arenas">Why Arenas?<a class="anchor-link" href="#why-arenas">#</a></h2>
-  <p>
-    Arenas are predictable, fast, and avoid fragmentation. Unlike garbage collection,
-    they don’t defer cleanup — all allocations tied to the arena vanish at once
-    when its scope ends.
-  </p>
-
-  <h2 id="failsafe-services">Failsafe Services<a class="anchor-link" href="#failsafe-services">#</a></h2>
-  <p>
-    Combining arenas with <code class="language-smolambda">service</code> functions ensures
-    that even in failure scenarios, resources are handled gracefully. This creates
-    a <strong>failsafe execution model</strong>.
-  </p>
-
-  <h3 id="example-service">Example Service<a class="anchor-link" href="#example-service">#</a></h3>
-<pre><code class="language-smolambda">service main()
-    &arena = Stack:arena(8192)
-    demo_arena()
-    print("Finished safely")
-    --
-</code></pre>
-
-  <p>
-    Here, <code>main</code> calls <code>demo_arena</code> with its own scoped arena.
-    Even if something fails inside, <code>service</code> ensures cleanup.
-  </p>
 
   <hr>
 
