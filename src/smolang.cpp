@@ -641,10 +641,13 @@ int main(int argc, char* argv[]) {
                 if(service->name=="main") main_service = service;
                 out << "\n";
                 out << "void "<<service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
-                out << "__SmolambdaLinkedMemory* __smolambda_all_tasks = 0;\n";
-                out << "__SmolambdaLinkedMemory* __smolambda_all_task_results = 0;\n";
+                if(service->active_calls.size()) {
+                    out << "__SmolambdaLinkedMemory* __smolambda_all_tasks = 0;\n";
+                    out << "__SmolambdaLinkedMemory* __smolambda_all_task_results = 0;\n";
+                }
                 out << "struct "<<service->raw_signature_state_name()<<" *__state=(struct "<<service->raw_signature_state_name()<<"*)__void__state;\n";
-                for(const auto& var : service->args) out << var.type->name.to_string()<<" "<<var.name.to_string()<<"=__state->"<<var.name.to_string()<<";\n";
+                for(const auto& var : service->args) 
+                    out << var.type->name.to_string()<<" "<<var.name.to_string()<<"=__state->"<<var.name.to_string()<<";\n";
                 out << service->vardecl.to_string();
                 //out << service->vardecl;
                 string finals_on_error = "";
@@ -686,17 +689,25 @@ int main(int argc, char* argv[]) {
                 }
                 out << "\n// DEALLOCATE RESOURCES BY ERRORS\n";
                 out << "__failsafe:\n";
-                out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);\n";
+                if(service->active_calls.size())
+                    out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);\n";
                 out << finals_on_error;
-                out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);\n";
-                out << "__smolambda_all_tasks = 0;\n"; // prevent the hotpath from doubly freeing
+                if(service->active_calls.size()) {
+                    out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);\n";
+                    out << "__smolambda_all_tasks = 0;\n"; // prevent the hotpath from doubly freeing
+                }
                 out << "\n// HOTPATH SKIPS TO HERE\n";
                 out << "__return:\n"; // resource deallocation
-                out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);\n";
-                out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);\n";
-                for(const auto& final : service->finals) if(final.second.exists()) out << final.second;
+                if(service->active_calls.size()) {
+                    out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);\n";
+                    out << "__runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);\n";
+                }
+                for(const auto& final : service->finals) 
+                    if(final.second.exists()) 
+                        out << final.second;
                 out << enref_at_end;
-                out << "__runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);\n"; // do this after running all finalization code
+                if(service->active_calls.size()) 
+                    out << "__runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);\n"; // do this after running all finalization code
                 //out << "return __result__errocode;\n";
                 out << "__state->err =  __result__errocode;\n";
                 out << "}\n\n";

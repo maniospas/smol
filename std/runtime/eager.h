@@ -57,27 +57,28 @@ static inline void* __runtime_realloc(void* mem, size_t size, size_t prev_sze) {
 static inline void __runtime_free(void* mem) {free(mem);}
 
 /* ---------------- TASK STRUCT ---------------- */
+
 typedef struct __SmolambdaLinkedMemory {
     void *contents;
     struct __SmolambdaLinkedMemory* next;
 } __SmolambdaLinkedMemory;
 
-__SmolambdaLinkedMemory* __runtime_prepend_linked(__SmolambdaLinkedMemory* memory, void* contents) {
+static inline __SmolambdaLinkedMemory* __runtime_prepend_linked(__SmolambdaLinkedMemory* memory, void* contents) {
     __SmolambdaLinkedMemory* mem = (__SmolambdaLinkedMemory*)__runtime_alloc(sizeof(__SmolambdaLinkedMemory));
     mem->next = memory;
     mem->contents = contents;
     return mem;
 }
 
-void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *), int is_destructor) {
-    while(memory && memory->next) {
-        if(memory->contents) func(memory->contents);
-        __SmolambdaLinkedMemory* prev = memory;
-        memory = memory->next;
-        if(is_destructor) __runtime_free(prev);
+static inline void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *), int is_destructor) {
+    while (memory) {
+        if (memory->contents)
+            func(memory->contents);
+        __SmolambdaLinkedMemory* next = memory->next;
+        if (is_destructor)
+            __runtime_free(memory);
+        memory = next;
     }
-    if(memory && memory->contents) func(memory->contents);
-    if(memory && is_destructor) __runtime_free(memory);
 }
 
 

@@ -44,7 +44,12 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                         +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
                 }
                 arg_progress++;
-                if(arg_type->name==BUFFER_VAR && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) imp->error(first_token_pos, "Not compatible buffer: "+pretty_var(unpacks[i].to_string())+" holds "+buffer_types[unpacks[i]]->signature(types)+" but calls "+type->buffer_types[type->args[i].name]->signature(types));
+                if(arg_type->name==BUFFER_VAR && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) 
+                    imp->error(first_token_pos, "Not compatible buffer: "
+                        +pretty_var(unpacks[i].to_string())
+                        +" holds "+buffer_types[unpacks[i]]->signature(types)
+                        +" but calls "+type->buffer_types[type->args[i].name]->signature(types)
+                    );
                     
                 arg_progress++;
                 if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 

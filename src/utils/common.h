@@ -155,6 +155,11 @@ bool accepted_var_name(const string& name) {
         || name=="smo" 
         || name=="service"
         || name=="union" 
+        || name=="if" 
+        || name=="while" 
+        || name=="elif" 
+        || name=="with" 
+        || name=="else" 
         || name=="@");
     }
 bool is_symbol(const std::string& s) {

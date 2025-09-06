@@ -38,7 +38,13 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             Variable prev = next;
             Variable tmp = create_temp();
             internalTypes.vars[tmp] = types.vars[LABEL_VAR];
-            implementation +=Code(token_ifnot, next, token_goto, tmp, SEMICOLON_VAR);
+            implementation +=Code(
+                token_ifnot, 
+                next, 
+                token_goto, 
+                tmp, 
+                SEMICOLON_VAR
+            );
             next = parse_expression(i, p, imp->at(p++), types);
             if(!internalTypes.contains(next)) 
                 imp->error(--p, "Unknown symbol "
@@ -49,7 +55,14 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                     +internalTypes.vars[next]->name.to_string()
                     +" "+pretty_var(next.to_string())
                 );
-            implementation += Code(prev,ASSIGN_VAR,next,SEMICOLON_VAR,tmp,COLON_VAR);
+            implementation += Code(
+                prev,
+                ASSIGN_VAR,
+                next,
+                SEMICOLON_VAR,
+                tmp,
+                COLON_VAR
+            );
             next = prev;
         }
         else if(imp->at(p)=="or") {
@@ -64,7 +77,13 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             Variable prev = next;
             Variable tmp = create_temp();
             internalTypes.vars[tmp] = types.vars[LABEL_VAR];
-            implementation +=Code(token_if, next, token_goto, tmp, SEMICOLON_VAR);
+            implementation += Code(
+                token_if, 
+                next, 
+                token_goto, 
+                tmp, 
+                SEMICOLON_VAR
+            );
             next = parse_expression(i, p, imp->at(p++), types);
             if(!internalTypes.contains(next)) 
                 imp->error(--p, "Unknown symbol "+pretty_var(next.to_string()));
@@ -73,37 +92,79 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                     +internalTypes.vars[next]->name.to_string()
                     +" "+pretty_var(next.to_string())
                 );
-            implementation += Code(prev, ASSIGN_VAR, next, SEMICOLON_VAR, tmp, COLON_VAR);
+            implementation += Code(
+                prev, 
+                ASSIGN_VAR, 
+                next, 
+                SEMICOLON_VAR, 
+                tmp, 
+                COLON_VAR
+            );
             next = prev;
         }
         else if(imp->at(p)==".") {
             ++p;
             const string& next_token = imp->at(p++);
             Variable var = Variable(next);
-            if(active_calls[var].exists()) {
+            if(active_calls.find(var)!=active_calls.end() && active_calls[var].exists()) {
                 if(active_calls[active_calls[var]].exists()) {
                     static const Variable token_print = Variable(":\nprintf(\"Runtime error from");
                     static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
                     const Variable& call_var = active_calls[var];
-                    implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                    implementation += Code(var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, ARROW_VAR, ERR_VAR, SEMICOLON_VAR);
+                    implementation += Code(
+                        Variable("__smolambda_task_wait"),
+                        LPAR_VAR,
+                        call_var+TASK_VAR,
+                        RPAR_VAR,
+                        SEMICOLON_VAR
+                    );
+                    implementation += Code(
+                        var+ERR_VAR, 
+                        ASSIGN_VAR, 
+                        call_var+STATE_VAR, 
+                        ARROW_VAR, 
+                        ERR_VAR, 
+                        SEMICOLON_VAR
+                    );
                     Variable fail_var = create_temp();
                     internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
-                    implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
-                    errors = errors+Code(fail_var, token_print, internalTypes.vars[var]->name, call_var, token_failsafe);
+                    implementation += Code(
+                        token_if, 
+                        call_var+ERR_VAR, 
+                        token_goto, 
+                        fail_var, 
+                        SEMICOLON_VAR
+                    );
+                    errors += Code(
+                        fail_var, 
+                        token_print, 
+                        internalTypes.vars[var]->name, 
+                        call_var, 
+                        token_failsafe
+                    );
                     add_preample("#include <stdio.h>");
                 }
                 next = active_calls[var]+next_token;
-                if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) 
+                if(active_calls.find(var)!=active_calls.end() 
+                    && active_calls[var].exists() 
+                    && active_calls[active_calls[var]].exists()
+                ) 
                     active_calls[active_calls[var]] = EMPTY_VAR;
-                if(!imp->allow_unsafe && internalTypes.contains(next) && internalTypes.vars[next]->name==NOM_VAR)
+                if(!imp->allow_unsafe 
+                    && internalTypes.contains(next) 
+                    && internalTypes.vars[next]->name==NOM_VAR)
                     imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
                 continue;
             }
 
-            if(next.exists() && internalTypes.contains(next) && internalTypes.vars[next]->retrievable_parameters.find(next_token)!=internalTypes.vars[next]->retrievable_parameters.end()) {
+            if(next.exists() 
+                && internalTypes.contains(next) 
+                && internalTypes.vars[next]->retrievable_parameters.find(next_token)
+                    !=internalTypes.vars[next]->retrievable_parameters.end()
+            ) {
                 Type prevType = internalTypes.vars[next];
-                if(prevType->options.size()==1) prevType = *prevType->options.begin();
+                if(prevType->options.size()==1) 
+                    prevType = *prevType->options.begin();
                 if(prevType->lazy_compile) {
                     if(parametric_types.find(next)==parametric_types.end()) 
                         imp->error(--p, "Internal error: has no compiled lazy type "+prevType->signature(types));
@@ -146,7 +207,68 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                     imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
             }
         }
-        else if(imp->at(p)=="[" && internalTypes.contains(next) && internalTypes.vars[next]->name==BUFFER_VAR) {
+        else if(imp->at(p)=="[" 
+            && internalTypes.contains(next) 
+            && internalTypes.vars[next]->is_service
+            && internalTypes.vars[next]->packs.size()==2
+            && internalTypes.vars[next]->internalTypes.contains(internalTypes.vars[next]->packs[1])
+            && internalTypes.vars[next]->internalTypes.vars[internalTypes.vars[next]->packs[1]]->name==BUFFER_VAR
+        ) {
+            if(active_calls.find(next)!=active_calls.end() && active_calls[next].exists()) {
+                if(active_calls[active_calls[next]].exists()) {
+                    static const Variable token_print = Variable(":\nprintf(\"Runtime error from");
+                    static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+                    const Variable& call_var = active_calls[next];
+                    implementation += Code(
+                        Variable("__smolambda_task_wait"),
+                        LPAR_VAR,
+                        call_var+TASK_VAR,
+                        RPAR_VAR,
+                        SEMICOLON_VAR
+                    );
+                    implementation += Code(
+                        next+ERR_VAR, 
+                        ASSIGN_VAR, 
+                        call_var+STATE_VAR, 
+                        ARROW_VAR, 
+                        ERR_VAR, 
+                        SEMICOLON_VAR
+                    );
+                    Variable fail_var = create_temp();
+                    internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+                    implementation += Code(
+                        token_if, 
+                        call_var+ERR_VAR, 
+                        token_goto, 
+                        fail_var, 
+                        SEMICOLON_VAR
+                    );
+                    errors += Code(
+                        fail_var, 
+                        token_print, 
+                        internalTypes.vars[next]->name, 
+                        call_var, 
+                        token_failsafe
+                    );
+                    add_preample("#include <stdio.h>");
+                }
+                if(active_calls[next].exists() && active_calls[active_calls[next]].exists()) 
+                    active_calls[active_calls[next]] = EMPTY_VAR;
+            }
+            internalTypes.vars[next+internalTypes.vars[next]->packs[1]] = types.vars[BUFFER_VAR];
+            buffer_types[next+internalTypes.vars[next]->packs[1]] = internalTypes.vars[next]->buffer_types[internalTypes.vars[next]->packs[1]];
+            if(!buffer_types[next+internalTypes.vars[next]->packs[1]])
+                imp->error(--p, "Internal error: Failed to transfer a buffer type");
+            implementation += Code(
+                next+internalTypes.vars[next]->packs[1],
+                ASSIGN_VAR,
+                MUL_VAR,
+                active_calls[next]+STATE_VAR,
+                ARROW_VAR,
+                internalTypes.vars[next]->packs[1],
+                SEMICOLON_VAR
+            );
+            next = next+internalTypes.vars[next]->packs[1];
             if(buffer_types.find(next)==buffer_types.end())
                 imp->error(--p, "Internal error: cannot determine the buffer storage data for "
                     +next.to_string()
@@ -160,7 +282,6 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             if(imp->at(p++)!="]") 
                 imp->error(--p, "Expecting closing square bracket");
 
-            
             internalTypes.vars[next+Variable("__buffer_size")]          = types.vars[Variable("u64")];
             internalTypes.vars[next+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
 
@@ -171,19 +292,39 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             if(buffer_types[next]->_is_primitive) 
                 count_packs++;
 
-            implementation += Code(next+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_packs)), SEMICOLON_VAR);
-            implementation += Code(next+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), next, Variable(")[1]"), SEMICOLON_VAR);
+            implementation += Code(
+                next+Variable("__buffer_alignment"), 
+                ASSIGN_VAR, 
+                Variable(to_string(count_packs)), 
+                SEMICOLON_VAR
+            );
+            implementation += Code(
+                next+Variable("__buffer_size"), 
+                ASSIGN_VAR, 
+                Variable("((u64*)"), 
+                next, 
+                Variable(")[1]"), 
+                SEMICOLON_VAR
+            );
 
             Variable fail_var = create_temp();
             internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
-            implementation += Code(Variable("if("), idx, Variable(">="), next+Variable("__buffer_size"),
-                                Variable(")goto"), fail_var, SEMICOLON_VAR);
-            errors = errors + Code(fail_var, Variable(":\nprintf(\"Buffer index out of range\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n"));
-
+            implementation += Code(
+                Variable("if("), 
+                idx, 
+                Variable(">="), 
+                next+Variable("__buffer_size"),
+                Variable(")goto"), 
+                fail_var, 
+                SEMICOLON_VAR
+            );
+            errors += Code(
+                fail_var, 
+                Variable(":\nprintf(\"Buffer index out of range\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")
+            );
             Variable elem = create_temp();
-
             Variable packname = EMPTY_VAR;
-            if(p < i->size()-1 && i->at(p) == ".") 
+            if(p<i->size()-1 && i->at(p) == ".") 
                 packname = i->at(p+1); 
 
             size_t pack_index = 0;
@@ -191,9 +332,18 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                 Variable tmp = create_temp();
                 internalTypes.vars[tmp] = buffer_types[next];
                 implementation += Code(
-                    Variable("memcpy(&"), tmp, Variable(", &((u64*)((u64*)"), next, Variable(")[0])["),
-                    idx, MUL_VAR, next+Variable("__buffer_alignment"), Variable("+"+ to_string(pack_index)+"], sizeof("), 
-                    buffer_types[next]->name, Variable("))"), SEMICOLON_VAR
+                    Variable("memcpy(&"), 
+                    tmp, 
+                    Variable(", &((u64*)((u64*)"), 
+                    next, 
+                    Variable(")[0])["),
+                    idx, 
+                    MUL_VAR, 
+                    next+Variable("__buffer_alignment"), 
+                    Variable("+"+ to_string(pack_index)+"], sizeof("), 
+                    buffer_types[next]->name, 
+                    Variable("))"), 
+                    SEMICOLON_VAR
                 );
                 assign_variable(
                     buffer_types[next],
@@ -228,13 +378,179 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                     else {
                         if(packname.is_empty() || packname==pack) {
                             Variable tmp = create_temp();
-                            if(mutables.find(next)!=mutables.end() && buffer_types[next]->mutables.find(pack)!=buffer_types[next]->mutables.end()) 
+                            if(mutables.find(next)!=mutables.end() 
+                                && buffer_types[next]->mutables.find(pack)
+                                    !=buffer_types[next]->mutables.end()
+                            ) 
                                 mutables.insert(tmp);
                             internalTypes.vars[tmp] = buffer_types[next]->internalTypes.vars[pack];
                             implementation += Code(
-                                Variable("memcpy(&"), tmp, Variable(", &((u64*)((u64*)"), next, Variable(")[0])["),
-                                idx, MUL_VAR, next+Variable("__buffer_alignment"), Variable("+"+ to_string(pack_index)+"], sizeof("), 
-                                buffer_types[next]->internalTypes.vars[pack]->name, Variable("))"), SEMICOLON_VAR
+                                Variable("memcpy(&"), 
+                                tmp, 
+                                Variable(", &((u64*)((u64*)"), 
+                                next, 
+                                Variable(")[0])["),
+                                idx, 
+                                MUL_VAR, 
+                                next+Variable("__buffer_alignment"), 
+                                Variable("+"+ to_string(pack_index)+"], sizeof("), 
+                                buffer_types[next]->internalTypes.vars[pack]->name, 
+                                Variable("))"), 
+                                SEMICOLON_VAR
+                            );
+                            assign_variable(
+                                buffer_types[next]->internalTypes.vars[pack],
+                                elem+pack,
+                                tmp,
+                                i, 
+                                p
+                            );
+                        }
+                        pack_index++;
+                    }
+                }
+            }
+            // do this after the loop to not mess with assign_variable
+            if(packname.is_empty()) 
+                for(const auto& it : buffer_types[next]->internalTypes.vars) 
+                    internalTypes.vars[elem+it.first] = it.second;
+            for(const auto& it : buffer_types[next]->buffer_types)
+                buffer_types[elem+it.first] = it.second;
+            next = elem;
+            continue;
+        }
+        else if(imp->at(p)=="[" 
+            && internalTypes.contains(next) 
+            && internalTypes.vars[next]->name==BUFFER_VAR
+        ) {
+            if(buffer_types.find(next)==buffer_types.end())
+                imp->error(--p, "Internal error: cannot determine the buffer storage data for "
+                    +next.to_string()
+                );
+            ++p;
+            Variable idx = parse_expression(i, p, imp->at(p++), types);
+            if(!internalTypes.contains(idx) || internalTypes.vars[idx]->name!=U64_VAR)
+                imp->error(--p, "Buffer index must be u64 but got "
+                    +(internalTypes.contains(idx)?internalTypes.vars[idx]->name.to_string():"nothing")
+                );
+            if(imp->at(p++)!="]") 
+                imp->error(--p, "Expecting closing square bracket");
+
+            internalTypes.vars[next+Variable("__buffer_size")]          = types.vars[Variable("u64")];
+            internalTypes.vars[next+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
+
+            size_t count_packs = 0;
+            for (const auto& pack : buffer_types[next]->packs)
+                if (buffer_types[next]->internalTypes.contains(pack) && buffer_types[next]->internalTypes.vars[pack]->name != NOM_VAR)
+                    count_packs++;
+            if(buffer_types[next]->_is_primitive) 
+                count_packs++;
+
+            implementation += Code(
+                next+Variable("__buffer_alignment"), 
+                ASSIGN_VAR, 
+                Variable(to_string(count_packs)), 
+                SEMICOLON_VAR
+            );
+            implementation += Code(
+                next+Variable("__buffer_size"), 
+                ASSIGN_VAR, 
+                Variable("((u64*)"), 
+                next, 
+                Variable(")[1]"), 
+                SEMICOLON_VAR
+            );
+
+            Variable fail_var = create_temp();
+            internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+            implementation += Code(
+                Variable("if("), 
+                idx, 
+                Variable(">="), 
+                next+Variable("__buffer_size"),
+                Variable(")goto"), 
+                fail_var, 
+                SEMICOLON_VAR
+            );
+            errors += Code(
+                fail_var, 
+                Variable(":\nprintf(\"Buffer index out of range\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")
+            );
+            Variable elem = create_temp();
+            Variable packname = EMPTY_VAR;
+            if(p<i->size()-1 && i->at(p) == ".") 
+                packname = i->at(p+1); 
+
+            size_t pack_index = 0;
+            if(buffer_types[next]->_is_primitive) {
+                Variable tmp = create_temp();
+                internalTypes.vars[tmp] = buffer_types[next];
+                implementation += Code(
+                    Variable("memcpy(&"), 
+                    tmp, 
+                    Variable(", &((u64*)((u64*)"), 
+                    next, 
+                    Variable(")[0])["),
+                    idx, 
+                    MUL_VAR, 
+                    next+Variable("__buffer_alignment"), 
+                    Variable("+"+ to_string(pack_index)+"], sizeof("), 
+                    buffer_types[next]->name, 
+                    Variable("))"), 
+                    SEMICOLON_VAR
+                );
+                assign_variable(
+                    buffer_types[next],
+                    elem,
+                    tmp,
+                    i, 
+                    p
+                );
+            }
+            else {
+                internalTypes.vars[elem] = buffer_types[next];
+                if(mutables.find(next)!=mutables.end()) 
+                    mutables.insert(elem);
+                for (const auto& pack : buffer_types[next]->packs) {
+                    if(!buffer_types[next]->internalTypes.contains(pack)) 
+                        imp->error(--p, "Internal error: failed to unpack value stored on buffer due to unknown type: "
+                            +pack.to_string()
+                        );
+                    else if(buffer_types[next]->internalTypes.vars[pack]->name == NOM_VAR) {
+                        Variable tmp = create_temp();
+                        internalTypes.vars[tmp] = buffer_types[next]->internalTypes.vars[pack];
+                        if(packname.is_empty()) {
+                            assign_variable(
+                                buffer_types[next]->internalTypes.vars[pack],
+                                elem+pack,
+                                tmp,
+                                i, 
+                                p
+                            );
+                        }
+                    }
+                    else {
+                        if(packname.is_empty() || packname==pack) {
+                            Variable tmp = create_temp();
+                            if(mutables.find(next)!=mutables.end() 
+                                && buffer_types[next]->mutables.find(pack)
+                                    !=buffer_types[next]->mutables.end()
+                            ) 
+                                mutables.insert(tmp);
+                            internalTypes.vars[tmp] = buffer_types[next]->internalTypes.vars[pack];
+                            implementation += Code(
+                                Variable("memcpy(&"), 
+                                tmp, 
+                                Variable(", &((u64*)((u64*)"), 
+                                next, 
+                                Variable(")[0])["),
+                                idx, 
+                                MUL_VAR, 
+                                next+Variable("__buffer_alignment"), 
+                                Variable("+"+ to_string(pack_index)+"], sizeof("), 
+                                buffer_types[next]->internalTypes.vars[pack]->name, 
+                                Variable("))"), 
+                                SEMICOLON_VAR
                             );
                             assign_variable(
                                 buffer_types[next]->internalTypes.vars[pack],
@@ -259,12 +575,17 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
 
         else if(imp->at(p)=="[") {
             if(!internalTypes.contains(next)) 
-                imp->error(--p, "Not found: "+pretty_var(next.to_string())+recommend_variable(types, next));
+                imp->error(--p, "Not found: "
+                    +pretty_var(next.to_string())
+                    +recommend_variable(types, next)
+                );
             ++p;
             Variable arg = parse_expression(i, p, imp->at(p++), types);
             if(!internalTypes.contains(arg)) 
-                imp->error(--p, "Not found: "+pretty_var(arg.to_string())+recommend_variable(types, next));
-            //if(internalTypes.vars[arg]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(arg)->second->name+" "+pretty_var(arg));
+                imp->error(--p, "Not found: "
+                    +pretty_var(arg.to_string())
+                    +recommend_variable(types, next)
+                );
             string end("");
             string method("at");
             if(imp->at(p)=="to") {
@@ -273,14 +594,14 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                 end = parse_expression(i, p, imp->at(p++), types).to_string();
                 if(!internalTypes.contains(end)) 
                     imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
-                //if(internalTypes.vars[end]->name!="u64") imp->error(--p, "Expected u64 but found: "+internalTypes.vars.find(end)->second->name+" "+pretty_var(end));
             }
             else if(imp->at(p)=="upto") {
                 if(internalTypes.vars[arg]->name!=U64_VAR) 
                     imp->error(--p, "Expected u64 but found: "
                         +internalTypes.vars.find(arg)->second->name.to_string()
                         +" "+pretty_var(arg.to_string())
-                        +"\nYou can only use element access [pos] or non-inclusive `to` ranges [pos to end] for non-u64 pos."
+                        +"\nYou can only use element access [pos] or non-inclusive"
+                        +" `to` ranges [pos to end] for non-u64 pos."
                     );
                 p++;
                 end = parse_expression(i, p, imp->at(p++), types).to_string();
@@ -290,12 +611,19 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                     imp->error(--p, "Expected u64 but found: "
                         +internalTypes.vars.find(end)->second->name.to_string()
                         +" "+pretty_var(end)
-                        +"\nYou can only use `upto` with u64. Move to `to` bounds for other end index runtypes."
+                        +"\nYou can only use `upto` with u64. Move to `to`"
+                        +" bounds for other end index runtypes."
                     );
                 method = "slice";
                 string tmp = create_temp();
                 assign_variable(internalTypes.vars[end], tmp, end, imp, p);
-                implementation += Code(tmp,ASSIGN_VAR,tmp,token_plus_one,SEMICOLON_VAR);
+                implementation += Code(
+                    tmp,
+                    ASSIGN_VAR,
+                    tmp,
+                    token_plus_one,
+                    SEMICOLON_VAR
+                );
                 end = tmp;
             }
             else if(imp->at(p)=="lento") {
@@ -303,7 +631,8 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                     imp->error(--p, "Expected u64 but found: "
                         +internalTypes.vars.find(arg)->second->name.to_string()
                         +" "+pretty_var(arg.to_string())
-                        +"\nYou can only use element access [pos] or non-inclusive `to` ranges [pos to end] for non-u64 pos."
+                        +"\nYou can only use element access [pos] or non-inclusive `to`"
+                        +" ranges [pos to end] for non-u64 pos."
                     );
                 p++;
                 end = parse_expression(i, p, imp->at(p++), types).to_string();
@@ -315,7 +644,8 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                 if(internalTypes.vars[end]->name!=U64_VAR) 
                     imp->error(--p, "Expected u64 but found: "
                         +internalTypes.vars.find(end)->second->name.to_string()+" "+pretty_var(end)
-                        +"\nYou can only use `lento` with u64. Move to `to` bounds for other end index runtypes."
+                        +"\nYou can only use `lento` with u64. Move to `to`"
+                        +" bounds for other end index runtypes."
                     );
                 method = "slice";
                 Variable tmp = create_temp();
@@ -327,8 +657,49 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                 imp->error(--p, "No implementation for "+method);
             Type type = types.vars[method];
             vector<Variable> unpacks;
-            if(internalTypes.vars[next]->is_service) 
-                imp->error(--p, "Slice overloads cannot be a service");
+
+            if(active_calls[next].exists()) {
+                if(active_calls[active_calls[next]].exists()) {
+                    static const Variable token_print = Variable(":\nprintf(\"Runtime error from");
+                    static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+                    const Variable& call_var = active_calls[next];
+                    implementation += Code(
+                        Variable("__smolambda_task_wait"),\
+                        LPAR_VAR,
+                        call_var+TASK_VAR,
+                        RPAR_VAR,
+                        SEMICOLON_VAR
+                    );
+                    implementation += Code(
+                        next+ERR_VAR, 
+                        ASSIGN_VAR, 
+                        call_var+STATE_VAR, 
+                        ARROW_VAR, 
+                        ERR_VAR, 
+                        SEMICOLON_VAR
+                    );
+                    Variable fail_var = create_temp();
+                    internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+                    implementation += Code(
+                        token_if, 
+                        call_var+ERR_VAR, 
+                        token_goto, 
+                        fail_var, 
+                        SEMICOLON_VAR
+                    );
+                    errors += Code(
+                        fail_var, 
+                        token_print, 
+                        internalTypes.vars[next]->name, 
+                        call_var, 
+                        token_failsafe
+                    );
+                    add_preample("#include <stdio.h>");
+                }
+                if(active_calls[next].exists() && active_calls[active_calls[next]].exists()) 
+                    active_calls[active_calls[next]] = EMPTY_VAR;
+            }
+
             if(internalTypes.vars[next]->not_primitive()) 
                 for(const Variable& pack : internalTypes.vars[next]->packs) 
                     unpacks.push_back(next+pack);

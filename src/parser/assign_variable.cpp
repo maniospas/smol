@@ -21,7 +21,8 @@ void Def::assign_variable(
     current_renaming[from] = to;
     current_renaming[to] = from;
     released[from] = released[to];
-    active_calls[from] = active_calls[to];
+    if(active_calls.size())
+        active_calls[from] = active_calls[to];
     if(check_mutables 
         && internalTypes.contains(from) 
         && mutables.find(from)==mutables.end()

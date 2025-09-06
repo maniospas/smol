@@ -513,12 +513,14 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                     implementation += Code(rhs+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, ARROW_VAR, ERR_VAR, SEMICOLON_VAR);
                     static const Variable token_err1 = Variable(":\nprintf(\"Runtime error from ");
                     static const Variable token_err2 = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
-                    implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
-                    errors = errors+Code(fail_var, token_err1, rhsType->name, call_var, token_err2);
+                    implementation += Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
+                    errors += Code(fail_var, token_err1, rhsType->name, call_var, token_err2);
                     add_preample("#include <stdio.h>");
                 }
                 for(size_t i=1;i<rhsType->packs.size();++i)
                     unpacks.push_back(active_calls[rhs]+rhsType->packs[i]);
+                for(const auto& it : rhsType->buffer_types)
+                    buffer_types[active_calls[rhs]+it.first] = it.second;
                 if(active_calls[rhs].exists() && active_calls[active_calls[rhs]].exists())
                     active_calls[active_calls[rhs]] = EMPTY_VAR;
             }

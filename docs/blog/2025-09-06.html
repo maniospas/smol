@@ -52,20 +52,20 @@
 <div class="container">
 
   <div>
-    <span id="post-title" style="font-size: 2.4em; font-weight: bold;">Memory Safety with Arenas in smoλ</span><br>
-    <div class="post-meta">by Emmanouil (Manios) Krasanakis – September 5, 2025</div>
+    <span id="post-title" style="font-size: 2.4em; font-weight: bold;">Memory safety via delayed freeing</span><br>
+    <div class="post-meta">by Emmanouil (Manios) Krasanakis – September 6, 2025</div>
   </div>
 
   <p>
-    <i>"Yet another take on memory safety. Aren't there enough out there?"</i> If you
-    even a little bit familiar with programming language design, this will probably be your first reaction
-    to this blog post. And, honestly, you are mostly right. But 
-    I believe there is a useful insight or two here. 
+    <i>"Yet another take on memory safety. Aren't there enough out there?"</i>
   </p>
-  <p>
+  <p>If you are
+    a little bit familiar with programming language design, this is a probable first reaction
+    to this blog post. And, honestly, you would be mostly right. But 
+    I believe there is a useful insight or two here. 
     Not to mention that snippets like the following
-    from <i>smoλ's</i> standard library are not going to explain themselves
-    as a comprehensive system. So I might as well give a full explanation <i>somewhere</i>. 
+    from <i>smoλ's</i> standard library are not going to explain themselves. 
+    So I might as well give a full explanation <i>somewhere</i>. 
   </p>
 
 
@@ -89,20 +89,32 @@ smo Arena(nominal type, ContiguousMemory contents)
     ---> type, contents, length, size</code></pre>
 
   <p>
-    This blog post covers the design principles of <i>smoλ</i> that grant
-    developers low-level control without sacrificing safety. Our focus will be on
-    memory safety, but the same principles hold true for other types of resources too,
-    such as files. Importantly, those implementations reside in the standard library
-    and can be extended and maintained using existing language features.
+    I already see with your first reaction: skipping the above snippet because
+    it makes zero sense out-of-context. 😉 This is what I would do, at least.
+    If you are more careful than me, you may look more closely and decide that, 
+    with data structures like these to move around, who needs chromium in every app? - we 
+    are going to consume all memory ourselves first!
+  </p>
+  <p>
+    These concerns are all valid.
+  </p>
+  <p>
+    Soooo... let me address them by explaining some of the zero-cost 
+    design principles of <i>smoλ</i> that end up granting low-level control without sacrificing safety. 
+    I will focus on memory safety, but other types of resources, such as files, use the same system.
+    To keep things simple, I will also delegate description of mutability semantics to a different post 
+    - <b>here consider all memory and contents to be immutable once allocated and data are inserted.</b>
   </p>
 
+
+  <h2 id="recap">Recap on language concepts<a class="anchor-link" href="#recap">#</a></h2>
+
   <p>
-    Before starting, a brief recap on the language is that it's centered 
-    around the concept of <i>runtypes</i>, that is, functions whose results serve
+    <b>Runtypes -</b> Before starting, a brief recap on the language is that it's centered 
+    around the concept of <i>runtypes</i>. These are functions whose results serve
     as both tuples and type fields. For example, the following declares a nominal
-    type with fields <code>.x</code> and <code>.y</code>; 
-    without <code class="language-smolambda">nominal</code> (which an abstraction 
-    removed away by the compiler) it would match any pair of <code class="language-smolambda">f64</code> value.
+    type, so that if you write <code class="language-smolambda">p=nominal:point2(x,y)</code> 
+    you get fields <code  class="language-smolambda">p.x</code> and <code  class="language-smolambda">p.y</code>.
   </p>
 
   <pre><code class="language-smolambda">smo point2(nominal, f64 _x, f64 _y) 
@@ -111,36 +123,172 @@ smo Arena(nominal type, ContiguousMemory contents)
   -> x,y // return statement</code></pre>
   
   <p>
-    Now, there are two main ways to declare runtypes; as <code class="language-smolambda">smo</code> delcarations,
+    <b>Nominal types -</b> I shamelessly inserted two more concepts in the above explanation, 
+    because they are pretty important and we will need them to read code later. First is
+    <code class="language-smolambda">nominal</code>, which is a value indicating the type 
+    and wch prevents matching any pair of <code class="language-smolambda">f64</code> values
+    or other types containing the same values. 
+    The language's typing is static though, so <code class="language-smolambda">nominal</code> indicators
+    are removed by the compiler and are not available during execution. 
+  </p>
+  <p>
+    <b>Currying -</b> Second is the language's currying symbol <code class="language-smolambda">:</code>, which 
+    transfers the left-hand-sight as the first argument to the right. For example, 
+    <code class="language-smolambda">obj:fun</code> means <code class="language-smolambda">fun(obj)</code>
+    and <code class="language-smolambda">obj:fun(arg1,arg2)</code> means <code class="language-smolambda">fun(obj,arg1,arg2)</code>,
+    and so on.
+  </p>
+  
+  <p>
+    <b>Smo vs services -</b> In general, there are two ways to declare runtypes; as <code class="language-smolambda">smo</code> delcarations,
     like above, or as <code class="language-smolambda">service</code>s. The main difference is that the former are inlined,
-    whereas services are implemented as co-routines and give the opportunity error handling - to be addressed in
+    whereas services are implemented as co-routines and give the opportunity of error handling when errors occur inside - to be addressed in
     another post.
   </p>
+
+
+  <h2 id="no-memory">Where memory is <i>not</i> used <a class="anchor-link" href="#no-memory">#</a></h2>
   <p>
-    The reason the above distinction is important is because resources like memory are gathered 
-    are always released at the end of service calls. So a checkmark for those that care about delays:
-    you <i>know</i> when your systems are going to do work. 
-    Releasing all related +resources to a variable can also be achieved pre-emptively with 
-    <code class="language-smolambda">@release var</code>, in which case your compiler will complain if you try
-    to use/leak the resource later.
+    A nice feature of <i>smoλ</i> is that its default runtype manipulation mechanism does not use heap memory but
+    registers and th stack store local variables. For example, the previous <code class="language-smolambda">point2</code>
+    runtype is simply stored into underlying variables <code class="language-smolambda">p__x.p__y</code>.
+  </p>
+  </p>
+    Remember that smo definitions are inlined, so we can have very complex data transfers be zero cost by performing variable substitution
+    and elimination. Currently, the language transpiles to an unholy subset of C with <code class="language-smolambda">goto</code> as 
+    its intermediate representation. Mostly because I kinda dislike the bloat of working with the LLVM stack. So these optimization are 
+    performed by modern C compilers (by default: <i>gcc</i>). Those compilers are exceptionally good at
+    reasoning over simple named variables and assignments if we have already done the complicated analysis for them.
+  </p>
+  <p>
+    For example, if the value <code class="language-smolambda">p.y</code> is never used, <code class="language-smolambda">p__y</code> 
+    will be eliminated by the compilation process completely. Even if it's used elsewhere, inlining eventually means that we
+    do not need to (re)load <code class="language-smolambda">p.y</code> from memory because it already resides in the stack.
+    In the end, <b>we are free to keep "metadata" variables
+    that help us track resource properties</b>, such as <code class="language-smolambda">ptr underlying</code> 
+    to track the common allocated memory and <code class="language-smolambda">u64 size</code> for the current accessible size.
+    These will either be eliminated or -if actually useful for runtime code- be kept at one place without moving around.
+    Such optimization do not occur for service arguments, since these are proper stack-based functions, but the cost there
+    is negligible compared to co-routine switching (which is already lightweight but uses mutexes).
   </p>
 
+  <h2 id="release">Release timing <a class="anchor-link" href="#release">#</a></h2>
   <p>
-    So, let's start 
+    I previously made a point to explain the difference between <code class="language-smolambda">smo</code>
+    and <code class="language-smolambda">service</code> because resources like memory are gathered
+    by the compiler and their release code is inserted at the end of service calls. Those working in domains where 
+    delays are critical now <i>know</i> at which point systems are going to do work. But we also
+    have the benefit that, upon critical failures, like invalid file reads, 
+    we know how to safely terminate the service without leaking resources. Error handling is also not for
+    now, though.
   </p>
-    
+  <p>
+    In the simplest case, there would only be the <code class="language-smolambda">main</code> service and 
+    all releases occur at its end - just before program termination. 
+    By the way, releasing all resources related to a variable can also be done manually 
+    with <code class="language-smolambda">@release var</code>. In this case, <i>smoλ</i> will complain if you try
+    to use/leak a resource later.
+  </p>
+  <p>
+    Something important to consider is <b>what happens to returned data</b>. In those cases, we just 
+    delay the freeing of resources until a point where they are not used anymore - as if they
+    were allocated by the calling service. The mechanism for doing so consists of detecting resource
+    frees at compile time and delegating them to the caller service. 
+  </p>
+  <p><b>Declaring freeing code -</b> <i>Smoλ</i> aims to automate resource allocation and deallocation
+    for higher level data types. Still ,you might be curious what interfaces the language provides
+    to allow the addition of new resource type. The way to transfer freeing code is by attaching it to 
+    underlying variables and moving it alongside those variables' values during compilation. I repeat: 
+    we track VALUES during compilation, not variables. Because we need to reason about memory.
+  <p>
+  </p>
+    Below is an example of how free declarations look in practice. The code is a bit of a mess
+    because it interweaves raw C. Any data that stores
+    <code>mem</code>'s value retains a link to the freeing code, and there is an additional dependency
+    exploration during returns to have only one of those (either <code>mem</code> or -preferred if it exists- a 
+    returned value) own the freeing code. Note that <code class="language-smolambda">@unsafe</code> is needed
+    to convey to the author of this file -me- is who you should be trusting. 
+    Now, I would not trust me too much, but this is another story...
+  </p>
+  
 
   <div style="position: relative; margin-bottom: 2em;">
-<pre><code class="language-smolambda">@include std.mem -> Memory, arena
+<pre><code class="language-smolambda">// From std/mem/device.s, comments only here.
 
-smo demo_arena()
-    &arena = Stack:arena(4096) // 4KB
-    on arena
-        &buffer = [u64; 128]
-        buffer[0] = 42
-        print(buffer[0])
-    ----
-    --
+// File-level @about is needed whenever @unsafe 
+// is declared to get a sense of why one could 
+// trust this unsafe file. The compiler can  
+// summarize these sources of presumed trust.
+@unsafe
+@about "Standard library implementation of memory management ..."
+
+smo allocate(Heap, u64 size, Primitive)
+    // Usually optimized away if, for example
+    // one called Heap:allocate(1024, char)
+    if size==0 
+        -> fail("Cannot allocate zero size")
+
+    // C header
+    @head{#include &lt;stdlib.h>}
+
+    // A hack to declare a local variable wth the 
+    // appropriate builtin type (among char,f64,u64,
+    // i64) that the C code in @body below can see.
+    // Optimized away.
+    Primitive = Primitive 
+
+    // Direct C code here.
+    @body{ptr mem=__runtime_alloc(size*sizeof(Primitive));} // malloc usually
+
+    // Allocation safety - just fail services whenever.
+    if mem:bool:not 
+        -> fail("Failed a Heap allocation")
+
+    // Attach freeing C code to the mem ptr address.
+    // That is is managed by the compiler.
+    @finally mem { 
+        if(mem)
+            __runtime_free(mem); // free usually
+        mem=0;
+    }
+    -> nominal:ContiguousMemory(
+        Heap, // track type as zero-valued object (optmized away later)
+        size, // size of region within underlying memory
+        Primitive, // track type as zero-valued object (optmized away later)
+        mem,  // region start within underlying memory
+        mem   // underlying memory
+    )
+</code></pre>
+  </div>
+  <p>
+    Notice that there is a ton of information injected with the indent of tracking it during compilation but
+    to be optimized away later. The resulting code may end up being an <code>malloc</code>, allocation test,
+    and eventual <code>free</code>. But the richness of all intermediate information lets us do nice things
+    during compilation, such as track where the memory should be released and the primitive alignment (64-bit 
+    for numbers or 8-bit for char primitives).
+  </p>
+
+  <p><b>Practical example -</b> Before moving on to seeing memory implementations in action, 
+    look at the language's built-in buffer 
+    system, indicated by <code class="language-smolambda">[]</code>. Default buffers reside on the 
+    heap to account for their dynamic nature, though this can be adjusted for systems with unavailable heaps.
+    Fast implementations from the standard library for strings and vectors use other memory constructs 
+    described next.
+  </p>
+
+  <div style="position: relative; margin-bottom: 2em;">
+<pre><code class="language-smolambda">@include std.builtins // basic arithmetics, etc
+
+service samples()
+    buf = u64[]
+    :push(42)
+    :push(10)
+    -> buf // return statement
+
+service main()
+    buf = samples()
+    print(buf[0]) // prints 42
+    -- // end block, buffer is deallocated here
 </code></pre>
   </div>
 
