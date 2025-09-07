@@ -1,14 +1,22 @@
 CXX := g++
-CXXFLAGS := -O3 -std=c++23 -Wall -m64
+CXXFLAGS := -std=c++23 -Wall -m64
 TARGET := smol
 
 SRC := $(shell find src -type f -name '*.cpp')
 OBJ := $(patsubst src/%.cpp, build/%.o, $(SRC))
 
-all: $(TARGET)
+# Default is release
+all: release
+
+release: CXXFLAGS += -O3
+release: $(TARGET)
+
+debug: CXXFLAGS += -g -O0 -rdynamic -DDEBUG -fsanitize=address,undefined
+debug: LDFLAGS += -fsanitize=address,undefined -rdynamic
+debug: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
 # Compile .cpp -> .o into build/ (mirror src/ hierarchy)
 build/%.o: src/%.cpp

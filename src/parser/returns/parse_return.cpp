@@ -59,6 +59,7 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, 
     }
 
     vector<Variable> tentative = map_to_return(imp, p, types, true);
+
     if(!has_returned) 
         packs = tentative;
     else if(packs.size()!=tentative.size()) 

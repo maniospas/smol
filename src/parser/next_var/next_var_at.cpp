@@ -109,12 +109,19 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
                 RPAR_VAR,
                 SEMICOLON_VAR
             );
+            internalTypes.vars[next+ERR_VAR] = types.vars[ERRCODE_VAR];
             implementation += Code(
-                next+ERR_VAR, 
+                call_var+ERR_VAR, 
                 ASSIGN_VAR, 
                 call_var+STATE_VAR, 
                 ARROW_VAR, 
                 ERR_VAR, 
+                SEMICOLON_VAR
+            );
+            implementation += Code(
+                next+ERR_VAR, 
+                ASSIGN_VAR, 
+                call_var+ERR_VAR,
                 SEMICOLON_VAR
             );
             Variable fail_var = create_temp();

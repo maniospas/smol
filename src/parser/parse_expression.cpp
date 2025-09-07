@@ -22,10 +22,6 @@ Variable Def::parse_expression(const shared_ptr<Import>& imp, size_t& p, const V
 }
 
 Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry) {
-    static const Variable token_if = Variable("if(");
-    static const Variable token_ifnot = Variable("if(!");
-    static const Variable token_goto = Variable(")goto");
-    
     size_t first_token_pos = p-1;
     if(first_token==DOT_VAR 
         || first_token==CURRY_VAR
@@ -257,8 +253,6 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
         implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[2] & ~(1ULL << 63)"), SEMICOLON_VAR);
 
-        static const Variable token_if = Variable("if(");
-        static const Variable token_goto = Variable(")goto");
         static const Variable token_print = Variable(":\nprintf(\"Buffer error");
         static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
         Variable fail_var = create_temp();
@@ -576,14 +570,28 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             if(!internalTypes.contains(rhs)) 
                 imp->error(--p, "Failed to parse the right-hand-side of "+first_token.to_string());
             const auto& rhsType = internalTypes.vars.find(rhs)->second;
-            if(rhsType->_is_primitive) unpacks.push_back(rhs);
+            if(rhsType->_is_primitive) 
+                unpacks.push_back(rhs);
             else if(type->is_service) {
                 Variable fail_var = create_temp();
                 if(active_calls[rhs].exists() && active_calls[active_calls[rhs]].exists()) {
                     const Variable& call_var = active_calls[rhs];
                     implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                    //implementation += Code(Variable("__smolambda_task_destroy"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                    implementation += Code(rhs+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, ARROW_VAR, ERR_VAR, SEMICOLON_VAR);
+                    internalTypes.vars[rhs+ERR_VAR] = types.vars[ERRCODE_VAR];
+                    implementation += Code(
+                        call_var+ERR_VAR, 
+                        ASSIGN_VAR, 
+                        call_var+STATE_VAR, 
+                        ARROW_VAR, 
+                        ERR_VAR, 
+                        SEMICOLON_VAR
+                    );
+                    implementation += Code(
+                        rhs+ERR_VAR, 
+                        ASSIGN_VAR, 
+                        call_var+ERR_VAR,
+                        SEMICOLON_VAR
+                    );
                     static const Variable token_err1 = Variable(":\nprintf(\"Runtime error from ");
                     static const Variable token_err2 = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
                     implementation += Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);

@@ -28,27 +28,35 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
                 RPAR_VAR,
                 SEMICOLON_VAR
             );
+            internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
             implementation += Code(
-                var+ERR_VAR, 
+                call_var+ERR_VAR, 
                 ASSIGN_VAR, 
                 call_var+STATE_VAR, 
                 ARROW_VAR, 
                 ERR_VAR, 
                 SEMICOLON_VAR
             );
-            Variable fail_var = create_temp();
-            internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
             implementation += Code(
-                token_if, 
-                call_var+ERR_VAR, 
-                token_goto, 
-                fail_var, 
+                var+ERR_VAR, 
+                ASSIGN_VAR, 
+                call_var+ERR_VAR,
                 SEMICOLON_VAR
             );
+            Variable fail_var = create_temp();
+            internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+            if(next_token!=ERR_VAR)
+                implementation += Code(
+                    token_if, 
+                    call_var+ERR_VAR, 
+                    token_goto, 
+                    fail_var, 
+                    SEMICOLON_VAR
+                );
             errors += Code(
                 fail_var, 
                 token_print, 
-                internalTypes.vars[var]->name, 
+                internalTypes.contains(var)?internalTypes.vars[var]->name:EMPTY_VAR, 
                 call_var, 
                 token_failsafe
             );
@@ -62,7 +70,8 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
             active_calls[active_calls[var]] = EMPTY_VAR;
         if(!imp->allow_unsafe 
             && internalTypes.contains(next) 
-            && internalTypes.vars[next]->name==NOM_VAR)
+            && internalTypes.vars[next]->name==NOM_VAR
+        )
             imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         skip = true;
         return next;

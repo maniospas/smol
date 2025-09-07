@@ -14,8 +14,6 @@
 
 
 vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, const Variable& curry) {
-    static const Variable token_if = Variable("if(");
-    static const Variable token_goto = Variable(")goto");
     static const Variable token_print = Variable(":\nprintf(\"Runtime error from");
     static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
 
@@ -34,7 +32,21 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
             if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) {
                 const Variable& call_var = active_calls[var];
                 implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                implementation += Code(var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, ARROW_VAR, ERR_VAR, SEMICOLON_VAR);
+                internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
+                implementation += Code(
+                    call_var+ERR_VAR, 
+                    ASSIGN_VAR, 
+                    call_var+STATE_VAR, 
+                    ARROW_VAR, 
+                    ERR_VAR, 
+                    SEMICOLON_VAR
+                );
+                implementation += Code(
+                    var+ERR_VAR, 
+                    ASSIGN_VAR, 
+                    call_var+ERR_VAR,
+                    SEMICOLON_VAR
+                );
                 Variable fail_var = create_temp();
                 internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
                 implementation += Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
