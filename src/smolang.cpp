@@ -8,7 +8,7 @@
 #include "parser/next_var.cpp"
 #include "parser/assign_variable.cpp"
 #include "parser/parse_signature.cpp"
-#include "parser/parse_directive.cpp"
+#include "parser/directives/parse_directive.cpp"
 #include "parser/parse_expression.cpp"
 #include "parser/call_type.cpp"
 #include "parser/tostr/signature.cpp"

@@ -66,6 +66,7 @@ const Variable STATE_VAR = Variable("__state");
 const Variable STRUCT_VAR = Variable("struct");
 const Variable ARGS_VAR = Variable("args");
 const Variable VALUE_VAR = Variable("__value");
+const Variable ATTACHED_VAR = Variable("__attached");
 const Variable AT_VAR = Variable("@");
 const Variable DOT_VAR = Variable(".");
 const Variable ARROW_VAR = Variable("->");
@@ -85,7 +86,9 @@ public:
     unordered_map<Variable, Type> vars;
     unordered_map<string, string> all_errors;
     unordered_map<string, size_t> suppressed;
-    inline bool contains(const Variable& var) const {return vars.find(var)!=vars.end() && vars.find(var)->second;}
+    inline bool contains(const Variable& var) const {
+        return vars.find(var)!=vars.end() && vars.find(var)->second;
+    }
     Memory() = default;
 };
 
@@ -116,7 +119,6 @@ class Def {
     vector<Variable> map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types, bool is_zero_level);
     static string create_temp() {return "__"+numberToVar(++temp);}
     unordered_map<Variable, Variable> current_renaming;
-    void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
     void assign_variable(const Type& type, const Variable& from, const Variable& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false, bool check_mutables=true);
     string recommend_runtype(const Types& types, const Variable& candidate);
     string recommend_variable(const Types& types, const Variable& candidate);
@@ -132,19 +134,19 @@ class Def {
     Types saved_types;
     bool complete_option_resolution(const Types& _types);
     bool start_option_resolution(const Types& _types);
-    bool can_mutate(const Variable& _text) {
-        if(has_been_service_arg[_text]) return false;
-        string text = _text.to_string();
-        if(mutables.find(text)!=mutables.end()) return true;
-        size_t pos = 0;
-        while((pos = text.find("__", pos)) != std::string::npos) {
-            std::string part = text.substr(0, pos);
-            if (mutables.find(part) != mutables.end()) return true;
-            pos += 2; // Move past the current "__"
-        }
-        return false;
-    }
+private:
+    void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
+    void parse_directive_head(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
+    void parse_directive_link(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
+    void parse_directive_body(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
+    void parse_directive_finally(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
+    void parse_directive_fail(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
+    void parse_directive_release(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
+
 public:
+    Variable buffer_ptr;
+    Variable buffer_size;
+    Variable buffer_release;
     static bool markdown_errors;
     static int log_depth;
     size_t identifier;
@@ -186,8 +188,14 @@ public:
     unordered_set<Variable> type_trackers;
     bool has_returned;
     string raw_signature_state_name() const;
-    void add_preample(const string& pre) {if(preample.find(pre)==preample.end()) preample.insert(pre);}
-    void add_linker(const string& pre) {if(linker.find(pre)==linker.end()) linker.insert(pre);}
+    void add_preample(const string& pre) {
+        if(preample.find(pre)==preample.end()) 
+            preample.insert(pre);
+    }
+    void add_linker(const string& pre) {
+        if(linker.find(pre)==linker.end()) 
+            linker.insert(pre);
+    }
     void assert_options_validity(const shared_ptr<Import>& imp, size_t& p) {
         size_t count_nom = 0;
         size_t count_nonnom = 0;
@@ -212,9 +220,12 @@ public:
             group.insert(var);
             if(current_renaming.count(var)) {
                 Variable next = current_renaming[var];
-                if(visited.insert(next).second) q.push(next);
+                if(visited.insert(next).second) 
+                    q.push(next);
             }
-            for(const auto& [k, v] : current_renaming) if(v == var && visited.insert(k).second) q.push(k);
+            for(const auto& [k, v] : current_renaming) 
+                if(v == var && visited.insert(k).second) 
+                    q.push(k);
         }
         // Coalesce all finals into the original
         for(const Variable& name : group) if(name != original && finals.count(name)) {
@@ -234,11 +245,15 @@ public:
             group.insert(var);
             if(current_renaming.count(var)) {
                 Variable next = current_renaming[var];
-                if(visited.insert(next).second) q.push(next);
+                if(visited.insert(next).second) 
+                    q.push(next);
             }
-            for(const auto& [k, v] : current_renaming) if(v == var && visited.insert(k).second) q.push(k);
+            for(const auto& [k, v] : current_renaming) 
+                if(v == var && visited.insert(k).second) 
+                    q.push(k);
         }
-        for(const Variable& name : group) released[name] = true;
+        for(const Variable& name : group) 
+            released[name] = true;
     }
     void notify_service_arg(const Variable& original) {
         unordered_set<Variable> visited;
@@ -252,12 +267,32 @@ public:
             group.insert(var);
             if(current_renaming.count(var)) {
                 Variable next = current_renaming[var];
-                if(visited.insert(next).second) q.push(next);
+                if(visited.insert(next).second) 
+                    q.push(next);
             }
-            for(const auto& [k, v] : current_renaming) if(v == var && visited.insert(k).second) q.push(k);
+            for(const auto& [k, v] : current_renaming) 
+                if(v == var && visited.insert(k).second) 
+                    q.push(k);
         }
-        for(const Variable& name : group) mutables.erase(name);
-        for(const Variable& name : group) has_been_service_arg[name] = true;
+        for(const Variable& name : group) 
+            mutables.erase(name);
+        for(const Variable& name : group) 
+            has_been_service_arg[name] = true;
+    }
+    bool can_mutate(const Variable& _text) {
+        if(has_been_service_arg[_text]) 
+            return false;
+        string text = _text.to_string();
+        if(mutables.find(text)!=mutables.end()) 
+            return true;
+        size_t pos = 0;
+        while((pos = text.find("__", pos)) != std::string::npos) {
+            std::string part = text.substr(0, pos);
+            if (mutables.find(part) != mutables.end()) 
+                return true;
+            pos += 2; // Move past the current "__"
+        }
+        return false;
     }
 
 
@@ -279,6 +314,7 @@ public:
     Code rebase(const Code& impl, const Variable& var);
     void simplify();
     Code rename_var(const Code& impl, const Variable& from, const Variable& to);
+    Code rename_var(const Code& impl, const Variable& from, const Code& to);
     void parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
     void parse_no_implementation(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
     void end_block(const shared_ptr<Import>& i, size_t& p);

@@ -21,8 +21,12 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     size_t max_arg_progress = 0;
     size_t arg_progress = 0;
     for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
-        if(!type) imp->error(--p, "Internal error: obained a null option for "+previousType->name.to_string());
-        if(type->unresolved_options) continue;
+        if(!type) 
+            imp->error(--p, "Internal error: obained a null option for "
+                +previousType->name.to_string()
+            );
+        if(type->unresolved_options) 
+            continue;
         try {
             //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
             size_t type_args = type->not_primitive()?type->args.size():1;

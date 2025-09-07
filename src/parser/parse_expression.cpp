@@ -243,24 +243,26 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
 
         implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_packs)), SEMICOLON_VAR);
         implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
-        implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[2]"), SEMICOLON_VAR);
-
-        implementation += Code(Variable("if("), curry+Variable("__buffer_size"), Variable(">="), curry+Variable("__buffer_capacity"), Variable("){"));
-        implementation += Code(curry+Variable("__buffer_prev_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR); 
-        implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), Variable("+("), curry+Variable("__buffer_capacity"), Variable(">>2)+1;")); // +25%+1 capacity
-        implementation += Code(Variable("if("), curry+Variable("__buffer_size"), Variable(") ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_realloc((u64*)((u64*)"), curry, Variable(")[0], "), curry+Variable("__buffer_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("*sizeof(u64), "), curry+Variable("__buffer_prev_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
-        implementation += Code(Variable("else ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_alloc("), curry+Variable("__buffer_capacity"), Variable("*"), curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
-        implementation += Code(Variable("((u64*)"), curry, Variable(")[2]"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR);
-        implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[2] & ~(1ULL << 63)"), SEMICOLON_VAR);
 
         static const Variable token_if = Variable("if(");
         static const Variable token_goto = Variable(")goto");
         static const Variable token_print = Variable(":\nprintf(\"Buffer error");
         static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
         Variable fail_var = create_temp();
+
+        implementation += Code(token_if, curry+Variable("__buffer_size"), Variable(">="), curry+Variable("__buffer_capacity"), Variable("){"));
+        implementation += Code(token_if, Variable("((u64*)"), curry, Variable(")[2] & (1ULL << 63)"), token_goto, fail_var, SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_prev_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR); 
+        implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), Variable("+("), curry+Variable("__buffer_capacity"), Variable(">>2)+1;")); // +25%+1 capacity
+        implementation += Code(token_if, curry+Variable("__buffer_size"), Variable(") ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_realloc((u64*)((u64*)"), curry, Variable(")[0], "), curry+Variable("__buffer_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("*sizeof(u64), "), curry+Variable("__buffer_prev_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
+        implementation += Code(Variable("else ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_alloc("), curry+Variable("__buffer_capacity"), Variable("*"), curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
+        implementation += Code(Variable("((u64*)"), curry, Variable(")[2]"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
+
         internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
         implementation += Code(token_if, Variable("!"), curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
-        errors = errors+Code(fail_var, token_print, token_failsafe);
+        errors += Code(fail_var, token_print, token_failsafe);
 
         implementation += Code(Variable("} else "));
         implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
@@ -425,13 +427,22 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
     }
     if(types.contains(first_token)) {
         auto type = types.vars.find(first_token)->second;
+        Variable surface = EMPTY_VAR;
         if(p<imp->size()-1 && imp->at(p)=="[") {
             p++;
-            if(imp->at(p)!="]") 
-                imp->error(--p, "Given that "
-                    +first_token.to_string()
-                    +" is a runtype (not a local variable), [] is expected to declare a buffer here"
-                );
+            if(imp->at(p)!="]") {
+                string next = imp->at(p);
+                p++;
+                surface = parse_expression(imp, p, next, types, EMPTY_VAR);
+                if(!internalTypes.contains(surface) || !internalTypes.vars[surface]->buffer_ptr.exists())
+                    imp->error(--p, "Given that "
+                        +first_token.to_string()
+                        +" is a runtype (not a local variable), [] is expected to declare a buffer here"
+                        +" or a @buffer runtype must be returned to serve as the buffer's allocation"
+                    );
+                if(mutables.find(surface)==mutables.end())
+                    imp->error(--p, "Buffer surface is not mutable: "+pretty_var(surface.to_string()));
+            }
             p++;
             if(type->options.size()==0) 
                 imp->error(--p, "No options to determine buffer elements "
@@ -451,7 +462,8 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                     type = it;
                     conflicts = 0;
                 }
-                else if(it->choice_power==option_power) conflicts++;
+                else if(it->choice_power==option_power) 
+                    conflicts++;
             }
             if(option_power<0) 
                 imp->error(--p, "No resolution options for determining buffer elements: "
@@ -467,13 +479,62 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             mutables.insert(var);
             buffer_types[var] = type;
             internalTypes.vars[var] = types.vars[BUFFER_VAR];
-            implementation += Code(var,ASSIGN_VAR,Variable("__runtime_calloc(3*sizeof(u64))"),SEMICOLON_VAR); // ZERO OUT MEMORY, SIZE, CAPACITY IMMEDITATELY
-            finals[var] += Code(
-                Variable("if("), var, Variable("){if((u64*)((u64*)"),var,Variable(")[2])"), // deallocate only if we have alloacted any capacity
-                Variable("__runtime_free((u64*)((u64*)"),var,Variable(")[0])"),SEMICOLON_VAR,
-                Variable("__runtime_free("),var,RPAR_VAR,SEMICOLON_VAR,
-                var,ASSIGN_VAR,ZERO_VAR,SEMICOLON_VAR,
-                Variable("}"));
+            implementation += Code(
+                var,
+                ASSIGN_VAR,
+                Variable("__runtime_calloc(3*sizeof(u64))"),
+                SEMICOLON_VAR
+            ); // ZERO OUT MEMORY, SIZE, CAPACITY (MSB of capacity holds whether the buffer is statically initialized)
+            if(surface.exists()) {
+                size_t count_packs = 0;
+                for(const auto& pack : type->packs)
+                    if(type->internalTypes.contains(pack) && type->internalTypes.vars[pack]->name!=NOM_VAR)
+                        count_packs++;
+                if(type->_is_primitive) 
+                    count_packs++;
+                implementation += Code(
+                    Variable("((u64*)"),var,Variable(")[0]"), 
+                    ASSIGN_VAR, Variable("(u64)(u64*)"), 
+                    surface+internalTypes.vars[surface]->buffer_ptr, 
+                    SEMICOLON_VAR
+                );
+                implementation += Code(
+                    Variable("((u64*)"),
+                    var,
+                    Variable(")[2]"), 
+                    ASSIGN_VAR, 
+                    surface+internalTypes.vars[surface]->buffer_size, 
+                    Variable("/(sizeof(u64)*"+to_string(count_packs)+") | (1ULL <<63)"), 
+                    SEMICOLON_VAR
+                );
+                finals[var] += Code(
+                    Variable("if("), var, RPAR_VAR,
+                    Variable("__runtime_free("),var,RPAR_VAR,SEMICOLON_VAR,
+                    var,ASSIGN_VAR,ZERO_VAR,SEMICOLON_VAR
+                );
+                assign_variable(
+                    types.vars[PTR_VAR], 
+                    var+ATTACHED_VAR, 
+                    surface+internalTypes.vars[surface]->buffer_release, 
+                    imp, 
+                    p
+                );
+            }
+            else {
+                assign_variable(
+                    types.vars[PTR_VAR], 
+                    var+ATTACHED_VAR, 
+                    ZERO_VAR, 
+                    imp, 
+                    p
+                );
+                finals[var] += Code(
+                    Variable("if("), var, Variable("){if((u64*)((u64*)"),var,Variable(")[2])"), // deallocate only if we have alloacted any capacity
+                    Variable("__runtime_free((u64*)((u64*)"),var,Variable(")[0])"),SEMICOLON_VAR,
+                    Variable("__runtime_free("),var,RPAR_VAR,SEMICOLON_VAR,
+                    var,ASSIGN_VAR,ZERO_VAR,SEMICOLON_VAR,
+                    Variable("}"));
+            }
             return next_var(imp, p, var, types);;
         }
         vector<Variable> unpacks;
@@ -672,6 +733,3 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         );
     return next_var(imp, p, first_token, types);
 }
-
-
-

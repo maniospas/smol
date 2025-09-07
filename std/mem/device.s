@@ -52,8 +52,11 @@ smo ContiguousMemory (
         Primitive,
         ptr mem,
         ptr underlying
-    ) 
-    -> @args
+    )
+    Primitive = Primitive
+    @body{u64 bytesize = sizeof(Primitive)*size;}
+    @buffer mem bytesize underlying
+    -> @args, bytesize
 
 smo is(Primitive self, Primitive) 
     -> self
@@ -77,7 +80,11 @@ smo allocate(Heap, u64 size, Primitive)
     @body{ptr mem=__runtime_alloc(size*sizeof(Primitive));}
     if mem:bool:not 
         -> fail("Failed a Heap allocation")
-    @finally mem {if(mem)__runtime_free(mem);mem=0;}
+    @finally mem {
+        if(mem)
+            __runtime_free(mem);
+        mem=0;
+    }
     -> nominal:ContiguousMemory(Heap, size, Primitive, mem, mem)
 
 smo allocate(MemoryDevice, u64 size) 
