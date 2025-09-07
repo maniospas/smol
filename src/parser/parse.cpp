@@ -127,7 +127,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                     ); 
                 mutables.insert(var);
             }
-            int assignment_start = p;
+            int assignment_start = p-1;
             if(imp->at(p++)!="=") {
                 --p;
                 continue;
@@ -139,6 +139,8 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             const auto& it = internalTypes.vars.find(expression_outcome);
             if(it==internalTypes.vars.end()) 
                 imp->error(assignment_start, "Failed to parse expression");
+            if(internalTypes.vars[expression_outcome]->noassign && !imp->allow_unsafe)
+                imp->error(assignment_start, "Cannot assign to a non-temporary variable a result marked as @noassign\nThis is considered unsafe behavior and can only be enabled with @unsafe");
             if(is_next_assignment) {
                 next_assignments.insert(var);
                 var = NEXT_VAR+var;

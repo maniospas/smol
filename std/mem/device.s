@@ -53,6 +53,7 @@ smo ContiguousMemory (
         ptr mem,
         ptr underlying
     )
+    @noassign
     Primitive = Primitive
     @body{u64 bytesize = sizeof(Primitive)*size;}
     @buffer mem bytesize underlying

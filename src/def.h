@@ -198,6 +198,7 @@ public:
     bool noborrow;
     bool unresolved_options;
     bool has_tried_to_resolve_before;
+    bool noassign;
     static bool debug;
     static bool export_docs;
     vector<Type> options;
@@ -231,8 +232,8 @@ public:
     string raw_signature_state_name() const;
 
 public:
-    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), name(builtin), number_of_calls(0), has_returned(false) {}
-    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), name(""), number_of_calls(0), has_returned(false) {
+    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(builtin), number_of_calls(0), has_returned(false) {}
+    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(""), number_of_calls(0), has_returned(false) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;

@@ -103,7 +103,8 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
             }
             internalTypes.vars[next] = type;
         }
-        else assign_variable(type, next, ZERO_VAR, imp, p, true);
+        else 
+            assign_variable(type, next, ZERO_VAR, imp, p, true);
         type_trackers.insert(next);
         if(!imp->allow_unsafe && internalTypes.contains(next) && internalTypes.vars[next]->name==NOM_VAR)
             imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
@@ -112,6 +113,10 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
         if(type_trackers.find(next)!=type_trackers.end())
             imp->error(--p, "Not found "+next_token+" in "+internalTypes.vars[next]->signature(types));
         //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
+        if(internalTypes.vars[next]->buffer_ptr==next_token)
+            if(!can_mutate(next+next_token) && !imp->allow_unsafe)
+                imp->error(--p, "Buffer surface is not mutable: "+pretty_var(next.to_string()+"__"+next_token)+"\nIt might have been used elsewhere. Mark this file as @unsafe to allow a union view.");
+        has_been_service_arg[next+next_token] = true;
         next = next+next_token;
         if(p>=imp->size()) 
             return first_token;

@@ -298,6 +298,112 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         return next_var(imp, p, curry, types);
     }
 
+    if(first_token=="expect" 
+        && curry.exists() 
+        && internalTypes.contains(curry) 
+        && internalTypes.vars[curry]->name==BUFFER_VAR
+    ) {
+        if(imp->at(p++)!="(") 
+            imp->error(--p, "Expected opening parenthesis");
+        if(buffer_types.find(curry)==buffer_types.end())
+            imp->error(--p, "Internal error: buffer has not been properly transferred to scope");
+        if(mutables.find(curry)==mutables.end()) 
+            imp->error(--p, "Cannot grow a non-mutable buffer");
+        auto prev_p = p;
+        string next = imp->at(p++);
+        Variable amount = parse_expression(imp, p, next, types, EMPTY_VAR);
+        if(!amount.exists() || !internalTypes.vars[amount]) 
+            imp->error(prev_p, "Expression does not yield a value within grow");
+        if(internalTypes.vars[amount]->name != Variable("u64"))
+            imp->error(prev_p, "Grow amount must be of type u64");
+        if(imp->at(p++)!=")") 
+            imp->error(--p, "Expecting closing parenthesis");
+
+        internalTypes.vars[curry+Variable("__buffer_size")]          = types.vars[Variable("u64")];
+        internalTypes.vars[curry+Variable("__buffer_capacity")]      = types.vars[Variable("u64")];
+        internalTypes.vars[curry+Variable("__buffer_prev_capacity")] = types.vars[Variable("u64")];
+        internalTypes.vars[curry+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
+        internalTypes.vars[curry+Variable("__buffer_contents")]      = types.vars[Variable("ptr")];
+
+        // compute count_packs (valid packs only)
+        size_t count_packs = 0;
+        for(const auto& pack : buffer_types[curry]->packs)
+            if(buffer_types[curry]->internalTypes.contains(pack) && buffer_types[curry]->internalTypes.vars[pack]->name!=NOM_VAR)
+                count_packs++;
+        if(buffer_types[curry]->_is_primitive) count_packs++;
+
+        implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_packs)), SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[2] & ~(1ULL << 63)"), SEMICOLON_VAR);
+
+        static const Variable token_print = Variable(":\nprintf(\"Buffer error");
+        static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
+        Variable fail_var = create_temp();
+
+        // check if resize needed
+        implementation += Code(token_if, amount, Variable("&&"), curry+Variable("__buffer_size"), PLUS_VAR, amount, Variable(">"), curry+Variable("__buffer_capacity"), Variable("){"));
+        implementation += Code(token_if, Variable("((u64*)"), curry, Variable(")[2] & (1ULL << 63)"), token_goto, fail_var, SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_prev_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR); 
+        implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, curry+Variable("__buffer_size"), PLUS_VAR, amount, token_plus_one, SEMICOLON_VAR); // capacity to the new size
+        implementation += Code(
+            token_if,
+            curry + Variable("__buffer_size"),
+            Variable(") { ((u64*)"),
+            curry,
+            Variable(")[0]=(u64)(u64*)__runtime_realloc((u64*)((u64*)"),
+            curry,
+            Variable(")[0], "),
+            curry + Variable("__buffer_capacity"),
+            MUL_VAR,
+            curry + Variable("__buffer_alignment"),
+            Variable("*sizeof(u64), "),
+            curry + Variable("__buffer_prev_capacity"),
+            MUL_VAR,
+            curry + Variable("__buffer_alignment"),
+            Variable("*sizeof(u64));"),
+            // zero-initialization for the newly allocated part
+            Variable("memset((u64*)((u64*)((u64*)"),
+            curry,
+            Variable(")[0]) + ("),
+            curry + Variable("__buffer_prev_capacity"),
+            MUL_VAR,
+            curry + Variable("__buffer_alignment"),
+            Variable("), 0, (("),
+            curry + Variable("__buffer_capacity"),
+            Variable(" - "),
+            curry + Variable("__buffer_prev_capacity"),
+            Variable(") * "),
+            curry + Variable("__buffer_alignment"),
+            Variable(" * sizeof(u64)));")
+        );
+        implementation += Code(
+            Variable("} else ((u64*)"), 
+            curry, Variable(")[0]=(u64)(u64*)__runtime_calloc("), 
+            curry+Variable("__buffer_capacity"), 
+            Variable("*"), 
+            curry+Variable("__buffer_alignment"), 
+            Variable("*sizeof(u64))"), 
+            COMMA_VAR, 
+            ZERO_VAR, 
+            SEMICOLON_VAR
+        );
+        implementation += Code(Variable("((u64*)"), curry, Variable(")[2]"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR);
+        implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
+
+        internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+        implementation += Code(token_if, Variable("!"), curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
+        errors += Code(fail_var, token_print, token_failsafe);
+
+        implementation += Code(Variable("} else "));
+        implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
+
+        // finally, update size
+        implementation += Code(Variable("((u64*)"), curry, Variable(")[1]"), ASSIGN_VAR, curry+Variable("__buffer_size"), PLUS_VAR, amount, SEMICOLON_VAR);
+
+        return next_var(imp, p, curry, types);
+    }
+
+
     if(first_token=="on") {
         if(curry.exists()) 
             imp->error(p, "Cannot curry onto `on`");
@@ -307,6 +413,8 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         active_context = parse_expression(imp,p,next,types,curry);
         if(!active_context.exists() || !internalTypes.contains(active_context)) 
             imp->error(--p, "Expression does not evaluate to a variable to use as `on` context");
+        if(internalTypes.vars[active_context]->noassign && !imp->allow_unsafe)
+            imp->error(--p, "Cannot use as en `on` context a variable marked as @noassign\nThis is considered unsafe behavior and can only be enabled with @unsafe");
         Variable temp = create_temp();
         Variable finally_var = temp+Variable("on");
         internalTypes.vars[finally_var] = types.vars[LABEL_VAR];
@@ -446,8 +554,8 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                         +" is a runtype (not a local variable), [] is expected to declare a buffer here"
                         +" or a @buffer runtype must be returned to serve as the buffer's allocation"
                     );
-                if(mutables.find(surface)==mutables.end())
-                    imp->error(--p, "Buffer surface is not mutable: "+pretty_var(surface.to_string()));
+                if(!can_mutate(surface) && !imp->allow_unsafe)
+                    imp->error(--p, "Buffer surface is not mutable: "+pretty_var(surface.to_string())+"\nIt might have been used elsewhere. Mark this file as @unsafe to allow a union view.");
             }
             p++;
             if(type->options.size()==0) 
@@ -509,8 +617,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                     var,
                     Variable(")[2]"), 
                     ASSIGN_VAR, 
+                    LPAR_VAR,
                     surface+internalTypes.vars[surface]->buffer_size, 
-                    Variable("/(sizeof(u64)*"+to_string(count_packs)+") | (1ULL <<63)"), 
+                    Variable("/(sizeof(u64)*"+to_string(count_packs)+")) | (1ULL <<63)"), 
                     SEMICOLON_VAR
                 );
                 finals[var] += Code(

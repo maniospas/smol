@@ -16,6 +16,7 @@
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
 @include std.mem.arena
+@unsafe
 
 smo MemoryGrid (
         nominal type,
