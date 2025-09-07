@@ -127,5 +127,6 @@ void Def::assign_variable(
         if(alignments[to]) 
             alignments[from] = alignments[to];
     }
-    implementation +=Code(from,ASSIGN_VAR,to,SEMICOLON_VAR);
+    if(type->name!=NOM_VAR)
+        implementation += Code(from,ASSIGN_VAR,to,SEMICOLON_VAR);
 }

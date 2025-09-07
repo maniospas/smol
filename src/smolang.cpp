@@ -624,7 +624,8 @@ int main(int argc, char* argv[]) {
                 for(const string& pre : service->preample) preample.insert(pre);
                 for (const string& pre : service->linker) linker += " " + pre;
             }
-            for(const string& pre : preample) out << pre << "\n";
+            for(const string& pre : preample) 
+                out << pre << "\n";
             for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
                 out << service->raw_signature_state()<<"\n";
                 out << "void "+service->raw_signature()+";\n";
@@ -653,7 +654,7 @@ int main(int argc, char* argv[]) {
                         finals_on_error += var.to_string()+"=0;\n";
                         service->finals[var] = Code();
                     }
-                    if(var!=ERR_VAR) {
+                    if(var!=ERR_VAR && service->internalTypes.vars[var]->name!=NOM_VAR) {
                         out << service->internalTypes.vars[var]->name.to_string()<<" "<<var.to_string() << "= *__state->" << var.to_string() << ";\n";
                         enref_at_end += "*__state->"+var.to_string()+"="+var.to_string()+";\n";
                     }
@@ -672,7 +673,9 @@ int main(int argc, char* argv[]) {
                     }
                     service->internalTypes.vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
-                for(const auto& var : service->internalTypes.vars) if(var.second && var.second->_is_primitive && var.second->name!=LABEL_VAR) out << var.second->name << " " << var.first << "=0;\n";
+                for(const auto& var : service->internalTypes.vars) 
+                    if(var.second && var.second->_is_primitive && var.second->name!=LABEL_VAR && var.second->name!=NOM_VAR) 
+                        out << var.second->name << " " << var.first << "=0;\n";
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
                 out << "goto __return;\n"; // skip error handling block that resides at the end of the service
@@ -713,7 +716,7 @@ int main(int argc, char* argv[]) {
             out << "return __main_args.err;\n";
             out << "}\n\n";
             //out.close();
-            //cout << out.str() << "\n";
+            cout << out.str() << "\n";
             for(const auto& it : included[file].vars) {
                 for(const auto& opt : it.second->options) opt->internalTypes.vars.clear();
                 it.second->internalTypes.vars.clear();
