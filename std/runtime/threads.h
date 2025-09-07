@@ -114,7 +114,7 @@ typedef struct {
 TaskQueue task_queue;
 
 /* ---------------- INIT FUNCTION ---------------- */
-void __smolambda_init_task_queue(TaskQueue *queue) {
+static inline void __smolambda_init_task_queue(TaskQueue *queue) {
     queue->head = NULL;
     queue->stop = 0;
 #ifdef _WIN32
@@ -127,7 +127,7 @@ void __smolambda_init_task_queue(TaskQueue *queue) {
 }
 
 /* ---------------- ADD TASK (returns void*) ---------------- */
-void* __smolambda_add_task(void (*func)(void *), void *arg) {
+static inline void* __smolambda_add_task(void (*func)(void *), void *arg) {
     Task *task = (Task*)__runtime_alloc(sizeof(Task));
     if (!task) return NULL;
     task->func = func;
@@ -159,7 +159,7 @@ void* __smolambda_add_task(void (*func)(void *), void *arg) {
 }
 
 /* ---------------- TRY GET TASK (non-blocking) ---------------- */
-static Task* __smolambda_try_get_task() {
+static inline Task* __smolambda_try_get_task() {
     Task *task = NULL;
 #ifdef _WIN32
     if (!TryEnterCriticalSection(&task_queue.mutex)) {
@@ -185,7 +185,7 @@ static Task* __smolambda_try_get_task() {
 
 
 /* ---------------- WAIT FOR TASK COMPLETION ---------------- */
-void __smolambda_task_wait(void *task_ptr) {
+static inline void __smolambda_task_wait(void *task_ptr) {
     Task *target = (Task*)task_ptr;
     if (!target) return;
 
@@ -250,7 +250,7 @@ void __smolambda_task_wait(void *task_ptr) {
 }
 
 /* ---------------- TASK SLEEP ---------------- */
-void __smolambda_task_sleep(double secs) {
+static inline void __smolambda_task_sleep(double secs) {
     if (secs < 0.0) return;
     if (secs == 0.0) {
         Task *task = __smolambda_try_get_task();
@@ -327,7 +327,7 @@ void __smolambda_task_sleep(double secs) {
 
 
 /* ---------------- DESTROY TASK ---------------- */
-void __smolambda_task_destroy(void *task_ptr) {
+static inline void __smolambda_task_destroy(void *task_ptr) {
     Task *task = (Task*)task_ptr;
     if (!task) return;
 #ifdef _WIN32
@@ -371,7 +371,7 @@ Task* __smolambda_get_task() {
 }
 
 /* ---------------- STOP ALL THREADS ---------------- */
-void __smolambda_stop_all_threads() {
+static inline void __smolambda_stop_all_threads() {
 #ifdef _WIN32
     EnterCriticalSection(&task_queue.mutex);
     task_queue.stop = 1;
@@ -389,7 +389,7 @@ void __smolambda_stop_all_threads() {
 #ifdef _WIN32
 DWORD WINAPI worker_thread(LPVOID arg)
 #else
-void* __smolambda_worker_thread(void *arg)
+static inline void* __smolambda_worker_thread(void *arg)
 #endif
 {
     (void)arg;
@@ -426,7 +426,7 @@ int __smolambda_get_core_count() {
 }
 
 /* ---------------- START SERVICE WITH EXAMPLE ---------------- */
-int __smolambda_initialize_service_tasks(void (*initial_func)(void *), void *initial_arg) {
+static inline int __smolambda_initialize_service_tasks(void (*initial_func)(void *), void *initial_arg) {
     int num_threads = __smolambda_get_core_count();
     printf("Compiler: smoλ (https://github.com/maniospas/smol)\n");
     printf("Threads: %d\n", num_threads);

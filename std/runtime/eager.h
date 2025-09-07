@@ -82,12 +82,12 @@ static inline void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void 
 }
 
 
-void* __smolambda_add_task(void (*func)(void *), void *arg) {func(arg);return 0;}
+static inline void* __smolambda_add_task(void (*func)(void *), void *arg) {func(arg);return 0;}
 
-void __smolambda_task_wait(void *task_ptr) {}
+static inline void __smolambda_task_wait(void *task_ptr) {}
 
 /* ---------------- TASK SLEEP ---------------- */
-void __smolambda_task_sleep(double secs) {
+static inline void __smolambda_task_sleep(double secs) {
     if (secs <= 0.0) return;
 #ifdef _WIN32
     DWORD ms = (DWORD)(secs * 1000.0);
@@ -101,8 +101,8 @@ void __smolambda_task_sleep(double secs) {
 #endif
 }
 
-void __smolambda_task_destroy(void *task_ptr) {}
-int __smolambda_initialize_service_tasks(void (*initial_func)(void *), void *initial_arg) {
+static inline void __smolambda_task_destroy(void *task_ptr) {}
+static inline int __smolambda_initialize_service_tasks(void (*initial_func)(void *), void *initial_arg) {
     printf("Compiler: smoλ (https://github.com/maniospas/smol)\n");
     printf("Threads: 1 (compiled in single threaded mode)\n");
     void* t = __smolambda_add_task(initial_func, initial_arg);
