@@ -1,22 +1,16 @@
-// g++ src/smolang.cpp -o smol -O3 -std=c++23 -Wall -m64
-// g++ src/smolang.cpp -o smol -std=c++23 -Wall -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
-// g++ __smolambda__temp__main.cpp -o tests/main -std=c++23 -fsanitize=address -fsanitize=undefined -D_FORTIFY_SOURCE=3 -fstack-protector-strong -pie -fPIE -g -fsanitize=leak
-
+// Copyright 2025 Emmanouil Krasanakis (maniospas@hotmail.com)
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 #include "def.h"
-#include "parser/tostr/recommendations.cpp"
-#include "parser/gather_tuple.cpp"
-#include "parser/next_var/next_var.cpp"
-#include "parser/assign_variable.cpp"
-#include "parser/parse_signature.cpp"
-#include "parser/directives/parse_directive.cpp"
-#include "parser/parse_expression.cpp"
-#include "parser/call_type.cpp"
-#include "parser/tostr/signature.cpp"
-#include "parser/rebase.cpp"
-#include "parser/parse.cpp"
-#include "parser/returns/parse_return.cpp"
-#include "parser/returns/map_to_return.cpp"
-#include "parser/simplify.cpp"
 #include <regex>
 #include <map>
 #include <sstream>

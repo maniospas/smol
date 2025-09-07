@@ -10,12 +10,24 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     string multipleFound("");
     int numberOfFound = 0;
     int numberOfErrors = 0;
-    if(!type) imp->error(first_token_pos, "Not found runtype: "+first_token.to_string()+recommend_runtype(types, first_token));
+    if(!type) 
+        imp->error(first_token_pos, "Not found runtype: "
+            +first_token.to_string()
+            +recommend_runtype(types, first_token)
+        );
     Type previousType = type;
     int highest_choice_power = 0;
     for(size_t i=0;i<unpacks.size();++i) {
-        if(!internalTypes.contains(unpacks[i])) imp->error(p-1, "Not found: "+pretty_var(unpacks[i].to_string())+recommend_variable(types, unpacks[i]));
-        if(released[unpacks[i]]) imp->error(p-1, "Already released (this includes implicit releases): "+pretty_var(unpacks[i].to_string())+recommend_variable(types, unpacks[i]));
+        if(!internalTypes.contains(unpacks[i])) 
+            imp->error(p-1, "Not found: "
+                +pretty_var(unpacks[i].to_string())
+                +recommend_variable(types, unpacks[i])
+            );
+        if(released[unpacks[i]])
+            imp->error(p-1, "Already released (this includes implicit releases): "
+                +pretty_var(unpacks[i].to_string())
+                +recommend_variable(types, unpacks[i])
+            );
     }
     type->number_of_calls++;
     size_t max_arg_progress = 0;

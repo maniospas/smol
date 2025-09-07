@@ -1,0 +1,120 @@
+// Copyright 2025 Emmanouil Krasanakis (maniospas@hotmail.com)
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+#include "../../def.h"
+
+void Def::add_preample(const string& pre) {
+    if(preample.find(pre)==preample.end()) 
+        preample.insert(pre);
+}
+void Def::add_linker(const string& pre) {
+    if(linker.find(pre)==linker.end()) 
+        linker.insert(pre);
+}
+void Def::assert_options_validity(const shared_ptr<Import>& imp, size_t& p) {
+    size_t count_nom = 0;
+    size_t count_nonnom = 0;
+    for(const auto& it : options) {
+        if(it->choice_power) 
+            count_nom++;
+        else
+            count_nonnom++;
+    }
+    if(count_nom>1 && count_nonnom)
+        imp->error(p, "More than one nominal declarations for: "+name.to_string());
+}
+void Def::coallesce_finals(const Variable& original) {
+    unordered_set<Variable> visited;
+    queue<Variable> q;
+    unordered_set<Variable> group;
+    q.push(original);
+    visited.insert(original);
+    while (!q.empty()) {
+        Variable var = q.front();
+        q.pop();
+        group.insert(var);
+        if(current_renaming.count(var)) {
+            Variable next = current_renaming[var];
+            if(visited.insert(next).second) 
+                q.push(next);
+        }
+        for(const auto& [k, v] : current_renaming) 
+            if(v == var && visited.insert(k).second) 
+                q.push(k);
+    }
+    // Coalesce all finals into the original
+    for(const Variable& name : group) if(name != original && finals.count(name)) {
+        finals[original] = finals[original] + rename_var(finals[name], name, original);
+        finals[name] = Code();
+    }
+}
+void Def::notify_release(const Variable& original) {
+    unordered_set<Variable> visited;
+    queue<Variable> q;
+    unordered_set<Variable> group;
+    q.push(original);
+    visited.insert(original);
+    while (!q.empty()) {
+        Variable var = q.front();
+        q.pop();
+        group.insert(var);
+        if(current_renaming.count(var)) {
+            Variable next = current_renaming[var];
+            if(visited.insert(next).second) 
+                q.push(next);
+        }
+        for(const auto& [k, v] : current_renaming) 
+            if(v == var && visited.insert(k).second) 
+                q.push(k);
+    }
+    for(const Variable& name : group) 
+        released[name] = true;
+}
+void Def::notify_service_arg(const Variable& original) {
+    unordered_set<Variable> visited;
+    queue<Variable> q;
+    unordered_set<Variable> group;
+    q.push(original);
+    visited.insert(original);
+    while (!q.empty()) {
+        Variable var = q.front();
+        q.pop();
+        group.insert(var);
+        if(current_renaming.count(var)) {
+            Variable next = current_renaming[var];
+            if(visited.insert(next).second) 
+                q.push(next);
+        }
+        for(const auto& [k, v] : current_renaming) 
+            if(v == var && visited.insert(k).second) 
+                q.push(k);
+    }
+    for(const Variable& name : group) 
+        mutables.erase(name);
+    for(const Variable& name : group) 
+        has_been_service_arg[name] = true;
+}
+bool Def::can_mutate(const Variable& _text) {
+    if(has_been_service_arg[_text]) 
+        return false;
+    string text = _text.to_string();
+    if(mutables.find(text)!=mutables.end()) 
+        return true;
+    size_t pos = 0;
+    while((pos = text.find("__", pos)) != std::string::npos) {
+        std::string part = text.substr(0, pos);
+        if (mutables.find(part) != mutables.end()) 
+            return true;
+        pos += 2; // Move past the current "__"
+    }
+    return false;
+}
