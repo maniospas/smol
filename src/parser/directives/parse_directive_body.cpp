@@ -17,18 +17,18 @@ void Def::parse_directive_body(const shared_ptr<Import>& imp, size_t& p, string 
                 break;
         }
         string nextnext = imp->at(p);
-        if(p<imp->size()-2 && imp->at(p+1)=="=" 
+        if(p<imp->size()-2 
+            && imp->at(p+1)=="=" 
             && (!is_symbol(imp->at(p+2)) || imp->at(p+2)=="(") 
-            && !is_symbol(next) && !is_symbol(nextnext)
+            && !is_symbol(next) 
+            && !is_symbol(nextnext)
         ) {
+            // identified assignment so we are creaeting a primitive
             string argname = nextnext;
             string argtype = next;
-            if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->not_primitive()) {
-                internalTypes.vars[argname] = types.vars.find(argtype)->second;
-                // vardecl += argtype+" "+argname+" = 0;\n";
-            }
-            else 
+            if(types.vars.find(argtype)==types.vars.end() || types.vars.find(argtype)->second->not_primitive()) 
                 imp->error(pos, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
+            internalTypes.vars[argname] = types.vars.find(argtype)->second;
         }
         else {
             string prev_nextnext = next;

@@ -81,6 +81,11 @@ const Variable TRANSIENT_VAR = Variable("__TRANSIENT(");
 const Variable LBRACKET_VAR = Variable("[");
 const Variable RBRACKET_VAR = Variable("]");
 
+const Variable token_if = Variable("if(");
+const Variable token_ifnot = Variable("if(!");
+const Variable token_goto = Variable(")goto");
+const Variable token_plus_one = Variable("+1");
+
 class Memory {
 public:
     unordered_map<Variable, Type> vars;
@@ -305,7 +310,15 @@ public:
     } 
     vector<Variable> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, const Variable& curry);
     inline bool not_primitive() const {return !_is_primitive;}
+
+    Variable next_var_and(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
+    Variable next_var_or(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
+    Variable next_var_field(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test, bool& skip);
+    Variable next_var_buffer_ret_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
+    Variable next_var_buffer_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
+    Variable next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
     Variable next_var(const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test=true);
+    
     string signature_like(Types& types, vector<Variable> args);
     string signature(Types &types);
     Variable canonic_name();

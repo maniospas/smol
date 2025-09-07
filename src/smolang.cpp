@@ -5,7 +5,7 @@
 #include "def.h"
 #include "parser/tostr/recommendations.cpp"
 #include "parser/gather_tuple.cpp"
-#include "parser/next_var.cpp"
+#include "parser/next_var/next_var.cpp"
 #include "parser/assign_variable.cpp"
 #include "parser/parse_signature.cpp"
 #include "parser/directives/parse_directive.cpp"

@@ -160,7 +160,7 @@ shared_ptr<Import> tokenize(const string& path) {
             size_t start = i;
             size_t start_col = col;
             string prefix("");
-            if (line[i] == '"') {
+            if(line[i] == '"') {
                 i++;
                 col++;
                 // Parse string literal, allowing escaped quotes
