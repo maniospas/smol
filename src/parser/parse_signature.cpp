@@ -145,10 +145,13 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 );
             
             internalTypes.vars[arg_name] = types.vars[BUFFER_VAR];
-            buffer_types[arg_name] = argType;
+            internalTypes.vars[arg_name+Variable("surface")] = types.vars[PTR_VAR];
+            internalTypes.vars[arg_name+Variable("dynamic")] = types.vars[PTR_VAR];
+            buffer_types[arg_name+Variable("dynamic")] = argType;
             if(mut) 
                 mutables.insert(arg_name);
-            args.emplace_back(arg_name, types.vars[BUFFER_VAR], mut);
+            args.emplace_back(arg_name+Variable("dynamic"), types.vars[PTR_VAR], mut); // order matters
+            args.emplace_back(arg_name+Variable("surface"), types.vars[PTR_VAR], mut);
         }
         else if(argType->not_primitive()) {
             retrievable_parameters[argType->name] = argType;
@@ -174,10 +177,8 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                     if(it.second.exists()) 
                         active_calls[arg_name+it.first] = it.second;
                 errors = errors+it.type->rebase(it.type->errors, arg_name);
-                for(const auto& it2 : it.type->internalTypes.vars) {
-                    Variable arg = arg_name+it2.first;
-                    internalTypes.vars[arg] = it2.second;
-                }
+                for(const auto& it2 : it.type->internalTypes.vars) 
+                    internalTypes.vars[arg_name+it2.first] = it2.second;
             }
             else {
                 internalTypes.vars[arg_name] = argType;

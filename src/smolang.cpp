@@ -716,7 +716,7 @@ int main(int argc, char* argv[]) {
             out << "return __main_args.err;\n";
             out << "}\n\n";
             //out.close();
-            cout << out.str() << "\n";
+            //cout << out.str() << "\n";
             for(const auto& it : included[file].vars) {
                 for(const auto& opt : it.second->options) opt->internalTypes.vars.clear();
                 it.second->internalTypes.vars.clear();

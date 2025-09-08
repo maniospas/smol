@@ -142,17 +142,20 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
     }
 
     if(first_token=="len" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name==BUFFER_VAR)  {
+        curry = curry+Variable("dynamic");
         internalTypes.vars[Variable("__buffer_size")] = types.vars[Variable("u64")];
         implementation += Code(Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
         return next_var(imp, p, Variable("__buffer_size"), types);
     }
     if(first_token=="put" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name==BUFFER_VAR)  {
+        Variable raw_var = curry;
         if(imp->at(p++)!="(") 
             imp->error(--p, "Expected opening parenthesis");
-        if(buffer_types.find(curry)==buffer_types.end()) 
-            imp->error(--p, "Internal error: buffer has not been properly transferred to scope: "+curry.to_string());
         if(mutables.find(curry)==mutables.end()) 
             imp->error(--p, "Cannot put into a non-mutable buffer");
+        curry = curry+Variable("dynamic");
+        if(buffer_types.find(curry)==buffer_types.end()) 
+            imp->error(--p, "Internal error: buffer has not been properly transferred to scope: "+curry.to_string());
         size_t prev_p = p;
         string next_tok = imp->at(p++);
         Variable idx = parse_expression(imp, p, next_tok, types, EMPTY_VAR);
@@ -195,7 +198,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         // range check
         Variable fail_var = create_temp();
         internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
-        implementation += Code(Variable("if("), idx, Variable(">="), curry+Variable("__buffer_size"),Variable(")goto"), fail_var, SEMICOLON_VAR);
+        implementation += Code(token_if, idx, Variable(">="), curry+Variable("__buffer_size"),Variable(")goto"), fail_var, SEMICOLON_VAR);
         errors += Code(fail_var, Variable(":\nprintf(\"Buffer index out of range\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n"));
 
         // write element packs at idx
@@ -211,7 +214,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             }
         }
 
-        return next_var(imp, p, curry, types);
+        return next_var(imp, p, raw_var, types);
     }
 
 
@@ -222,17 +225,23 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
     ) {
         if(imp->at(p++)!="(") 
             imp->error(--p, "Expected opening parenthesis");
-        if(buffer_types.find(curry)==buffer_types.end())
-            imp->error(--p, "Internal error: buffer has not been properly transferred to scope");
         if(mutables.find(curry)==mutables.end()) 
             imp->error(--p, "Cannot push onto a non-mutable buffer");
+        Variable raw_var = curry;
+        curry = curry+Variable("dynamic");
+        if(buffer_types.find(curry)==buffer_types.end())
+            imp->error(--p, "Internal error: buffer has not been properly transferred to scope");
         auto prev_p = p;
         string next = imp->at(p++);
         Variable var = parse_expression(imp, p, next, types, EMPTY_VAR);
         if(!var.exists() || !internalTypes.vars[var]) 
             imp->error(prev_p, "Expression does not yield a value within push");
         if(internalTypes.vars[var].get() != buffer_types[curry].get())
-            imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching of the types is allowed.\nExpected " + buffer_types[curry]->signature(types) + " but got " + internalTypes.vars[var]->signature(types));
+            imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching of the types is allowed.\nExpected " 
+                + buffer_types[curry]->signature(types) 
+                + " but got " 
+                + internalTypes.vars[var]->signature(types)
+            );
         if(imp->at(p++)!=")") 
             imp->error(--p, "Expecting closing parenthesis");
 
@@ -257,14 +266,44 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
         Variable fail_var = create_temp();
 
-        implementation += Code(token_if, curry+Variable("__buffer_size"), Variable(">="), curry+Variable("__buffer_capacity"), Variable("){"));
-        implementation += Code(token_if, Variable("((u64*)"), curry, Variable(")[2] & (1ULL << 63)"), token_goto, fail_var, SEMICOLON_VAR);
-        implementation += Code(curry+Variable("__buffer_prev_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR); 
-        implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), Variable("+("), curry+Variable("__buffer_capacity"), Variable(">>2)+1;")); // +25%+1 capacity
-        implementation += Code(token_if, curry+Variable("__buffer_size"), Variable(") ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_realloc((u64*)((u64*)"), curry, Variable(")[0], "), curry+Variable("__buffer_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("*sizeof(u64), "), curry+Variable("__buffer_prev_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
-        implementation += Code(Variable("else ((u64*)"), curry, Variable(")[0]=(u64)(u64*)__runtime_alloc("), curry+Variable("__buffer_capacity"), Variable("*"), curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
-        implementation += Code(Variable("((u64*)"), curry, Variable(")[2]"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR);
-        implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
+        implementation += Code(token_if, curry+Variable("__buffer_size"),
+            Variable(">="), curry+Variable("__buffer_capacity"), Variable("){"));
+
+        implementation += Code(token_if,
+            Variable("((u64*)"), curry, Variable(")[2] & (1ULL << 63)"),
+            token_goto, fail_var, SEMICOLON_VAR);
+
+        implementation += Code(curry+Variable("__buffer_prev_capacity"), ASSIGN_VAR,
+            curry+Variable("__buffer_capacity"), SEMICOLON_VAR);
+
+        implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR,
+            curry+Variable("__buffer_capacity"),
+            Variable("+("), curry+Variable("__buffer_capacity"), Variable(">>2)+1;")); // +25%+1 capacity
+
+        // realloc path
+        implementation += Code(token_if, curry+Variable("__buffer_size"),
+            Variable(") ((void**)"), curry,
+            Variable(")[0] = __runtime_realloc((u64*)((void**)"), curry,
+            Variable(")[0], "),
+            curry+Variable("__buffer_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"),
+            Variable("*sizeof(u64), "),
+            curry+Variable("__buffer_prev_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"),
+            Variable("*sizeof(u64));"));
+
+        // alloc path
+        implementation += Code(Variable("else ((void**)"), curry,
+            Variable(")[0] = __runtime_alloc("),
+            curry+Variable("__buffer_capacity"), Variable("*"),
+            curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
+
+        // update capacity
+        implementation += Code(Variable("((u64*)"), curry, Variable(")[2]"),
+            ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR);
+
+        // set buffer_contents
+        implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR,
+            Variable("(ptr)((void**)"), curry, Variable(")[0]"), SEMICOLON_VAR);
+
 
         internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
         implementation += Code(token_if, Variable("!"), curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
@@ -295,7 +334,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 pack_index++;
             }
         }
-        return next_var(imp, p, curry, types);
+        return next_var(imp, p, raw_var, types);
     }
 
     if(first_token=="expect" 
@@ -303,12 +342,14 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         && internalTypes.contains(curry) 
         && internalTypes.vars[curry]->name==BUFFER_VAR
     ) {
+        Variable raw_var = curry;
         if(imp->at(p++)!="(") 
             imp->error(--p, "Expected opening parenthesis");
-        if(buffer_types.find(curry)==buffer_types.end())
-            imp->error(--p, "Internal error: buffer has not been properly transferred to scope");
         if(mutables.find(curry)==mutables.end()) 
             imp->error(--p, "Cannot grow a non-mutable buffer");
+        curry = curry+Variable("dynamic");
+        if(buffer_types.find(curry)==buffer_types.end())
+            imp->error(--p, "Internal error: buffer has not been properly transferred to scope");
         auto prev_p = p;
         string next = imp->at(p++);
         Variable amount = parse_expression(imp, p, next, types, EMPTY_VAR);
@@ -400,7 +441,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         // finally, update size
         implementation += Code(Variable("((u64*)"), curry, Variable(")[1]"), ASSIGN_VAR, curry+Variable("__buffer_size"), PLUS_VAR, amount, SEMICOLON_VAR);
 
-        return next_var(imp, p, curry, types);
+        return next_var(imp, p, raw_var, types);
     }
 
 
@@ -591,8 +632,14 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         
             Variable var = create_temp();
             mutables.insert(var);
-            buffer_types[var] = type;
+            Variable dynamic_var = var+Variable("dynamic");
+            Variable surface_var = var+Variable("surface");
+            buffer_types[dynamic_var] = type;
             internalTypes.vars[var] = types.vars[BUFFER_VAR];
+            internalTypes.vars[dynamic_var] = types.vars[PTR_VAR];
+            //internalTypes.vars[var+Variable("surface")] = types.vars[PTR_VAR];
+            Variable raw_var = var;
+            var = dynamic_var;
             implementation += Code(
                 var,
                 ASSIGN_VAR,
@@ -623,13 +670,13 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                     SEMICOLON_VAR
                 );
                 finals[var] += Code(
-                    Variable("if("), var, RPAR_VAR,
+                    token_if, var, RPAR_VAR,
                     Variable("__runtime_free("),var,RPAR_VAR,SEMICOLON_VAR,
                     var,ASSIGN_VAR,ZERO_VAR,SEMICOLON_VAR
                 );
                 assign_variable(
                     types.vars[PTR_VAR], 
-                    var+Variable("dynamic"), 
+                    surface_var, 
                     surface+internalTypes.vars[surface]->buffer_release, 
                     imp, 
                     p
@@ -638,19 +685,19 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             else {
                 assign_variable(
                     types.vars[PTR_VAR], 
-                    var+Variable("dynamic"), 
+                    surface_var,
                     ZERO_VAR, 
                     imp, 
                     p
                 );
                 finals[var] += Code(
-                    Variable("if("), var, Variable("){if((u64*)((u64*)"),var,Variable(")[2])"), // deallocate only if we have alloacted any capacity
+                    token_if, var, Variable("){if((u64*)((u64*)"),var,Variable(")[2])"), // deallocate only if we have allocated any capacity
                     Variable("__runtime_free((u64*)((u64*)"),var,Variable(")[0])"),SEMICOLON_VAR,
                     Variable("__runtime_free("),var,RPAR_VAR,SEMICOLON_VAR,
                     var,ASSIGN_VAR,ZERO_VAR,SEMICOLON_VAR,
                     Variable("}"));
             }
-            return next_var(imp, p, var, types);;
+            return next_var(imp, p, raw_var, types);
         }
         vector<Variable> unpacks;
         if(p>=imp->size()-1) {
