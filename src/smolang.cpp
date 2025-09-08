@@ -426,10 +426,20 @@ int main(int argc, char* argv[]) {
     builtins.vars[Variable("char")] = make_shared<Def>("char");
     builtins.vars[NOM_VAR] = make_shared<Def>("nominal");
     builtins.vars[LABEL_VAR] = make_shared<Def>("__label");
+    
     builtins.vars[BUFFER_VAR] = make_shared<Def>("__buffer");
+    //builtins.vars[BUFFER_VAR]->args.push_back(Arg(Variable("surface"), builtins.vars[PTR_VAR], false));
+    //builtins.vars[BUFFER_VAR]->args.push_back(Arg(Variable("dynamic"), builtins.vars[PTR_VAR], false));
+    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("surface"));
+    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("dynamic"));
+    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("dynamic")] = builtins.vars[PTR_VAR]; // order matters
+    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("surface")] = builtins.vars[PTR_VAR];
+    builtins.vars[BUFFER_VAR]->_is_primitive = false;
 
-    for(const auto& it : builtins.vars) it.second->options.push_back(it.second);
-    for(const auto& it : builtins.vars) all_types.push_back(it.second);
+    for(const auto& it : builtins.vars) 
+        it.second->options.push_back(it.second);
+    for(const auto& it : builtins.vars) 
+        all_types.push_back(it.second);
 
 
     for (int i = 1; i < argc; ++i) {
@@ -607,7 +617,6 @@ int main(int argc, char* argv[]) {
                 "#endif\n"
                 "#endif\n"
                 "#include <stdint.h>\n"
-                "typedef void* __buffer;\n"
                 "typedef void* ptr;\n"
                 "typedef int errcode;\n"
                 "typedef const char* cstr;\n"

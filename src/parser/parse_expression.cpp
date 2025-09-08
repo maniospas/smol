@@ -681,6 +681,15 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                     imp, 
                     p
                 );
+
+                // returning simplifcations may split the memory poiters into two independent sets of finals that reference the same memory - gather in one place
+                coallesce_finals(surface+internalTypes.vars[surface]->buffer_ptr);
+                coallesce_finals(surface+internalTypes.vars[surface]->buffer_release);
+                finals[surface_var] = 
+                        rename_var(finals[surface+internalTypes.vars[surface]->buffer_ptr], surface+internalTypes.vars[surface]->buffer_ptr, surface_var)
+                        +rename_var(finals[surface+internalTypes.vars[surface]->buffer_release], surface+internalTypes.vars[surface]->buffer_release, surface_var);
+                finals[surface+internalTypes.vars[surface]->buffer_ptr] = Code();
+                finals[surface+internalTypes.vars[surface]->buffer_release] = Code();
             }
             else {
                 assign_variable(
