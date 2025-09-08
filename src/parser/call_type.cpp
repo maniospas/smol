@@ -60,7 +60,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                         +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
                 }
                 arg_progress++;
-                if(arg_type->name==BUFFER_VAR && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) 
+                if(buffer_types.find(unpacks[i])!=buffer_types.end() && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) 
                     imp->error(first_token_pos, "Not compatible buffer: "
                         +pretty_var(unpacks[i].to_string())
                         +" holds "+buffer_types[unpacks[i]]->signature(types)
@@ -298,21 +298,24 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     // TODO: reinstate this but improve inference
     //if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of ["+to_string(unpacks.size())+"] structural arguments - they match "+to_string(numberOfFound)+" candidates"+(markdown_errors?"\n```rust":"")+multipleFound+(markdown_errors?"\n```\n":""));
 
-    for(const Variable& pack : type->packs) type->coallesce_finals(pack);
+    for(const Variable& pack : type->packs) 
+        type->coallesce_finals(pack);
     auto transfer_finals = type->finals;
     unordered_map<Variable, Code> transferring;
-    for(const Variable& pack : type->packs) if(type->finals[pack].exists()) {
-        type->coallesce_finals(pack);
-        finals[var+pack] = finals[var+pack] + type->rebase(type->finals[pack], var);
-        transferring[var+pack] = finals[var+pack];
-        transfer_finals[pack] = Code();
-    }
-    for(const auto& arg : type->args) if(arg.mut && type->finals[arg.name].exists()) {
-        type->coallesce_finals(arg.name);
-        finals[var+arg.name] = finals[var+arg.name]+type->rebase(type->finals[arg.name], var);
-        transferring[var+arg.name] = finals[var+arg.name];
-        transfer_finals[arg.name] = Code();
-    }
+    for(const Variable& pack : type->packs) 
+        if(type->finals[pack].exists()) {
+            type->coallesce_finals(pack);
+            finals[var+pack] = finals[var+pack] + type->rebase(type->finals[pack], var);
+            transferring[var+pack] = finals[var+pack];
+            transfer_finals[pack] = Code();
+        }
+    for(const auto& arg : type->args) 
+        if(arg.mut && type->finals[arg.name].exists()) {
+            type->coallesce_finals(arg.name);
+            finals[var+arg.name] = finals[var+arg.name]+type->rebase(type->finals[arg.name], var);
+            transferring[var+arg.name] = finals[var+arg.name];
+            transfer_finals[arg.name] = Code();
+        }
     for(const auto& it : type->buffer_types) 
         buffer_types[var+it.first] = it.second;
     for(const auto& it : type->current_renaming) 
@@ -349,7 +352,9 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         internalTypes.vars[var+TASK_VAR] = types.vars[PTR_VAR];
         internalTypes.vars[var] = type;
         active_calls[var] = var;
-        for(const Variable& pack : type->packs) if(type->alignments[pack]) alignments[var+pack] = type->alignments[pack];
+        for(const Variable& pack : type->packs) 
+            if(type->alignments[pack]) 
+                alignments[var+pack] = type->alignments[pack];
         for(size_t i=1;i<type->packs.size();++i) { // first service output is the error code, which we return instead of parsing by reference
             const Variable& ret = type->packs[i];
             size_t fp = first_token_pos;
@@ -360,7 +365,8 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             //type->coallesce_finals(ret);
             //finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
         }
-        for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+it.first] = it.second;
+        for(const auto& it : type->internalTypes.vars) 
+            internalTypes.vars[var+it.first] = it.second;
         for(size_t i=0;i<unpacks.size();++i) {
             notify_service_arg(unpacks[i]);
             if(type->args[i].mut) {
@@ -368,7 +374,8 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 type->coallesce_finals(type->args[i].name);
                 finals[unpacks[i]] = finals[unpacks[i]]+type->rename_var(type->finals[type->args[i].name], type->args[i].name, unpacks[i]);
             }
-            else impl += Code(var+STATE_VAR, ARROW_VAR, type->args[i].name, ASSIGN_VAR, unpacks[i],SEMICOLON_VAR);
+            else 
+                impl += Code(var+STATE_VAR, ARROW_VAR, type->args[i].name, ASSIGN_VAR, unpacks[i],SEMICOLON_VAR);
         }
         impl += Code(var+TASK_VAR, ASSIGN_VAR, Variable("__smolambda_add_task"),LPAR_VAR)
                 +Code(type->name+Variable(to_string(type->identifier)), COMMA_VAR, var+STATE_VAR)
@@ -396,24 +403,34 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             current_renaming[unpacks[i]] = var+type->args[i].name;
         }
     }
-    for(const auto& it : type->internalTypes.vars) internalTypes.vars[var+it.first] = it.second;
-    for(const auto& final : transfer_finals) immediate_finals = immediate_finals+type->rebase(final.second, var);
+    for(const auto& it : type->internalTypes.vars) 
+        internalTypes.vars[var+it.first] = it.second;
+    for(const auto& final : transfer_finals) 
+        immediate_finals = immediate_finals+type->rebase(final.second, var);
     internalTypes.vars[var] = type->alias_for.exists()?type->internalTypes.vars[type->alias_for]:type;
     implementation +=type->rebase(type->implementation, var)+immediate_finals;
-    for(const string& pre : type->preample) add_preample(pre);
-    for(const string& pre : type->linker) add_linker(pre);
-    for(const auto& it : type->buffer_types) buffer_types[var+it.first] = it.second;
+    for(const string& pre : type->preample) 
+        add_preample(pre);
+    for(const string& pre : type->linker) 
+        add_linker(pre);
+    for(const auto& it : type->buffer_types) 
+        buffer_types[var+it.first] = it.second;
 
     //for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); // splt into immediate and delayed finals
     //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
     errors = errors+type->rebase(type->errors, var);
-    for(const auto& it : type->current_renaming) current_renaming[var+it.first] = var+it.second;
-    for(const auto& it : type->active_calls) active_calls[var+it.first] = var+it.second;
-    for(const auto& it : type->internalTypes.vars) if(it.second) { // TODO: remove this if (currently it guards against some leftover labels)
-        if(!it.second) imp->error(--p, type->name.to_string()+"."+pretty_var(it.first.to_string())+" is undefined");
-        internalTypes.vars[var+it.first] = it.second;
-    }
+    for(const auto& it : type->current_renaming) 
+        current_renaming[var+it.first] = var+it.second;
+    for(const auto& it : type->active_calls) 
+        active_calls[var+it.first] = var+it.second;
+    for(const auto& it : type->internalTypes.vars) 
+        if(it.second) { // TODO: remove this if (currently it guards against some leftover labels)
+            if(!it.second) 
+                imp->error(--p, type->name.to_string()+"."+pretty_var(it.first.to_string())+" is undefined");
+            internalTypes.vars[var+it.first] = it.second;
+        }
     //finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
-    if(type->packs.size()==1) return next_var(imp, p, var+type->packs[0], types);
+    if(type->packs.size()==1) 
+        return next_var(imp, p, var+type->packs[0], types);
     return next_var(imp, p, var, types);
 }
