@@ -6,11 +6,13 @@ string Def::signature_like(Types& types, vector<Variable> args) {
         size_t prev_i = i;
         if(ret.size()) 
             ret += ",";
-        if(internalTypes.contains(args[i]) && internalTypes.vars[args[i]]->canonic_name()==BUFFER_VAR && buffer_types.find(args[i])!=buffer_types.end()) {
+        if(internalTypes.contains(args[i]) && buffer_types.find(args[i])!=buffer_types.end()) {
             ret += pretty_runtype(buffer_types[args[i]]->name.to_string())+"[]";
+            i += 1;
         }
-        else if(internalTypes.contains(args[i]) && internalTypes.vars[args[i]]->name==BUFFER_VAR && buffer_types.find(args[i])==buffer_types.end()) {
+        else if(internalTypes.contains(args[i]) && buffer_types.find(args[i])==buffer_types.end()) {
             ret += "\033[0m???[]";
+            i += 1;
         }
         else if(alignments[args[i]] 
             && types.reverse_alignment_labels[alignments[args[i]]] 
@@ -38,8 +40,9 @@ string Def::signature(Types& types) {
         size_t prev_i = i;
         if(ret.size()) 
             ret += ",";
-        if(args[i].type->name==BUFFER_VAR && buffer_types.find(args[i].name)!=buffer_types.end()) {
+        if(buffer_types.find(args[i].name)!=buffer_types.end()) {
             ret += pretty_runtype(buffer_types[args[i].name]->name.to_string())+"[]"+(args[i].mut?"\033[31m&\033[0m":"");
+            i += 1;
         }
         else if(alignments[args[i].name] && !types.reverse_alignment_labels[alignments[args[i].name]]) 
             ERROR("Internal error: variable type does not exist with id "

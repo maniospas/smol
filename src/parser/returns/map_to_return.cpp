@@ -104,6 +104,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
             if(!hasComma && p<imp->size() && imp->at(p)!=",") {
                 alias_for = next;
                 noborrow = internalTypes.vars[alias_for]->noborrow;
+                noassign = internalTypes.vars[alias_for]->noassign;
                 if(noborrow && !imp->allow_unsafe) 
                     imp->error(--p, "Rerurned a @noborrow variable "
                         +pretty_var(alias_for.to_string())
@@ -141,6 +142,8 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                             );
                     }
                     packs.push_back(pack);
+                    if(internalTypes.vars[next]->buffer_types.find(pack)!=internalTypes.vars[next]->buffer_types.end())
+                        internalTypes.vars[pack] = internalTypes.vars[next]->buffer_types[pack];
                     if(internalTypes.contains(pack) && internalTypes.vars[pack]->name==NOM_VAR && !alignments[pack]) 
                         imp->error(--p, "You are returning an unset align "
                             +pretty_var(pack.to_string())

@@ -52,10 +52,11 @@ void Def::coallesce_finals(const Variable& original) {
                 q.push(k);
     }
     // Coalesce all finals into the original
-    for(const Variable& name : group) if(name != original && finals.count(name)) {
-        finals[original] = finals[original] + rename_var(finals[name], name, original);
-        finals[name] = Code();
-    }
+    for(const Variable& name : group) 
+        if(name != original && finals.count(name)) {
+            finals[original] += rename_var(finals[name], name, original);
+            finals[name] = Code();
+        }
 }
 void Def::notify_release(const Variable& original) {
     unordered_set<Variable> visited;
