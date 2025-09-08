@@ -121,15 +121,7 @@ smo open(Memory& memory, u64 size)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
-    @head{#if defined(_WIN32) || defined(_WIN64)
-    static FILE* fmemopen(void *buf, size_t size, const char *mode) {
-        FILE *f = tmpfile();
-        if (!f) return NULL;
-        //if (buf && size > 0) {fwrite(buf, 1, size, f);rewind(f);}
-        return f;
-    }
-#endif
-    }
+    @head{#include "std/oscommon.h"}
     mem = memory:allocate(size)
     @body{ptr contents = fmemopen(mem__mem, size, "w+");}
     @finally contents {if(contents)fclose((FILE*)contents);contents=0;}

@@ -3,7 +3,7 @@
 @include std.file
 
 service main()
-    &file = Heap:file(1024)
+    &file = Heap:open(1024)
     file:write("hello world!")
     file:to_start
     on Stack:volatile(1024)

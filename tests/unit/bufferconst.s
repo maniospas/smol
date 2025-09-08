@@ -5,8 +5,9 @@
 smo point(f64 x, f64 y) 
     -> @args
 
-smo create(ContiguousMemory memory)
-    -> point[memory] 
+smo create(ContiguousMemory &memory)
+    p = point[memory]
+    -> p
 
 smo create()
     p = create(Heap:allocate(1024)) // 1kB buffer
