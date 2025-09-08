@@ -10,8 +10,8 @@ smo TPoint(nominal type, f64 px, f64 py)
     &y = py
     -> type, x,y
 
-
-smo IPoint(nominal type, f64 x, f64 y) -> @args
+smo IPoint(nominal type, f64 x, f64 y) 
+    -> @args
 
 smo scale(Point &p, f64 factor) 
     // & in the signature is required to allow any modification

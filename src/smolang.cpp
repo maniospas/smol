@@ -684,7 +684,7 @@ int main(int argc, char* argv[]) {
                     service->internalTypes.vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
                 for(const auto& var : service->internalTypes.vars) 
-                    if(var.second && var.second->_is_primitive && var.second->name!=LABEL_VAR && var.second->name!=NOM_VAR) 
+                    if(var.second && var.second->_is_primitive && var.second->name!=LABEL_VAR) 
                         out << var.second->name << " " << var.first << "=0;\n";
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
