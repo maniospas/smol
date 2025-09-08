@@ -1,10 +1,11 @@
 @include std.builtins
 @include std.mem
+@unsafe 
 
 smo point(f64 x, f64 y) 
     -> @args
 
-service create()
+smo create()
     p = point[Heap:allocate(1024)]  // 1kB buffer
     :push(point(1.5, 2.2))
     :push(point(0.5, 4.0))
