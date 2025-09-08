@@ -143,29 +143,20 @@ class Def {
     bool complete_option_resolution(const Types& _types);
     bool start_option_resolution(const Types& _types);
     void simplify();
-private:
+
     // helpers to perform variable assignment and gather tuples
     void assign_variable(const Type& type, const Variable& from, const Variable& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false, bool check_mutables=true);
     vector<Variable> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, const Variable& curry);
-private:
+
     // gather return arguments and parse return statements (includes nested returns)
     vector<Variable> map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types, bool is_zero_level);
     void parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, Types& types);
-public:
-    // property managers for finals, errors, mutability, service calls, etc
-    void add_preample(const std::string& pre);
-    void add_linker(const std::string& pre);
-    void assert_options_validity(const std::shared_ptr<Import>& imp, size_t& p);
-    void coallesce_finals(const Variable& original);
-    void notify_release(const Variable& original);
-    void notify_service_arg(const Variable& original);
-    bool can_mutate(const Variable& _text);
-private:
+
     // parse expression with optional parenthesis
     Variable parse_expression(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, const Variable &curry=EMPTY_VAR);
     Variable parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry=EMPTY_VAR);
     Variable call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, Types& types);
-private:
+
     // parse directives inlined in code (@head, @link, @body, @finally, @fail, @release, @noborrow, @noshare, @buffer)
     void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
     void parse_directive_head(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
@@ -174,7 +165,7 @@ private:
     void parse_directive_finally(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
     void parse_directive_fail(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
     void parse_directive_release(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
-private:
+
     // parse expressions that identify the next variable (through dot notation for fields, indexed access, and, or, etc)
     Variable next_var(const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test=true);
     Variable next_var_and(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
@@ -230,7 +221,7 @@ public:
     bool has_returned;
     string raw_signature_state_name() const;
 
-public:
+    // constructors
     Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(builtin), number_of_calls(0), has_returned(false) {}
     Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(""), number_of_calls(0), has_returned(false) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
@@ -239,8 +230,16 @@ public:
         identifier = Types::last_type_id;
     } 
     inline bool not_primitive() const {return !_is_primitive;}
+
+    // property managers for finals, errors, mutability, service calls, etc
+    void add_preample(const std::string& pre);
+    void add_linker(const std::string& pre);
+    void assert_options_validity(const std::shared_ptr<Import>& imp, size_t& p);
+    void coallesce_finals(const Variable& original);
+    void notify_release(const Variable& original);
+    void notify_service_arg(const Variable& original);
+    bool can_mutate(const Variable& _text);
     
-public:
     // various types of exports
     string signature_like(Types& types, vector<Variable> args);
     string signature(Types &types);
@@ -253,7 +252,7 @@ public:
         return this;
     }
     void end_block(const shared_ptr<Import>& i, size_t& p);
-public:
+
     // code converters
     Code rebase(const Code& impl, const Variable& var);
     Code rename_var(const Code& impl, const Variable& from, const Variable& to);
