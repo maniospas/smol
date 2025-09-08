@@ -22,7 +22,8 @@ void Def::parse_directive_body(const shared_ptr<Import>& imp, size_t& p, string 
     while(true) {
         size_t pos = p;
         next = imp->at(p++);
-        if(next=="{") depth++;
+        if(next=="{") 
+            depth++;
         if(next=="}") {
             depth--;
             if(depth==0) 
