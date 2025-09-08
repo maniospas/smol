@@ -13,6 +13,7 @@
 #include "../../def.h"
 
 Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test) {
+    next = next+Variable("dynamic");
     if(buffer_types.find(next)==buffer_types.end())
         imp->error(--p, "Internal error: cannot determine the buffer storage data for "
             +next.to_string()
@@ -131,13 +132,13 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
                     implementation += Code(
                         Variable("memcpy(&"), 
                         tmp, 
-                        Variable(", &((u64*)((u64*)"), 
+                        Variable(", &((u64*)((void**)"),
                         next, 
                         Variable(")[0])["),
                         idx, 
                         MUL_VAR, 
-                        next+Variable("__buffer_alignment"), 
-                        Variable("+"+ to_string(pack_index)+"], sizeof("), 
+                        next + Variable("__buffer_alignment"), 
+                        Variable("+" + to_string(pack_index) + "], sizeof("), 
                         buffer_types[next]->internalTypes.vars[pack]->name, 
                         Variable("))"), 
                         SEMICOLON_VAR

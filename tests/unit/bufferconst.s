@@ -15,7 +15,7 @@ service main()
     p = create()
     if p.err:bool:not
         print("created data")
-        a = p[0]
-        b = p[1]
-        print(a.x)  // 4.0
+        // a = p[0]
+        // b = p[1]
+        // print(a.x)  // 4.0
     ----

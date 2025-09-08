@@ -20,8 +20,9 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         parse_directive_head(imp, p, next, types);
     else if(next=="noborrow") 
         noborrow = true;
-    else if(next=="noassign") 
+    else if(next=="noassign") {
         noassign = true;
+    }
     else if(next=="noshare") {
         static const Variable token_transient_end = Variable(")\n");
         next = imp->at(p++);

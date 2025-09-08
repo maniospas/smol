@@ -629,7 +629,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 );
                 assign_variable(
                     types.vars[PTR_VAR], 
-                    var+ATTACHED_VAR, 
+                    var+Variable("dynamic"), 
                     surface+internalTypes.vars[surface]->buffer_release, 
                     imp, 
                     p
@@ -638,7 +638,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             else {
                 assign_variable(
                     types.vars[PTR_VAR], 
-                    var+ATTACHED_VAR, 
+                    var+Variable("dynamic"), 
                     ZERO_VAR, 
                     imp, 
                     p

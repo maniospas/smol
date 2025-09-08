@@ -139,23 +139,27 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             const auto& it = internalTypes.vars.find(expression_outcome);
             if(it==internalTypes.vars.end()) 
                 imp->error(assignment_start, "Failed to parse expression");
-            if(internalTypes.vars[expression_outcome]->noassign && !imp->allow_unsafe)
-                imp->error(assignment_start, "Cannot assign to a non-temporary variable a result marked as @noassign\nThis is considered unsafe behavior and can only be enabled with @unsafe");
+            if(it->second->noassign && !imp->allow_unsafe)
+                imp->error(assignment_start, "Cannot assign a result marked as @noassign to a non-temporary variable: "
+                        +it->second->name.to_string()+" "+pretty_var(var.to_string())
+                        +"\nThis is considered unsafe behavior and can only be enabled with @unsafe"
+                );
             if(is_next_assignment) {
                 next_assignments.insert(var);
                 var = NEXT_VAR+var;
             }
-            if(is_mutable_assignment && mutables.find(expression_outcome)==mutables.end()) for(const auto& pack : internalTypes.vars[expression_outcome]->packs) {
-                if((internalTypes.vars[expression_outcome]->internalTypes.vars[pack]->name==PTR_VAR 
-                        || internalTypes.vars[expression_outcome]->internalTypes.vars[pack]->name==BUFFER_VAR)
-                    && mutables.find(var+pack)==mutables.end()
-                ) 
-                    imp->error(assignment_start, "Cannot transfer an immutable ptr packed in an immutable variable to a mutable ptr: "
-                        + pretty_var((var+pack).to_string())
-                        + "\nThis error occurs because, by convention, the contents (but not addresses) "
-                        + "\nof mutable pointers may be freely modified when runtypes gain a hold of them."
-                    );
-            }
+            if(is_mutable_assignment && mutables.find(expression_outcome)==mutables.end()) 
+                for(const auto& pack : internalTypes.vars[expression_outcome]->packs) {
+                    if((internalTypes.vars[expression_outcome]->internalTypes.vars[pack]->name==PTR_VAR 
+                            || internalTypes.vars[expression_outcome]->internalTypes.vars[pack]->name==BUFFER_VAR)
+                        && mutables.find(var+pack)==mutables.end()
+                    ) 
+                        imp->error(assignment_start, "Cannot transfer an immutable ptr packed in an immutable variable to a mutable ptr: "
+                            + pretty_var((var+pack).to_string())
+                            + "\nThis error occurs because, by convention, the contents (but not addresses) "
+                            + "\nof mutable pointers may be freely modified when runtypes gain a hold of them."
+                        );
+                }
             assign_variable(it->second, var, expression_outcome, imp, p);
         }
         else if(is_next_assignment) 

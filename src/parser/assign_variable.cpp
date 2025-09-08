@@ -21,6 +21,7 @@ void Def::assign_variable(
     bool error_on_non_primitives, 
     bool check_mutables
 ) {
+    //cout << (type?type->name.to_string():"?") << " "<<from << " = " << to << "\n";
     if(buffer_types.find(to)!=buffer_types.end()) {
         if(buffer_types.find(from)==buffer_types.end()) 
             buffer_types[from] = buffer_types[to];
@@ -65,6 +66,7 @@ void Def::assign_variable(
             );
         if(type->packs.size()==0) 
             return;
+        //cout << type->name << "\n";
         if(internalTypes.contains(from)) {
             if(!internalTypes.contains(to)) 
                 imp->error(p, "Not found\nFailed to re-assign "

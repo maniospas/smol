@@ -50,7 +50,8 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             && internalTypes.vars[next]->internalTypes.contains(internalTypes.vars[next]->packs[1])
             && internalTypes.vars[next]->internalTypes.vars[internalTypes.vars[next]->packs[1]]->name==BUFFER_VAR
         ) {
-            next = next_var_buffer_ret_at(next, imp, p, first_token, types, test);
+            imp->error(--p, "Internal error: deprecated branch");
+            //next = next_var_buffer_ret_at(next, imp, p, first_token, types, test);
             continue;
         }
         else if(imp->at(p)=="[" 
