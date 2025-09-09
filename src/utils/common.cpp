@@ -5,6 +5,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <algorithm>
+#include <sstream>
 
 using namespace std;
 

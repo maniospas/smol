@@ -39,10 +39,10 @@ using namespace std;
 #define CODE_START() string(markdown_errors?"\n```rust\n":"")
 #define CODE_END() string(markdown_errors?"```\n":"")
 
-struct Def;
-typedef shared_ptr<Def> Type;
-typedef SegmentedString Variable;
-typedef SegmentSequence Code;
+class Def;
+using Type = std::shared_ptr<Def>;
+using Variable = SegmentedString;
+using Code = SegmentSequence;
 
 const extern Variable BUFFER_VAR;
 const extern Variable LABEL_VAR;

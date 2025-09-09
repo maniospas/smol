@@ -34,6 +34,11 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         || first_token=="&"
         || first_token=="and"
         || first_token=="or"
+        || first_token=="="
+        || first_token=="@"
+        || first_token=="union"
+        || first_token=="smo"
+        || first_token=="service"
     ) 
         imp->error(p-1, "Unexpected symbol\nThe previous expression already ended.");
     if(first_token=="if") 
