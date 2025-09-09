@@ -35,6 +35,8 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
         }
         for (const auto& arg : args) {
             Variable next = arg.name;
+            if(vars[next]->nozero)
+                nozero = true;
             if(vars[next]->_is_primitive) 
                 packs.push_back(next);
             else for(const Variable& pack : vars[next]->packs) {
@@ -75,6 +77,8 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                 +pretty_var(next.to_string())
                 +"\nThose can only be returned from smo runtypes"
             );
+        if(vars[next]->nozero)
+            nozero = true;
         if(!vars[next]->not_primitive()) {
             if(contains(next) && vars[next]->name==NOM_VAR && !alignments[next]) 
                 imp->error(--p, "You are returning @noshare data from a service: "

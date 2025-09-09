@@ -35,12 +35,20 @@ Variable Def::parse_buffer_expect(const shared_ptr<Import>& imp, size_t& p, cons
         SEMICOLON_VAR
     );
 
+    if(buffer_types[curry]->nozero && !imp->allow_unsafe)
+        imp->error(--p, "Cannot :expect when buffer type is @nozero"
+            "\nThe runtype definition is marked as @nozero or contains such data."
+            " That annotation makes empty ('zero') initialization to be considered unsafe."
+            " Mark this file @unsafe to enable this option."
+        );
+
     // compute count_packs (valid packs only)
     size_t count_packs = 0;
     for(const auto& pack : buffer_types[curry]->packs)
         if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR)
             count_packs++;
-    if(buffer_types[curry]->_is_primitive) count_packs++;
+    if(buffer_types[curry]->_is_primitive) 
+        count_packs++;
 
     implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_packs)), SEMICOLON_VAR);
     implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);

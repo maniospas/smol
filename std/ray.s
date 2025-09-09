@@ -26,6 +26,7 @@ smo Size(f64 w, f64 h)
     -> @args
 
 smo Window(nominal)
+    @nozero
     @noborrow
     @head{#include "raylib.h"}
     @link{-Istd/raylib/raylib-5.5_linux_amd64/include}
@@ -38,7 +39,7 @@ smo Window(nominal)
     @link{-lX11}
     -> @args
 
-smo open(Window& window, Size size, cstr _title)
+smo open(Window &window, Size size, cstr _title)
     title = _title:str
     @body{ SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title__contents); }
     -> window

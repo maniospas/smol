@@ -134,34 +134,41 @@ smo allocate(Volatile &self, u64 _size, Primitive)
     @body{u64 size = _size*sizeof(Primitive);}
     if size>self.contents.size -> fail("Failed a Volatile allocation")
     @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
-    @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
+    @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length);}
     @body{self__length = self__length+size;}
     -> nominal:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
 smo read(Arena &self)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
+    @head{#include <string.h>}
     @body{
-        ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));
-        if(fgets((char*)_contents, self__contents__size-self__length, stdin)) {
-            u64 length = strlen((char*)_contents);
-            if(length && ((char*)_contents)[length - 1] == 13) {
-                length -= 1;
-                ((char*)_contents)[length] = 0;
-            }
-            else if (!feof(stdin)) {
+        if (self__length >= self__contents__size) {
+            ptr _contents = 0;
+        } else {
+            char *dest = (char*)self__contents__mem + self__length;
+            u64 maxlen = self__contents__size - self__length;
+
+            if (fgets(dest, maxlen, stdin)) {
+                u64 length = strlen(dest);
+
+                // Trim CR or LF
+                if (length && (dest[length - 1]==10 || dest[length - 1]==13)) {
+                    dest[--length] = 0;
+                }
+
+                self__length += length;
+                _contents = dest;
+                char first = (length ? dest[0] : 0);
+            } else {
                 _contents = 0;
-            }
-            else if(length) {
-                char first = ((char*)_contents)[0];
-                self__length = self__length+length;
-                length -= 1;
             }
         }
     }
     if _contents:exists:not 
-        -> fail("Error: Tried to read more elements than remaining Arena size")
+        -> fail("Error: Tried to read more elements than remaining Arena size or read failed")
     -> nominal:str(_contents, length, first, self__contents__mem)
+
 
 union Memory
     MemoryDevice
