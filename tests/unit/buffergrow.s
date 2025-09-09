@@ -2,6 +2,8 @@
 @include std.mem
 
 service main()
-    p = u64[]:expect(1)
+    p = str[]
+    :expect(2)
     print(p[0])
+    print(p[1])
     --

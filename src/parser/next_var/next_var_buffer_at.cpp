@@ -36,6 +36,15 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
             count_packs++;
     if(buffer_types[next]->_is_primitive) 
         count_packs++;
+    Variable fail_var = create_temp();
+    
+    implementation += Code(
+        token_ifnot, 
+        next, 
+        token_goto,
+        fail_var, 
+        SEMICOLON_VAR
+    );
 
     implementation += Code(
         next+Variable("__buffer_alignment"), 
@@ -52,14 +61,13 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         SEMICOLON_VAR
     );
 
-    Variable fail_var = create_temp();
     internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
     implementation += Code(
-        Variable("if("), 
+        token_if, 
         idx, 
         Variable(">="), 
         next+Variable("__buffer_size"),
-        Variable(")goto"), 
+        token_goto, 
         fail_var, 
         SEMICOLON_VAR
     );

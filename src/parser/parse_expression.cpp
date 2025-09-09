@@ -144,7 +144,16 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
     if(first_token=="len" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name==BUFFER_VAR)  {
         curry = curry+Variable("dynamic");
         internalTypes.vars[Variable("__buffer_size")] = types.vars[Variable("u64")];
-        implementation += Code(Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
+        implementation += Code(
+            Variable("__buffer_size"), 
+            ASSIGN_VAR, 
+            curry,
+            Variable("?"),
+            Variable("((u64*)"), 
+            curry, 
+            Variable(")[1]:0"), 
+            SEMICOLON_VAR
+        );
         return next_var(imp, p, Variable("__buffer_size"), types);
     }
     if(first_token=="put" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name==BUFFER_VAR)  {
@@ -184,6 +193,15 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         internalTypes.vars[curry+Variable("__buffer_size")]      = types.vars[Variable("u64")];
         internalTypes.vars[curry+Variable("__buffer_alignment")] = types.vars[Variable("u64")];
         internalTypes.vars[curry+Variable("__buffer_contents")]  = types.vars[Variable("ptr")];
+        
+        Variable fail_var = create_temp();
+        implementation += Code(
+            token_ifnot, 
+            curry, 
+            token_goto,
+            fail_var, 
+            SEMICOLON_VAR
+        );
 
         // compute count_packs (valid packs only)
         size_t count_packs = 0;
@@ -196,7 +214,6 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
 
         // range check
-        Variable fail_var = create_temp();
         internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
         implementation += Code(token_if, idx, Variable(">="), curry+Variable("__buffer_size"),Variable(")goto"), fail_var, SEMICOLON_VAR);
         errors += Code(fail_var, Variable(":\nprintf(\"Buffer index out of range\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n"));
@@ -251,6 +268,15 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         internalTypes.vars[curry+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
         internalTypes.vars[curry+Variable("__buffer_contents")]      = types.vars[Variable("ptr")];
 
+        Variable fail_var = create_temp();
+        implementation += Code(
+            token_ifnot, 
+            curry, 
+            token_goto,
+            fail_var, 
+            SEMICOLON_VAR
+        );
+
         // compute count_packs (valid packs only)
         size_t count_packs = 0;
         for(const auto& pack : buffer_types[curry]->packs)
@@ -264,7 +290,6 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
 
         static const Variable token_print = Variable(":\nprintf(\"Buffer error");
         static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
-        Variable fail_var = create_temp();
 
         implementation += Code(token_if, curry+Variable("__buffer_size"),
             Variable(">="), curry+Variable("__buffer_capacity"), Variable("){"));
@@ -366,6 +391,15 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         internalTypes.vars[curry+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
         internalTypes.vars[curry+Variable("__buffer_contents")]      = types.vars[Variable("ptr")];
 
+        Variable fail_var = create_temp();
+        implementation += Code(
+            token_ifnot, 
+            curry, 
+            token_goto,
+            fail_var, 
+            SEMICOLON_VAR
+        );
+
         // compute count_packs (valid packs only)
         size_t count_packs = 0;
         for(const auto& pack : buffer_types[curry]->packs)
@@ -379,7 +413,6 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
 
         static const Variable token_print = Variable(":\nprintf(\"Buffer error");
         static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
-        Variable fail_var = create_temp();
 
         // check if resize needed
         implementation += Code(token_if, amount, Variable("&&"), curry+Variable("__buffer_size"), PLUS_VAR, amount, Variable(">"), curry+Variable("__buffer_capacity"), Variable("){"));
