@@ -53,4 +53,8 @@ bool is_symbol_or_digit(const string& s);
 bool is_digits(const string& s);
 bool is_digits_part(const string& s);
 
+string unescape_string(const string& input);
+void replaceAll(string& str, const string& from, const string& to);
+string html_escape(const string& code);
+
 #endif // COMMON_H

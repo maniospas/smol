@@ -425,11 +425,15 @@ int __smolambda_get_core_count() {
 #endif
 }
 
+
+#ifndef SMOLAMBDA_RUNTIME_MESSAGE
+#define SMOLAMBDA_RUNTIME_MESSAGE(num_threads) printf("Compiler: smoλ (https://github.com/maniospas/smol)\nThreads: %d\n", num_threads);
+#endif 
+
 /* ---------------- START SERVICE WITH EXAMPLE ---------------- */
 static inline int __smolambda_initialize_service_tasks(void (*initial_func)(void *), void *initial_arg) {
     int num_threads = __smolambda_get_core_count();
-    printf("Compiler: smoλ (https://github.com/maniospas/smol)\n");
-    printf("Threads: %d\n", num_threads);
+    SMOLAMBDA_RUNTIME_MESSAGE(num_threads)
     __smolambda_init_task_queue(&task_queue);
 
     /* Create worker threads */

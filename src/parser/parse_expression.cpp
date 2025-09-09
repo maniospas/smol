@@ -616,7 +616,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
     if(types.contains(first_token)) {
         auto type = types.vars.find(first_token)->second;
         Variable surface = EMPTY_VAR;
-        if(p<imp->size()-1 && imp->at(p)=="[") {
+        if(p<imp->size()-1 && imp->at(p)=="[" && !curry.exists()) {
             p++;
             if(imp->at(p)!="]") {
                 string next = imp->at(p);

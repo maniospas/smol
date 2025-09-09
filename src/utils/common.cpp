@@ -153,3 +153,50 @@ bool is_digits_part(const string& s) {
             return false;
     return !s.empty();
 }
+
+
+
+string unescape_string(const string& input) {
+    ostringstream out;
+    // Start at 1 to skip opening quote, end at size()-1 to skip closing quote
+    for (size_t i = 1; i + 1 < input.size(); ++i) {
+        if (input[i] == '\\' && i + 1 < input.size() - 1) {
+            char next = input[i + 1];
+            switch (next) {
+                case 'n': out << '\n'; break;
+                case 't': out << '\t'; break;
+                case 'r': out << '\r'; break;
+                case '"': out << '"'; break;
+                case '\\': out << '\\'; break;
+                default: out << next; break; // unknown escape, emit as-is
+            }
+            ++i; // skip the next character, it's part of escape
+        } else {
+            out << input[i];
+        }
+    }
+    // Wrap with quotes to match how you output string tokens
+    return '"' + out.str() + '"';
+}
+
+void replaceAll(string& str, const string& from, const string& to) {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Move past the replacement
+    }
+}
+
+string html_escape(const string& code) {
+    string out;
+    for (char c : code) {
+        switch (c) {
+            case '&': out += "&amp;"; break;
+            case '<': out += "&lt;"; break;
+            case '>': out += "&gt;"; break;
+            case '"': out += "&quot;"; break;
+            default: out += c;
+        }
+    }
+    return out;
+}

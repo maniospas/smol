@@ -101,10 +101,13 @@ static inline void __smolambda_task_sleep(double secs) {
 #endif
 }
 
+#ifndef SMOLAMBDA_RUNTIME_MESSAGE
+#define SMOLAMBDA_RUNTIME_MESSAGE(num_threads) printf("Compiler: smoλ (https://github.com/maniospas/smol)\nThreads: 1 (compiled in single threaded mode)\n");
+#endif 
+
 static inline void __smolambda_task_destroy(void *task_ptr) {}
 static inline int __smolambda_initialize_service_tasks(void (*initial_func)(void *), void *initial_arg) {
-    printf("Compiler: smoλ (https://github.com/maniospas/smol)\n");
-    printf("Threads: 1 (compiled in single threaded mode)\n");
+    SMOLAMBDA_RUNTIME_MESSAGE(num_threads)
     void* t = __smolambda_add_task(initial_func, initial_arg);
     __smolambda_task_wait(t);
     __smolambda_task_destroy(t);

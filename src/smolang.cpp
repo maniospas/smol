@@ -11,109 +11,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include "def.h"
+#include "utils/common.h"
+#include "utils/compiler.h"
 #include <regex>
 #include <map>
-#include <sstream>
-
 #include <sstream>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
 #include <filesystem>
-
-#if defined(_WIN32) || defined(_WIN64)
-#define SMOL_POPEN _popen
-#define SMOL_PCLOSE _pclose
-#else
-#define SMOL_POPEN popen
-#define SMOL_PCLOSE pclose
-#endif
-
-string compiler = "g++";
-string linker = "";
-string runtime = "std/runtime/threads.h";
-
-// Returns 0 on success, or nonzero (compiler exit code or error).
-int compile_from_stringstream_with_flags(
-    std::stringstream& out,
-    const std::string& output_file,
-    const std::string& extra_flags 
-) {
-    std::string cmd =
-        compiler+" -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 -m64 -fpermissive " +
-        extra_flags + " -o \"" + output_file + "\" -x c++ -"+linker;
-    FILE* pipe = SMOL_POPEN(cmd.c_str(), "w");
-    if (!pipe) 
-        return -1; // popen failed
-    std::string code = out.str();
-    size_t written = fwrite(code.data(), 1, code.size(), pipe);
-    int ret = SMOL_PCLOSE(pipe);
-    if (written != code.size()) return -2; // fwrite failed
-
-#if defined(_WIN32) || defined(_WIN64)
-    // On Windows, ret is the return value of the process (already shifted)
-    return ret;
-#else
-    // On UNIX, WEXITSTATUS gives the compiler's exit code
-    if (WIFEXITED(ret))
-        return WEXITSTATUS(ret);
-    else
-        return -3; // Abnormal termination
-#endif
-}
-
-#ifdef _WIN32
-    #define EXEC_EXT ".exe"
-    #define EXEC_PREFIX ".\\"
-#else
-    #define EXEC_EXT ""
-    #define EXEC_PREFIX "./"
-#endif
-
-std::string html_escape(const std::string& code) {
-    std::string out;
-    for (char c : code) {
-        switch (c) {
-            case '&': out += "&amp;"; break;
-            case '<': out += "&lt;"; break;
-            case '>': out += "&gt;"; break;
-            case '"': out += "&quot;"; break;
-            default: out += c;
-        }
-    }
-    return out;
-}
-
-string unescape_string(const string& input) {
-    std::ostringstream out;
-    // Start at 1 to skip opening quote, end at size()-1 to skip closing quote
-    for (size_t i = 1; i + 1 < input.size(); ++i) {
-        if (input[i] == '\\' && i + 1 < input.size() - 1) {
-            char next = input[i + 1];
-            switch (next) {
-                case 'n': out << '\n'; break;
-                case 't': out << '\t'; break;
-                case 'r': out << '\r'; break;
-                case '"': out << '"'; break;
-                case '\\': out << '\\'; break;
-                default: out << next; break; // unknown escape, emit as-is
-            }
-            ++i; // skip the next character, it's part of escape
-        } else {
-            out << input[i];
-        }
-    }
-    // Wrap with quotes to match how you output string tokens
-    return '"' + out.str() + '"';
-}
-
-void replaceAll(std::string& str, const std::string& from, const std::string& to) {
-    size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
-        str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // Move past the replacement
-    }
-}
 
 enum class Task {
     Assemble,
@@ -121,13 +27,14 @@ enum class Task {
     Verify,
     Run
 };
+
 Task parse_task(const string& arg) {
-    if (arg == "compile") return Task::Compile;
-    if (arg == "verify") return Task::Verify;
-    if (arg == "doc") {Def::export_docs=true; return Task::Verify;}
-    if (arg == "lsp") {Def::markdown_errors=true; return Task::Verify;}
-    if (arg == "run") return Task::Run;
-    if (arg == "assemble") return Task::Assemble;
+    if(arg == "compile") return Task::Compile;
+    if(arg == "verify") return Task::Verify;
+    if(arg == "doc") {Def::export_docs=true; return Task::Verify;}
+    if(arg == "lsp") {Def::markdown_errors=true; return Task::Verify;}
+    if(arg == "run") return Task::Run;
+    if(arg == "assemble") return Task::Assemble;
     throw invalid_argument("Unknown task: " + arg);
 }
 
@@ -315,13 +222,13 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     p--;
                     while(p<imp->size()-1) {
                         p++;
-                        if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") 
-                            break;
-                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") 
-                            break;
-                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="unsafe") 
-                            break;
-                        if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="about") 
+                        if(imp->at(p)=="smo" 
+                            || imp->at(p)=="union" 
+                            || imp->at(p)=="service"
+                            || (imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") 
+                            || (imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="unsafe") 
+                            || (imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="about") 
+                        )
                             break;
                     }
                     --p;
@@ -343,7 +250,8 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 p++;
                 while(true) {
                     string next = imp->at(p++);
-                    if(next=="-" && imp->at(p++)=="-") break;
+                    if(next=="-" && imp->at(p++)=="-") 
+                        break;
                     const auto& found_type = types.vars.find(next);
                     if(found_type==types.vars.end()) 
                         imp->error(--p, "Undefined runtype: "+next);
@@ -374,7 +282,7 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
             else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union`, `@include`, `@about`, or `@unsafe` allowed");
             p++;
         }
-        catch (const std::runtime_error& e) {
+        catch(const std::runtime_error& e) {
             warnings++;
             string message = e.what();
             string preample = message;
@@ -384,7 +292,8 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 types.all_errors[preample] += message.substr(message.find('\n'));
                 //cerr << message << "\n";
             }
-            else types.suppressed[preample] += 1;
+            else 
+                types.suppressed[preample] += 1;
             while(p<imp->size()-1) {
                 p++;
                 if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
@@ -402,10 +311,19 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
         cerr << err.second << "\n";
     }
 
-    if(imp->allow_unsafe && imp->about.size()==0) imp->about = "\"Unsafe code without description at "+imp->path+"\"";
-    else if(imp->about.size()==0) imp->about = "\""+imp->path+"\"";
-    if(selected_task==Task::Verify && warnings) task_report += "\033[30;41m "+string(warnings<10?" ":"")+to_string(warnings)+" ERRORS \033[0m " + file + "\n"; 
-    else if(selected_task==Task::Verify) task_report += "\033[30;42m OK \033[0m " + file + "\n"; 
+    if(imp->allow_unsafe && imp->about.size()==0) 
+        imp->about = "\"Unsafe code without description at "+imp->path+"\"";
+    else if(imp->about.size()==0) 
+        imp->about = "\""+imp->path+"\"";
+    if(selected_task==Task::Verify && warnings) 
+        task_report += "\033[30;41m "
+            +string(warnings<10?" ":"")
+            +to_string(warnings)
+            +" ERRORS \033[0m " 
+            + file 
+            + "\n"; 
+    else if(selected_task==Task::Verify) 
+        task_report += "\033[30;42m OK \033[0m " + file + "\n"; 
 
 
     //imp->tokens.clear();  // DO NOT CLEAR HERE BECAUSE IT PREVENTS LAZY DEFS FROM PARSING
@@ -429,8 +347,6 @@ int main(int argc, char* argv[]) {
     builtins.vars[LABEL_VAR] = make_shared<Def>("__label");
     
     builtins.vars[BUFFER_VAR] = make_shared<Def>("__buffer");
-    //builtins.vars[BUFFER_VAR]->args.push_back(Arg(Variable("surface"), builtins.vars[PTR_VAR], false));
-    //builtins.vars[BUFFER_VAR]->args.push_back(Arg(Variable("dynamic"), builtins.vars[PTR_VAR], false));
     builtins.vars[BUFFER_VAR]->packs.push_back(Variable("dynamic"));// order matters
     builtins.vars[BUFFER_VAR]->packs.push_back(Variable("surface"));
     builtins.vars[BUFFER_VAR]->vars[Variable("dynamic")] = builtins.vars[PTR_VAR]; 
@@ -447,37 +363,64 @@ int main(int argc, char* argv[]) {
         string arg = argv[i];
         if (arg == "--log") log_type_resolution = true;
         else if (arg == "--runtime") {
-            if(i + 1 >= argc) {cerr << "Error: --runtime requires an argument. Provide an unknown name, like 'none', to see available runtimes" << endl;return 1;}
+            if(i + 1 >= argc) {
+                cerr << "Error: --runtime requires an argument. Provide an unknown name, like 'none', to see available runtimes" << endl;
+                return 1;
+            }
             runtime = argv[++i];
-            if(runtime.size()<2 || runtime.substr(runtime.size()-2)!=".h") runtime = "std/runtime/"+runtime+".h";
+            if(runtime.size()<2 || runtime.substr(runtime.size()-2)!=".h") 
+                runtime = "std/runtime/"+runtime+".h";
         }
         else if (arg == "--task") {
-            if(i + 1 >= argc) {cerr << "\033[30;41m ERROR \033[0m --task requires an argument (compile, verify, run, lsp)" << endl;return 1;}
-            try {selected_task = parse_task(argv[++i]); } 
-            catch (const invalid_argument& e) {cerr << "\033[30;41m ERROR \033[0m " << e.what() << endl; return 1;}
+            if(i + 1 >= argc) {
+                cerr << "\033[30;41m ERROR \033[0m --task requires an argument (compile, verify, run, lsp)" << endl;
+                return 1;
+            }
+            try {
+                selected_task = parse_task(argv[++i]); 
+            } 
+            catch (const invalid_argument& e) {
+                cerr << "\033[30;41m ERROR \033[0m " << e.what() << endl; 
+                return 1;
+            }
         } 
         else if (arg == "--back") {
-            if(i + 1 >= argc) {cerr << "\033[30;41m ERROR \033[0m --back requires an argument (e.g., gcc, tcc, g++)" << endl;return 1;}
+            if(i + 1 >= argc) {
+                cerr << "\033[30;41m ERROR \033[0m --back requires an argument (e.g., gcc, tcc, g++)" << endl;
+                return 1;
+            }
             compiler = argv[++i];
         } 
-        else if(arg.rfind("--", 0) == 0) {cerr << "Unknown option: " << arg << endl; return 1;}
-        else files.push_back(arg);
+        else if(arg.rfind("--", 0) == 0) {
+            cerr << "Unknown option: " << arg << endl; 
+            return 1;
+        }
+        else 
+            files.push_back(arg);
     }
-    if (!filesystem::exists(runtime)) {
+    if(!filesystem::exists(runtime)) {
         cerr << "\033[30;41m ERROR \033[0m Runtime not found at: " << runtime << endl;
         cerr << "Provide either a valid path or a [name] matching std/runtime/[name].h:" << endl;
         try {
-            for (const auto& entry : filesystem::directory_iterator("std/runtime")) if (entry.is_regular_file() && entry.path().extension() == ".h") cerr << "  --runtime " << entry.path().stem().filename().string() << endl;
-        } catch (const filesystem::filesystem_error& e) {cerr << "Nothin - did not find std/runtime/: " << e.what() << endl;}
+            for(const auto& entry : filesystem::directory_iterator("std/runtime")) 
+                if(entry.is_regular_file() && entry.path().extension() == ".h") 
+                    cerr << "  --runtime " << entry.path().stem().filename().string() << endl;
+        } 
+        catch (const filesystem::filesystem_error& e) {
+            cerr << "Nothin - did not find std/runtime/: " << e.what() << endl;
+        }
         return 1;
     }
-    if(files.size()==0) files.push_back("main.s");
+    if(files.size()==0) 
+        files.push_back("main.s");
     string task_report;
     for(const string& file : files) {
-        if(file.size()<2 || file.substr(file.size()-2) != ".s") {cerr << "\033[30;41m ERROR \033[0m expecting '.s' extension but got file: " << file << endl; return 1;}
+        if(file.size()<2 || file.substr(file.size()-2) != ".s") {
+            cerr << "\033[30;41m ERROR \033[0m expecting '.s' extension but got file: " << file << endl; 
+            return 1;
+        }
         try {
             codegen(included, file, builtins, selected_task, task_report);
-
     
             if (Def::export_docs) {
             std::string docs = "<!DOCTYPE html>\n<html>\n<head>\n"
@@ -511,21 +454,27 @@ int main(int argc, char* argv[]) {
                     "</script>\n"
                     "</head>\n<body>\n";
 
-
-
                 for (auto& include : included) {
                     string display_name = include.first;
-                    if (display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  display_name = display_name.substr(0, display_name.size() - 2);
+                    if (display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  
+                        display_name = display_name.substr(0, display_name.size() - 2);
                     display_name = std::regex_replace(display_name, std::regex("[\\\\/]"), ".");
                     string unsafe_html = "";
-                    if (include.second.imp->allow_unsafe) unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
+                    if (include.second.imp->allow_unsafe) 
+                        unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
 
-                    docs += "<h1><span style=\"color:blue;\"></span> " + display_name + unsafe_html + "</h1>\n";
-                    docs += "<p>" + include.second.imp->about.substr(1, include.second.imp->about.size() - 2) + "</p>\n";
-                    if(unsafe_html.size()) docs += "<p class=\"notice\"><i>This file is marked with the unsafe keyword. This means that its "
-                    "internal implementation (<i>only</i>) could be subject to bugs that the language's design otherwise "
-                    "eliminates. By using this file as a direct or indirect dependency you are trusting its implementation. "
-                    "Given this trust, consider other non-unsafe files using it as safe.</i></p>";
+                    docs += "<h1><span style=\"color:blue;\"></span> " 
+                        + display_name 
+                        + unsafe_html 
+                        + "</h1>\n";
+                    docs += "<p>" 
+                        + include.second.imp->about.substr(1, include.second.imp->about.size() - 2) 
+                        + "</p>\n";
+                    if(unsafe_html.size()) 
+                        docs += "<p class=\"notice\"><i>This file is marked with the unsafe keyword. This means that its "
+                            "internal implementation (<i>only</i>) could be subject to bugs that the language's design otherwise "
+                            "eliminates. By using this file as a direct or indirect dependency you are trusting its implementation. "
+                            "Given this trust, consider other non-unsafe files using it as safe.</i></p>";
                     string overload_docs("");
                     std::vector<pair<Variable, Type>> keys;
                     for (const auto& type : include.second.vars) keys.push_back(pair<Variable,Type>(type.first, type.second));
@@ -573,12 +522,36 @@ int main(int argc, char* argv[]) {
                 included.clear();
                 continue;
             }
-            if(selected_task==Task::Verify) {cout << task_report;included.clear();continue;}
+            if(selected_task==Task::Verify) {
+                cout << task_report;
+                included.clear();
+                continue;
+            }
             Type main = included[file].vars[Variable("main")];
-            if(!main) ERROR("Missing main service at: "+file);
-            if(!main->is_service) ERROR("Main was not a service at: "+file);
-            if(included[file].all_errors.size()) ERROR("Aborted due to the above errors\n");
-            string globals = 
+            if(!main) 
+                ERROR("Missing main service at: "+file);
+            if(!main->is_service) 
+                ERROR("Main was not a service at: "+file);
+            if(included[file].all_errors.size()) 
+                ERROR("Aborted due to the above errors\n");
+
+            //define services
+            size_t count_services = 0;
+            unordered_set<string> preample;
+            for(const auto& it : included[file].vars) 
+                if(it.second->is_service) 
+                    for(const auto& service : it.second->options) {
+                        for(const string& pre : service->preample) 
+                            preample.insert(pre);
+                        for (const string& pre : service->linker) 
+                            linker += " " + pre;
+                        count_services++;
+                    }
+                    
+            // globals
+            std::stringstream out("");
+            out << 
+                "#define SMOLAMBDA_SERVICES "<<count_services<<"\n"<<
                 //"#undef _FORTIFY_SOURCE"
                 "#include <string.h>\n"
                 "#include \""+runtime+"\"\n"
@@ -625,24 +598,18 @@ int main(int argc, char* argv[]) {
                 "typedef long i64;\n"
                 "typedef uint64_t nominal;\n"
                 "typedef double f64;\n\n";
-            //std::fstream out("__smolambda__temp__main.cpp");
-            std::stringstream out("");
-            // globals & define services
-            out << globals;
-            unordered_set<string> preample;
-            for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
-                for(const string& pre : service->preample) preample.insert(pre);
-                for (const string& pre : service->linker) linker += " " + pre;
-            }
+
             for(const string& pre : preample) 
                 out << pre << "\n";
-            for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
-                out << service->raw_signature_state()<<"\n";
-                out << "void "+service->raw_signature()+";\n";
-            }
+            for(const auto& it : included[file].vars) 
+                if(it.second->is_service) 
+                    for(const auto& service : it.second->options) {
+                        out << service->raw_signature_state()<<"\n";
+                        out << "void "+service->raw_signature()+";\n";
+                    }
             Type main_service;
             // implement services
-            for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) /*if(service->number_of_calls || service->name=="main")*/ {
+            for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) {
                 if(service->name=="main") main_service = service;
                 out << "\n";
                 out << "void "<<service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
@@ -658,7 +625,7 @@ int main(int argc, char* argv[]) {
                 string finals_on_error = "";
                 string enref_at_end = "";
                 for(const auto& var : service->packs) {
-                    service->coallesce_finals(var); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
+                    service->coallesce_finals(var); // so that we can hard-remove finals in the next line (these are transferred on call instead)
                     if(service->finals[var].exists()) {
                         finals_on_error += service->finals[var].to_string();
                         finals_on_error += var.to_string()+"=0;\n";
@@ -668,7 +635,7 @@ int main(int argc, char* argv[]) {
                         out << service->vars[var]->name.to_string()<<" "<<var.to_string() << "= *__state->" << var.to_string() << ";\n";
                         enref_at_end += "*__state->"+var.to_string()+"="+var.to_string()+";\n";
                     }
-                    service->vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through internalTypes
+                    service->vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through vars
                 }
                 for(const auto& arg : service->args) {
                     if(arg.mut) {
@@ -691,7 +658,6 @@ int main(int argc, char* argv[]) {
                 out << "goto __return;\n"; // skip error handling block that resides at the end of the service
                 if(service->errors.exists()) {
                     out << "\n// ERROR HANDLING\n";
-                    //out <<"__error:\n"; // error handling (each of those runs goto ____finally)
                     out << service->errors;
                 }
                 out << "\n// DEALLOCATE RESOURCES BY ERRORS\n";
@@ -715,62 +681,66 @@ int main(int argc, char* argv[]) {
                 out << enref_at_end;
                 if(service->active_calls.size()) 
                     out << "__runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);\n"; // do this after running all finalization code
-                //out << "return __result__errocode;\n";
                 out << "__state->err =  __result__errocode;\n";
                 out << "}\n\n";
             }
             out << "\n\nint main() {\n";
-            //out << "return "<<main_service<<"();";
             out << "struct "<<main_service->raw_signature_state_name()<<" __main_args={0};\n";
             out << "__smolambda_initialize_service_tasks("<<"main__"<<to_string(main_service->identifier)<<", &__main_args);\n";
             out << "return __main_args.err;\n";
             out << "}\n\n";
-            //out.close();
             //cout << out.str() << "\n";
             for(const auto& it : included[file].vars) {
                 for(const auto& opt : it.second->options) opt->vars.clear();
                 it.second->vars.clear();
                 it.second->options.clear();
             }
-            /*if(selected_task==Task::Run) {int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -std=c++23 -o "+file.substr(0, file.size()-2)+" && ./"+file.substr(0, file.size()-2)).c_str()); if (run_status != 0) return run_status;}
-            else if(selected_task==Task::Assemble) {int run_status = system(("g++ -O3 -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -S -masm=intel -std=c++23").c_str()); if (run_status != 0) return run_status;}
-            else {
-                int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -o "+file.substr(0, file.size()-2)+" -nodefaultlibs -lc -std=c++23").c_str());
-                if (run_status != 0) return run_status;
-                cout << "\033[30;42m ./ \033[0m " + file.substr(0, file.size()-2) + "\n";
-            }*/
-           if(selected_task == Task::Run) {
+            if(selected_task == Task::Run) {
                 int rc = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "");
-                if (rc != 0) return rc;
+                if(rc != 0) 
+                    return rc;
                 //cout << (EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str() << "\n";
                 int run_status = system((EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str());
-                if (run_status != 0) return run_status;
-            } else if(selected_task == Task::Assemble) {
-                int rc = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-S -masm=intel");
-                if (rc != 0) return rc;
-            } else {
-                int rc = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-nodefaultlibs -lc");
-                if (rc != 0) return rc;
+                if (run_status) 
+                    return run_status;
+            } 
+            else if(selected_task == Task::Assemble) {
+                int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-S -masm=intel");
+                if(run_status) 
+                    return run_status;
+            } 
+            else {
+                int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-nodefaultlibs -lc");
+                if(run_status) 
+                    return run_status;
                 cout << "\033[30;42m ./ \033[0m " + file.substr(0, file.size()-2) + "\n";
             }
 
         }
         catch(const std::runtime_error& e) {
-            if(selected_task!=Task::Run) cout << "\033[30;41m ERROR \033[0m " << file << "\n";
+            if(selected_task!=Task::Run) 
+                cout << "\033[30;41m ERROR \033[0m " << file << "\n";
             cerr << e.what() << std::endl;
         }
-        std::remove("__smolambda__temp__main.cpp");
+        remove("__smolambda__temp__main.cpp");
         included.clear();
     }
-    if(selected_task==Task::Verify) for(const auto& def : all_types) if(def && def->imp && def->imp->allow_unsafe && def->imp->about.size()) {
-        //cout << "[ "<< def->imp->path << "] ";
-        cout << "\033[30;43m UNSAFE \033[0m ";
-        cout << def->imp->about.substr(1, def->imp->about.size()-2) << "\n";
-        def->imp->about = "";
-    }
+    if(selected_task==Task::Verify) 
+        for(const auto& def : all_types) 
+            if(def 
+                && def->imp 
+                && def->imp->allow_unsafe 
+                && def->imp->about.size()
+            ) {
+                //cout << "[ "<< def->imp->path << "] ";
+                cout << "\033[30;43m UNSAFE \033[0m ";
+                cout << def->imp->about.substr(1, def->imp->about.size()-2) << "\n";
+                def->imp->about = "";
+            }
 
-
-    for(const auto& def : all_types) if(def && def->imp) def->imp->tokens.clear();
+    for(const auto& def : all_types) 
+        if(def && def->imp) 
+            def->imp->tokens.clear();
     all_types.clear();
     return 0;
 }

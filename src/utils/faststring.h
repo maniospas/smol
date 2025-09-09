@@ -34,12 +34,4 @@ namespace std {
     };
 }
 
-class ReusableText {
-public:
-    vector<ReusableString> contents;
-    ReusableText() = default;
-    void parse(const string& text);
-    string text();
-};
-
 #endif // FASTSTRING_H
