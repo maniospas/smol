@@ -6,7 +6,7 @@ string Def::signature_like(Types& types, vector<Variable> args) {
         //size_t prev_i = i;
         if(ret.size()) 
             ret += ",";
-        if(internalTypes.contains(args[i]) && buffer_types.find(args[i])!=buffer_types.end()) {
+        if(contains(args[i]) && buffer_types.find(args[i])!=buffer_types.end()) {
             ret += pretty_runtype(buffer_types[args[i]]->name.to_string())+"[]";
             i += 1;
         }
@@ -20,7 +20,7 @@ string Def::signature_like(Types& types, vector<Variable> args) {
             i += types.reverse_alignment_labels[alignments[args[i]]]->packs.size()-1;
         }
         else 
-            ret += ""+pretty_runtype(internalTypes.vars[args[i]]->name.to_string());
+            ret += ""+pretty_runtype(vars[args[i]]->name.to_string());
         /*string arg_name = pretty_var(args[prev_i].to_string());
         if(arg_name.size()) 
             ret += " \033[38m"+arg_name;*/
@@ -36,7 +36,7 @@ string Def::signature(Types& types) {
         //size_t prev_i = i;
         if(ret.size()) 
             ret += ",";
-        if(internalTypes.contains(args[i].name) && buffer_types.find(args[i].name)!=buffer_types.end()) {
+        if(contains(args[i].name) && buffer_types.find(args[i].name)!=buffer_types.end()) {
             ret += pretty_runtype(buffer_types[args[i].name]->name.to_string())+"[]"+(args[i].mut?"\033[31m&\033[0m":"");
             i += types.vars[BUFFER_VAR]->packs.size()-1;
         }
@@ -102,7 +102,7 @@ string Def::raw_signature_state() {
     string ret("");
     ret += "errcode err;";
     for(size_t i=1;i<packs.size();++i) 
-        ret += internalTypes.vars[packs[i]]->name.to_string()+" *"+packs[i].to_string()+";";
+        ret += vars[packs[i]]->name.to_string()+" *"+packs[i].to_string()+";";
     for(const auto& arg : args) 
         ret += arg.type->name.to_string()+" "+(arg.mut?"*":"")+arg.name.to_string()+";";
     string name = raw_signature_state_name();

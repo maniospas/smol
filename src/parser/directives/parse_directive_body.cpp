@@ -41,7 +41,7 @@ void Def::parse_directive_body(const shared_ptr<Import>& imp, size_t& p, string 
             string argtype = next;
             if(types.vars.find(argtype)==types.vars.end() || types.vars.find(argtype)->second->not_primitive()) 
                 imp->error(pos, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
-            internalTypes.vars[argname] = types.vars.find(argtype)->second;
+            vars[argname] = types.vars.find(argtype)->second;
         }
         else {
             string prev_nextnext = next;
@@ -52,7 +52,7 @@ void Def::parse_directive_body(const shared_ptr<Import>& imp, size_t& p, string 
                     nextnext = imp->at(p);
                 }
             if(next=="goto") 
-                internalTypes.vars[nextnext] = types.vars[LABEL_VAR];
+                vars[nextnext] = types.vars[LABEL_VAR];
             implementation += move(Variable(next));
         }
     }

@@ -13,14 +13,14 @@
 #include "../../def.h"
 
 Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test) {
-    if(!internalTypes.contains(next)) 
+    if(!contains(next)) 
         imp->error(--p, "Not found: "
             +pretty_var(next.to_string())
             +recommend_variable(types, next)
         );
     ++p;
     Variable arg = parse_expression(i, p, imp->at(p++), types);
-    if(!internalTypes.contains(arg)) 
+    if(!contains(arg)) 
         imp->error(--p, "Not found: "
             +pretty_var(arg.to_string())
             +recommend_variable(types, next)
@@ -31,31 +31,31 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
         p++;
         method = "slice";
         end = parse_expression(i, p, imp->at(p++), types).to_string();
-        if(!internalTypes.contains(end)) 
+        if(!contains(end)) 
             imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
     }
     else if(imp->at(p)=="upto") {
-        if(internalTypes.vars[arg]->name!=U64_VAR) 
+        if(vars[arg]->name!=U64_VAR) 
             imp->error(--p, "Expected u64 but found: "
-                +internalTypes.vars.find(arg)->second->name.to_string()
+                +vars.find(arg)->second->name.to_string()
                 +" "+pretty_var(arg.to_string())
                 +"\nYou can only use element access [pos] or non-inclusive"
                 +" `to` ranges [pos to end] for non-u64 pos."
             );
         p++;
         end = parse_expression(i, p, imp->at(p++), types).to_string();
-        if(!internalTypes.contains(end)) 
+        if(!contains(end)) 
             imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
-        if(internalTypes.vars[end]->name!=U64_VAR) 
+        if(vars[end]->name!=U64_VAR) 
             imp->error(--p, "Expected u64 but found: "
-                +internalTypes.vars.find(end)->second->name.to_string()
+                +vars.find(end)->second->name.to_string()
                 +" "+pretty_var(end)
                 +"\nYou can only use `upto` with u64. Move to `to`"
                 +" bounds for other end index runtypes."
             );
         method = "slice";
         string tmp = create_temp();
-        assign_variable(internalTypes.vars[end], tmp, end, imp, p);
+        assign_variable(vars[end], tmp, end, imp, p);
         implementation += Code(
             tmp,
             ASSIGN_VAR,
@@ -66,29 +66,29 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
         end = tmp;
     }
     else if(imp->at(p)=="lento") {
-        if(internalTypes.vars[arg]->name!=U64_VAR) 
+        if(vars[arg]->name!=U64_VAR) 
             imp->error(--p, "Expected u64 but found: "
-                +internalTypes.vars.find(arg)->second->name.to_string()
+                +vars.find(arg)->second->name.to_string()
                 +" "+pretty_var(arg.to_string())
                 +"\nYou can only use element access [pos] or non-inclusive `to`"
                 +" ranges [pos to end] for non-u64 pos."
             );
         p++;
         end = parse_expression(i, p, imp->at(p++), types).to_string();
-        if(!internalTypes.contains(end)) 
+        if(!contains(end)) 
             imp->error(--p, "Not found: "
                 +pretty_var(end)
                 +recommend_variable(types, next)
             );
-        if(internalTypes.vars[end]->name!=U64_VAR) 
+        if(vars[end]->name!=U64_VAR) 
             imp->error(--p, "Expected u64 but found: "
-                +internalTypes.vars.find(end)->second->name.to_string()+" "+pretty_var(end)
+                +vars.find(end)->second->name.to_string()+" "+pretty_var(end)
                 +"\nYou can only use `lento` with u64. Move to `to`"
                 +" bounds for other end index runtypes."
             );
         method = "slice";
         Variable tmp = create_temp();
-        assign_variable(internalTypes.vars[end], tmp, end, imp, p);
+        assign_variable(vars[end], tmp, end, imp, p);
         implementation += Code(tmp,ASSIGN_VAR,tmp,PLUS_VAR,arg,SEMICOLON_VAR);
         end = tmp.to_string();
     }
@@ -109,7 +109,7 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
                 RPAR_VAR,
                 SEMICOLON_VAR
             );
-            internalTypes.vars[next+ERR_VAR] = types.vars[ERRCODE_VAR];
+            vars[next+ERR_VAR] = types.vars[ERRCODE_VAR];
             implementation += Code(
                 call_var+ERR_VAR, 
                 ASSIGN_VAR, 
@@ -125,7 +125,7 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
                 SEMICOLON_VAR
             );
             Variable fail_var = create_temp();
-            internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+            vars[fail_var] = types.vars[LABEL_VAR];
             implementation += Code(
                 token_if, 
                 call_var+ERR_VAR, 
@@ -136,7 +136,7 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
             errors += Code(
                 fail_var, 
                 token_print, 
-                internalTypes.vars[next]->name, 
+                vars[next]->name, 
                 call_var, 
                 token_failsafe
             );
@@ -146,8 +146,8 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
             active_calls[active_calls[next]] = EMPTY_VAR;
     }
 
-    if(internalTypes.vars[next]->not_primitive()) 
-        for(const Variable& pack : internalTypes.vars[next]->packs) 
+    if(vars[next]->not_primitive()) 
+        for(const Variable& pack : vars[next]->packs) 
             unpacks.push_back(next+pack);
     else 
         unpacks.push_back(next);

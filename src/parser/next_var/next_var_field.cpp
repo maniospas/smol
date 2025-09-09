@@ -28,7 +28,7 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
                 RPAR_VAR,
                 SEMICOLON_VAR
             );
-            internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
+            vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
             implementation += Code(
                 call_var+ERR_VAR, 
                 ASSIGN_VAR, 
@@ -44,7 +44,7 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
                 SEMICOLON_VAR
             );
             Variable fail_var = create_temp();
-            internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+            vars[fail_var] = types.vars[LABEL_VAR];
             if(next_token!=ERR_VAR)
                 implementation += Code(
                     token_if, 
@@ -56,7 +56,7 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
             errors += Code(
                 fail_var, 
                 token_print, 
-                internalTypes.contains(var)?internalTypes.vars[var]->name:EMPTY_VAR, 
+                contains(var)?vars[var]->name:EMPTY_VAR, 
                 call_var, 
                 token_failsafe
             );
@@ -69,8 +69,8 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
         ) 
             active_calls[active_calls[var]] = EMPTY_VAR;
         if(!imp->allow_unsafe 
-            && internalTypes.contains(next) 
-            && internalTypes.vars[next]->name==NOM_VAR
+            && contains(next) 
+            && vars[next]->name==NOM_VAR
         )
             imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         skip = true;
@@ -79,11 +79,11 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
     skip = false;
 
     if(next.exists() 
-        && internalTypes.contains(next) 
-        && internalTypes.vars[next]->retrievable_parameters.find(next_token)
-            !=internalTypes.vars[next]->retrievable_parameters.end()
+        && contains(next) 
+        && vars[next]->retrievable_parameters.find(next_token)
+            !=vars[next]->retrievable_parameters.end()
     ) {
-        Type prevType = internalTypes.vars[next];
+        Type prevType = vars[next];
         if(prevType->options.size()==1) 
             prevType = *prevType->options.begin();
         if(prevType->lazy_compile) {
@@ -101,22 +101,22 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
                 if(type->args[i].type->name==NOM_VAR) 
                     alignments[next+type->args[i].name] = types.alignment_labels[type.get()];
             }
-            internalTypes.vars[next] = type;
+            vars[next] = type;
         }
         else 
             assign_variable(type, next, ZERO_VAR, imp, p, true);
         type_trackers.insert(next);
-        if(!imp->allow_unsafe && internalTypes.contains(next) && internalTypes.vars[next]->name==NOM_VAR)
+        if(!imp->allow_unsafe && contains(next) && vars[next]->name==NOM_VAR)
             imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     }
     else {
         if(type_trackers.find(next)!=type_trackers.end())
             imp->error(--p, "Not found: "
                 +pretty_var(next_token)
-                +" in "+internalTypes.vars[next]->signature(types)
+                +" in "+vars[next]->signature(types)
             );
-        //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
-        if(internalTypes.vars[next]->buffer_ptr==next_token)
+        //if(!contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
+        if(vars[next]->buffer_ptr==next_token)
             if(!can_mutate(next+next_token) && !imp->allow_unsafe)
                 imp->error(--p, "Buffer surface is not mutable: "
                     +pretty_var(next.to_string()+"__"+next_token)
@@ -126,16 +126,16 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
         next = next+next_token;
         if(p>=imp->size()) 
             return first_token;
-        if(next.exists() && test && !internalTypes.contains(next)) 
+        if(next.exists() && test && !contains(next)) 
             imp->error(--p, "Not found: "
                 +pretty_var(next.to_string())
                 +recommend_variable(types, next)
             );
-        if(internalTypes.contains(next) && internalTypes.vars[next]->name==PTR_VAR && !imp->allow_unsafe) 
+        if(contains(next) && vars[next]->name==PTR_VAR && !imp->allow_unsafe) 
             imp->error(--p, "Direct access of `ptr` fields is unsafe."
                 "\nDeclare the file as @unsafe by placing this at the top level (typically after imports)"
             );
-        if(!imp->allow_unsafe && internalTypes.contains(next) && internalTypes.vars[next]->name==NOM_VAR)
+        if(!imp->allow_unsafe && contains(next) && vars[next]->name==NOM_VAR)
             imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     }
     return next;

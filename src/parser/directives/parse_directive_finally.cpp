@@ -22,13 +22,13 @@ void Def::parse_directive_finally(const shared_ptr<Import>& imp, size_t& p, stri
         conditioned = next; 
         next = imp->at(p++);
     }
-    if(conditioned.size() && !internalTypes.contains(conditioned)) 
+    if(conditioned.size() && !contains(conditioned)) 
         imp->error(p-2, "Expected brackets or conditioning variable but this has not been declared: "
             +pretty_var(conditioned)
         );
-    if(conditioned.size() && internalTypes.vars[conditioned]->not_primitive()) 
+    if(conditioned.size() && vars[conditioned]->not_primitive()) 
         imp->error(p-2, "finally can only be conditioned on a primitive but got "
-            +internalTypes.vars[conditioned]->name.to_string()
+            +vars[conditioned]->name.to_string()
             +" "+pretty_var(conditioned)
         );
     if(next!="{") 
@@ -48,7 +48,7 @@ void Def::parse_directive_finally(const shared_ptr<Import>& imp, size_t& p, stri
             string argname = nextnext;
             string argtype = next;
             if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->not_primitive()) 
-                internalTypes.vars[argname] = types.vars.find(argtype)->second;
+                vars[argname] = types.vars.find(argtype)->second;
             else imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
         }
         else {
@@ -63,7 +63,7 @@ void Def::parse_directive_finally(const shared_ptr<Import>& imp, size_t& p, stri
                     nextnext = imp->at(p);
                 }
             if(next=="goto") 
-                internalTypes.vars[nextnext] = types.vars[LABEL_VAR];
+                vars[nextnext] = types.vars[LABEL_VAR];
             finals += Code(move(Variable(next)));
         }
     }

@@ -107,7 +107,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         if(argType->lazy_compile) {
             args.emplace_back(arg_name, argType, mut);
             mutables.insert(arg_name);
-            internalTypes.vars[arg_name] = argType;
+            vars[arg_name] = argType;
             parametric_types[argType->name] = argType;
             //for(const auto& it : argType->parametric_types) parametric_types[it.first] = it.second;
             this->lazy_compile = true; // indicate that we want to compile lazily with a second pass across all
@@ -144,9 +144,9 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                     +"\nMultiple options are available"
                 );
             
-            internalTypes.vars[arg_name] = types.vars[BUFFER_VAR];
-            internalTypes.vars[arg_name+Variable("surface")] = types.vars[PTR_VAR];
-            internalTypes.vars[arg_name+Variable("dynamic")] = types.vars[PTR_VAR];
+            vars[arg_name] = types.vars[BUFFER_VAR];
+            vars[arg_name+Variable("surface")] = types.vars[PTR_VAR];
+            vars[arg_name+Variable("dynamic")] = types.vars[PTR_VAR];
             buffer_types[arg_name+Variable("dynamic")] = argType;
             if(mut) 
                 mutables.insert(arg_name);
@@ -155,10 +155,10 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         }
         else if(argType->not_primitive()) {
             retrievable_parameters[argType->name] = argType;
-            internalTypes.vars[arg_name] = argType;
+            vars[arg_name] = argType;
             if(autoconstruct) for(const auto& it : argType->args) {
                 args.emplace_back(arg_name+it.name, it.type, mut || it.mut);
-                internalTypes.vars[arg_name+it.name] = it.type;
+                vars[arg_name+it.name] = it.type;
                 implementation += it.type->rebase(it.type->implementation, arg_name);
                 for(const string& pre : it.type->preample) 
                     add_preample(pre);
@@ -177,11 +177,11 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                     if(it.second.exists()) 
                         active_calls[arg_name+it.first] = it.second;
                 errors = errors+it.type->rebase(it.type->errors, arg_name);
-                for(const auto& it2 : it.type->internalTypes.vars) 
-                    internalTypes.vars[arg_name+it2.first] = it2.second;
+                for(const auto& it2 : it.type->vars) 
+                    vars[arg_name+it2.first] = it2.second;
             }
             else {
-                internalTypes.vars[arg_name] = argType;
+                vars[arg_name] = argType;
                 if(mut) mutables.insert(arg_name);
                 if(!mut && argType->noborrow) 
                     imp->error(--p, "Argument's "
@@ -196,17 +196,17 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                     //cout << name << " " <<itarg << " " << mut << " "<<(argType->mutables.find(itarg)!=argType->mutables.end())<<"\n";
                     args.emplace_back(
                         arg_name+itarg, 
-                        argType->internalTypes.vars[itarg], 
+                        argType->vars[itarg], 
                         (mut || (argType->mutables.find(itarg)!=argType->mutables.end()))
                     );
-                    internalTypes.vars[arg_name+itarg] = argType->internalTypes.vars[itarg];
+                    vars[arg_name+itarg] = argType->vars[itarg];
                     for(const auto& it : argType->alignments) if(it.second) 
                         alignments[arg_name+it.first] = it.second;
                     //if(is_service && argType->mutables.find(itarg)!=argType->mutables.end()) imp->error(p-2, "Services do not accept values by reference (even implicit ones): "+pretty_var((arg_name+itarg).to_string())+"\nImplicit services could cause services to race on a shared state and are prevented.\nThis ensures failsafe-compliant extensibility.\nDid you mean to declare a runtype instead?");
                 }
-                for(const auto& itarg : argType->internalTypes.vars) {
+                for(const auto& itarg : argType->vars) {
                     // TODO: this may be too expensive - consider tracking only packs parents
-                    internalTypes.vars[arg_name+itarg.first] = itarg.second;
+                    vars[arg_name+itarg.first] = itarg.second;
                 }
                 for(const auto& it : argType->buffer_types)
                     buffer_types[arg_name+it.first] = it.second;
@@ -217,7 +217,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 mutables.insert(arg_name);
             retrievable_parameters[argType->name] = argType;
             args.emplace_back(arg_name, argType, mut);
-            internalTypes.vars[arg_name] = argType;
+            vars[arg_name] = argType;
             if(argType->name==NOM_VAR) {
                 choice_power += 1;
                 alignments[arg_name] = types.alignment_labels[this];
@@ -254,7 +254,7 @@ void Def::signature_until_position(vector<unordered_map<Variable, Type>>& result
     for(const Type& option : arg_options) {
         if(option->alias_for.exists()
             && option->alias_for.exists() 
-            && ranges::find(arg_options, option->internalTypes.vars[option->alias_for]) != arg_options.end()
+            && ranges::find(arg_options, option->vars[option->alias_for]) != arg_options.end()
         ) 
             continue;
         next[parametric_name] = option;

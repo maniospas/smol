@@ -20,19 +20,19 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
     vector<Variable> ret;
     if(curry.exists()) {
         Variable var = curry;
-        if(!internalTypes.contains(var)) 
+        if(!contains(var)) 
             imp->error(p, "Not found: "
                 +pretty_var(var.to_string())
                 +recommend_variable(types, var)
             );
-        const auto& type = internalTypes.vars.find(var)->second;
+        const auto& type = vars.find(var)->second;
         if(!type->not_primitive()) 
             ret.push_back(var);
         else if(type->is_service) {
             if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) {
                 const Variable& call_var = active_calls[var];
                 implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
+                vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
                 implementation += Code(
                     call_var+ERR_VAR, 
                     ASSIGN_VAR, 
@@ -48,7 +48,7 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
                     SEMICOLON_VAR
                 );
                 Variable fail_var = create_temp();
-                internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+                vars[fail_var] = types.vars[LABEL_VAR];
                 implementation += Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
                 errors += Code(fail_var, token_print, type->name, call_var, token_failsafe);
                 add_preample("#include <stdio.h>");
@@ -73,9 +73,9 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
             break;
         }
         Variable var = parse_expression(imp, p, next, types);
-        if(!internalTypes.contains(var)) 
+        if(!contains(var)) 
             imp->error(expression_start, "Failed to parse expression");
-        const auto& type = internalTypes.vars[var];
+        const auto& type = vars[var];
         if(!type->not_primitive()) 
             ret.push_back(var);
         else if(type->is_service) {
@@ -84,7 +84,7 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
                 implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
                 implementation += Code(var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, ARROW_VAR, ERR_VAR, SEMICOLON_VAR);
                 Variable fail_var = create_temp();
-                internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+                vars[fail_var] = types.vars[LABEL_VAR];
                 implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
                 errors = errors+Code(fail_var, token_print, type->name, call_var, token_failsafe);
                 add_preample("#include <stdio.h>");

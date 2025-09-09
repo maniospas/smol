@@ -100,9 +100,9 @@ const extern Variable token_plus_one;
 
 class Memory {
 public:
-    unordered_map<Variable, Type> vars;
     unordered_map<string, string> all_errors;
     unordered_map<string, size_t> suppressed;
+    unordered_map<Variable, Type> vars;
     inline bool contains(const Variable& var) const {
         return vars.find(var)!=vars.end() && vars.find(var)->second;
     }
@@ -175,6 +175,11 @@ class Def {
     Variable next_var_buffer_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
     Variable next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
 public:
+    unordered_map<Variable, Type> vars;
+    inline bool contains(const Variable& var) const {
+        return vars.find(var)!=vars.end() && vars.find(var)->second;
+    }
+
     Variable buffer_ptr;
     Variable buffer_size;
     Variable buffer_release;
@@ -194,7 +199,6 @@ public:
     vector<Type> options;
     vector<Arg> args;
     shared_ptr<Import> imp;
-    Memory internalTypes;
     vector<Variable> packs;
     Variable alias_for;
     size_t pos, start, end;
@@ -248,7 +252,7 @@ public:
     string raw_signature_state();
     Def* canonic_type() {
         if(alias_for.exists()) 
-            return internalTypes.vars[alias_for]->canonic_type();
+            return vars[alias_for]->canonic_type();
         return this;
     }
     void end_block(const shared_ptr<Import>& i, size_t& p);

@@ -20,19 +20,19 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         );
     ++p;
     Variable idx = parse_expression(i, p, imp->at(p++), types);
-    if(!internalTypes.contains(idx) || internalTypes.vars[idx]->name!=U64_VAR)
+    if(!contains(idx) || vars[idx]->name!=U64_VAR)
         imp->error(--p, "Buffer index must be u64 but got "
-            +(internalTypes.contains(idx)?internalTypes.vars[idx]->name.to_string():"nothing")
+            +(contains(idx)?vars[idx]->name.to_string():"nothing")
         );
     if(imp->at(p++)!="]") 
         imp->error(--p, "Expecting closing square bracket");
 
-    internalTypes.vars[next+Variable("__buffer_size")]          = types.vars[Variable("u64")];
-    internalTypes.vars[next+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
+    vars[next+Variable("__buffer_size")]          = types.vars[Variable("u64")];
+    vars[next+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
 
     size_t count_packs = 0;
     for (const auto& pack : buffer_types[next]->packs)
-        if (buffer_types[next]->internalTypes.contains(pack) && buffer_types[next]->internalTypes.vars[pack]->name != NOM_VAR)
+        if (buffer_types[next]->contains(pack) && buffer_types[next]->vars[pack]->name != NOM_VAR)
             count_packs++;
     if(buffer_types[next]->_is_primitive) 
         count_packs++;
@@ -61,7 +61,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         SEMICOLON_VAR
     );
 
-    internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+    vars[fail_var] = types.vars[LABEL_VAR];
     implementation += Code(
         token_if, 
         idx, 
@@ -84,7 +84,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
     size_t pack_index = 0;
     if(buffer_types[next]->_is_primitive) {
         Variable tmp = create_temp();
-        internalTypes.vars[tmp] = buffer_types[next];
+        vars[tmp] = buffer_types[next];
         implementation += Code(
             Variable("memcpy(&"), 
             tmp, 
@@ -108,20 +108,20 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         );
     }
     else {
-        internalTypes.vars[elem] = buffer_types[next];
+        vars[elem] = buffer_types[next];
         if(mutables.find(next)!=mutables.end()) 
             mutables.insert(elem);
         for (const auto& pack : buffer_types[next]->packs) {
-            if(!buffer_types[next]->internalTypes.contains(pack)) 
+            if(!buffer_types[next]->contains(pack)) 
                 imp->error(--p, "Internal error: failed to unpack value stored on buffer due to unknown type: "
                     +pack.to_string()
                 );
-            else if(buffer_types[next]->internalTypes.vars[pack]->name == NOM_VAR) {
+            else if(buffer_types[next]->vars[pack]->name == NOM_VAR) {
                 Variable tmp = create_temp();
-                internalTypes.vars[tmp] = buffer_types[next]->internalTypes.vars[pack];
+                vars[tmp] = buffer_types[next]->vars[pack];
                 if(packname.is_empty()) {
                     assign_variable(
-                        buffer_types[next]->internalTypes.vars[pack],
+                        buffer_types[next]->vars[pack],
                         elem+pack,
                         tmp,
                         i, 
@@ -138,7 +138,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
                             !=buffer_types[next]->mutables.end()
                     ) 
                         mutables.insert(tmp);
-                    internalTypes.vars[tmp] = buffer_types[next]->internalTypes.vars[pack];
+                    vars[tmp] = buffer_types[next]->vars[pack];
                     if(buffer_types[next]->buffer_types.find(pack)!=buffer_types[next]->buffer_types.end())
                         buffer_types[tmp] = buffer_types[next]->buffer_types[pack];
                     implementation += Code(
@@ -151,12 +151,12 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
                         MUL_VAR, 
                         next + Variable("__buffer_alignment"), 
                         Variable("+" + to_string(pack_index) + "], sizeof("), 
-                        buffer_types[next]->internalTypes.vars[pack]->name, 
+                        buffer_types[next]->vars[pack]->name, 
                         Variable("))"), 
                         SEMICOLON_VAR
                     );
                     assign_variable(
-                        buffer_types[next]->internalTypes.vars[pack],
+                        buffer_types[next]->vars[pack],
                         elem+pack,
                         tmp,
                         i, 
@@ -169,8 +169,8 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
     }
     // do this after the loop to not mess with assign_variable
     if(packname.is_empty()) 
-        for(const auto& it : buffer_types[next]->internalTypes.vars) 
-            internalTypes.vars[elem+it.first] = it.second;
+        for(const auto& it : buffer_types[next]->vars) 
+            vars[elem+it.first] = it.second;
     for(const auto& it : buffer_types[next]->buffer_types)
         buffer_types[elem+it.first] = it.second;
     next = elem;

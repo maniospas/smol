@@ -433,8 +433,8 @@ int main(int argc, char* argv[]) {
     //builtins.vars[BUFFER_VAR]->args.push_back(Arg(Variable("dynamic"), builtins.vars[PTR_VAR], false));
     builtins.vars[BUFFER_VAR]->packs.push_back(Variable("dynamic"));// order matters
     builtins.vars[BUFFER_VAR]->packs.push_back(Variable("surface"));
-    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("dynamic")] = builtins.vars[PTR_VAR]; 
-    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("surface")] = builtins.vars[PTR_VAR];
+    builtins.vars[BUFFER_VAR]->vars[Variable("dynamic")] = builtins.vars[PTR_VAR]; 
+    builtins.vars[BUFFER_VAR]->vars[Variable("surface")] = builtins.vars[PTR_VAR];
     builtins.vars[BUFFER_VAR]->_is_primitive = false;
 
     for(const auto& it : builtins.vars) 
@@ -539,9 +539,9 @@ int main(int argc, char* argv[]) {
                             if (/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second.imp.get()==subtype->imp.get()) {
                                 try {
                                     string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;→&nbsp;";
-                                    if(subtype->alias_for.exists() && subtype->internalTypes.vars[subtype->alias_for]->name==subtype->name) sig = sig+ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
-                                    else if(subtype->alias_for.exists()) sig = sig+ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->alias_for]->name.to_string())+"["+to_string(subtype->internalTypes.vars[subtype->alias_for]->args.size())+"]");//ansi_to_html(subtype->internalTypes.vars[subtype->alias_for]->signature(include.second));
-                                    else if(subtype->packs.size()==1) sig += ansi_to_html(pretty_runtype(subtype->internalTypes.vars[subtype->packs[0]]->name.to_string()));
+                                    if(subtype->alias_for.exists() && subtype->vars[subtype->alias_for]->name==subtype->name) sig = sig+ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
+                                    else if(subtype->alias_for.exists()) sig = sig+ansi_to_html(pretty_runtype(subtype->vars[subtype->alias_for]->name.to_string())+"["+to_string(subtype->vars[subtype->alias_for]->args.size())+"]");//ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
+                                    else if(subtype->packs.size()==1) sig += ansi_to_html(pretty_runtype(subtype->vars[subtype->packs[0]]->name.to_string()));
                                     else if(subtype->packs.size()==0) sig += "()";
                                     else sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
                                     sig +=  "<br>\n";
@@ -664,11 +664,11 @@ int main(int argc, char* argv[]) {
                         finals_on_error += var.to_string()+"=0;\n";
                         service->finals[var] = Code();
                     }
-                    if(var!=ERR_VAR && service->internalTypes.vars[var]->name!=NOM_VAR) {
-                        out << service->internalTypes.vars[var]->name.to_string()<<" "<<var.to_string() << "= *__state->" << var.to_string() << ";\n";
+                    if(var!=ERR_VAR && service->vars[var]->name!=NOM_VAR) {
+                        out << service->vars[var]->name.to_string()<<" "<<var.to_string() << "= *__state->" << var.to_string() << ";\n";
                         enref_at_end += "*__state->"+var.to_string()+"="+var.to_string()+";\n";
                     }
-                    service->internalTypes.vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through internalTypes
+                    service->vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
                 for(const auto& arg : service->args) {
                     if(arg.mut) {
@@ -681,9 +681,9 @@ int main(int argc, char* argv[]) {
                         out << arg.type->name.to_string()<<" "<<arg.name.to_string() << "= *__state->" << arg.name.to_string() << ";\n";
                         enref_at_end += "*__state->"+arg.name.to_string()+"="+arg.name.to_string()+";\n";
                     }
-                    service->internalTypes.vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
+                    service->vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
                 }
-                for(const auto& var : service->internalTypes.vars) 
+                for(const auto& var : service->vars) 
                     if(var.second && var.second->_is_primitive && var.second->name!=LABEL_VAR) 
                         out << var.second->name << " " << var.first << "=0;\n";
                 out << "\n// IMPLEMENTATION\n";
@@ -728,8 +728,8 @@ int main(int argc, char* argv[]) {
             //out.close();
             //cout << out.str() << "\n";
             for(const auto& it : included[file].vars) {
-                for(const auto& opt : it.second->options) opt->internalTypes.vars.clear();
-                it.second->internalTypes.vars.clear();
+                for(const auto& opt : it.second->options) opt->vars.clear();
+                it.second->vars.clear();
                 it.second->options.clear();
             }
             /*if(selected_task==Task::Run) {int run_status = system(("g++ -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -flto -fdata-sections __smolambda__temp__main.cpp -std=c++23 -o "+file.substr(0, file.size()-2)+" && ./"+file.substr(0, file.size()-2)).c_str()); if (run_status != 0) return run_status;}

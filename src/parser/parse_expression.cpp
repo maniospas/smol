@@ -43,15 +43,15 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             uplifiting_is_loop.push_back(uplifiting_is_loop.back());
         else 
             uplifiting_is_loop.push_back(false);
-        internalTypes.vars[finally_var] = types.vars[LABEL_VAR];
-        internalTypes.vars[closeif_var] = types.vars[LABEL_VAR];
+        vars[finally_var] = types.vars[LABEL_VAR];
+        vars[closeif_var] = types.vars[LABEL_VAR];
         string next = imp->at(p++);
         Variable var = parse_expression(imp, p, next, types, curry);
-        if(!internalTypes.contains(var)) 
+        if(!contains(var)) 
             imp->error(--p, "Expression did not evaluate to anything");
-        if(internalTypes.vars.find(var)->second!=types.vars[BOOL_VAR]) 
+        if(vars.find(var)->second!=types.vars[BOOL_VAR]) 
             imp->error(--p, "If expects bool condition but got "
-                +internalTypes.vars.find(var)->second->name.to_string()
+                +vars.find(var)->second->name.to_string()
                 +" "+pretty_var(var.to_string())
             );
         implementation += Code(token_ifnot,var,token_goto,closeif_var,SEMICOLON_VAR);
@@ -63,33 +63,33 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             p++;
             else_var = temp+LE_VAR;
             Variable relse_var = else_var+Variable("r");
-            internalTypes.vars[else_var] = types.vars[LABEL_VAR];
+            vars[else_var] = types.vars[LABEL_VAR];
             Variable else_skip = temp+EL_VAR;
-            internalTypes.vars[else_skip] = types.vars[LABEL_VAR];
+            vars[else_skip] = types.vars[LABEL_VAR];
             uplifting_targets.pop_back();
             uplifting_targets.push_back(else_var);
             implementation += Code(finally_var,COLON_VAR,Variable("goto"), else_skip, SEMICOLON_VAR, closeif_var, COLON_VAR);
             parse(imp, p, types, false);
             implementation += Code(else_var,COLON_VAR);
             p++; // offset p-- after parse_return above
-            if(internalTypes.contains(relse_var) && !internalTypes.contains(rfinally_var)) 
+            if(contains(relse_var) && !contains(rfinally_var)) 
                 imp->error(first_token_pos, "There was a non-empty return "
-                    +internalTypes.vars[relse_var]->name.to_string()
+                    +vars[relse_var]->name.to_string()
                     +" `else` but no such value from `if`"
                 );
-            if(!internalTypes.contains(relse_var) && internalTypes.contains(rfinally_var)) 
+            if(!contains(relse_var) && contains(rfinally_var)) 
                 imp->error(first_token_pos, "There was a non-empty return "
-                    +internalTypes.vars[rfinally_var]->name.to_string()
+                    +vars[rfinally_var]->name.to_string()
                     +" `if` but no such value from `else` "
                 );
-            if(internalTypes.contains(relse_var) && internalTypes.contains(rfinally_var)) {
-                if(internalTypes.vars[rfinally_var]!=internalTypes.vars[relse_var]) 
+            if(contains(relse_var) && contains(rfinally_var)) {
+                if(vars[rfinally_var]!=vars[relse_var]) 
                     imp->error(first_token_pos, "There were mismatching return "
-                        +internalTypes.vars[rfinally_var]->name.to_string()
-                        +" `if` and "+internalTypes.vars[relse_var]->name.to_string()+" `else`"
+                        +vars[rfinally_var]->name.to_string()
+                        +" `if` and "+vars[relse_var]->name.to_string()+" `else`"
                     );
                 assign_variable(
-                    internalTypes.vars[rfinally_var], 
+                    vars[rfinally_var], 
                     rfinally_var, 
                     relse_var, 
                     imp, 
@@ -104,10 +104,10 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             implementation += Code(finally_var,COLON_VAR,closeif_var,COLON_VAR);
         uplifting_targets.pop_back();
         uplifiting_is_loop.pop_back();
-        if(internalTypes.contains(rfinally_var)) {
+        if(contains(rfinally_var)) {
             if(else_var.exists()==0) 
                 imp->error(first_token_pos, "There was a non-empty return "
-                    +internalTypes.vars[rfinally_var]->name.to_string()
+                    +vars[rfinally_var]->name.to_string()
                     +" `if` but no `else` statement for the alternative"
                 ); 
             return rfinally_var;
@@ -120,16 +120,16 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         uplifting_targets.push_back(finally_var);
         uplifiting_is_loop.push_back(true);
         Variable start_var = temp+LOOP_VAR;
-        internalTypes.vars[start_var] = types.vars[LABEL_VAR];
-        internalTypes.vars[finally_var] = types.vars[LABEL_VAR];
+        vars[start_var] = types.vars[LABEL_VAR];
+        vars[finally_var] = types.vars[LABEL_VAR];
         implementation +=Code(start_var,COLON_VAR);
         Variable next = imp->at(p++);
         Variable var = parse_expression(imp, p, next, types, curry);
-        if(!internalTypes.contains(var)) 
+        if(!contains(var)) 
             imp->error(--p, "Expression did not evaluate to anything");
-        if(internalTypes.vars.find(var)->second!=types.vars[BOOL_VAR]) 
+        if(vars.find(var)->second!=types.vars[BOOL_VAR]) 
             imp->error(--p, "If expects bool condition but got "
-                +internalTypes.vars.find(var)->second->name.to_string()
+                +vars.find(var)->second->name.to_string()
                 +" "+pretty_var(var.to_string())
             );
         implementation += Code(token_ifnot,var,token_goto,finally_var,SEMICOLON_VAR);
@@ -141,9 +141,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         return EMPTY_VAR;
     }
 
-    if(first_token=="len" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name==BUFFER_VAR)  {
+    if(first_token=="len" && curry.exists() && contains(curry) && vars[curry]->name==BUFFER_VAR)  {
         curry = curry+Variable("dynamic");
-        internalTypes.vars[Variable("__buffer_size")] = types.vars[Variable("u64")];
+        vars[Variable("__buffer_size")] = types.vars[Variable("u64")];
         implementation += Code(
             Variable("__buffer_size"), 
             ASSIGN_VAR, 
@@ -156,7 +156,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         );
         return next_var(imp, p, Variable("__buffer_size"), types);
     }
-    if(first_token=="put" && curry.exists() && internalTypes.contains(curry) && internalTypes.vars[curry]->name==BUFFER_VAR)  {
+    if(first_token=="put" && curry.exists() && contains(curry) && vars[curry]->name==BUFFER_VAR)  {
         Variable raw_var = curry;
         if(imp->at(p++)!="(") 
             imp->error(--p, "Expected opening parenthesis");
@@ -168,9 +168,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         size_t prev_p = p;
         string next_tok = imp->at(p++);
         Variable idx = parse_expression(imp, p, next_tok, types, EMPTY_VAR);
-        if(!idx.exists() || !internalTypes.contains(idx) || internalTypes.vars[idx]->name!=U64_VAR)
+        if(!idx.exists() || !contains(idx) || vars[idx]->name!=U64_VAR)
             imp->error(prev_p, "First argument to put must be u64 but got "
-                + (internalTypes.contains(idx)?internalTypes.vars[idx]->name.to_string():"nothing")
+                + (contains(idx)?vars[idx]->name.to_string():"nothing")
             );
         if(imp->at(p++)!=",") 
             imp->error(--p, "Expected comma after buffer index");
@@ -178,21 +178,21 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         prev_p = p;
         next_tok = imp->at(p++);
         Variable val = parse_expression(imp, p, next_tok, types, EMPTY_VAR);
-        if(!val.exists() || !internalTypes.contains(val)) 
+        if(!val.exists() || !contains(val)) 
             imp->error(prev_p, "Expression does not yield a value within put");
-        if(internalTypes.vars[val].get() != buffer_types[curry].get())
+        if(vars[val].get() != buffer_types[curry].get())
             imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching is allowed.\nExpected "
                 +buffer_types[curry]->signature(types)+" but got "
-                +internalTypes.vars[val]->signature(types)
+                +vars[val]->signature(types)
             );
 
         if(imp->at(p++)!=")") 
             imp->error(--p, "Expecting closing parenthesis");
 
         // locals (namespaced)
-        internalTypes.vars[curry+Variable("__buffer_size")]      = types.vars[Variable("u64")];
-        internalTypes.vars[curry+Variable("__buffer_alignment")] = types.vars[Variable("u64")];
-        internalTypes.vars[curry+Variable("__buffer_contents")]  = types.vars[Variable("ptr")];
+        vars[curry+Variable("__buffer_size")]      = types.vars[Variable("u64")];
+        vars[curry+Variable("__buffer_alignment")] = types.vars[Variable("u64")];
+        vars[curry+Variable("__buffer_contents")]  = types.vars[Variable("ptr")];
         
         Variable fail_var = create_temp();
         implementation += Code(
@@ -206,7 +206,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         // compute count_packs (valid packs only)
         size_t count_packs = 0;
         for(const auto& pack : buffer_types[curry]->packs)
-            if(buffer_types[curry]->internalTypes.contains(pack) && buffer_types[curry]->internalTypes.vars[pack]->name!=NOM_VAR)
+            if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR)
                 count_packs++;
 
         implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
@@ -214,18 +214,18 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
 
         // range check
-        internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+        vars[fail_var] = types.vars[LABEL_VAR];
         implementation += Code(token_if, idx, Variable(">="), curry+Variable("__buffer_size"),Variable(")goto"), fail_var, SEMICOLON_VAR);
         errors += Code(fail_var, Variable(":\nprintf(\"Buffer index out of range\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n"));
 
         // write element packs at idx
         size_t pack_index = 0;
         for(const auto& pack : buffer_types[curry]->packs) {
-            if(buffer_types[curry]->internalTypes.contains(pack) && buffer_types[curry]->internalTypes.vars[pack]->name!=NOM_VAR) {
+            if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR) {
                 implementation += Code(
                     Variable("memcpy(&((u64*)"), curry+Variable("__buffer_contents"), Variable(")["), idx, MUL_VAR, curry+Variable("__buffer_alignment"), Variable("+"+to_string(pack_index)+"], &"),
                     val+Variable(pack),
-                    Variable(", sizeof("+buffer_types[curry]->internalTypes.vars[pack]->name.to_string()+"));")
+                    Variable(", sizeof("+buffer_types[curry]->vars[pack]->name.to_string()+"));")
                 );
                 pack_index++;
             }
@@ -237,8 +237,8 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
 
     if(first_token=="push" 
         && curry.exists() 
-        && internalTypes.contains(curry) 
-        && internalTypes.vars[curry]->name==BUFFER_VAR
+        && contains(curry) 
+        && vars[curry]->name==BUFFER_VAR
     ) {
         if(imp->at(p++)!="(") 
             imp->error(--p, "Expected opening parenthesis");
@@ -251,22 +251,22 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         auto prev_p = p;
         string next = imp->at(p++);
         Variable var = parse_expression(imp, p, next, types, EMPTY_VAR);
-        if(!var.exists() || !internalTypes.vars[var]) 
+        if(!var.exists() || !vars[var]) 
             imp->error(prev_p, "Expression does not yield a value within push");
-        if(internalTypes.vars[var].get() != buffer_types[curry].get())
+        if(vars[var].get() != buffer_types[curry].get())
             imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching of the types is allowed.\nExpected " 
                 + buffer_types[curry]->signature(types) 
                 + " but got " 
-                + internalTypes.vars[var]->signature(types)
+                + vars[var]->signature(types)
             );
         if(imp->at(p++)!=")") 
             imp->error(--p, "Expecting closing parenthesis");
 
-        internalTypes.vars[curry+Variable("__buffer_size")]          = types.vars[Variable("u64")];
-        internalTypes.vars[curry+Variable("__buffer_capacity")]      = types.vars[Variable("u64")];
-        internalTypes.vars[curry+Variable("__buffer_prev_capacity")] = types.vars[Variable("u64")];
-        internalTypes.vars[curry+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
-        internalTypes.vars[curry+Variable("__buffer_contents")]      = types.vars[Variable("ptr")];
+        vars[curry+Variable("__buffer_size")]          = types.vars[Variable("u64")];
+        vars[curry+Variable("__buffer_capacity")]      = types.vars[Variable("u64")];
+        vars[curry+Variable("__buffer_prev_capacity")] = types.vars[Variable("u64")];
+        vars[curry+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
+        vars[curry+Variable("__buffer_contents")]      = types.vars[Variable("ptr")];
 
         Variable fail_var = create_temp();
         implementation += Code(
@@ -280,7 +280,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         // compute count_packs (valid packs only)
         size_t count_packs = 0;
         for(const auto& pack : buffer_types[curry]->packs)
-            if(buffer_types[curry]->internalTypes.contains(pack) && buffer_types[curry]->internalTypes.vars[pack]->name!=NOM_VAR)
+            if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR)
                 count_packs++;
         if(buffer_types[curry]->_is_primitive) count_packs++;
 
@@ -330,7 +330,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             Variable("(ptr)((void**)"), curry, Variable(")[0]"), SEMICOLON_VAR);
 
 
-        internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+        vars[fail_var] = types.vars[LABEL_VAR];
         implementation += Code(token_if, Variable("!"), curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
         errors += Code(fail_var, token_print, token_failsafe);
 
@@ -348,13 +348,13 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             );
         }
         else for(const auto& pack : buffer_types[curry]->packs) {
-            if(buffer_types[curry]->internalTypes.contains(pack) 
-                && buffer_types[curry]->internalTypes.vars[pack]->name!=NOM_VAR
+            if(buffer_types[curry]->contains(pack) 
+                && buffer_types[curry]->vars[pack]->name!=NOM_VAR
             ) {
                 implementation += Code(
                     Variable("memcpy(&((u64*)"), curry+Variable("__buffer_contents"), Variable(")["), curry+Variable("__buffer_size"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("+"+to_string(pack_index)+"], &"),
                     var+Variable(pack),
-                    Variable(", sizeof("+buffer_types[curry]->internalTypes.vars[pack]->name.to_string()+"));")
+                    Variable(", sizeof("+buffer_types[curry]->vars[pack]->name.to_string()+"));")
                 );
                 pack_index++;
             }
@@ -364,8 +364,8 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
 
     if(first_token=="expect" 
         && curry.exists() 
-        && internalTypes.contains(curry) 
-        && internalTypes.vars[curry]->name==BUFFER_VAR
+        && contains(curry) 
+        && vars[curry]->name==BUFFER_VAR
     ) {
         Variable raw_var = curry;
         if(imp->at(p++)!="(") 
@@ -378,18 +378,18 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         auto prev_p = p;
         string next = imp->at(p++);
         Variable amount = parse_expression(imp, p, next, types, EMPTY_VAR);
-        if(!amount.exists() || !internalTypes.vars[amount]) 
+        if(!amount.exists() || !vars[amount]) 
             imp->error(prev_p, "Expression does not yield a value within grow");
-        if(internalTypes.vars[amount]->name != Variable("u64"))
+        if(vars[amount]->name != Variable("u64"))
             imp->error(prev_p, "Grow amount must be of type u64");
         if(imp->at(p++)!=")") 
             imp->error(--p, "Expecting closing parenthesis");
 
-        internalTypes.vars[curry+Variable("__buffer_size")]          = types.vars[Variable("u64")];
-        internalTypes.vars[curry+Variable("__buffer_capacity")]      = types.vars[Variable("u64")];
-        internalTypes.vars[curry+Variable("__buffer_prev_capacity")] = types.vars[Variable("u64")];
-        internalTypes.vars[curry+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
-        internalTypes.vars[curry+Variable("__buffer_contents")]      = types.vars[Variable("ptr")];
+        vars[curry+Variable("__buffer_size")]          = types.vars[Variable("u64")];
+        vars[curry+Variable("__buffer_capacity")]      = types.vars[Variable("u64")];
+        vars[curry+Variable("__buffer_prev_capacity")] = types.vars[Variable("u64")];
+        vars[curry+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
+        vars[curry+Variable("__buffer_contents")]      = types.vars[Variable("ptr")];
 
         Variable fail_var = create_temp();
         implementation += Code(
@@ -403,7 +403,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         // compute count_packs (valid packs only)
         size_t count_packs = 0;
         for(const auto& pack : buffer_types[curry]->packs)
-            if(buffer_types[curry]->internalTypes.contains(pack) && buffer_types[curry]->internalTypes.vars[pack]->name!=NOM_VAR)
+            if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR)
                 count_packs++;
         if(buffer_types[curry]->_is_primitive) count_packs++;
 
@@ -464,7 +464,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         implementation += Code(Variable("((u64*)"), curry, Variable(")[2]"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR);
         implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
 
-        internalTypes.vars[fail_var] = types.vars[LABEL_VAR];
+        vars[fail_var] = types.vars[LABEL_VAR];
         implementation += Code(token_if, Variable("!"), curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
         errors += Code(fail_var, token_print, token_failsafe);
 
@@ -485,13 +485,13 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             imp->error(p, "There is already an active context in this implementation\nEnd its code block to enter a new context with `on`.");
         string next = imp->at(p++);
         active_context = parse_expression(imp,p,next,types,curry);
-        if(!active_context.exists() || !internalTypes.contains(active_context)) 
+        if(!active_context.exists() || !contains(active_context)) 
             imp->error(--p, "Expression does not evaluate to a variable to use as `on` context");
-        if(internalTypes.vars[active_context]->noassign && !imp->allow_unsafe)
+        if(vars[active_context]->noassign && !imp->allow_unsafe)
             imp->error(--p, "Cannot use as en `on` context a variable marked as @noassign\nThis is considered unsafe behavior and can only be enabled with @unsafe");
         Variable temp = create_temp();
         Variable finally_var = temp+Variable("on");
-        internalTypes.vars[finally_var] = types.vars[LABEL_VAR];
+        vars[finally_var] = types.vars[LABEL_VAR];
         //int on_start = p-1;
         uplifting_targets.push_back(finally_var);
         if(uplifiting_is_loop.size()) 
@@ -503,7 +503,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         uplifiting_is_loop.pop_back();
         p++;
         Variable var = finally_var+Variable("r");
-        if(!internalTypes.contains(var)) 
+        if(!contains(var)) 
             var = EMPTY_VAR;
         implementation +=Code(finally_var,COLON_VAR);
         active_context = EMPTY_VAR;
@@ -521,7 +521,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             uplifiting_is_loop.push_back(uplifiting_is_loop.back());
         else 
             uplifiting_is_loop.push_back(false);
-        internalTypes.vars[finally_var] = types.vars[LABEL_VAR];
+        vars[finally_var] = types.vars[LABEL_VAR];
         string next;
         try {
             if(curry.exists()) 
@@ -600,13 +600,13 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         }
         string var = create_temp();
         if(!types.contains(vartype)) return first_token;// fallback
-        internalTypes.vars[var] = types.vars[vartype];
+        vars[var] = types.vars[vartype];
         // vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
         implementation += Code(var,ASSIGN_VAR,first_token.to_string(),SEMICOLON_VAR);
         //mutables.insert(var);
         return next_var(imp, p, var, types);
     }
-    if(internalTypes.contains(first_token)) {
+    if(contains(first_token)) {
         if(curry.exists()) 
             imp->error(p, "Expecting runtype but got variable: "
                 +first_token.to_string()
@@ -622,7 +622,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 string next = imp->at(p);
                 p++;
                 surface = parse_expression(imp, p, next, types, EMPTY_VAR);
-                if(!internalTypes.contains(surface) || !internalTypes.vars[surface]->buffer_ptr.exists())
+                if(!contains(surface) || !vars[surface]->buffer_ptr.exists())
                     imp->error(--p, "Given that "
                         +first_token.to_string()
                         +" is a runtype (not a local variable), [] is expected to declare a buffer here"
@@ -668,9 +668,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             Variable dynamic_var = var+Variable("dynamic");
             Variable surface_var = var+Variable("surface");
             buffer_types[dynamic_var] = type;
-            internalTypes.vars[var] = types.vars[BUFFER_VAR];
-            internalTypes.vars[dynamic_var] = types.vars[PTR_VAR];
-            //internalTypes.vars[var+Variable("surface")] = types.vars[PTR_VAR];
+            vars[var] = types.vars[BUFFER_VAR];
+            vars[dynamic_var] = types.vars[PTR_VAR];
+            //vars[var+Variable("surface")] = types.vars[PTR_VAR];
             Variable raw_var = var;
             var = dynamic_var;
             implementation += Code(
@@ -682,14 +682,14 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             if(surface.exists()) {
                 size_t count_packs = 0;
                 for(const auto& pack : type->packs)
-                    if(type->internalTypes.contains(pack) && type->internalTypes.vars[pack]->name!=NOM_VAR)
+                    if(type->contains(pack) && type->vars[pack]->name!=NOM_VAR)
                         count_packs++;
                 if(type->_is_primitive) 
                     count_packs++;
                 implementation += Code(
                     Variable("((u64*)"),var,Variable(")[0]"), 
                     ASSIGN_VAR, Variable("(u64)(u64*)"), 
-                    surface+internalTypes.vars[surface]->buffer_ptr, 
+                    surface+vars[surface]->buffer_ptr, 
                     SEMICOLON_VAR
                 );
                 implementation += Code(
@@ -698,7 +698,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                     Variable(")[2]"), 
                     ASSIGN_VAR, 
                     LPAR_VAR,
-                    surface+internalTypes.vars[surface]->buffer_size, 
+                    surface+vars[surface]->buffer_size, 
                     Variable("/(sizeof(u64)*"+to_string(count_packs)+")) | (1ULL <<63)"), 
                     SEMICOLON_VAR
                 );
@@ -710,19 +710,19 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 assign_variable(
                     types.vars[PTR_VAR], 
                     surface_var, 
-                    surface+internalTypes.vars[surface]->buffer_release, 
+                    surface+vars[surface]->buffer_release, 
                     imp, 
                     p
                 );
 
                 // returning simplifcations may split the memory poiters into two independent sets of finals that reference the same memory - gather in one place
-                coallesce_finals(surface+internalTypes.vars[surface]->buffer_ptr);
-                coallesce_finals(surface+internalTypes.vars[surface]->buffer_release);
+                coallesce_finals(surface+vars[surface]->buffer_ptr);
+                coallesce_finals(surface+vars[surface]->buffer_release);
                 finals[surface_var] = 
-                        rename_var(finals[surface+internalTypes.vars[surface]->buffer_ptr], surface+internalTypes.vars[surface]->buffer_ptr, surface_var)
-                        +rename_var(finals[surface+internalTypes.vars[surface]->buffer_release], surface+internalTypes.vars[surface]->buffer_release, surface_var);
-                finals[surface+internalTypes.vars[surface]->buffer_ptr] = Code();
-                finals[surface+internalTypes.vars[surface]->buffer_release] = Code();
+                        rename_var(finals[surface+vars[surface]->buffer_ptr], surface+vars[surface]->buffer_ptr, surface_var)
+                        +rename_var(finals[surface+vars[surface]->buffer_release], surface+vars[surface]->buffer_release, surface_var);
+                finals[surface+vars[surface]->buffer_ptr] = Code();
+                finals[surface+vars[surface]->buffer_release] = Code();
             }
             else {
                 assign_variable(
@@ -744,10 +744,10 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         vector<Variable> unpacks;
         if(p>=imp->size()-1) {
             if(curry.exists()) {
-                if(!internalTypes.contains(curry)) 
+                if(!contains(curry)) 
                     imp->error(first_token_pos-2, "Not found: "+pretty_var(curry.to_string())+recommend_runtype(types, curry));
-                else if(internalTypes.vars.find(curry)->second->not_primitive()) {
-                    for(const Variable& pack : internalTypes.vars.find(curry)->second->packs) unpacks.push_back(curry.to_string()+"__"+pack.to_string());
+                else if(vars.find(curry)->second->not_primitive()) {
+                    for(const Variable& pack : vars.find(curry)->second->packs) unpacks.push_back(curry.to_string()+"__"+pack.to_string());
                 }
                 else 
                     unpacks.push_back(curry);
@@ -755,9 +755,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         }
         else if(imp->at(p)=="__consume") {
             if(!curry.exists()) imp->error(p-2, "Unexpected usage of operator\nThere is no left-hand-side");
-            if(!internalTypes.contains(curry)) imp->error(first_token_pos-2, "Not found: "+pretty_var(curry.to_string())+recommend_runtype(types, curry));
-            else if(internalTypes.vars.find(curry)->second->not_primitive()) {
-                for(const Variable& pack : internalTypes.vars.find(curry)->second->packs) 
+            if(!contains(curry)) imp->error(first_token_pos-2, "Not found: "+pretty_var(curry.to_string())+recommend_runtype(types, curry));
+            else if(vars.find(curry)->second->not_primitive()) {
+                for(const Variable& pack : vars.find(curry)->second->packs) 
                     unpacks.push_back(curry+pack);
             }
             else 
@@ -765,9 +765,9 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             p++;
             string next = imp->at(p++);
             Variable rhs = parse_expression(imp, p, next, types);
-            if(!internalTypes.contains(rhs)) 
+            if(!contains(rhs)) 
                 imp->error(--p, "Failed to parse the right-hand-side of "+first_token.to_string());
-            const auto& rhsType = internalTypes.vars.find(rhs)->second;
+            const auto& rhsType = vars.find(rhs)->second;
             if(rhsType->_is_primitive) 
                 unpacks.push_back(rhs);
             else if(type->is_service) {
@@ -775,7 +775,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 if(active_calls[rhs].exists() && active_calls[active_calls[rhs]].exists()) {
                     const Variable& call_var = active_calls[rhs];
                     implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
-                    internalTypes.vars[rhs+ERR_VAR] = types.vars[ERRCODE_VAR];
+                    vars[rhs+ERR_VAR] = types.vars[ERRCODE_VAR];
                     implementation += Code(
                         call_var+ERR_VAR, 
                         ASSIGN_VAR, 
@@ -808,13 +808,13 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                     unpacks.push_back(rhs+pack);
         }
         else if(imp->at(p)!="(" && curry.exists()) {
-            if(!internalTypes.contains(curry)) 
+            if(!contains(curry)) 
                 imp->error(first_token_pos-2, "Not found: "
                     +pretty_var(curry.to_string())
                     +recommend_runtype(types, curry)
                 );
-            else if(internalTypes.vars.find(curry)->second->not_primitive()) {
-                for(const Variable& pack : internalTypes.vars.find(curry)->second->packs) 
+            else if(vars.find(curry)->second->not_primitive()) {
+                for(const Variable& pack : vars.find(curry)->second->packs) 
                     unpacks.push_back(curry.to_string()+"__"+pack.to_string());
             }
             else unpacks.push_back(curry);
@@ -878,8 +878,8 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 var = imp->at(p++);
                 mutables.insert(var);
             }
-            if(internalTypes.contains(var)) 
-                imp->error(--p, "Cannot redeclare local variable "+internalTypes.vars[var]->name.to_string()+" "+pretty_var(var.to_string()));
+            if(contains(var)) 
+                imp->error(--p, "Cannot redeclare local variable "+vars[var]->name.to_string()+" "+pretty_var(var.to_string()));
             if(parametric_types.find(type->name)!=parametric_types.end()) 
                 type = parametric_types[type->name];
             int num_choices = 0;
@@ -913,24 +913,24 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
             } 
             if(type->not_primitive()) 
                 for(size_t i=0;i<type->args.size();++i) {
-                    internalTypes.vars[var+type->args[i].name] = type->args[i].type;
+                    vars[var+type->args[i].name] = type->args[i].type;
                     unpacks.push_back(var+type->args[i].name);
                 }
             else 
                 unpacks.push_back(var);
             if(type->args.size() && type->args[0].type->name==NOM_VAR) 
                 alignments[var+type->args[0].name] = types.alignment_labels[type.get()];
-            internalTypes.vars[var] = type;
+            vars[var] = type;
             return var;
         }
         else if(imp->at(p)!="(") {
             Variable var = create_temp();
-            internalTypes.vars[var] = type;
+            vars[var] = type;
             type_trackers.insert(var);
             if(p<imp->size()-1 && imp->at(p+1)=="&") 
                 mutables.insert(var);
             for(const Variable& pack : type->packs) 
-                assign_variable(type->internalTypes.vars[pack], var+pack, ZERO_VAR, imp, first_token_pos);
+                assign_variable(type->vars[pack], var+pack, ZERO_VAR, imp, first_token_pos);
             if(type->args.size() && type->args[0].type->name==NOM_VAR) 
                 alignments[var+type->args[0].name] = types.alignment_labels[type.get()];
             return next_var(imp, p, var, types);

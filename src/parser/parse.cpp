@@ -120,7 +120,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         if(var=="." || var=="=") {
             var = next_var(imp, p, next, types, false);
             if(is_mutable_assignment) {
-                if(internalTypes.contains(var)) 
+                if(contains(var)) 
                     imp->error(--p, "Cannot set as mutable an existing variable: "
                         +var.to_string()
                         +"\nMutability is declared by prepending & to the first occurence"
@@ -136,8 +136,8 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             Variable expression_outcome = parse_expression(imp, p, next, types);
             if(!expression_outcome.exists()) 
                 imp->error(assignment_start, "The right-hand-side expression computes to no value");
-            const auto& it = internalTypes.vars.find(expression_outcome);
-            if(it==internalTypes.vars.end()) 
+            const auto& it = vars.find(expression_outcome);
+            if(it==vars.end()) 
                 imp->error(assignment_start, "Failed to parse expression");
             if(it->second->noassign && !imp->allow_unsafe)
                 imp->error(assignment_start, "Cannot assign a result marked as @noassign to a non-temporary variable: "
@@ -149,9 +149,9 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                 var = NEXT_VAR+var;
             }
             if(is_mutable_assignment && mutables.find(expression_outcome)==mutables.end()) 
-                for(const auto& pack : internalTypes.vars[expression_outcome]->packs) {
-                    if((internalTypes.vars[expression_outcome]->internalTypes.vars[pack]->name==PTR_VAR 
-                            || internalTypes.vars[expression_outcome]->internalTypes.vars[pack]->name==BUFFER_VAR)
+                for(const auto& pack : vars[expression_outcome]->packs) {
+                    if((vars[expression_outcome]->vars[pack]->name==PTR_VAR 
+                            || vars[expression_outcome]->vars[pack]->name==BUFFER_VAR)
                         && mutables.find(var+pack)==mutables.end()
                     ) 
                         imp->error(assignment_start, "Cannot transfer an immutable ptr packed in an immutable variable to a mutable ptr: "
@@ -170,10 +170,10 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             parse_expression(imp, p, next, types);
     }
     for(const Variable& var : next_assignments) 
-        assign_variable(internalTypes.vars[NEXT_VAR+var], var, NEXT_VAR+var.to_string(), imp, p);
+        assign_variable(vars[NEXT_VAR+var], var, NEXT_VAR+var.to_string(), imp, p);
     if(with_signature) {
         static const Variable endvar = Variable("__end");
-        internalTypes.vars[endvar] = types.vars[LABEL_VAR];
+        vars[endvar] = types.vars[LABEL_VAR];
         implementation +=Code(endvar, COLON_VAR);
         simplify();
     }

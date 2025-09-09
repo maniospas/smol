@@ -27,9 +27,9 @@ void Def::simplify() {
     unordered_set<Variable> in_packs;
     for(const Variable& pack : packs)
         in_packs.insert(pack);
-    if(alias_for.exists() && internalTypes.vars[alias_for]->not_primitive()) {
+    if(alias_for.exists() && vars[alias_for]->not_primitive()) {
         in_packs.insert(alias_for);
-        for(const Variable& pack : internalTypes.vars[alias_for]->packs) 
+        for(const Variable& pack : vars[alias_for]->packs) 
             in_packs.insert(alias_for+pack);
     }
     unordered_map<Variable, Variable> renaming;
@@ -46,15 +46,15 @@ void Def::simplify() {
     }
     for(size_t i=0;i<n;++i) {
         const Variable& var = implementation.segments[i];
-        if(i<n-1 && implementation.segments[i+1]==SEMICOLON_VAR && internalTypes.contains(var)) 
+        if(i<n-1 && implementation.segments[i+1]==SEMICOLON_VAR && contains(var)) 
             used[var] += 1;
         if(i<n-3 
             && implementation.segments[i+1]==ASSIGN_VAR 
             && implementation.segments[i+3]==SEMICOLON_VAR
-            && internalTypes.contains(var)
-            && internalTypes.vars[var]->name!=NOM_VAR
+            && contains(var)
+            && vars[var]->name!=NOM_VAR
             && in_packs.find(var)==in_packs.end() // do not rename returned values
-            && (internalTypes.contains(implementation.segments[i+2]) 
+            && (contains(implementation.segments[i+2]) 
                 /*|| (is_primitive(implementation.segments[i+2].to_string()))*/)
             && (mutables.find(var)==mutables.end())
             && (mutables.find(implementation.segments[i+2])==mutables.end() || total_uses[implementation.segments[i+2]]==2)
@@ -95,8 +95,8 @@ void Def::simplify() {
         if(i<n-1 
             && implementation.segments[i+1]==COLON_VAR 
             && used.find(implementation.segments[i])==used.end()
-            && internalTypes.contains(implementation.segments[i])
-            && internalTypes.vars[implementation.segments[i]]->name==LABEL_VAR) {
+            && contains(implementation.segments[i])
+            && vars[implementation.segments[i]]->name==LABEL_VAR) {
                 i += 1;
                 continue;
             }

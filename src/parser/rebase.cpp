@@ -18,7 +18,7 @@ Code Def::rebase(const Code& impl, const Variable& var) {
     vector<SegmentedString> segments;
     segments.reserve(impl.size());
     for(size_t i=0; i<impl.size(); ++i) 
-        segments.push_back(internalTypes.contains(impl[i])?var+impl[i]:impl[i]);
+        segments.push_back(contains(impl[i])?var+impl[i]:impl[i]);
     return Code(move(segments));
 }
 

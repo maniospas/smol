@@ -52,8 +52,8 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, 
             );
         next = imp->at(p++);
         next = parse_expression(imp, p, next, types);
-        if(internalTypes.contains(next)) 
-            assign_variable(internalTypes.vars[next], uplifting_targets[uplifting_targets.size()-uplifting-1]+Variable("r"), next, imp, p);
+        if(contains(next)) 
+            assign_variable(vars[next], uplifting_targets[uplifting_targets.size()-uplifting-1]+Variable("r"), next, imp, p);
         implementation +=Code(token_goto,uplifting_targets[uplifting_targets.size()-uplifting-1],SEMICOLON_VAR);
         return;
     }
@@ -69,13 +69,13 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, 
         );
     else 
         for(size_t i=0;i<packs.size();++i) {
-            if(internalTypes.vars[packs[i]]!=internalTypes.vars[tentative[i]]) 
+            if(vars[packs[i]]!=vars[tentative[i]]) 
                 imp->error(--p, 
                     "Incompatible returns\nprevious "
                     +signature_like(types, packs)
                     +" vs last "+signature_like(types, tentative)
                 );
-            assign_variable(internalTypes.vars[packs[i]], tentative[i], packs[i], imp, p, false, false);
+            assign_variable(vars[packs[i]], tentative[i], packs[i], imp, p, false, false);
         }
     implementation += Code(token_goto,uplifting_targets[0],SEMICOLON_VAR);
     has_returned = true;

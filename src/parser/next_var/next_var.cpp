@@ -13,7 +13,7 @@
 #include "../../def.h"
 
 #define CHECK_RELEASE(next) if(released[next]) imp->error(--p, "Cannot use already released value: "+next.to_string());
-#define CHECK_ERRCODE(next) if(internalTypes.contains(next+ERR_VAR)) implementation += Code(token_if, next+ERR_VAR, Variable("){\nprintf(\"Unhandled error - despite retrieving its .err\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;}\n"));
+#define CHECK_ERRCODE(next) if(contains(next+ERR_VAR)) implementation += Code(token_if, next+ERR_VAR, Variable("){\nprintf(\"Unhandled error - despite retrieving its .err\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;}\n"));
 
 Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test) {
     if(first_token.is_empty()) 
@@ -44,19 +44,19 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
                 continue;
         }
         else if(imp->at(p)=="[" 
-            && internalTypes.contains(next) 
-            && internalTypes.vars[next]->is_service
-            && internalTypes.vars[next]->packs.size()==2
-            && internalTypes.vars[next]->internalTypes.contains(internalTypes.vars[next]->packs[1])
-            && internalTypes.vars[next]->internalTypes.vars[internalTypes.vars[next]->packs[1]]->name==BUFFER_VAR
+            && contains(next) 
+            && vars[next]->is_service
+            && vars[next]->packs.size()==2
+            && vars[next]->contains(vars[next]->packs[1])
+            && vars[next]->vars[vars[next]->packs[1]]->name==BUFFER_VAR
         ) {
             imp->error(--p, "Internal error: deprecated branch");
             //next = next_var_buffer_ret_at(next, imp, p, first_token, types, test);
             continue;
         }
         else if(imp->at(p)=="[" 
-            && internalTypes.contains(next) 
-            && internalTypes.vars[next]->name==BUFFER_VAR
+            && contains(next) 
+            && vars[next]->name==BUFFER_VAR
         ) 
             next = next_var_buffer_at(next, imp, p, first_token, types, test);
         else if(imp->at(p)=="[") 
@@ -64,7 +64,7 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
         else 
             break;
     }
-    if(test && next.exists() && !internalTypes.contains(next)) 
+    if(test && next.exists() && !contains(next)) 
         imp->error(--p, "Not found: "
             +pretty_var(next.to_string())
             +recommend_variable(types, next)

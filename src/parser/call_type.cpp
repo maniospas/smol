@@ -18,7 +18,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     Type previousType = type;
     int highest_choice_power = 0;
     for(size_t i=0;i<unpacks.size();++i) {
-        if(!internalTypes.contains(unpacks[i])) 
+        if(!contains(unpacks[i])) 
             imp->error(p-1, "Not found: "
                 +pretty_var(unpacks[i].to_string())
                 +recommend_variable(types, unpacks[i])
@@ -48,8 +48,8 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 arg_progress++;
                 auto arg_type = type->_is_primitive?type:type->args[i].type;
                 if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name.to_string());
-                if(!internalTypes.contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i].to_string()));
-                if(type->not_primitive() && arg_type!=internalTypes.vars[unpacks[i]] && !is_primitive(unpacks[i].to_string())) 
+                if(!contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i].to_string()));
+                if(type->not_primitive() && arg_type!=vars[unpacks[i]] && !is_primitive(unpacks[i].to_string())) 
                     throw runtime_error(type->signature(types));
                 if(type->not_primitive() && arg_type->_is_primitive && arg_type->name==NOM_VAR && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
                     if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
@@ -95,8 +95,8 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     string prev_errors("");
     if(!type && active_context.exists()) { // 
         vector<Variable> new_unpacks;
-        if(internalTypes.vars[active_context]->_is_primitive) new_unpacks.push_back(active_context);
-        else for(const Variable& pack : internalTypes.vars[active_context]->packs) new_unpacks.push_back(active_context+pack);
+        if(vars[active_context]->_is_primitive) new_unpacks.push_back(active_context);
+        else for(const Variable& pack : vars[active_context]->packs) new_unpacks.push_back(active_context+pack);
         for(const Variable& pack : unpacks) new_unpacks.push_back(pack);
         prev_errors = previousType->name.to_string()
             +signature_like(types, unpacks)
@@ -129,13 +129,13 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                             + arg_type->signature(types) 
                             + " "+type->args[i].name.to_string()
                         );
-                    if(!internalTypes.contains(unpacks[i])) 
+                    if(!contains(unpacks[i])) 
                         throw runtime_error(type->signature(types)
                             +": No runtype for "
                             +pretty_var(unpacks[i].to_string())
                         );
                     if(type->not_primitive() 
-                        && arg_type!=internalTypes.vars[unpacks[i]] 
+                        && arg_type!=vars[unpacks[i]] 
                         && !is_primitive(unpacks[i].to_string())
                     ) 
                         throw runtime_error(type->signature(types));
@@ -231,20 +231,20 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 + arg_type->signature(types) 
                 + " "+type->args[i].name.to_string()
             );
-        if(!internalTypes.contains(unpacks[i])) 
+        if(!contains(unpacks[i])) 
             throw runtime_error(type->signature(types)
                 +": No runtype for "
                 +pretty_var(unpacks[i].to_string())
             );
         if(type->not_primitive() 
-            && arg_type!=internalTypes.vars[unpacks[i]] 
+            && arg_type!=vars[unpacks[i]] 
             && !is_primitive(unpacks[i].to_string())
         ) 
             throw runtime_error(type->signature(types)
                 +": Expects " + arg_type->name.to_string()
                  + " "+pretty_var(type->name.to_string()
                  +"__"+type->args[i].name.to_string())
-                 +" but got "+internalTypes.vars[unpacks[i]]->name.to_string()
+                 +" but got "+vars[unpacks[i]]->name.to_string()
                  +" "+pretty_var(unpacks[i].to_string())
             );
         if(type->not_primitive() 
@@ -283,7 +283,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         if(type->not_primitive() 
             && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])
         ) 
-            throw runtime_error(type->signature(types)+": Expects mutable " + arg_type->name.to_string() + " "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" but got immutable "+internalTypes.vars[unpacks[i]]->name.to_string()+" "+pretty_var(unpacks[i].to_string()));
+            throw runtime_error(type->signature(types)+": Expects mutable " + arg_type->name.to_string() + " "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" but got immutable "+vars[unpacks[i]]->name.to_string()+" "+pretty_var(unpacks[i].to_string()));
     }
 
 
@@ -337,12 +337,12 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     // make actual call
     if(type->is_service) {
         vardecl += Code(STRUCT_VAR, Variable(type->raw_signature_state_name()+"*"), var+STATE_VAR, ASSIGN_VAR, ZERO_VAR, SEMICOLON_VAR);
-        internalTypes.vars[var+STATE_VAR] = types.vars[STATE_VAR];
+        vars[var+STATE_VAR] = types.vars[STATE_VAR];
         Code impl = Code(var+STATE_VAR, ASSIGN_VAR, Variable("(struct "+type->raw_signature_state_name()+"*)__runtime_calloc(sizeof(struct "+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
         impl += Code(Variable("__smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results,"), var+STATE_VAR, RPAR_VAR, SEMICOLON_VAR);
-        internalTypes.vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
-        internalTypes.vars[var+TASK_VAR] = types.vars[PTR_VAR];
-        internalTypes.vars[var] = type;
+        vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
+        vars[var+TASK_VAR] = types.vars[PTR_VAR];
+        vars[var] = type;
         active_calls[var] = var;
         for(const Variable& pack : type->packs) 
             if(type->alignments[pack]) 
@@ -351,14 +351,14 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             const Variable& ret = type->packs[i];
             size_t fp = first_token_pos;
             Variable arg = var+ret;
-            assign_variable(type->internalTypes.vars[ret], arg, ZERO_VAR, imp, fp);
+            assign_variable(type->vars[ret], arg, ZERO_VAR, imp, fp);
             mutables.insert(arg);
             impl += Code(var+STATE_VAR, ARROW_VAR, ret, ASSIGN_VAR, REF_VAR, arg, SEMICOLON_VAR);
             //type->coallesce_finals(ret);
             //finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
         }
-        for(const auto& it : type->internalTypes.vars) 
-            internalTypes.vars[var+it.first] = it.second;
+        for(const auto& it : type->vars) 
+            vars[var+it.first] = it.second;
         for(size_t i=0;i<unpacks.size();++i) {
             notify_service_arg(unpacks[i]);
             if(type->args[i].mut) {
@@ -374,7 +374,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 +Code(RPAR_VAR, SEMICOLON_VAR);
         impl += Code(Variable("__smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks,"), var+TASK_VAR, RPAR_VAR, SEMICOLON_VAR);
         implementation +=impl;
-        internalTypes.vars[var] = type->alias_for.exists()?type->internalTypes.vars[type->alias_for]:type;
+        vars[var] = type->alias_for.exists()?type->vars[type->alias_for]:type;
         return next_var(imp, p, var, types);
     }
     if(type->_is_primitive) {
@@ -395,11 +395,11 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             current_renaming[unpacks[i]] = var+type->args[i].name;
         }
     }
-    for(const auto& it : type->internalTypes.vars) 
-        internalTypes.vars[var+it.first] = it.second;
+    for(const auto& it : type->vars) 
+        vars[var+it.first] = it.second;
     for(const auto& final : transfer_finals) 
         immediate_finals = immediate_finals+type->rebase(final.second, var);
-    internalTypes.vars[var] = type->alias_for.exists()?type->internalTypes.vars[type->alias_for]:type;
+    vars[var] = type->alias_for.exists()?type->vars[type->alias_for]:type;
     implementation +=type->rebase(type->implementation, var)+immediate_finals;
     for(const string& pre : type->preample) 
         add_preample(pre);
@@ -415,11 +415,11 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         current_renaming[var+it.first] = var+it.second;
     for(const auto& it : type->active_calls) 
         active_calls[var+it.first] = var+it.second;
-    for(const auto& it : type->internalTypes.vars) 
+    for(const auto& it : type->vars) 
         if(it.second) { // TODO: remove this if (currently it guards against some leftover labels)
             if(!it.second) 
                 imp->error(--p, type->name.to_string()+"."+pretty_var(it.first.to_string())+" is undefined");
-            internalTypes.vars[var+it.first] = it.second;
+            vars[var+it.first] = it.second;
         }
     //finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
     if(type->packs.size()==1) 

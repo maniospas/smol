@@ -19,7 +19,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
     bool hasComma = false;
     if(is_service && is_zero_level) {
         packs.push_back(ERR_VAR);
-        internalTypes.vars[ERR_VAR] = types.vars[ERRCODE_VAR];
+        vars[ERR_VAR] = types.vars[ERRCODE_VAR];
     }
     if(next==AT_VAR) {
         next = imp->at(p++);
@@ -31,15 +31,15 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
             && !ranges::any_of(packs, [](const Variable& pack) {return pack == ERR_VAR;})
         ) {
             packs.push_back(ERR_VAR);
-            internalTypes.vars[ERR_VAR] = types.vars[ERRCODE_VAR];
+            vars[ERR_VAR] = types.vars[ERRCODE_VAR];
         }
         for (const auto& arg : args) {
             Variable next = arg.name;
-            if(internalTypes.vars[next]->_is_primitive) 
+            if(vars[next]->_is_primitive) 
                 packs.push_back(next);
-            else for(const Variable& pack : internalTypes.vars[next]->packs) {
+            else for(const Variable& pack : vars[next]->packs) {
                 packs.push_back(next+pack);
-                if(internalTypes.contains(next+pack) && internalTypes.vars[next+pack]->name==NOM_VAR && !alignments[next+pack]) 
+                if(contains(next+pack) && vars[next+pack]->name==NOM_VAR && !alignments[next+pack]) 
                     imp->error(--p, "Returned an unset nominal value "
                         +pretty_var(next.to_string()+"__"+pack.to_string())
                         +"\nAdd a nominal variable as the first argument to the signature and return that instead."
@@ -63,7 +63,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
     // we are starting parenthesis
     while(true) {
         next = parse_expression(imp, p, imp->at(p++), types);
-        if(!internalTypes.contains(next)) 
+        if(!contains(next)) 
             break;
         if(released[next]) 
             imp->error(--p, "Returned a released resource: "
@@ -75,20 +75,20 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                 +pretty_var(next.to_string())
                 +"\nThose can only be returned from smo runtypes"
             );
-        if(!internalTypes.vars[next]->not_primitive()) {
-            if(internalTypes.contains(next) && internalTypes.vars[next]->name==NOM_VAR && !alignments[next]) 
+        if(!vars[next]->not_primitive()) {
+            if(contains(next) && vars[next]->name==NOM_VAR && !alignments[next]) 
                 imp->error(--p, "You are returning @noshare data from a service: "
                     +pretty_var(next.to_string())
                     +"\nAdd an align first variable to the signature and return that instead"
                 );
             if(is_service && !uplifting_targets.size()) {
                 implementation += Code(VALUE_VAR,ASSIGN_VAR,next,SEMICOLON_VAR);
-                if(internalTypes.contains(VALUE_VAR) && internalTypes.vars[VALUE_VAR]!=internalTypes.vars[next]) 
+                if(contains(VALUE_VAR) && vars[VALUE_VAR]!=vars[next]) 
                     imp->error(--p, "Returning single value of multiple types "
-                        +internalTypes.vars[VALUE_VAR]->name.to_string()
-                        +" and "+internalTypes.vars[next]->name.to_string()
+                        +vars[VALUE_VAR]->name.to_string()
+                        +" and "+vars[next]->name.to_string()
                     );
-                internalTypes.vars[VALUE_VAR] = internalTypes.vars[next];
+                vars[VALUE_VAR] = vars[next];
                 packs.push_back(VALUE_VAR);
             }
             else 
@@ -96,35 +96,35 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
         }
         else {
             // not primitives here
-            if(internalTypes.vars.find(next)==internalTypes.vars.end()) 
+            if(vars.find(next)==vars.end()) 
                 imp->error(--p, "Not found: "
                     +pretty_var(next.to_string())
                     +recommend_variable(types, next)
                 );
             if(!hasComma && p<imp->size() && imp->at(p)!=",") {
                 alias_for = next;
-                noborrow = internalTypes.vars[alias_for]->noborrow;
-                noassign = internalTypes.vars[alias_for]->noassign;
+                noborrow = vars[alias_for]->noborrow;
+                noassign = vars[alias_for]->noassign;
                 if(noborrow && !imp->allow_unsafe) 
                     imp->error(--p, "Rerurned a @noborrow variable "
                         +pretty_var(alias_for.to_string())
                         +"\nThis is unsafe behavior. Declare the file as @unsafe by placing this at the top level (typically right after imports)."
                     );
-                if(internalTypes.vars[alias_for]->alias_for.exists()) 
-                    alias_for = next+internalTypes.vars[alias_for]->alias_for;
-                for(const Variable& pack : internalTypes.vars[next]->packs) {
+                if(vars[alias_for]->alias_for.exists()) 
+                    alias_for = next+vars[alias_for]->alias_for;
+                for(const Variable& pack : vars[next]->packs) {
                     if(released[next+pack]) 
                         imp->error(--p, "Returned a releaased resource: "
                             +pretty_var((next+pack).to_string())
                             +"\nA previous @release has already ran any attached finalization and invalidataed the variable."
                         );
-                    if(internalTypes.contains(pack) && internalTypes.vars[pack]!=internalTypes.vars[next]->internalTypes.vars[pack]) 
+                    if(contains(pack) && vars[pack]!=vars[next]->vars[pack]) 
                         imp->error(--p, "Mismatched types for: "
                             +pretty_var(pack.to_string())
                             +"\nThe current declaration wraps a base type that declares the same internal variable name with a different type."
                         );
                     assign_variable(
-                        internalTypes.vars[next]->internalTypes.vars[pack], 
+                        vars[next]->vars[pack], 
                         pack, 
                         next+pack, 
                         imp,
@@ -142,29 +142,29 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                             );
                     }
                     packs.push_back(pack);
-                    if(internalTypes.vars[next]->buffer_types.find(pack)!=internalTypes.vars[next]->buffer_types.end())
-                        internalTypes.vars[pack] = internalTypes.vars[next]->buffer_types[pack];
-                    if(internalTypes.contains(pack) && internalTypes.vars[pack]->name==NOM_VAR && !alignments[pack]) 
+                    if(vars[next]->buffer_types.find(pack)!=vars[next]->buffer_types.end())
+                        vars[pack] = vars[next]->buffer_types[pack];
+                    if(contains(pack) && vars[pack]->name==NOM_VAR && !alignments[pack]) 
                         imp->error(--p, "You are returning an unset align "
                             +pretty_var(pack.to_string())
                             +"\nAdd an align first variable to the signature and return that instead."
                         );
                 }
                 mutables.clear();
-                for(const Variable& mut : internalTypes.vars[next]->mutables) 
+                for(const Variable& mut : vars[next]->mutables) 
                     mutables.insert(mut);
-                for(const auto& it : internalTypes.vars[next]->finals) 
+                for(const auto& it : vars[next]->finals) 
                     finals[it.first] = finals[it.first]+it.second;
             }
             else {
-                for(const Variable& pack : internalTypes.vars[next]->packs) {
+                for(const Variable& pack : vars[next]->packs) {
                     Variable next_pack = next+pack;
                     if(released[next_pack]) 
                         imp->error(--p, "Returned a releaased resource: "
                             +pretty_var((next_pack).to_string())
                             +"\nA previous @release has already ran any attached finalization and invalidataed the variable."
                         );
-                    if(internalTypes.contains(next_pack) && internalTypes.vars[next_pack]->noborrow) 
+                    if(contains(next_pack) && vars[next_pack]->noborrow) 
                         imp->error(--p, "Rerurned a @noborrow variable "
                             +pretty_var(next.to_string()+"__"+pack.to_string())
                             +"\nThis is unsafe behavior. Declare the file as @unsafe by placing this at the top level (typically right after imports)."
@@ -178,7 +178,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                                 +"\nThose can only be returned from smo runtypes. Create those data in the caller (or in a wrapper runtype) and pass them to the service."
                             );
                     }
-                    if(internalTypes.contains(next_pack) && internalTypes.vars[next_pack]->name==NOM_VAR && !alignments[next_pack]) 
+                    if(contains(next_pack) && vars[next_pack]->name==NOM_VAR && !alignments[next_pack]) 
                         imp->error(--p, "Returned an unset nominal value "
                             +pretty_var(next.to_string()+"__"+pack.to_string())
                             +"\nAdd a nominal variable as the first argument to the signature and return that instead."

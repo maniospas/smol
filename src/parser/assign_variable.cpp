@@ -37,7 +37,7 @@ void Def::assign_variable(
     if(active_calls.size())
         active_calls[from] = active_calls[to];
     if(check_mutables 
-        && internalTypes.contains(from) 
+        && contains(from) 
         && mutables.find(from)==mutables.end()
     ) 
         imp->error(--p, "Cannot reassign to non-mutable: "
@@ -46,8 +46,8 @@ void Def::assign_variable(
             +"\nof free variables or fields of mutable variables"
         );
     if(to.is_private() 
-        && internalTypes.contains(to) 
-        && internalTypes.vars[to]->noborrow 
+        && contains(to) 
+        && vars[to]->noborrow 
         && mutables.find(to)!=mutables.end()
     ) 
         imp->error(--p, "Cannot reassign from @noborrow: "
@@ -67,28 +67,28 @@ void Def::assign_variable(
         if(type->packs.size()==0) 
             return;
         //cout << type->name << "\n";
-        if(internalTypes.contains(from)) {
-            if(!internalTypes.contains(to)) 
+        if(contains(from)) {
+            if(!contains(to)) 
                 imp->error(p, "Not found\nFailed to re-assign "
-                    +internalTypes.vars[from]->name.to_string()
+                    +vars[from]->name.to_string()
                     +" "+pretty_var(from.to_string())
                     +" from no-type"
                     +pretty_var(to.to_string())
                 );
-            if(internalTypes.vars[from]->canonic_type()!=internalTypes.vars[to]->canonic_type()) 
+            if(vars[from]->canonic_type()!=vars[to]->canonic_type()) 
                 imp->error(p-1, "Not found\nFailed to re-assign "
-                    +internalTypes.vars[from]->canonic_type()->name.to_string()
+                    +vars[from]->canonic_type()->name.to_string()
                     +" "+pretty_var(from.to_string())
                     +" from different type "
-                    +internalTypes.vars[to]->canonic_type()->name.to_string()
+                    +vars[to]->canonic_type()->name.to_string()
                     +" "+pretty_var(to.to_string())
                 );
         }
-        internalTypes.vars[from] = type;
+        vars[from] = type;
         for(const Variable& var : type->packs) {
-            const auto& it = type->internalTypes.vars.find(var);
+            const auto& it = type->vars.find(var);
             assign_variable(
-                it==type->internalTypes.vars.end()?nullptr:it->second, 
+                it==type->vars.end()?nullptr:it->second, 
                 from+var, 
                 to+var, 
                 i, p, true, false);
@@ -96,23 +96,23 @@ void Def::assign_variable(
         if(mutables.find(to)!=mutables.end()) 
             for(const Variable& mut : type->mutables) 
                 mutables.insert(from+mut);
-        for(const auto& it : type->internalTypes.vars) {
+        for(const auto& it : type->vars) {
             const Variable& var = it.first;
             // TODO: this brings everything - restrict only on what is actually returned (we need to keep track of complex runtypes)
-            internalTypes.vars[from+var] = internalTypes.vars[to+var];
+            vars[from+var] = vars[to+var];
         }
         return;
     }
-    const auto& it = internalTypes.vars.find(from);
+    const auto& it = vars.find(from);
     if(!type) {
-        if(it==internalTypes.vars.end() || !it->second)
+        if(it==vars.end() || !it->second)
             imp->error(p, "Not found runtype for either "
                 +pretty_var(from.to_string())
                 +" or "+pretty_var(to.to_string())
             );
     } 
-    else if(it==internalTypes.vars.end()) 
-        internalTypes.vars[from] = type;
+    else if(it==vars.end()) 
+        vars[from] = type;
     else if(it->second!=type) 
         imp->error(--p, "Cannot assign to "+it->second->name.to_string()+" "+pretty_var(from.to_string())+" from "+type->name.to_string()+" "+pretty_var(to.to_string()));
     if(type->name==NOM_VAR && to!=ZERO_VAR) {

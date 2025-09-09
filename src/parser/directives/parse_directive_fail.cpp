@@ -16,7 +16,7 @@ void Def::parse_directive_fail(const shared_ptr<Import>& imp, size_t& p, string 
     if(!imp->allow_unsafe) 
         imp->error(--p, "@fail is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     Variable fail_label = create_temp();
-    internalTypes.vars[fail_label] = types.vars[LABEL_VAR];
+    vars[fail_label] = types.vars[LABEL_VAR];
     errors = errors+Code(fail_label, COLON_VAR);
     next = imp->at(p++);
     if(next!="{") 
@@ -40,7 +40,7 @@ void Def::parse_directive_fail(const shared_ptr<Import>& imp, size_t& p, string 
             string argname = nextnext;
             string argtype = next;
             if(types.vars.find(argtype)!=types.vars.end() && !types.vars.find(argtype)->second->not_primitive()) 
-                internalTypes.vars[argname] = types.vars.find(argtype)->second;
+                vars[argname] = types.vars.find(argtype)->second;
             else 
                 imp->error(--p, "Unexpected type (can only use builtin types in C++ code, cast to the void* ptr type if need be)");
         }

@@ -38,13 +38,13 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         if(!imp->allow_unsafe) 
             imp->error(--p, "@body is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         buffer_ptr = imp->at(p++);
-        if(!internalTypes.contains(buffer_ptr) || internalTypes.vars[buffer_ptr]->name!=PTR_VAR)
+        if(!contains(buffer_ptr) || vars[buffer_ptr]->name!=PTR_VAR)
             imp->error(--p, "Expecting ptr for buffer pointer interpretation");
         buffer_size = imp->at(p++);
-        if(!internalTypes.contains(buffer_size) || internalTypes.vars[buffer_size]->name!=U64_VAR)
+        if(!contains(buffer_size) || vars[buffer_size]->name!=U64_VAR)
             imp->error(--p, "Expecting u64 for buffer size interpretation");
         buffer_release = imp->at(p++);
-        if(!internalTypes.contains(buffer_release) || internalTypes.vars[buffer_release]->name!=PTR_VAR)
+        if(!contains(buffer_release) || vars[buffer_release]->name!=PTR_VAR)
             imp->error(--p, "Expecting ptr for buffer release pointer interpretation");
     }
     else if(next=="finally") 
