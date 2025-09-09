@@ -431,9 +431,9 @@ int main(int argc, char* argv[]) {
     builtins.vars[BUFFER_VAR] = make_shared<Def>("__buffer");
     //builtins.vars[BUFFER_VAR]->args.push_back(Arg(Variable("surface"), builtins.vars[PTR_VAR], false));
     //builtins.vars[BUFFER_VAR]->args.push_back(Arg(Variable("dynamic"), builtins.vars[PTR_VAR], false));
+    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("dynamic"));// order matters
     builtins.vars[BUFFER_VAR]->packs.push_back(Variable("surface"));
-    builtins.vars[BUFFER_VAR]->packs.push_back(Variable("dynamic"));
-    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("dynamic")] = builtins.vars[PTR_VAR]; // order matters
+    builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("dynamic")] = builtins.vars[PTR_VAR]; 
     builtins.vars[BUFFER_VAR]->internalTypes.vars[Variable("surface")] = builtins.vars[PTR_VAR];
     builtins.vars[BUFFER_VAR]->_is_primitive = false;
 

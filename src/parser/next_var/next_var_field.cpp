@@ -111,11 +111,17 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
     }
     else {
         if(type_trackers.find(next)!=type_trackers.end())
-            imp->error(--p, "Not found "+next_token+" in "+internalTypes.vars[next]->signature(types));
+            imp->error(--p, "Not found: "
+                +pretty_var(next_token)
+                +" in "+internalTypes.vars[next]->signature(types)
+            );
         //if(!internalTypes.contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
         if(internalTypes.vars[next]->buffer_ptr==next_token)
             if(!can_mutate(next+next_token) && !imp->allow_unsafe)
-                imp->error(--p, "Buffer surface is not mutable: "+pretty_var(next.to_string()+"__"+next_token)+"\nIt might have been used elsewhere. Mark this file as @unsafe to allow a union view.");
+                imp->error(--p, "Buffer surface is not mutable: "
+                    +pretty_var(next.to_string()+"__"+next_token)
+                    +"\nIt might have been used elsewhere. Mark this file as @unsafe to allow a union view."
+                );
         has_been_service_arg[next+next_token] = true;
         next = next+next_token;
         if(p>=imp->size()) 

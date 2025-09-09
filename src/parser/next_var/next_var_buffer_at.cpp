@@ -69,8 +69,9 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
     );
     Variable elem = create_temp();
     Variable packname = EMPTY_VAR;
-    if(p<i->size()-1 && i->at(p) == ".") 
-        packname = i->at(p+1); 
+    // TODO: the following has only issue with buffers stored into buffers
+    //if(p<i->size()-1 && i->at(p) == ".") 
+    //    packname = i->at(p+1); 
 
     size_t pack_index = 0;
     if(buffer_types[next]->_is_primitive) {
@@ -121,7 +122,8 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
                 }
             }
             else {
-                if(packname.is_empty() || packname==pack) {
+               if(packname.is_empty() || packname==pack) 
+               {
                     Variable tmp = create_temp();
                     if(mutables.find(next)!=mutables.end() 
                         && buffer_types[next]->mutables.find(pack)
@@ -129,6 +131,8 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
                     ) 
                         mutables.insert(tmp);
                     internalTypes.vars[tmp] = buffer_types[next]->internalTypes.vars[pack];
+                    if(buffer_types[next]->buffer_types.find(pack)!=buffer_types[next]->buffer_types.end())
+                        buffer_types[tmp] = buffer_types[next]->buffer_types[pack];
                     implementation += Code(
                         Variable("memcpy(&"), 
                         tmp, 

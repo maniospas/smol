@@ -55,17 +55,14 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                     if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
                     if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i].to_string()+" argument "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
                     if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) {}//REMINDER THAT THIS IS AN ERROR THAT POLUTES NEXT LOOP: alignments[unpacks[i]] = type->alignments[type->args[i].name];
-                    else throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name.to_string())+"__"+ pretty_var(type->args[i].name.to_string())
+                    else throw runtime_error(type->signature(types));/*+": nominal "+pretty_var(type->name.to_string())+"__"+ pretty_var(type->args[i].name.to_string())
                         +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
                         +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
+                    */
                 }
                 arg_progress++;
                 if(buffer_types.find(unpacks[i])!=buffer_types.end() && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) 
-                    imp->error(first_token_pos, "Not compatible buffer: "
-                        +pretty_var(unpacks[i].to_string())
-                        +" holds "+buffer_types[unpacks[i]]->signature(types)
-                        +" but calls "+type->buffer_types[type->args[i].name]->signature(types)
-                    );
+                    throw runtime_error(type->signature(types));
                     
                 arg_progress++;
                 if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 
@@ -166,16 +163,11 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                             +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
                     }
                     arg_progress++;
-                    if(arg_type->name==BUFFER_VAR && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) 
-                        imp->error(first_token_pos, "Not compatible buffer: "
-                            +pretty_var(unpacks[i].to_string())
-                            +" holds "+buffer_types[unpacks[i]]->signature(types)
-                            +" but passed to "+type->buffer_types[type->args[i].name]->signature(types)
-                        );
-                  
+                    if(buffer_types.find(unpacks[i])!=buffer_types.end() && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) 
+                        throw runtime_error(type->signature(types));
                     arg_progress++;
                     if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 
-                        throw runtime_error(type->signature(types));
+                        throw runtime_error(type->signature(types));     
                 }
                 if(type->choice_power>highest_choice_power) {
                     highest_choice_power = type->choice_power;
