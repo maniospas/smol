@@ -40,7 +40,9 @@ jobs:
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          install: mingw-w64-x86_64-gcc
+          install: >-
+            mingw-w64-x86_64-gcc
+            make
           update: true
 
       - name: Build executable (Windows)
@@ -49,10 +51,11 @@ jobs:
           make
 
       - name: Prepare release artifacts
+        shell: msys2 {0}
         run: |
-          mkdir release-windows
-          copy smol.exe release-windows\
-          xcopy std release-windows\std\ /E /I
+          mkdir -p release-windows/std
+          cp smol.exe release-windows/
+          cp -r std/* release-windows/std/
 
       - name: Upload artifacts (Windows)
         uses: actions/upload-artifact@v4
@@ -60,8 +63,30 @@ jobs:
           name: smol-windows
           path: release-windows/
 
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Build executable (macOS)
+        run: |
+          make
+
+      - name: Prepare release artifacts
+        run: |
+          mkdir release-macos
+          cp smol release-macos/
+          cp -r std release-macos/
+
+      - name: Upload artifacts (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: smol-macos
+          path: release-macos/
+
   release:
-    needs: [build-linux, build-windows]
+    needs: [build-linux, build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
@@ -81,10 +106,17 @@ jobs:
           name: smol-windows
           path: smol-windows
 
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: smol-macos
+          path: smol-macos
+
       - name: Create release archive
         run: |
           zip -r smol-linux.zip smol-linux
           zip -r smol-windows.zip smol-windows
+          zip -r smol-macos.zip smol-macos
 
       - name: Generate changelog from commits since last tag
         id: changelog
@@ -116,7 +148,7 @@ jobs:
           files: |
             smol-linux.zip
             smol-windows.zip
+            smol-macos.zip
           body: ${{ steps.changelog.outputs.changelog }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

@@ -1,0 +1,34 @@
+#include "../../../def.h"
+
+
+Variable Def::parse_on(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+    if(curry.exists()) 
+        imp->error(p, "Cannot curry onto `on`");
+    if(active_context.exists()) 
+        imp->error(p, "There is already an active context in this implementation\nEnd its code block to enter a new context with `on`.");
+    string next = imp->at(p++);
+    active_context = parse_expression(imp,p,next,types,curry);
+    if(!active_context.exists() || !contains(active_context))
+        imp->error(--p, "Expression does not evaluate to a variable to use as `on` context");
+    if(vars[active_context]->noassign && !imp->allow_unsafe)
+        imp->error(--p, "Cannot use as en `on` context a variable marked as @noassign\nThis is considered unsafe behavior and can only be enabled with @unsafe");
+    Variable temp = create_temp();
+    Variable finally_var = temp+Variable("on");
+    vars[finally_var] = types.vars[LABEL_VAR];
+    //int on_start = p-1;
+    uplifting_targets.push_back(finally_var);
+    if(uplifiting_is_loop.size()) 
+        uplifiting_is_loop.push_back(uplifiting_is_loop.back());
+    else 
+        uplifiting_is_loop.push_back(false);
+    parse(imp, p, types, false);
+    uplifting_targets.pop_back();
+    uplifiting_is_loop.pop_back();
+    p++;
+    Variable var = finally_var+Variable("r");
+    if(!contains(var)) 
+        var = EMPTY_VAR;
+    implementation +=Code(finally_var,COLON_VAR);
+    active_context = EMPTY_VAR;
+    return var;
+}
