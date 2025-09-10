@@ -13,10 +13,14 @@
 @about "Raylib wrapper for smoλ providing window, input and drawing primitives."
 
 smo Color(u64 r, u64 g, u64 b, u64 a) 
-    if r>255 -> fail("Color r greater than 255")
-    if g>255 -> fail("Color g greater than 255")
-    if b>255 -> fail("Color b greater than 255")
-    if a>255 -> fail("Color a greater than 255")
+    if r>255 
+        -> fail("Color r greater than 255")
+    if g>255 
+        -> fail("Color g greater than 255")
+    if b>255 
+        -> fail("Color b greater than 255")
+    if a>255 
+        -> fail("Color a greater than 255")
     -> @args
 
 smo Position(f64 x, f64 y)
@@ -25,8 +29,10 @@ smo Position(f64 x, f64 y)
 smo Size(f64 w, f64 h)
     -> @args
 
-smo Window(nominal)
-    @nozero
+smo Window(nominal, Size size, cstr _title)
+    title = _title:str
+    @nozero // always require an instantiated window
+    @noother "std.ray.Window" // exactly one window per program
     @noborrow
     @head{#include "raylib.h"}
     @link{-Istd/raylib/raylib-5.5_linux_amd64/include}
@@ -37,12 +43,8 @@ smo Window(nominal)
     @link{-lpthread}
     @link{-lGL}
     @link{-lX11}
-    -> @args
-
-smo open(Window &window, Size size, cstr _title)
-    title = _title:str
     @body{ SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title__contents); }
-    -> window
+    -> @args
 
 smo close(Window &window)
     --
@@ -65,7 +67,15 @@ smo clear(Window &window, Color color)
 
 smo text(Window &window, CString _txt, Position pos, f64 size, Color color)
     txt = _txt:nstr
-    @body{DrawText((char*)txt__contents, pos__x, pos__y, size, (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}); }
+    @body{
+        DrawText(
+            (char*)txt__contents, 
+            pos__x, 
+            pos__y, 
+            size, 
+            (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}
+        ); 
+    }
     -> window
 
 smo Color(u64 r, u64 g, u64 b)
@@ -100,7 +110,9 @@ smo draw(Window &window, Texture tex, Position pos, Color color)
 
 smo circ(Window &window, Position pos, f64 radius, Color color)
     @body{
-        DrawCircleV((Vector2){(float)pos__x, (float)pos__y}, (float)radius,
+        DrawCircleV(
+            (Vector2){(float)pos__x, (float)pos__y}, 
+            (float)radius,
             (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a});
     }
     -> window
@@ -123,6 +135,15 @@ smo circ_line(Window &window, Position pos, u64 radius, u64 thickness, Color col
     @body{
         f64 inner = (radius > thickness) ? (float)(radius - thickness) : 0.0f;
         f64 outer = (float)radius;
-        DrawRing((Vector2){(float)pos__x, (float)pos__y}, inner, outer, 0, 360, 64, (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a});
+        DrawRing(
+            (Vector2){(float)pos__x, 
+            (float)pos__y}, 
+            inner, 
+            outer, 
+            0, 
+            360, 
+            64, 
+            (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}
+        );
     }
     -> window

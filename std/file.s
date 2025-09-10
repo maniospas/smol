@@ -97,17 +97,22 @@ smo to_end(WriteFile &f)
 smo len(File &f)
     @head{#include <stdio.h>}
     @body{
-        u64 pos = ftell((FILE*)f__contents);
         u64 size = 0;
-        if(pos != -1L && fseek((FILE*)f__contents, 0, SEEK_END) == 0) {
-            size = ftell((FILE*)f__contents);
-            fseek((FILE*)f__contents, pos, SEEK_SET);
+        if(f__contents) {
+            u64 pos = ftell((FILE*)f__contents);
+            if(pos != -1L && fseek((FILE*)f__contents, 0, SEEK_END) == 0) {
+                size = ftell((FILE*)f__contents);
+                fseek((FILE*)f__contents, pos, SEEK_SET);
+            }
         }
     }
     -> size
 
 smo write(WriteFile &f, String _s)
     s = _s:str
+    if f.contents:exists:not 
+        @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
+        --
     @head{#include <stdio.h>}
     @body{
         u64 bytes_written = fwrite((char*)s__contents, 1, s__length, (FILE*)f__contents);
@@ -139,7 +144,8 @@ smo next_chunk (
     @head{#include <stdlib.h>}
     @body{
         u64 bytes_read = f__contents?fread((char*)contents, 1, size, (FILE*)f__contents):0;
-        if(!bytes_read) ((char*)contents)[bytes_read] = 0; // Null-terminate for cstr compatibility of `first`
+        if(!bytes_read) 
+            ((char*)contents)[bytes_read] = 0; // Null-terminate for cstr compatibility of `first`
         ptr ret = bytes_read ? (ptr)contents : 0;
         char first = ((char*)contents)[0];
         reader__length = reader__length + bytes_read;
@@ -163,7 +169,8 @@ smo next_line (
         char first = ((char*)contents)[0];
         if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 10) {
             bytes_read--;
-            if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 13) bytes_read--;
+            if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 13) 
+                bytes_read--;
             ((char*)reader__contents__mem)[bytes_read] = 0;
         }
         reader__length = reader__length + bytes_read;

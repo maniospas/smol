@@ -62,7 +62,7 @@ service test()
 
     &dt = 0.0
 
-    &window = nominal:Window:open(800.0, 450.0, "Hello from smoλ+raylib")
+    &window = nominal:Window(800.0, 450.0, "Hello from smoλ+raylib")
     &prev_t = time()
     &accum_fps = 3600.0
     on Heap:volatile(1024)

@@ -223,6 +223,15 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     if(type->lazy_compile) 
         imp->error(pos, "Internal error: Runtype has not been compiled");
 
+    for(const Variable& singleton : type->singletons) 
+        if(singletons.find(singleton)==singletons.end())
+            singletons.insert(singleton);
+        else
+            imp->error(--p, "This resource family "
+                +singleton.to_string()
+                +" has been claimed by a previous @noother (e.g., in a call)"
+            );
+
     // repeat here to properly handle alignment (which we couldn't previously)
     for(size_t i=0;i<unpacks.size();++i) {
         auto arg_type = type->_is_primitive?type:type->args[i].type;

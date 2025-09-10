@@ -202,6 +202,7 @@ public:
     bool lazy_compile;
     bool noborrow;
     bool nozero;
+    bool single;
     bool unresolved_options;
     bool has_tried_to_resolve_before;
     bool noassign;
@@ -219,6 +220,7 @@ public:
     Variable active_context;
     set<string> preample;
     set<string> linker;
+    unordered_set<Variable> singletons;
     unordered_map<Variable, Type> buffer_types;
     unordered_map<Variable, Variable> active_calls;
     unordered_map<Variable, Variable> original_calls;
