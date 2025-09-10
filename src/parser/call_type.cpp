@@ -222,7 +222,8 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         );
     if(type->lazy_compile) 
         imp->error(pos, "Internal error: Runtype has not been compiled");
-
+    
+    // singleton resources should never be called twice in a program
     for(const Variable& singleton : type->singletons) 
         if(singletons.find(singleton)==singletons.end())
             singletons.insert(singleton);
@@ -231,6 +232,17 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 +singleton.to_string()
                 +" has been claimed by a previous @noother (e.g., in a call)"
             );
+    
+    // acquired resources should never be called twice by services because they require sequential execution
+    if(type->is_service)
+        for(const Variable& acq : type->acquired) 
+            if(acquired.find(acq)==acquired.end())
+                acquired.insert(acq);
+            else
+                imp->error(--p, "This resource family "
+                    +acq.to_string()
+                    +" has @acquire in a previous service call"
+                );
 
     // repeat here to properly handle alignment (which we couldn't previously)
     for(size_t i=0;i<unpacks.size();++i) {

@@ -22,18 +22,20 @@
 @about read "Reads several string and primitive types from console text input given by the user; they need to press enter after entering the input. String reading is restricted to 1024 bytes allocated on the heap. You can have more control of string reading on alternatives. Non-string variations of this method are restricted to local variables. Invalid inputs create service failures."
 
 smo read(i64)
+    @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @body{
         i64 number = 0;
         char ch = 0;
         i64 result = scanf("%ld%c", &number, &ch);
-        bool success = (result == 2 && ch == 13);
+        bool success = (result == 2 && (ch == 13 || ch == 10));
     }
     if success:not 
         @fail{printf("Error: invalid integer read\n");} 
     ---> number
 
 smo read(u64)
+    @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @body{
         u64 number = 0;
@@ -43,7 +45,7 @@ smo read(u64)
         if(first != "-"[0] && first != EOF) {
             ungetc(first, stdin);
             i64 result = scanf("%lu%c", &number, &ch);
-            success = (result == 2 && ch == 13);
+            success = (result == 2 && (ch == 13 || ch == 10));
         }
     }
     if success:not 
@@ -51,12 +53,13 @@ smo read(u64)
     ---> number
 
 smo read(f64)
+    @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @body{
         f64 number = 0;
         char ch = 0;
         i64 result = scanf("%lf%c", &number, &ch);
-        bool success = (result == 2 && ch == 13);
+        bool success = (result == 2 && (ch == 13 || ch == 10));
     }
     if success:not 
         @fail{printf("Error: invalid number read\n");} 
@@ -88,7 +91,8 @@ smo convert(i64, String _s)
                     success = false;
                 }
             }
-            if (negative) number = -number;
+            if (negative) 
+                number = -number;
         }
     }
     if success:not 
@@ -102,14 +106,16 @@ smo convert(u64, String _s)
         u64 number = 0;
         bool success = true;
 
-        if (s__length == 0) success = false;
+        if (s__length == 0) 
+            success = false;
         else {
             char *chars = (char*)s__contents;
             for (u64 i = 0; i < s__length && success; i++) {
                 char c = chars[i];
                 if (c >= '0' && c <= '9') {
                     number = number * 10 + (c - '0');
-                } else {
+                } 
+                else {
                     success = false;
                 }
             }
@@ -127,7 +133,8 @@ smo convert(f64, String _s)
         bool success = true;
         bool negative = false;
 
-        if(s__length == 0) success = false;
+        if(s__length == 0) 
+            success = false;
         else {
             char *chars = (char*)s__contents;
             u64 i = 0;

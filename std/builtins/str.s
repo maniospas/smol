@@ -152,11 +152,15 @@ smo neq(char x, char y)
 
 smo slice(String self, u64 from, u64 to) 
     s = self:str
-    if to<from @fail{printf("String slice cannot end before it starts\n");} --
-    if to>s.length @fail{printf("String slice must end at most at the length of the base string\n");} --
+    if to<from 
+        @fail{printf("String slice cannot end before it starts\n");} 
+        --
+    if to>s.length 
+        @fail{printf("String slice must end at most at the length of the base string\n");} 
+        --
     @body{
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
-        char first = from==to?'\0':((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
+        char first = from==to?0:((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
     }
     -> nominal:str(contents, to-from, first, s.contents)
     
@@ -170,12 +174,14 @@ smo strip(String _s)
         u64 end = s__length;
         while(start < end) {
             char c = ((char*)s__contents)[start];
-            if (c == 32 || c == 9 || c == 13 || c == 10) start++; // ' ', '\t', '\r', '\n'
+            if (c == 32 || c == 9 || c == 13 || c == 10) 
+                start++; // ' ', '\t', '\r', '\n'
             else break;
         }
         while(end > start) {
             char c = ((char*)s__contents)[end - 1];
-            if (c == 32 || c == 9 || c == 13 || c == 10) end--;
+            if (c == 32 || c == 9 || c == 13 || c == 10) 
+                end--;
             else break;
         }
     }
@@ -185,7 +191,7 @@ smo eq(String _x, IndependentString _y)
     x = _x:str
     y = _y:str
     @head{#include <string.h>}
-    @body{bool z = x__first==y__first && (x__length == y__length) && memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) == 0;}
+    @body{bool z = x__first==y__first && (x__length == y__length) && (memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) == 0);}
     -> z
 
 smo neq(String _x, IndependentString _y)
@@ -196,9 +202,9 @@ smo neq(String _x, IndependentString _y)
         //printf("x: '%s', length: %zu\n", ((char*)x__contents), x__length - 1);
         //printf("y: '%s', length: %zu\n", ((char*)y__contents), y__length - 1);
 
-        bool z = x__first != y__first ||
-                (x__length != y__length) ||
-                memcmp((char*)x__contents + 1, (char*)y__contents + 1, x__length - 1) != 0;
+        bool z = (x__first != y__first) 
+                || (x__length != y__length) 
+                || (memcmp((char*)x__contents + 1, (char*)y__contents + 1, x__length - 1) != 0);
     }
     -> z
 
@@ -215,7 +221,9 @@ smo len(cstr x)
     -> z
 
 smo at(str x, u64 pos) 
-    if x__length<=pos @fail{printf("String index out of bounds\n");} --
+    if x__length<=pos 
+        @fail{printf("String index out of bounds\n");} 
+        --
     // trying to help the compiler below, but maybe it's too clever and it can optimize that
     @body{char z= (__builtin_constant_p(pos) && pos == 0) ? x__first: ((char*)x__contents)[pos];} 
     -> z
@@ -245,7 +253,8 @@ smo next(
             if self.sep==self.query[self.pos to self.pos+self.sep:len] 
                 if self.pos>prev value = self.query[prev to self.pos] searching = false --
                 self.pos = self.pos+self.sep:len
-            -- else 
+                -- 
+            else 
                 self.pos = self.pos+1
             ----
         if searching
@@ -253,3 +262,11 @@ smo next(
             value = self.query[prev to self.pos] 
     -----> ret
 
+
+smo print(str[] messages)
+    &i = 0
+    n = messages:len
+    while i<n
+        print(messages[i])
+        i = i+1
+    ----

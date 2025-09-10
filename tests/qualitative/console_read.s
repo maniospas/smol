@@ -4,7 +4,7 @@
 
 service main()
     &console = WriteFile:console()
-    console:write("what's your name? ")
+    console:print("what's your name? ")
     on Stack:arena(1024)
         console:next_line(str& s)
         print("Hi "+s:strip+"!")

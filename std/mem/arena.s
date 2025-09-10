@@ -139,6 +139,7 @@ smo allocate(Volatile &self, u64 _size, Primitive)
     -> nominal:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
 smo read(Arena &self)
+    @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}

@@ -4,7 +4,7 @@
 
 service main()
     &console = WriteFile:console()
-    console:write("hello world!\n")
+    console:print("hello world!\n")
     printin("Press enter here to close the open console...")
     Stack:arena(2):read
     @release console // safely close the resource preemptively

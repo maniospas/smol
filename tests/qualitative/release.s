@@ -2,6 +2,7 @@
 
 @include std.builtins
 @include std.map
+@include std.mem
 
 
 service test() 

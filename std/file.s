@@ -346,19 +346,24 @@ smo console(WriteFile&)
     @body{
         bool has_display = getenv("DISPLAY") || getenv("WAYLAND_DISPLAY");
         bool has_gui = has_display;
-        if(getenv("SSH_CONNECTION") && !has_display) has_gui = false;
-        if(getenv("TERM_PROGRAM") && !has_display) has_gui = true;
-        {   FILE* wsl_check = fopen("/proc/version","r");
+        if(getenv("SSH_CONNECTION") && !has_display) 
+            has_gui = false;
+        if(getenv("TERM_PROGRAM") && !has_display) 
+            has_gui = true;
+        {
+            FILE* wsl_check = fopen("/proc/version","r");
             if(wsl_check){
                 char buf[256];
                 if(fread(buf,1,sizeof(buf)-1,wsl_check) > 0){
                     buf[sizeof(buf)-1] = 0;
-                    if(strstr(buf,"Microsoft") || strstr(buf,"WSL")) has_gui = has_display;
+                    if(strstr(buf,"Microsoft") || strstr(buf,"WSL")) 
+                        has_gui = has_display;
                 }
                 fclose(wsl_check);
             }
         }
-        if((getenv("MSYSTEM") || getenv("CYGWIN")) && !has_display) has_gui = false;
+        if((getenv("MSYSTEM") || getenv("CYGWIN")) && !has_display) 
+            has_gui = false;
         if(!has_gui && isatty(STDIN_FILENO)) has_gui = false;
     }
     if has_gui:not 

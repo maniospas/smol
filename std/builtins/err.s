@@ -19,11 +19,11 @@
 @include std.builtins.str
 @unsafe
 @about "Standard library implementations of error utilities."
-@about ok    "Checks if an error code corresponds to no error. If it does not, the service fails while printing the type of error. Error codes can be user errors, buffer errors, unknown errors, or no errors."
+@about assert_ok "Checks if an error code corresponds to no error. If it does not, the service fails while printing the type of error. Error codes can be user errors, buffer errors, unknown errors, or no errors."
 @about fail  "Causes the current service to fail given a String message. This creates a user error code."
 @about print "Prints an interpretation of the error code. Error codes can be user errors, buffer errors, unknown errors, or no errors."
 
-smo ok(errcode error)
+smo assert_ok(errcode error)
     @body{bool isuser = (error==__USER__ERROR);}
     @body{bool isbuffer = (error==__BUFFER__ERROR);}
     @body{bool iserror = (error==__BUFFER__ERROR);}

@@ -36,6 +36,18 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
             );
         singletons.insert(next_query);
     }
+    else if(next=="acquire") {
+        next = imp->at(p++);
+        if(next.size()<2 || next[0]!='"' || next[next.size()-1]!='"')
+            imp->error(--p, "A cstr is required to indicate a resource family id");
+        Variable next_query = next;
+        if(acquired.find(next_query)!=singletons.end())
+            imp->error(--p, "This resource family "
+                +next
+                +" has @acquire in a previous call"
+            );
+        acquired.insert(next_query);
+    }
     else if(next=="noshare") {
         static const Variable token_transient_end = Variable(")\n");
         next = imp->at(p++);
