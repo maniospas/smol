@@ -62,7 +62,7 @@ void Def::parse_directive_finally(const shared_ptr<Import>& imp, size_t& p, stri
                     ++p;
                     nextnext = imp->at(p);
                 }
-            if(next=="goto") 
+            if(next=="goto" && nextnext!="__failsafe") 
                 vars[nextnext] = types.vars[LABEL_VAR];
             finals += Code(move(Variable(next)));
         }

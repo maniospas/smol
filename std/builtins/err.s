@@ -27,9 +27,20 @@ smo ok(errcode error)
     @body{bool isuser = (error==__USER__ERROR);}
     @body{bool isbuffer = (error==__BUFFER__ERROR);}
     @body{bool iserror = (error==__BUFFER__ERROR);}
-    if isuser @fail{printf("User error\n");} --
-    if isbuffer @fail{printf("Buffer error\n");} --
-    if iserror @fail{printf("Unknown error\n");} --
+    @body{bool isunhandled = (error==__UNHANDLED__ERROR);}
+    
+    if isuser 
+        @fail{printf("User error\n");} 
+        --
+    if isbuffer 
+        @fail{printf("Buffer error\n");} 
+        --
+    if isunhandled 
+        @fail{printf("Unhandled error\n");}
+         --
+    if iserror 
+        @fail{printf("Unknown error\n");}
+         --
     --
 
 smo fail(cstr error)
@@ -45,11 +56,16 @@ smo fail(str error)
 smo print(errcode error)
     @head{#include <stdio.h>}
     @body{
-        if(error==__USER__ERROR)printf("User error\n"); 
-        else if(error==__BUFFER__ERROR)printf("Buffer error\n"); 
-        else if(error==__UNHANDLED__ERROR)printf("Unhandled error\n"); 
-        else if(error)printf("Unknown error\n");
-        else printf("No error\n");
+        if(error==__USER__ERROR)
+            printf("User error\n"); 
+        else if(error==__BUFFER__ERROR)
+            printf("Buffer error\n"); 
+        else if(error==__UNHANDLED__ERROR)
+            printf("Unhandled error\n"); 
+        else if(error)
+            printf("Unknown error\n");
+        else 
+            printf("No error\n");
     }
     -- 
 

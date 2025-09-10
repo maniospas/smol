@@ -29,8 +29,7 @@ smo Position(f64 x, f64 y)
 smo Size(f64 w, f64 h)
     -> @args
 
-smo Window(nominal, Size size, cstr _title)
-    title = _title:str
+smo Window(nominal, Size size, cstr title)
     @nozero // always require an instantiated window
     @noother "std.ray.Window" // exactly one window per program
     @noborrow
@@ -43,7 +42,7 @@ smo Window(nominal, Size size, cstr _title)
     @link{-lpthread}
     @link{-lGL}
     @link{-lX11}
-    @body{ SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title__contents); }
+    @body{ SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title); }
     -> @args
 
 smo close(Window &window)

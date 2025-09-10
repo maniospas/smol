@@ -38,15 +38,18 @@ Task parse_task(const string& arg) {
     throw invalid_argument("Unknown task: " + arg);
 }
 
-void codegen(map<string, Types>& files, string file, const Memory& builtins, Task selected_task, string& task_report) {
+bool codegen(map<string, Types>& files, string file, const Memory& builtins, Task selected_task, string& task_report) {
     Types& types = files[file];
-    if(types.vars.size()) return;
+    if(types.vars.size()) 
+        return false;
     auto imp = tokenize(file);
     types.imp = imp;
-    for(const auto& it : builtins.vars) types.vars[it.first] = it.second;
+    for(const auto& it : builtins.vars) 
+        types.vars[it.first] = it.second;
     unordered_set<string> imported;
     size_t p = 0;
     size_t warnings = 0;
+    bool errors = 0;
     if(imp->tokens.size()) while(p<imp->tokens.size()-1) {
         try {
             if (imp->at(p) == "@" && imp->at(p + 1) == "unsafe") {
@@ -74,7 +77,7 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     ifstream file(path);
                     if (!file) imp->error(p, "Could not open file: " + path);
                 }
-                codegen(files, path, builtins, selected_task, task_report);
+                errors = codegen(files, path, builtins, selected_task, task_report) || errors;
                 unordered_set<Variable> filter;
                 if(p<imp->size()-1 && imp->at(p+1)=="-") {
                     p += 2;
@@ -307,8 +310,10 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
 
     for(const auto& err : types.all_errors) {
         cerr << err.first;
-        if(types.suppressed.find(err.first)!=types.suppressed.end()) cerr << "\033[33m -- "<<types.suppressed[err.first]<<" similar errors in this file\033[0m";
+        if(types.suppressed.find(err.first)!=types.suppressed.end()) 
+            cerr << "\033[33m -- "<<types.suppressed[err.first]<<" similar errors in this file\033[0m";
         cerr << err.second << "\n";
+        errors = true;
     }
 
     if(imp->allow_unsafe && imp->about.size()==0) 
@@ -324,7 +329,7 @@ void codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
             + "\n"; 
     else if(selected_task==Task::Verify) 
         task_report += "\033[30;42m OK \033[0m " + file + "\n"; 
-
+    return errors;
 
     //imp->tokens.clear();  // DO NOT CLEAR HERE BECAUSE IT PREVENTS LAZY DEFS FROM PARSING
 }
@@ -334,6 +339,7 @@ int main(int argc, char* argv[]) {
     vector<string> files;
     map<string, Types> included;
     Types builtins;
+    bool errors = false;
 
     builtins.vars[U64_VAR] = make_shared<Def>("u64");
     builtins.vars[Variable("i64")] = make_shared<Def>("i64");
@@ -420,7 +426,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         try {
-            codegen(included, file, builtins, selected_task, task_report);
+            errors = codegen(included, file, builtins, selected_task, task_report);
     
             if (Def::export_docs) {
             std::string docs = "<!DOCTYPE html>\n<html>\n<head>\n"
@@ -691,16 +697,17 @@ int main(int argc, char* argv[]) {
             out << "}\n\n";
             //cout << out.str() << "\n";
             for(const auto& it : included[file].vars) {
-                for(const auto& opt : it.second->options) opt->vars.clear();
+                for(const auto& opt : it.second->options) 
+                    opt->vars.clear();
                 it.second->vars.clear();
                 it.second->options.clear();
             }
             if(selected_task == Task::Run) {
-                int rc = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "");
-                if(rc != 0) 
-                    return rc;
+                int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "");
+                if(run_status != 0) 
+                    return run_status;
                 //cout << (EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str() << "\n";
-                int run_status = system((EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str());
+                run_status = system((EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str());
                 if (run_status) 
                     return run_status;
             } 
@@ -742,5 +749,7 @@ int main(int argc, char* argv[]) {
         if(def && def->imp) 
             def->imp->tokens.clear();
     all_types.clear();
+    if(errors)
+        return 1;
     return 0;
 }

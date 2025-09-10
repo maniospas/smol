@@ -51,7 +51,7 @@ void Def::parse_directive_body(const shared_ptr<Import>& imp, size_t& p, string 
                     ++p;
                     nextnext = imp->at(p);
                 }
-            if(next=="goto") 
+            if(next=="goto" && nextnext!="__failsafe") 
                 vars[nextnext] = types.vars[LABEL_VAR];
             implementation += move(Variable(next));
         }

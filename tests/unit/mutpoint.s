@@ -1,8 +1,8 @@
 @include std.builtins
 
 smo Point(f64 px, f64 py)
-    &x = px
-    &y = py
+    x = px
+    y = py
     -> x,y
 
 smo TPoint(nominal type, f64 px, f64 py)
@@ -14,10 +14,8 @@ smo IPoint(nominal type, f64 x, f64 y)
     -> @args
 
 smo scale(Point &p, f64 factor) 
-    // & in the signature is required to allow any modification
-    // this is an overloaded method for both smo Point
-    p.x = p.x*factor
-    p.y = p.y*factor
+    //p.x = p.x*factor
+    //p.y = p.y*factor
     --
 
 smo zero(Point &p)
@@ -30,11 +28,11 @@ smo zero(IPoint &p)
     --
 
 service main()
-    p = Point(1.0,1.0)  
-    p.x = p.x + 1.0
+    &p = Point(1.0,1.0)
+    //p.x = p.x + 1.0
     p:scale(5.0)
     print(p.x) // 10
-    zero(p)
+    //zero(p)
     print(p.x) // 0
 
     &ip = nominal:IPoint(1.0,1.0)

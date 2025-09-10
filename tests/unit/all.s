@@ -1,15 +1,30 @@
 @include std.builtins
 @include std.os
 
+service run(String command)
+    &process = Process:open(command)
+    // read everything there is from the process
+    process:to_end
+    // Be explicit that the process is released
+    // so that nobody accidentally returns it.
+    // Releasng checks for failure of incomplete
+    // status or non-zero exit code.
+    @release process
+    --
+
 service std_test(String name)
     on Heap:dynamic// memory surface for string concatenations
         redirect = " 2>&1"
         command = "./smol tests/unit/"+name+".s --runtime eager"+redirect
-        if Process:open(command):to_end 
-            -> print("[ \033[31mERROR\033[0m ] "+name)
-        else 
-            -> print("[ \033[32mOK\033[0m ] "+name)
-    ----
+        --
+    if run(command).err:bool
+        on Heap:dynamic
+            print("[ \033[31mERROR\033[0m ] "+name)
+        ----
+    else 
+        on Heap:dynamic
+            print("[ \033[32mOK\033[0m ] "+name)
+    ------
 
 service main()
     // services are asynchronous co-routines

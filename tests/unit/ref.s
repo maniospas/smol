@@ -2,7 +2,7 @@
 @include std.mem
 @unsafe
 
-smo copy_state(Arena &arena) -> arena  // this is a workarround to dodge the @noborrow constraint of arenas when @unsafe is enabled
+smo copy_state(Arena &arn) -> arn  // this is a workarround to dodge the @noborrow constraint of arenas when @unsafe is enabled
 
 service main()
     &memory1 = Heap:arena(100) // allocate 100 bytes, & indicates a mutable variable

@@ -125,16 +125,16 @@ public:
     ~SegmentedString() {if (size>1) free(segments);}
     explicit SegmentedString(unsigned int* segments, unsigned int size, unsigned int first_segment)
         : size(size), first_segment(first_segment), segments(segments) {}
-    bool is_empty() const { 
+    inline bool is_empty() const { 
         return size == 0; 
     }
-    bool exists() const { 
+    inline bool exists() const { 
         return size != 0; 
     }
-    bool is_private() const { 
+    inline bool is_private() const { 
         return size && SegmentMap::instance().get_segment(first_segment).size(); 
     }
-    std::string to_string() const {
+    inline std::string to_string() const {
         std::ostringstream oss;
         if (size == 0) return "";
         oss << SegmentMap::instance().get_segment(first_segment);
@@ -143,7 +143,7 @@ public:
         return oss.str();
     }
 
-    SegmentedString operator+(const SegmentedString& other) const {
+    inline SegmentedString operator+(const SegmentedString& other) const {
         if (size == 0)
             return other;
         if (other.size == 0) 
@@ -158,7 +158,7 @@ public:
         return SegmentedString(new_segments, new_size, first_segment);
     }
 
-    bool operator==(const SegmentedString& other) const {
+    inline bool operator==(const SegmentedString& other) const {
         if (size != other.size) 
             return false;
         if (size && first_segment != other.first_segment) 
@@ -167,7 +167,7 @@ public:
             return false;
         return true;
     }
-    bool operator!=(const SegmentedString& other) const { 
+    inline bool operator!=(const SegmentedString& other) const { 
         return !(*this == other); 
     }
 
@@ -180,7 +180,7 @@ public:
         return os;
     }
 
-    bool operator==(const std::string& s) const {
+    inline bool operator==(const std::string& s) const {
         size_t pos = 0;
         // Compare first segment
         const std::string& seg0 = SegmentMap::instance().get_segment(first_segment);
@@ -240,21 +240,21 @@ public:
     SegmentSequence(SegmentSequence&&) noexcept = default;
     SegmentSequence& operator=(const SegmentSequence&) = default;
     SegmentSequence& operator=(SegmentSequence&&) noexcept = default;
-    SegmentSequence operator+(const SegmentSequence& other) const {
+    inline SegmentSequence operator+(const SegmentSequence& other) const {
         SegmentSequence result = *this;
         result.segments.insert(result.segments.end(), other.segments.begin(), other.segments.end());
         return result;
     }
-    SegmentSequence& operator+=(const SegmentSequence& other) {
+    inline SegmentSequence& operator+=(const SegmentSequence& other) {
         segments.reserve(segments.size()+other.segments.size());
         segments.insert(segments.end(), other.segments.begin(), other.segments.end());
         return *this;
     }
-    SegmentSequence& operator+=(const SegmentedString& seg) {
+    inline SegmentSequence& operator+=(const SegmentedString& seg) {
         segments.push_back(seg);
         return *this;
     }
-    std::string to_string() const {
+    inline std::string to_string() const {
         std::ostringstream oss;
         for (size_t i = 0; i < segments.size(); ++i) {
             if (i > 0) 
@@ -263,8 +263,8 @@ public:
         }
         return oss.str();
     }
-    bool is_empty() const { return segments.empty(); }
-    bool exists() const { return !segments.empty(); }
+    inline bool is_empty() const { return segments.empty(); }
+    inline bool exists() const { return !segments.empty(); }
     friend std::ostream& operator<<(std::ostream& os, const SegmentSequence& ss) {
         for (size_t i = 0; i < ss.segments.size(); ++i) {
             if (i > 0) 
@@ -273,15 +273,21 @@ public:
         }
         return os;
     }
-    size_t find(const SegmentedString& query) const {
+    inline size_t find(const SegmentedString& query) const {
         auto it = std::find(segments.begin(), segments.end(), query);
         if (it == segments.end())
             return std::string::npos;
         return std::distance(segments.begin(), it);
     }
-    size_t size() const { return segments.size(); }
-    const SegmentedString& operator[](size_t i) const { return segments[i]; }
-    SegmentedString& operator[](size_t i) { return segments[i]; }
+    inline size_t size() const { 
+        return segments.size(); 
+    }
+    inline const SegmentedString& operator[](size_t i) const { 
+        return segments[i]; 
+    }
+    inline SegmentedString& operator[](size_t i) { 
+        return segments[i]; 
+    }
 };
 
 namespace std {

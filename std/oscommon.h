@@ -4,7 +4,8 @@
 #if defined(_WIN32) || defined(_WIN64)
     static inline FILE* fmemopen(void *buf, size_t size, const char *mode) {
         FILE *f = tmpfile();
-        if (!f) return NULL;
+        if (!f) 
+            return NULL;
         return f;
     }
 #endif

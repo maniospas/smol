@@ -77,7 +77,11 @@ smo open(ReadFile&, String _path)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{ptr contents = fopen((char*)path__contents, "r");}
-    @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
+    @finally contents {
+        if(contents)
+            fclose((FILE*)contents);
+        contents=0;
+    }
     if contents:exists:not 
         @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} 
     ---> nominal:ReadFile(contents)
@@ -91,8 +95,11 @@ smo to_start(File &f)
 
 smo to_end(WriteFile &f) 
     // only useful for moving to the end of write files. For read files, close them instead.
-    @body{if(f__contents) fseek((FILE*)f__contents, 0, SEEK_END);}
-    -> f__contents:exists
+    @body{
+        if(f__contents) 
+            fseek((FILE*)f__contents, 0, SEEK_END);
+    }
+    -> f.contents:exists
 
 smo len(File &f)
     @head{#include <stdio.h>}
@@ -108,7 +115,7 @@ smo len(File &f)
     }
     -> size
 
-smo write(WriteFile &f, String _s)
+smo print(WriteFile &f, String _s)
     s = _s:str
     if f.contents:exists:not 
         @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
@@ -122,14 +129,19 @@ smo write(WriteFile &f, String _s)
         @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
     ----
 
-smo open(Memory& memory, u64 size)
+smo tempfile(Memory& memory, u64 size)
+    // using temporary files can be exceptionall 
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @head{#include "std/oscommon.h"}
     mem = memory:allocate(size)
     @body{ptr contents = fmemopen(mem__mem, size, "w+");}
-    @finally contents {if(contents)fclose((FILE*)contents);contents=0;}
+    @finally contents {
+        if(contents)
+            fclose((FILE*)contents);
+        contents=0;
+    }
     -> nominal:WriteFile(contents)
     
 smo next_chunk (

@@ -43,30 +43,34 @@ smo open(Process&, CString _command)
     }
     @body{ptr contents = (ptr)popen((cstr)command, "r");}
     if contents:exists:not 
-        @fail{
-            printf("Error: Failed to start process\n");
-        } 
+        @fail{printf("Error: Failed to start process\n");} 
         --
     @finally contents { 
-        if(contents) {
-            pclose((FILE*)contents);
-        } 
+        i64 status = 0;
+        if(contents) 
+            status = pclose((FILE*)contents);
         contents = 0; 
+        if(status) {
+            if(status!=-1 && WIFEXITED(status)) 
+                status = WEXITSTATUS(status);
+            printf("Error: Process not finished or exited with non-zero exit code %ld\n", status);
+            __result__errocode = __USER__ERROR;
+            goto __failsafe; // already cleaned resources will not have an issue with this
+        }
     }
     -> nominal:Process(contents)
 
 smo to_end(Process &p)
     @head{#include <string.h>}
+    @head{#include <sys/wait.h>}
     @body{
+        i64 status = 0;
         if(p__contents) {
             char buf[1024];
-            bool err = false;
-            while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) 
-                if(strstr(buf, "Error:")) 
-                    err = true;
+            while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) {}
         }
     }
-    -> err
+    -> status:bool
 
 smo next_chunk(
         DerivedMemory &reader, 
@@ -121,7 +125,8 @@ smo next_line(
 smo system(cstr command)
     @head{#include <stdlib.h>}
     @body{u64 result = system((char*)command);}
-    if result!=0 -> fail("Error: System call failed")
+    if result!=0 
+        -> fail("Error: System call failed")
     --
 
 smo system(str command) 
