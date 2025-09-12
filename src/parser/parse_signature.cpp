@@ -67,10 +67,6 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 imp->error(--p, "Expecting [] here to indicate buffer argument");
             arg_name = imp->at(p++);
         }
-        /*if(arg_name=="&") {
-            mut = true;
-            arg_name = imp->at(p++);
-        }*/
         if(mut && is_service) 
             imp->error(p-2, "Services do not accept values by reference"
                 "\nThis ensures failsafe-compliant extensibility."

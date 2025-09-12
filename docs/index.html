@@ -84,7 +84,7 @@ smo combine(Segment[] segments)
     &s = "":str  // mutable
     on Stack:arena(1024)
         range(segments:len)
-        :while next(u64 &i)
+        :while next(@mut u64 i)
             // from null-termiated nstr result to str
             s = str(s+segments[i].value+" ")
     -- -- -> combined // end block x2, return
@@ -109,8 +109,8 @@ service main()
       <li><code class="language-smolambda">smo</code> definitions can fail and produce nominal values.</li>
       <li><code class="language-smolambda">nominal</code> declares a nominal type variation.</li>
       <li><code class="language-smolambda">service</code> runs safely; if a smo fails, memory is cleaned up.</li>
-      <li><code class="language-smolambda">&</code> denotes mutable variables.</li>
-      <li><code class="language-smolambda">on</code> is automatically added as first argument (here to store string addition on a fast arena allocator).</li>
+      <li><code class="language-smolambda">@mut</code> denotes mutable variables (their values change as the program runs).</li>
+      <li><code class="language-smolambda">on</code> is automatically added as first argument - here to store string addition on a fast arena allocator.</li>
       <li><code class="language-smolambda">:</code> curries arguments.</li>
       <li><code class="language-smolambda">[]</code> declares buffers.</li>
       <li><code class="language-smolambda">--, -></code> mark block ends and returns.</li>

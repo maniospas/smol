@@ -240,15 +240,14 @@ service main()
 </code></pre>
 
 <p><b>Mutable variables:</b> After setting a variable, its value cannot normally change. To allow changes, declare it as <i>mutable</i> 
-by placing <code class="language-smolambda">&</code> before its name in its first assignment. 
-Variables are immutable by default to avoid many logic bugs. Look out for the marking to spot values 
-that can may change.</p>
+by placing <code class="language-smolambda">@mut</code> before its first declaration/assignment. 
+Variables are immutable -that is, not mutable- by default to avoid many logic bugs. Look out for mutable ones.</p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.builtins
 
 service main()
-    &name = "Ada"
+    @mut name = "Ada"
     print(name)
     name = "Lovelace" // allowed because we marked it mutable before
     print(name)
@@ -382,7 +381,7 @@ If a variable changes inside the loop, make it mutable during its first assignme
 @include std.builtins
 
 service main()
-    &i = 0
+    @mut i = 0
     while i&lt;5
         print(i)
         i = i+1
@@ -413,7 +412,8 @@ files is also implemented as an iterator.
 @include std.builtins
 
 service main()
-    range(5):while next(u64 &i) 
+    range(5)
+    :while next(@mut u64 i) 
         print(i)
     ----
 </code></pre>
@@ -434,10 +434,11 @@ Two bars (<code class="language-smolambda">||</code>) jump two levels, and so on
 <pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    &i = 0
+    @mut i = 0
     while true
         print(i)
-        if i==5 |-- // end loop early
+        if i==5 
+            |-- // end loop early
         i = i+1
     ----
 </code></pre>
@@ -482,12 +483,12 @@ Below is an example.
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo increment(u64 &x)
+smo increment(@mut u64 x)
     x = x + 1
     --
 
 service main()
-    &n = 10
+    @mut n = 10
     increment(n)
     print(n) // 11
     --
@@ -573,11 +574,12 @@ You can return several named values at once and then access them as fields.
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo Point(f64 x, f64 y) -> @args
+smo Point(f64 x, f64 y) 
+    -> @args
 
 smo moved(Point p, f64 dx, f64 dy)
-    &nx = p.x + dx
-    &ny = p.y + dy
+    @mut nx = p.x + dx
+    @mut ny = p.y + dy
     -> Point(nx, ny)
 
 service main()

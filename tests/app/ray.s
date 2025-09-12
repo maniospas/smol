@@ -49,7 +49,8 @@ smo draw(Sphere sphere, @mut Window window)
 smo process(@mut Sphere[] spheres, f64 dt)
     range(spheres:len)
     :while next(u64 &i)
-        spheres[i]::process(dt)
+        spheres[i]
+        ::process(dt)
     ----
 
 service test()

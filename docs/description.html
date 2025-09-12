@@ -474,7 +474,7 @@ available in the standard library.
 and repeatedly. These return values per <code class="language-smolambda">-> value</code>
 or return with no values per <code class="language-smolambda">--</code>. Return statements
 designate the end of code blocks. Below is an example, where 
-<code class="language-smolambda">&i=0</code> means that the value cstored in 
+<code class="language-smolambda">@mut i=0</code> means that the value stored in 
 <code class="language-smolambda">i</code> can be freely modfied in subsequent code.
 </p>
 
@@ -489,7 +489,7 @@ required because the end of expressions is always unique.
 <pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    &i = 0
+    @mut i = 0
     while i&lt;10
         if 0==i%2 -> print("Even "+i:str)
         else      -> print("Odd "+i:str)
@@ -512,9 +512,12 @@ not allowed to mingle for safety.</p>
 service main()
     x = f64:read // more on this syntax later
     sgn = 
-        if x>0.0        -> 1:i64
-        else->if x==0.0 -> 0:i64
-        else            -> 0:i64-1:i64
+        if x>0.0
+            -> 1:i64
+        else->if x==0.0
+            -> 0:i64
+        else 
+            -> 0:i64-1:i64
     print(sgn)
     --
 </code></pre>
@@ -527,9 +530,12 @@ keyword, which is more ergonomic. Below is the same example rewritten more conci
 service main()
     x = f64:read
     sgn = 
-        if x>0.0    -> 1:i64
-        elif x==0.0 -> 0:i64
-        else        -> 0:i64-1:i64
+        if x>0.0
+            -> 1:i64
+        elif x==0.0 
+            -> 0:i64
+        else
+            -> 0:i64-1:i64
     print(sgn)
     --
 </code></pre>
@@ -575,10 +581,12 @@ to printing and then ending code blocks with <code class="language-smolambda">--
 <pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    &i = 0
+    @mut i = 0
     while i&lt;10
-        if 0==i%2 -> print("Even "+i:str)
-        else      -> print("Odd "+i:str)
+        if 0==i%2
+            -> print("Even "+i:str)
+        else
+            -> print("Odd "+i:str)
         i = i+1
     ----
 </code></pre>
@@ -599,9 +607,13 @@ loops, although we will later see a simpler notation.
 <pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    &i=0 while i&lt;10 @next i = i+1
-    &j=0 while j&lt;10 @next j = j+1
-        print(i:str+" "+j:str)
+    @mut i=0 
+    while i&lt;10 
+        @next i = i+1
+        @mut j=0 
+        while j&lt;10 
+            @next j = j+1
+            print(i:str+" "+j:str)
     ------
 </code></pre>
 
@@ -611,7 +623,11 @@ based on <a href="#currying">currying</a> into loops. Prefer using that
 when writing finite loops, as it is more resistant against mistakes.
 As a sneak peek, printing numbers <i>0,1,...,9</i> looks like this:
 </i><br><br>
-<code class="language-smolambda">range(10):while next(u64& i) -> print(i)</code>
+<pre><code class="language-smolambda">range(10)
+:while next(@mut u64 i) 
+    print(i)
+    --
+</code></pre>
 </p>
 
 
@@ -623,8 +639,8 @@ is used to isolate the next values and intercept the internal return.
 <pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    &i = 1
-    &j = 2
+    @mut i = 1
+    @mut j = 2
     if true
         @next i = j
         @next j = i
@@ -659,7 +675,9 @@ a simple example.
 <pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    &i = 511 while i&lt;10 @next i = i+1
+    @mut i = 511 
+    while i&lt;10 
+        @next i = i+1
         if i%7==0 
             |-- // break
         if i%2==0 
@@ -677,11 +695,15 @@ one tried to assign the value returned by the top loop to a variable.
 <pre><code class="language-smolambda">@include std.builtins
 
 service main()
-    &i=0 while i&lt;10 @next i = i+1
-    &j=0 while j&lt;10 @next j = j+1
-        print(i:str+" "+j:str)
-        if 5==i+j 
-            |||-> print("done") 
+    @mut i=0 
+    while i&lt;10 
+        @next i = i+1
+        @mut j=0 
+        while j&lt;10 
+            @next j = j+1
+            print(i:str+" "+j:str)
+            if 5==i+j 
+                |||-> print("done") 
     ------
 </code></pre>
 
@@ -801,18 +823,18 @@ service main()
 <p>Runtypes are called by value,
 that is, without internal computations affecting external arguments. You can make
 calls occur by reference by prepending
-<code class="language-smolambda">&</code> to variable names in the signature. In this case,
+<code class="language-smolambda">@mut</code> to arguments in the signature. In this case,
 internal modifications are retained. Below is an example.</p>
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo inc(u64 &x)
+smo inc(@mut u64 x)
     x = add(x,1)
     --
 
 service main()
-    x = 1
-    inc(x)
+    @mut x = 1
+    inc(x) // requires x to be mutable for modification by inc
     print(x) // 2
     --
 </code></pre>
@@ -827,17 +849,17 @@ DOES hold true for the nominally typed <code>Point pt</code>.</p>
 @include std.builtins
 
 smo Point(f64 px, f64 py)
-    &x = px
-    &y = py
+    @mut x = px
+    @mut y = py
     -> x,y
 
 smo Point(nominal type, f64 px, f64 py)
-    &x = px
-    &y = py
+    @mut x = px
+    @mut y = py
     -> type, x,y
 
-smo scale(Point &p, f64 factor) 
-    // & in the signature is required to allow any modification
+smo scale(@mut Point p, f64 factor) 
+    // @mut in the signature is required to allow any modification
     // this is an overloaded method for both Point implementations
     p.x = p.x*factor
     p.y = p.y*factor
@@ -862,7 +884,7 @@ A special rule is that <code class="language-smolambda">ptr</code> primitives th
 mutables cannot be assigned to fields of mutable variables. This allows treating pointers
 as the representation of memory contents, where mutability means that memory contents also
 donnot change. The next example shows how the commented out 
-<code class="language-smolambda">&mutmap = map</code> is not allowed, and in turn this
+<code class="language-smolambda">@mut mutmap = map</code> is not allowed, and in turn this
 prevents the modification of the immutable <code>map</code>'s entries.
 </p>
 
@@ -875,14 +897,14 @@ service map_printer(Map map)
         map.Keys:is(str) 
         map.Values:is(u64)
         --
-    //&mutmap = map // ERROR - cannot transfer immutable pointers
+    //@mut mutmap = map // ERROR - cannot transfer immutable pointers
     //mutmap:put("123", 2) 
     print(map["123"])
     --
 
 service main() 
     on Heap:dynamic // automatically pass dynamic memory as first argument
-        &map = map(100, str, u64) // flatmap with 100 slots
+        @mut map = map(100, str, u64) // flatmap with 100 slots
         --
     map:put("123", 1)
     map:map_printer
@@ -926,15 +948,17 @@ based on the same principles.
 
 
 smo custom_range(u64 start, u64 end) 
-    &pos = start
+    @mut pos = start
     -> pos, end
-smo next(custom_range &r, u64 &current) 
+
+smo next(@mut custom_range r, @mut u64 current) 
     current = r.pos 
     r.pos = r.pos + 1
     -> r.pos &lt;= r.end
 
 service main()
-    custom_range(0,10):while next(u64 &i) 
+    custom_range(0,10)
+    :while next(@mut u64 i) 
         print(i) 
     ----
 </code></pre>
@@ -1127,7 +1151,7 @@ union Type
     u64
     --
 
-smo Point(Type &x, Type &y) 
+smo Point(@mut Type x, @mut Type y) 
     -> @args
 
 smo inc(Point &p)
@@ -1181,23 +1205,23 @@ its standard library
 
 <pre><code class="language-smolambda">@include std.builtins
 
-smo strbuf(nominal, str[] &ref)
+smo strbuf(nominal, @mut str[] ref)
     -> @args
 
 smo strbuf(String value)
     -> nominal:strbuf(str[]:push(value:str))
 
-smo put(strbuf &buf, String value)
+smo put(@mut strbuf buf, String value)
     -> buf.ref:put(0, value:str)
 
-smo str(strbuf &buf)
+smo str(@mut strbuf buf)
     -> buf.ref[0]:str
 
 service main()
-    &boxes = strbuf[]  // must be mutable to grant mutable access
+    @mut boxes = strbuf[]  // must be mutable to grant mutable access
     :push("first element":strbuf)
     :push("second element":strbuf)
-    &b = boxes[0]
+    @mut b = boxes[0]
     // the line bellow is fancier than b:put("overwritten element")
     on b 
         -> "overwritten element":put 
@@ -1553,19 +1577,6 @@ service main()
 
 <p><i>Section under construction.</i></p>
 
-<pre><code class="language-smolambda">@include std.builtins
-@include std.file
-@include std.mem
-
-service main()
-    f = file("README.md")
-    chunk = "":str
-    nom
-    :chunks(f, 4096, heap)
-    :while next(str& chunk) 
-        print(chunk)
-    ----
-</code></pre>
 
 
 <h3 id="vectors">Vectors <a href="#vectors" class="anchor-link">🔗</a></h3>
