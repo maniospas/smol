@@ -2,7 +2,7 @@
 @include std.vec
 @include std.mem
 
-smo one_hot(Memory &memory, u64 pos, u64 size)
+smo one_hot(@mut Memory memory, u64 pos, u64 size)
     // Create intermediate (imd) vector as 
     // context and use it as first argument 
     // when needed. Intermediate values not
@@ -20,7 +20,7 @@ smo one_hot(Memory &memory, u64 pos, u64 size)
         -> pos:put(1.0)
 
 service main() 
-    &memory = Stack:arena(1024)
+    @mut memory = Stack:arena(1024)
     // `on` context adds a first argument as needed (e.g. could use `on nominal:Heap`)
     on memory 
         a = one_hot(1, 10)

@@ -30,7 +30,7 @@ smo Process(nominal, ptr contents)
     @noborrow
     -> @args
 
-smo open(Process&, CString _command)
+smo open(@mut Process, CString _command)
     command = _command:nstr.contents
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -60,7 +60,7 @@ smo open(Process&, CString _command)
     }
     -> nominal:Process(contents)
 
-smo to_end(Process &p)
+smo to_end(@mut Process p)
     @head{#include <string.h>}
     @head{#include <sys/wait.h>}
     @body{
@@ -73,9 +73,9 @@ smo to_end(Process &p)
     -> status:bool
 
 smo next_chunk(
-        DerivedMemory &reader, 
-        Process &p,
-        nstr &value
+        @mut DerivedMemory reader, 
+        @mut Process p,
+        @mut nstr value
     )
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -91,9 +91,9 @@ smo next_chunk(
     -> ret:bool
 
 smo next_line(
-        DerivedMemory &reader, 
-        Process &p, 
-        nstr &value
+        @mut DerivedMemory reader, 
+        @mut Process p, 
+        @mut nstr value
     )
     @head{#include <stdio.h> #include <string.h> #include <stdlib.h>}
     @body{
@@ -105,18 +105,18 @@ smo next_line(
     -> ret:bool
 
 smo next_chunk(
-        DerivedMemory &memory, 
-        Process &p, 
-        str &value
+        @mut DerivedMemory memory, 
+        @mut Process p, 
+        @mut str value
     ) 
     ret = next_chunk(memory, p, nstr &retvalue)
     value = retvalue:str
     -> ret
 
 smo next_line(
-        DerivedMemory &memory, 
-        Process &p, 
-        str &value
+        @mut DerivedMemory memory, 
+        @mut Process p, 
+        @mut str value
     ) 
     ret = next_line(memory, p, nstr &retvalue)
     value = retvalue:str
@@ -133,7 +133,7 @@ smo system(str command)
     system(Stack:copy(command).memory:cstr)
     --
 
-smo open(Process&, str command)
+smo open(@mut Process, str command)
     mem = Stack:allocate(command.length+1, char)
     @body{
         char first = 0;

@@ -3,7 +3,7 @@
 @include std.mem
 
 service main()
-    &console = WriteFile:console()
+    @mut console = WriteFile:console()
     console:print("what's your name? ")
     on Stack:arena(1024)
         console:next_line(str& s)

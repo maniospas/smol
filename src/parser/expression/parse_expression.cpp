@@ -31,7 +31,6 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         || first_token=="{" 
         || first_token=="}" 
         || first_token==";"
-        || first_token=="&"
         || first_token=="and"
         || first_token=="or"
         || first_token=="="
@@ -239,7 +238,11 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 unpacks.push_back(var);
             }
         }
-        else if(((p<imp->size()-1 && imp->at(p)!="(" && (imp->at(p+1)==")" || imp->at(p+1)==",")) || (p<imp->size()-2 && imp->at(p)=="&" && imp->at(p+1)!="(" && (imp->at(p+2)==")" || imp->at(p+2)==",")))){
+        else if(((p<imp->size()-1 
+            && imp->at(p)!="(" 
+            && (imp->at(p+1)==")" || imp->at(p+1)==",")) 
+                || (p<imp->size()-2 && imp->at(p)=="&" && imp->at(p+1)!="(" && (imp->at(p+2)==")" || imp->at(p+2)==",")))
+        ){
             Variable var = imp->at(p++);
             if(var==REF_VAR) {
                 var = imp->at(p++);

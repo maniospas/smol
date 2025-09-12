@@ -5,7 +5,7 @@
 smo point(f64 x, f64 y) 
     -> @args
 
-smo create(ContiguousMemory &memory)
+smo create(@mut ContiguousMemory memory)
     p = point[memory]
     -> p
 

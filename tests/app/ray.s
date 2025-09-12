@@ -14,11 +14,11 @@ smo Sphere(
     ) 
     -> @args
 
-smo process(Sphere &s, f64 dt)
-    &nx = s.x:add(s.dx * dt)
-    &ny = s.y:add(s.dy * dt)
-    &ndx = s.dx
-    &ndy = s.dy
+smo process(@mut Sphere s, f64 dt)
+    @mut nx = s.x:add(s.dx * dt)
+    @mut ny = s.y:add(s.dy * dt)
+    @mut ndx = s.dx
+    @mut ndy = s.dy
     if (nx - s.r)< 0.0 
         nx = s.r
         ndx = ndx:negative
@@ -38,8 +38,7 @@ smo process(Sphere &s, f64 dt)
     s = Sphere(nx, ny, s.r, ndx, ndy)
     --
 
-
-smo draw(Sphere sphere, Window &window)
+smo draw(Sphere sphere, @mut Window window)
     window:circ(sphere.x, sphere.y, sphere.r, Color(200, 50, 50))
     --
 
@@ -47,24 +46,21 @@ smo draw(Sphere sphere, Window &window)
 //     s = Sphere[]:new(100.0, 100.0, 30.0, 1000.0, 650.0)
 //     --
 
-smo process(Sphere[] &spheres, f64 dt)
+smo process(@mut Sphere[] spheres, f64 dt)
     range(spheres:len)
-    :while next(u64& i)
-        &s = spheres[i]
-        s:process(dt)
-        spheres:put(i, s)
+    :while next(u64 &i)
+        spheres[i]::process(dt)
     ----
 
 service test()
-    &spheres = Sphere[]
+    @mut spheres = Sphere[]
     :push(Sphere(100.0, 100.0, 30.0, 1000.0, 650.0))
     :push(Sphere(100.0, 100.0, 30.0, 450.0, 600.0))
 
-    &dt = 0.0
-
-    &window = nominal:Window(800.0, 450.0, "Hello from smoλ+raylib")
-    &prev_t = time()
-    &accum_fps = 3600.0
+    @mut dt = 0.0
+    @mut window = nominal:Window(800.0, 450.0, "Hello from smoλ+raylib")
+    @mut prev_t = time()
+    @mut accum_fps = 3600.0
     on Heap:volatile(1024)
         while window:is_open
             spheres

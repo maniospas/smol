@@ -71,7 +71,7 @@ union File
     WriteFile
     --
 
-smo open(ReadFile&, String _path) 
+smo open(@mut ReadFile, String _path) 
     path = _path:str
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -86,14 +86,14 @@ smo open(ReadFile&, String _path)
         @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} 
     ---> nominal:ReadFile(contents)
 
-smo to_start(File &f) 
+smo to_start(@mut File f) 
     if f.contents:exists:not 
         @fail{printf("Failed to move to start of closed file");} 
         --
     @body{fseek((FILE*)f__contents, 0, SEEK_SET);}
     --
 
-smo to_end(WriteFile &f) 
+smo to_end(@mut WriteFile f) 
     // only useful for moving to the end of write files. For read files, close them instead.
     @body{
         if(f__contents) 
@@ -101,7 +101,7 @@ smo to_end(WriteFile &f)
     }
     -> f.contents:exists
 
-smo len(File &f)
+smo len(@mut File f)
     @head{#include <stdio.h>}
     @body{
         u64 size = 0;
@@ -115,7 +115,7 @@ smo len(File &f)
     }
     -> size
 
-smo print(WriteFile &f, String _s)
+smo print(@mut WriteFile f, String _s)
     s = _s:str
     if f.contents:exists:not 
         @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
@@ -129,7 +129,7 @@ smo print(WriteFile &f, String _s)
         @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
     ----
 
-smo tempfile(Memory& memory, u64 size)
+smo tempfile(@mut Memory memory, u64 size)
     // using temporary files can be exceptionall 
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -145,9 +145,9 @@ smo tempfile(Memory& memory, u64 size)
     -> nominal:WriteFile(contents)
     
 smo next_chunk (
-        Volatile &reader, 
-        File &f,
-        nstr &value
+        @mut Volatile reader, 
+        @mut File f,
+        @mut nstr value
     )
     contents = reader.contents.mem
     size = reader.contents.size
@@ -166,9 +166,9 @@ smo next_chunk (
     -> ret:bool
 
 smo next_line (
-        Volatile &reader, 
-        File &f, 
-        nstr &value
+        @mut Volatile reader, 
+        @mut File f, 
+        @mut nstr value
     )
     contents = reader.contents.mem
     size = reader.contents.size
@@ -191,9 +191,9 @@ smo next_line (
     -> ret:bool
 
 smo next_chunk (
-        Arena &reader, 
-        File &f,
-        nstr &value
+        @mut Arena reader, 
+        @mut File f,
+        @mut nstr value
     )
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -209,9 +209,9 @@ smo next_chunk (
     -> ret:bool
 
 smo next_line(
-        Arena &reader,
-        File &f,
-        nstr &value
+        @mut Arena reader,
+        @mut File f,
+        @mut nstr value
     )
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -231,24 +231,24 @@ smo next_line(
     -> ret:bool
 
 smo next_line (
-        BoundedMemory &reader,
-        File &f, 
-        str &value
+        @mut BoundedMemory reader,
+        @mut File f, 
+        @mut str value
     )
     ret = next_line(reader, f, nstr &retvalue)
     value = retvalue:str
     -> ret
 
 smo next_chunk (
-        BoundedMemory &reader, 
-        File &f, 
-        str &value
+        @mut BoundedMemory reader, 
+        @mut File f, 
+        @mut str value
     )
     ret = next_chunk(reader, f, nstr &retvalue)
     value = retvalue:str
     -> ret
 
-smo ended(File &f)
+smo ended(@mut File f)
     @head{#include <stdio.h>}
     @body{
         char c = fgetc((FILE*)f__contents);
@@ -285,7 +285,7 @@ smo remove_file(String _path)
     if status:bool @fail{printf("Failed to remove file - make sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
     ----
 
-smo open(WriteFile&, String _path)
+smo open(@mut WriteFile, String _path)
     path = _path:str
     @head{#include <stdio.h>}
     @head{
@@ -323,7 +323,7 @@ smo create_dir(String _path)
         @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
     ----
     
-smo console(WriteFile&)
+smo console(@mut WriteFile)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <unistd.h>}

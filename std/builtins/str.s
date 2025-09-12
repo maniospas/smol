@@ -234,7 +234,7 @@ smo at(nstr x, u64 pos)
 smo Split(nominal, 
         str query,
         str sep, 
-        u64 &pos
+        @mut u64 pos
     ) 
     -> @args
     
@@ -242,12 +242,12 @@ smo Split(String _query, IndependentString _sep)
     -> nominal:Split(_query:str, _sep:str, u64 &pos) // splits are str (not cstr or nstr)
 
 smo next(
-        Split &self, 
-        str &value
+        @mut Split self, 
+        @mut str value
     )
     ret = self.pos<self.query:len
     if ret 
-        &searching = true
+        @mut searching = true
         prev = self.pos
         while (searching==true) and (self.pos<self.query:len-self.sep:len)
             if self.sep==self.query[self.pos to self.pos+self.sep:len] 
@@ -264,7 +264,7 @@ smo next(
 
 
 smo print(str[] messages)
-    &i = 0
+    @mut i = 0
     n = messages:len
     while i<n
         print(messages[i])

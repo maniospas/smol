@@ -47,6 +47,13 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         }
         if(next==",") 
             next = imp->at(p++);//spaghetios
+        if(next=="@") {
+            mut = true;
+            next = imp->at(p++);
+            if(next!="mut")
+                imp->error(--p, "Only a @mut directive is allowed here");
+            next = imp->at(p++);
+        }
         if(!accepted_var_name(next)) 
             imp->error(--p, "Not a valid name: "+next);
         if(types.vars.find(next)==types.vars.end()) 
@@ -60,10 +67,10 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
                 imp->error(--p, "Expecting [] here to indicate buffer argument");
             arg_name = imp->at(p++);
         }
-        if(arg_name=="&") {
+        /*if(arg_name=="&") {
             mut = true;
             arg_name = imp->at(p++);
-        }
+        }*/
         if(mut && is_service) 
             imp->error(p-2, "Services do not accept values by reference"
                 "\nThis ensures failsafe-compliant extensibility."

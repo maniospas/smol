@@ -23,6 +23,7 @@
 
 enum class Task {
     Assemble,
+    Transpile,
     Compile,
     Verify,
     Run
@@ -35,6 +36,7 @@ Task parse_task(const string& arg) {
     if(arg == "lsp") {Def::markdown_errors=true; return Task::Verify;}
     if(arg == "run") return Task::Run;
     if(arg == "assemble") return Task::Assemble;
+    if(arg == "transpile") return Task::Transpile;
     throw invalid_argument("Unknown task: " + arg);
 }
 
@@ -715,6 +717,17 @@ int main(int argc, char* argv[]) {
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-S -masm=intel");
                 if(run_status) 
                     return run_status;
+            } 
+            else if(selected_task == Task::Transpile) {
+                // Save to .c file
+                string c_filename = file.substr(0, file.size()-2) + ".c";
+                ofstream c_out(c_filename);
+                if (!c_out) {
+                    std::cerr << "Failed to open " << c_filename << " for writing\n";
+                    return 1;
+                }
+                c_out << out.str();
+                return 0;
             } 
             else {
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-nodefaultlibs -lc");

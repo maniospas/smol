@@ -8,7 +8,7 @@ service reader()
     -> value
 
 service main()
-    &messages = str[]
+    @mut messages = str[]
     x = reader()
     x.err:assert_ok
     messages:push("a number indeed: ":str)

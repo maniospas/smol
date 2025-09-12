@@ -22,7 +22,7 @@
 @about copy "Copies a string while. The result is nstr, that is, str-like that can be directly converted to a null-terminated version."
 @about add "Overloads the + operator to concatenate two strings. The result is nstr, that is, str-like that can be directly converted to a null-terminated version."
 
-smo copy(Memory &allocator, String _s)
+smo copy(@mut Memory allocator, String _s)
     s = _s:str
     mem = allocator:allocate(s.length+1, char)
     @body{
@@ -32,7 +32,7 @@ smo copy(Memory &allocator, String _s)
     }
     -> nominal:nstr(mem.mem, s.length, first, mem.underlying)
 
-smo add(Memory &allocator, String _x, IndependentString _y)
+smo add(@mut Memory allocator, String _x, IndependentString _y)
     x = _x:str
     y = _y:str
     @head{#include <string.h>}
@@ -52,7 +52,7 @@ smo add(Memory &allocator, String _x, IndependentString _y)
     }
     -> nominal:nstr(_contents, total_len, first, mem.underlying)
 
-smo nstr(Memory &allocator, i64 number)
+smo nstr(@mut Memory allocator, i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -76,7 +76,7 @@ smo nstr(Memory &allocator, i64 number)
         --
     -> nominal:nstr(contents, length, first, mem.underlying)
 
-smo nstr(Memory &allocator, u64 number)
+smo nstr(@mut Memory allocator, u64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -100,7 +100,7 @@ smo nstr(Memory &allocator, u64 number)
         --
     -> nominal:nstr(contents, length, first, mem.underlying)
 
-smo nstr(Memory &allocator, f64 number)
+smo nstr(@mut Memory allocator, f64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -124,11 +124,11 @@ smo nstr(Memory &allocator, f64 number)
         --
     -> nominal:nstr(contents, length, first, mem.underlying)
 
-smo str(Memory &allocator, u64 number)
+smo str(@mut Memory allocator, u64 number)
     -> nstr(allocator, number):str
 
-smo str(Memory &allocator, i64 number)
+smo str(@mut Memory allocator, i64 number)
     -> nstr(allocator, number):str
 
-smo str(Memory &allocator, f64 number)
+smo str(@mut Memory allocator, f64 number)
     -> nstr(allocator, number):str

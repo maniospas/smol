@@ -2,9 +2,10 @@
 @include std.mem
 @include std.file
 
-smo test(File &file)
+smo test(@mut File file)
     on Heap:volatile(32)
-        file:while next_chunk(str& chunk)
+        file
+        :while next_chunk(str& chunk)
             printin(chunk)
         ----
     print("")

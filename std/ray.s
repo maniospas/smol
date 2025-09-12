@@ -45,26 +45,26 @@ smo Window(nominal, Size size, cstr title)
     @body{ SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title); }
     -> @args
 
-smo close(Window &window)
+smo close(@mut Window window)
     --
 
-smo is_open(Window&)
+smo is_open(@mut Window)
     @body{ bool ret = WindowShouldClose(); }
     -> ret:not
 
-smo begin(Window &window)
+smo begin(@mut Window window)
     @body{ BeginDrawing(); }
     -> window
 
-smo end(Window &window)
+smo end(@mut Window window)
     @body{ EndDrawing(); }
     -> window
 
-smo clear(Window &window, Color color)
+smo clear(@mut Window window, Color color)
     @body{ ClearBackground((Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}); }
     -> window
 
-smo text(Window &window, CString _txt, Position pos, f64 size, Color color)
+smo text(@mut Window window, CString _txt, Position pos, f64 size, Color color)
     txt = _txt:nstr
     @body{
         DrawText(
@@ -97,7 +97,7 @@ smo open(Texture, CString _path)
     @finally mipmaps {UnloadTexture((Texture2D){id, width, height, mipmaps, format});}
     -> nominal:Texture(id, width, height, mipmaps, format)
 
-smo draw(Window &window, Texture tex, Position pos, Color color)
+smo draw(@mut Window window, Texture tex, Position pos, Color color)
     @body{ 
         DrawTexture(
             (Texture2D){tex__id, tex__width, tex__height, tex__mipmaps, tex__format},
@@ -107,7 +107,7 @@ smo draw(Window &window, Texture tex, Position pos, Color color)
     }
     -> window
 
-smo circ(Window &window, Position pos, f64 radius, Color color)
+smo circ(@mut Window window, Position pos, f64 radius, Color color)
     @body{
         DrawCircleV(
             (Vector2){(float)pos__x, (float)pos__y}, 
@@ -116,7 +116,7 @@ smo circ(Window &window, Position pos, f64 radius, Color color)
     }
     -> window
 
-smo rect(Window& window, Position pos, Size size, Color color)
+smo rect(@mut Window window, Position pos, Size size, Color color)
     @body{
         DrawRectangle(
             pos__x, pos__y,
@@ -126,11 +126,11 @@ smo rect(Window& window, Position pos, Size size, Color color)
     }
     -> window
 
-smo rect_line(Window &window, Position pos, Size size, u64 thickness, Color color)
+smo rect_line(@mut Window window, Position pos, Size size, u64 thickness, Color color)
     @body{DrawRectangleLinesEx((Rectangle){(float)pos__x, (float)pos__y, (float)size__w, (float)size__h}, (int)thickness, (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a});}
     -> window
 
-smo circ_line(Window &window, Position pos, u64 radius, u64 thickness, Color color)
+smo circ_line(@mut Window window, Position pos, u64 radius, u64 thickness, Color color)
     @body{
         f64 inner = (radius > thickness) ? (float)(radius - thickness) : 0.0f;
         f64 outer = (float)radius;

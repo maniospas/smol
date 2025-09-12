@@ -90,15 +90,20 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                 p++;
                 next = imp->at(p++);
             }
+            else if(p<imp->size() && imp->at(p)=="mut"){
+                is_mutable_assignment=true;
+                p++;
+                next = imp->at(p++);
+            }
             else {
                 parse_directive(imp, p, next, types);
                 continue;
             }
         }
-        if(next=="&") {
+        /*if(next=="&") {
             next = imp->at(p++);
             is_mutable_assignment=true;
-        }
+        }*/
         if(next=="|") {
             parse_return(imp, p, next, types);
             end = p--;
@@ -123,7 +128,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                 if(contains(var)) 
                     imp->error(--p, "Cannot set as mutable an existing variable: "
                         +var.to_string()
-                        +"\nMutability is declared by prepending & to the first occurence"
+                        +"\nMutability is declared by `@mut` in the first declaration"
                     ); 
                 mutables.insert(var);
             }

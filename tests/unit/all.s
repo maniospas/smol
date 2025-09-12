@@ -2,7 +2,7 @@
 @include std.os
 
 service run(String command)
-    &process = Process:open(command)
+    @mut process = Process:open(command)
     // read everything there is from the process
     process:to_end
     // Be explicit that the process is released

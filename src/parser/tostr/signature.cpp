@@ -49,9 +49,9 @@ string Def::signature(Types& types) {
             && types.reverse_alignment_labels[alignments[args[i].name]]!=this 
             && types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()>=1
         ) {
-            ret += pretty_runtype(types.reverse_alignment_labels[alignments[args[i].name]]->name.to_string())
-                +(args[i].mut?"\033[31m&\033[0m":"")
-                +"["
+            ret += (args[i].mut?"\033[31m@mut ":"")
+                +pretty_runtype(types.reverse_alignment_labels[alignments[args[i].name]]->name.to_string())
+                +"\033[0m["
                 +to_string(types.reverse_alignment_labels[alignments[args[i].name]]->packs.size())
                 +"]";
             i += types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()-1;

@@ -1,5 +1,6 @@
 @include std.builtins
 @include std.map
+@include std.mem
 
 service map_printer(Map map)
     with 

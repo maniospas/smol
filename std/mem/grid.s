@@ -20,7 +20,7 @@
 
 smo MemoryGrid (
         nominal type,
-        Memory& memory,
+        @mut Memory memory,
         Primitive,
         u64 size, 
         u64 squares
@@ -30,12 +30,12 @@ smo MemoryGrid (
 
 smo GridEntry (
         nominal,
-        MemoryGrid &grid,
+        @mut MemoryGrid grid,
         u64 id
     ) 
     -> @args
 
-smo at(MemoryGrid &self, u64 id) 
+smo at(@mut MemoryGrid self, u64 id) 
     -> nominal:GridEntry(self, id)
 
 smo at(GridEntry self, u64 pos) 
@@ -44,7 +44,7 @@ smo at(GridEntry self, u64 pos)
     :add(self.id)
     -> self.grid.surface[true_pos]
 
-smo put(GridEntry &self, u64 pos, Primitive value)
+smo put(@mut GridEntry self, u64 pos, Primitive value)
     with 
         Primitive:is(self.MemoryGrid.Primitive) 
         --
@@ -57,5 +57,5 @@ smo put(GridEntry &self, u64 pos, Primitive value)
 smo len(GridEntry self) 
     -> self.grid.size
 
-smo grid(Memory& memory, u64 size, u64 squares, Primitive)
+smo grid(@mut Memory memory, u64 size, u64 squares, Primitive)
     -> nominal:MemoryGrid(memory, Primitive, size, squares)

@@ -27,7 +27,7 @@
 smo Vec(nominal, ptr contents, u64 size, ptr surface) 
     -> @args
 
-smo vector(Memory &memory, u64 size)
+smo vector(@mut Memory memory, u64 size)
     mem = memory:allocate(size,f64)
     range(size):while next(u64 &i)
         @body{((f64*)mem__mem)[i] = 0;}
@@ -45,7 +45,7 @@ smo slice(Vec v, u64 from, u64 to)
     @body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
     -> nominal:Vec(contents, to-from, v.surface)
 
-smo vector(Memory &memory, Rand &rand, u64 size)
+smo vector(@mut Memory memory, @mut Rand rand, u64 size)
     mem = memory:allocate(size,f64)
     range(size)
     :while next(u64 &i)
@@ -53,7 +53,7 @@ smo vector(Memory &memory, Rand &rand, u64 size)
         @body{((f64*)mem__mem)[i] = value;}
     ---> nominal:Vec(mem.mem, size, mem.mem)
 
-smo vector(Rand &rand, Memory &memory, u64 size) 
+smo vector(@mut Rand rand, @mut Memory memory, u64 size) 
     -> vector(memory, rand, size)
 
 smo at(Vec v, u64 pos) 
@@ -62,7 +62,7 @@ smo at(Vec v, u64 pos)
     @body{f64 value = ((f64*)v__contents)[pos];} 
     -> value
 
-smo put(Vec &v, u64 pos, f64 value)
+smo put(@mut Vec v, u64 pos, f64 value)
     if pos>=v.size
         -> fail("Vec out of bounds")
     @body{((f64*)v__contents)[pos] = value;}
@@ -71,8 +71,8 @@ smo put(Vec &v, u64 pos, f64 value)
 smo dot(Vec x1, Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
-    &sum = 0.0
-    &i=0 
+    @mut sum = 0.0
+    @mut i=0 
     while i<x1.size 
         @next i = i+1
         sum = x1
@@ -81,7 +81,7 @@ smo dot(Vec x1, Vec x2)
         :add(sum)
     ---> sum 
 
-smo put(Vec &x1, Vec x2)
+smo put(@mut Vec x1, Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -92,7 +92,7 @@ smo put(Vec &x1, Vec x2)
     }
     --
 
-smo add(Memory &memory, Vec x1, Vec x2)
+smo add(@mut Memory memory, Vec x1, Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -104,7 +104,7 @@ smo add(Memory &memory, Vec x1, Vec x2)
     }
     -> nominal:Vec(mem.mem, size, mem.mem)
 
-smo sub(Memory &memory, Vec x1, Vec x2)
+smo sub(@mut Memory memory, Vec x1, Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -116,7 +116,7 @@ smo sub(Memory &memory, Vec x1, Vec x2)
     }
     -> nominal:Vec(mem.mem, size, mem.mem)
 
-smo mul(Memory &memory, Vec x1, Vec x2)
+smo mul(@mut Memory memory, Vec x1, Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -128,7 +128,7 @@ smo mul(Memory &memory, Vec x1, Vec x2)
     }
     -> nominal:Vec(mem.mem, size, mem.mem)
 
-smo div(Memory &memory, Vec x1, Vec x2)
+smo div(@mut Memory memory, Vec x1, Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -140,7 +140,7 @@ smo div(Memory &memory, Vec x1, Vec x2)
     }
     -> nominal:Vec(mem.mem, size, mem.mem)
 
-smo add(Vec& result, Vec x1, Vec x2)
+smo add(@mut Vec result, Vec x1, Vec x2)
     if result.size!=x1.size 
         -> fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -155,7 +155,7 @@ smo add(Vec& result, Vec x1, Vec x2)
     }
     -> result
 
-smo sub(Vec& result, Vec x1, Vec x2)
+smo sub(@mut Vec result, Vec x1, Vec x2)
     if result.size!=x1.size 
         -> fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -170,7 +170,7 @@ smo sub(Vec& result, Vec x1, Vec x2)
     }
     -> result
 
-smo mul(Vec& result, Vec x1, Vec x2)
+smo mul(@mut Vec result, Vec x1, Vec x2)
     if result.size!=x1.size 
         -> fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -185,7 +185,7 @@ smo mul(Vec& result, Vec x1, Vec x2)
     }
     -> result
 
-smo div(Vec& result, Vec x1, Vec x2)
+smo div(@mut Vec result, Vec x1, Vec x2)
     if result.size!=x1.size 
         -> fail("Incompatible Vec sizes")
     if x1.size!=x2.size 

@@ -104,18 +104,15 @@ void Def::notify_service_arg(const Variable& original) {
     for(const Variable& name : group) 
         has_been_service_arg[name] = true;
 }
-bool Def::can_mutate(const Variable& _text) {
-    if(has_been_service_arg[_text]) 
+
+bool Def::can_mutate(const Variable& var) {
+    if (has_been_service_arg[var]) 
         return false;
-    string text = _text.to_string();
-    if(mutables.find(text)!=mutables.end()) 
-        return true;
-    size_t pos = 0;
-    while((pos = text.find("__", pos)) != std::string::npos) {
-        std::string part = text.substr(0, pos);
-        if (mutables.find(part) != mutables.end()) 
+    Variable prefix = var;
+    for (size_t i =var.size; i>=1; --i) {
+        prefix.size = i;
+        if (mutables.find(prefix) != mutables.end())
             return true;
-        pos += 2; // Move past the current "__"
     }
     return false;
 }

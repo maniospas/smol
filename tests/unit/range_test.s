@@ -1,8 +1,8 @@
 @include std.builtins
 
 service main()
-    &pos = 0
-    &r = range(10)
+    @mut pos = 0
+    @mut r = range(10)
     next(r, u64& i)
     print(i)
     print(pos)

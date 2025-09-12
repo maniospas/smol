@@ -39,7 +39,7 @@ smo __rotl(u64 x, u64 k)
     @body{u64 z = (x << k) | (x >> (64 - k));}
     -> z
 
-smo splitmix64(u64& x)
+smo splitmix64(@mut u64 x)
     @body {
         u64 z = (x += 0x9E3779B97F4A7C15ULL);
         z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
@@ -49,11 +49,11 @@ smo splitmix64(u64& x)
     -> z
 
 smo Rand(u64 seed)
-    &modifying_seed = seed
-    &s0 = splitmix64(modifying_seed)
-    &s1 = splitmix64(modifying_seed)
-    &s2 = splitmix64(modifying_seed)
-    &s3 = splitmix64(modifying_seed)
+    @mut modifying_seed = seed
+    @mut s0 = splitmix64(modifying_seed)
+    @mut s1 = splitmix64(modifying_seed)
+    @mut s2 = splitmix64(modifying_seed)
+    @mut s3 = splitmix64(modifying_seed)
     @finally s0 {}
     @finally s1 {}
     @finally s2 {}
@@ -70,7 +70,7 @@ smo Rand()
     }
     -> Rand(seed)
 
-smo next(Rand &self)
+smo next(@mut Rand self)
     @body{
         u64 result = self__s0 + self__s3;
         u64 t = self__s1 << 17;

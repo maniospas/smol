@@ -9,7 +9,7 @@ smo Segment(String _value)
     -> nominal:Segment(value)
 
 smo combine(Segment[] segments)
-    &combined = "":str  // mutable null-terminated string
+    @mut combined = "":str  // mutable null-terminated string
     on Stack:arena(1024)
         range(segments:len)
         :while next(u64 &i)

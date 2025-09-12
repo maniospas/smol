@@ -65,8 +65,9 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                     throw runtime_error(type->signature(types));
                     
                 arg_progress++;
-                if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 
+                if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) {
                     throw runtime_error(type->signature(types));     
+                }
             }
             if(type->choice_power>highest_choice_power) {
                 highest_choice_power = type->choice_power;
@@ -234,7 +235,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             );
     
     // acquired resources should never be called twice by services because they require sequential execution
-    if(type->is_service)
+    if(type->is_service) {
         for(const Variable& acq : type->acquired) 
             if(acquired.find(acq)==acquired.end())
                 acquired.insert(acq);
@@ -243,6 +244,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                     +acq.to_string()
                     +" has @acquire in a previous service call"
                 );
+    }
 
     // repeat here to properly handle alignment (which we couldn't previously)
     for(size_t i=0;i<unpacks.size();++i) {
@@ -304,7 +306,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         if(type->not_primitive() 
             && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])
         ) 
-            throw runtime_error(type->signature(types)+": Expects mutable " + arg_type->name.to_string() + " "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" but got immutable "+vars[unpacks[i]]->name.to_string()+" "+pretty_var(unpacks[i].to_string()));
+            throw runtime_error(type->signature(types));
     }
 
 

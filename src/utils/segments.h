@@ -51,7 +51,7 @@ private:
 
 class SegmentedString {
 public:
-    unsigned int size;
+    unsigned int size; // number of segments, including the first one
     unsigned int first_segment;
     unsigned int* segments;
     SegmentedString() : size(0), first_segment(0), segments(nullptr) {}

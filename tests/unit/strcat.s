@@ -1,7 +1,7 @@
 @include std.builtins
 @include std.mem
 
-smo read_name(Arena &arn)
+smo read_name(@mut Arena arn)
     -> "maniospas"
     // print("What's your name?")
     // &name = "":str

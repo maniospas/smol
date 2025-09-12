@@ -5,26 +5,56 @@
 // - Only nominal typing is applied to ensure that distinct properties
 //   keep track of their nature.
 
-smo x(nominal) -> @args
-smo y(nominal) -> @args
-smo z(nominal) -> @args
-smo zero(nominal) -> @args
-union Var(x,y,z)       // one of x,y,z
-union Number(Var,zero) // all members of Var plus zero
-union Number2(Number)
+smo x(nominal) 
+    -> @args
+    
+smo y(nominal) 
+    -> @args
 
-smo neg(nominal,Var) -> @args
-smo neg(nominal,neg arg) -> arg.Var
-smo neg(nominal,zero) -> nominal:zero
+smo z(nominal) 
+    -> @args
+
+smo zero(nominal) 
+    -> @args
+
+union Var
+    x
+    y
+    z
+    --
+
+union Number
+    Var
+    zero
+    --
+
+union Number2
+    Number
+    --
+
+smo neg(nominal,Var) 
+    -> @args
+
+smo neg(nominal,neg arg) 
+    -> arg.Var
+
+smo neg(nominal,zero) 
+    -> nominal:zero
+
 smo add(nominal,Var,neg) 
     with 
-        &equals=Var 
+        @mut equals=Var 
         equals=neg.Var 
     ---> nominal:zero
-smo add(nominal,Var,zero) -> Var
-smo sub(nominal,Number,Number2) with result = nominal:add(Number,nominal:neg(Number2)) ---> result
+
+smo add(nominal,Var,zero) 
+    -> Var
+smo sub(nominal,Number,Number2) 
+    with 
+        result = nominal:add(Number,nominal:neg(Number2)) 
+    ---> result
 
 service main() 
-    &equals = nominal:sub(nominal:neg(nominal:neg(x)), zero) // (0-(0-x))-zero == x
+    @mut equals = nominal:sub(nominal:neg(nominal:neg(x)), zero) // (0-(0-x))-zero == x
     equals = nominal:x // this would have an error if we used nominal:z
     --

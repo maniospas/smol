@@ -42,7 +42,7 @@ void Def::assign_variable(
     ) 
         imp->error(--p, "Cannot reassign to non-mutable: "
             +pretty_var(from.to_string())
-            +"\nMutables are prepended by & in their first declaration AND must be fields"
+            +"\nMutables are prepended by `@amp` in their first definition AND must be fields"
             +"\nof free variables or fields of mutable variables"
         );
     if(to.is_private() 

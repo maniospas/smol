@@ -3,7 +3,7 @@
 @include std.file
 
 service main()
-    &file = Heap:tempfile(1024)
+    @mut file = Heap:tempfile(1024)
     file:print("hello world!")
     file:to_start
     on Stack:volatile(1024)

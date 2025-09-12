@@ -103,7 +103,7 @@
 //     }
 //     -> nominal:str(contents, length, first, context)
 
-// smo __map_prepare_key(nstr value, Memory &memory) 
+// smo __map_prepare_key(nstr value, @mut Memorymemory) 
 //     with memory:is(Heap) fail("Error: Cannot directly allocate `Heap` memory for map strings, use anything else (a heap Arena, Dynamic, Stack)") 
 //     --else--
 //     //if value.memory:exists:not |-> value.contents  // cstr wrappers
@@ -115,16 +115,16 @@
 //         }
 //     }
 //     -> mem.mem
-// smo __map_prepare_key(cstr value, Memory &memory) -> value
-// smo __map_prepare_key(f64 value, Memory &memory) -> value
-// smo __map_prepare_key(i64 value, Memory &memory) -> value
-// smo __map_prepare_key(u64 value, Memory &memory) -> value+1
+// smo __map_prepare_key(cstr value, @mut Memorymemory) -> value
+// smo __map_prepare_key(f64 value, @mut Memorymemory) -> value
+// smo __map_prepare_key(i64 value, @mut Memorymemory) -> value
+// smo __map_prepare_key(u64 value, @mut Memorymemory) -> value+1
 // smo __map_prepare_key(str value) -> value
 // smo __map_prepare_key(cstr value) -> value
 // smo __map_prepare_key(f64 value) -> value
 // smo __map_prepare_key(i64 value) -> value
 // smo __map_prepare_key(u64 value) -> value+1
-// smo __map_prepare_value(nstr value, Memory &memory)
+// smo __map_prepare_value(nstr value, @mut Memorymemory)
 //     //if value.memory:exists:not |-> value.contents  // cstr wrappers
 //     mem = memory:allocate(value.length+1, char)
 //     @body{
@@ -134,10 +134,10 @@
 //         }
 //     }
 //     -> mem.mem
-// smo __map_prepare_value(cstr value, Memory &memory) -> value
-// smo __map_prepare_value(f64 value, Memory &memory) -> value
-// smo __map_prepare_value(i64 value, Memory &memory) -> value
-// smo __map_prepare_value(u64 value, Memory &memory) -> value
+// smo __map_prepare_value(cstr value, @mut Memorymemory) -> value
+// smo __map_prepare_value(f64 value, @mut Memorymemory) -> value
+// smo __map_prepare_value(i64 value, @mut Memorymemory) -> value
+// smo __map_prepare_value(u64 value, @mut Memorymemory) -> value
 
 // smo hash(String _s)
 //     // djb2
@@ -160,7 +160,7 @@
 // // class Map
 // smo Map(
 //         nominal type, 
-//         Memory &memory, 
+//         @mut Memorymemory, 
 //         u64 size,
 //         Keys,
 //         Values
@@ -172,7 +172,7 @@
 //     length = 0
 //     -> type, size, mem, length, memory
 
-// smo map(Memory &memory, u64 size, Keys, Values) 
+// smo map(@mut Memorymemory, u64 size, Keys, Values) 
 //     -> nominal:Map(memory, size, Keys, Values)
 
 // smo len(Map &self) 
@@ -247,13 +247,13 @@
 //     ---> ret
 
 
-// // smo List(nominal, Memory &memory, u64 capacity, Values)
+// // smo List(nominal, @mut Memorymemory, u64 capacity, Values)
 // //     mem = memory:allocate(capacity, u64)
 // //     //range(capacity):while next(u64& i) mem:__unsafe_put(i, 0)
 // //     length = 0
 // //     ---> capacity, mem, length, memory, Values
 
-// // smo List(Memory &memory, u64 capacity, Values)
+// // smo List(@mut Memorymemory, u64 capacity, Values)
 // //     -> nominal:List(memory, capacity, Values)
 
 // // smo len(List self) -> self.length

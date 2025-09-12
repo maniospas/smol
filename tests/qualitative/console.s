@@ -3,7 +3,7 @@
 @include std.mem
 
 service main()
-    &console = WriteFile:console()
+    @mut console = WriteFile:console()
     console:print("hello world!\n")
     printin("Press enter here to close the open console...")
     Stack:arena(2):read

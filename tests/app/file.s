@@ -12,7 +12,7 @@ smo print(file_stats stats)
     print(" bytes")
     --
 
-smo file_reader(String path, Memory &memory)
+smo file_reader(String path, @mut Memorymemory)
     &stat_lines = 0
     &stat_chars = 0
     &file = ReadFile:open(path)

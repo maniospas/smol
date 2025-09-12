@@ -13,6 +13,7 @@
 #include "../../def.h"
 
 Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test) {
+    Variable buffer_var = next;
     next = next+Variable("dynamic");
     if(buffer_types.find(next)==buffer_types.end())
         imp->error(--p, "Internal error: cannot determine the buffer storage data for "
@@ -26,7 +27,6 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         );
     if(imp->at(p++)!="]") 
         imp->error(--p, "Expecting closing square bracket");
-
     vars[next+Variable("__buffer_size")]          = types.vars[Variable("u64")];
     vars[next+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
 
@@ -173,6 +173,47 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
             vars[elem+it.first] = it.second;
     for(const auto& it : buffer_types[next]->buffer_types)
         buffer_types[elem+it.first] = it.second;
+
+    // parse buff[element]::call(args)
+    if(p<imp->size()-2 && imp->at(p)==":" && imp->at(p+1)==":") {
+        p += 2;
+        if(mutables.find(buffer_var)==mutables.end())
+            imp->error(p, "Buffer is immutable: "
+                +pretty_var(buffer_var.to_string())
+                +"\nCannot apply :: to create a modifiable curry for an element of an immutable buffer."
+            );
+        mutables.insert(elem);
+        for(const auto& it : buffer_types[next]->packs) 
+            mutables.insert(elem+it);
+        Variable first_element = imp->at(p++);
+        Variable ret = parse_expression(imp, p, first_element, types, elem);
+        pack_index = 0;
+        for(const auto& pack : buffer_types[next]->packs) {
+            if(!buffer_types[next]->contains(pack)) 
+                imp->error(--p, "Internal error: failed to unpack value stored on buffer due to unknown type: "
+                    +pack.to_string()
+                );
+            else if(buffer_types[next]->vars[pack]->name != NOM_VAR) {
+                implementation += Code(
+                    Variable("memcpy(&((u64*)((u64*)"), 
+                    next, 
+                    Variable(")[0])["),
+                    idx, 
+                    MUL_VAR, 
+                    next+Variable("__buffer_alignment"), 
+                    Variable("+"+ to_string(pack_index)+"], &"),
+                    elem+pack,
+                    Variable(", sizeof("), 
+                    elem+pack, 
+                    Variable("))"), 
+                    SEMICOLON_VAR
+                );
+            }
+            pack_index++;
+        }
+        return ret;
+    }
+
     next = elem;
     return next;
 }
