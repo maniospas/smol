@@ -85,10 +85,12 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
     ) {
         if(can_access_mutable_fields.find(next)==can_access_mutable_fields.end() 
             && vars[next]->mutables.find(next_token)!=vars[next]->mutables.end())
-            imp->error(--p, "You cannot directly access mutable field: "
+            imp->error(--p, "You cannot directly access originally mutable field: "
                 +pretty_var((next+next_token).to_string())
                 +"\nMutable fields are marked with `@mut` at their first declaration."
-                +"\nAdd `@access` to argument variable to access their mutable fields."
+                +" Mutability may be transferred only through `@mut` arguments, but"
+                +" this check considers only the original runtype declaration, even if mutability qualifiers have been lost."
+                +" Add `@access` to argument variable to be able to access their mutable fields."
             );
 
         Type prevType = vars[next];
@@ -136,7 +138,9 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
             imp->error(--p, "You cannot directly access mutable field: "
                 +pretty_var((next+next_token).to_string())
                 +"\nMutable fields are marked with `@mut` at their first declaration."
-                +"\nAdd `@access` to argument variable to access their mutable fields."
+                +" Mutability may be transferred only through `@mut` arguments, but"
+                +" this check considers only the original runtype declaration, even if mutability qualifiers have been lost."
+                +" Add `@access` to argument variables to be able to access their mutable fields."
             );
         has_been_service_arg[next+next_token] = true;
         next = next+next_token;

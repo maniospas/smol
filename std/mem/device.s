@@ -54,31 +54,31 @@ smo ContiguousMemory (
         ptr underlying
     )
     @noassign
-    Primitive = Primitive
-    @body{u64 bytesize = sizeof(Primitive)*size;}
+    primitive = Primitive
+    @body{u64 bytesize = sizeof(primitive)*size;}
     @buffer mem bytesize underlying
     -> @args, bytesize
 
-smo is(Primitive self, Primitive) 
+smo is(@access Primitive self, Primitive) 
     -> self
 
-smo allocate(Stack, u64 size, Primitive) 
+smo allocate(@access Stack, u64 size, Primitive) 
     if size==0 
         -> fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
-    Primitive = Primitive
-    @body{ptr mem=alloca(size*sizeof(Primitive));}
+    primitive = Primitive
+    @body{ptr mem=alloca(size*sizeof(primitive));}
     if mem:bool:not 
         -> fail("Failed a Stack allocation")
     @noshare mem
     -> nominal:ContiguousMemory(Stack, size, Primitive, mem, mem)
 
-smo allocate(Heap, u64 size, Primitive)
+smo allocate(@access Heap, u64 size, Primitive)
     if size==0 
         -> fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
-    Primitive = Primitive
-    @body{ptr mem=__runtime_alloc(size*sizeof(Primitive));}
+    primitive = Primitive
+    @body{ptr mem=__runtime_alloc(size*sizeof(primitive));}
     if mem:bool:not 
         -> fail("Failed a Heap allocation")
     @finally mem {
@@ -88,11 +88,12 @@ smo allocate(Heap, u64 size, Primitive)
     }
     -> nominal:ContiguousMemory(Heap, size, Primitive, mem, mem)
 
-smo allocate(MemoryDevice, u64 size) 
+smo allocate(@access MemoryDevice, u64 size) 
     -> allocate(MemoryDevice, size, char)
 
-smo at(ContiguousMemory v, u64 pos) 
-    if pos>=v.size -> fail("ContiguousMemory out of bounds")
+smo at(@access ContiguousMemory v, u64 pos) 
+    if pos>=v.size 
+        -> fail("ContiguousMemory out of bounds")
     with 
         v.Primitive:is(u64) 
         @body{u64 value = ((u64*)v__mem)[pos];}
@@ -110,7 +111,7 @@ smo at(ContiguousMemory v, u64 pos)
         @body{char value = ((char*)v__mem)[pos];}
     ---> value
     
-smo __unsafe_put(ContiguousMemory v, u64 pos, Primitive value)
+smo __unsafe_put(@access ContiguousMemory v, u64 pos, Primitive value)
     with 
         v.Primitive:is(Primitive) 
         --

@@ -1,8 +1,8 @@
 @include std.builtins
-@include std.mem
+@include std.mem -> Heap
 
-service main() 
-   @mut arena = Heap:arena(1024)
-   s = arena:copy("MYSTRING":str)
+service main()
+   @mut memory = Heap:arena(1024)
+   s = memory:copy("MYSTRING":str)
    print(s)
     --

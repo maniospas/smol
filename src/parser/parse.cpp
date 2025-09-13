@@ -132,7 +132,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                     ); 
                 mutables.insert(var);
             }
-            int assignment_start = p-1;
+            size_t assignment_start = p-1;
             if(imp->at(p++)!="=") {
                 --p;
                 continue;
@@ -165,6 +165,10 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                             + "\nof mutable pointers may be freely modified when runtypes gain a hold of them."
                         );
                 }
+            if(!accepted_var_name(var.to_string())) 
+                imp->error(assignment_start, "Not a valid name");
+            if(types.vars.find(var)!=types.vars.end()) 
+                imp->error(assignment_start, "Invalid variable name\nIt is a previous runtype or union");
             assign_variable(it->second, var, expression_outcome, imp, p);
         }
         else if(is_next_assignment) 

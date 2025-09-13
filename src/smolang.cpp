@@ -91,6 +91,11 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                         p++;
                     }
                 }
+                for(const auto& it : files[path].vars) 
+                    for(const auto& option : it.second->options) 
+                        for(const auto& access : option->can_access_mutable_fields) 
+                            if(option->contains(access) && filter.find(option->vars[access]->name)!=filter.end())
+                                filter.insert(option->name);
                 for(const auto& it : files[path].vars) {
                     const Variable& name = it.first;
                     if(filter.size() && filter.find(name)==filter.end()) 

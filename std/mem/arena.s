@@ -33,7 +33,7 @@ smo Volatile(nominal type, ContiguousMemory contents)
     with contents.Primitive:is(char)
     ---> type, contents, length, cycles
 
-smo controlled_corrupt(@mut Volatile self)
+smo controlled_corrupt(@access @mut Volatile self)
     if self.cycles:bool -> fail("Volatile corrupt detected that some data have already been corrupted by insufficient space instead.")
     @body{self__length=0;}
     --
@@ -43,7 +43,7 @@ union DerivedMemory
     Volatile
     --
 
-smo len(@mut DerivedMemory self) 
+smo len(@access @mut DerivedMemory self) 
     -> self.contents.size
 
 smo Dynamic(nominal) 
@@ -64,15 +64,15 @@ smo Dynamic(nominal)
     }
     -> @args, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:dynamic
 
-smo dynamic(Heap) 
+smo dynamic(@access Heap) 
     -> nominal:Dynamic
 
-smo dynamic(Stack) 
+smo dynamic(@access Stack) 
     -> nominal:Stack
     
-smo allocate(@mut Dynamic self, u64 size, Primitive)
+smo allocate(@access @mut Dynamic self, u64 size, Primitive)
     @head{#include <stdlib.h>}
-    Primitive = Primitive
+    primitive = Primitive
     if self.acquired:bool:not 
         -> fail("Did not initialize Dynamic")
     @body{
@@ -85,7 +85,7 @@ smo allocate(@mut Dynamic self, u64 size, Primitive)
             if(success=next_acquired) ((ptr**)self__acquired)[0] = (ptr*)next_acquired;
         }
         if(success) {
-            ptr mem=(ptr)__runtime_alloc(size*sizeof(Primitive));
+            ptr mem=(ptr)__runtime_alloc(size*sizeof(primitive));
             if(success=mem) {
                 ((ptr**)self__acquired)[0][self__size] = mem;
                 self__size = next_size;
@@ -96,32 +96,32 @@ smo allocate(@mut Dynamic self, u64 size, Primitive)
         -> fail("Failed a Dynamic allocation")
     -> nominal:ContiguousMemory(Heap, size, Primitive, mem, self.acquired)
 
-smo allocate(@mut Dynamic self, u64 size) 
+smo allocate(@access @mut Dynamic self, u64 size) 
     -> allocate(self, size, char)
 
-smo used(@mut Arena self)
+smo used(@access @mut Arena self)
     -> self.length
 
-smo used(@mut Volatile self)
+smo used(@access @mut Volatile self)
     -> 0
 
-smo allocate(@mut Arena self, u64 size)
+smo allocate(@access @mut Arena self, u64 size)
     if (self.length+size)>self.contents.size 
         -> fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     -> nominal:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
 
-smo allocate(@mut Arena self, u64 _size, Primitive) 
-    Primitive = Primitive
-    @body{u64 size = _size*sizeof(Primitive);}
+smo allocate(@access @mut Arena self, u64 _size, Primitive) 
+    primitive = Primitive
+    @body{u64 size = _size*sizeof(primitive);}
     if (self.length+size)>self.contents.size 
         -> fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     -> nominal:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
-smo allocate(@mut Volatile self, u64 size)
+smo allocate(@access @mut Volatile self, u64 size)
     if size>self.contents.size 
         -> fail("Failed an Volatile allocation")
     @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
@@ -129,16 +129,16 @@ smo allocate(@mut Volatile self, u64 size)
     @body{self__length = self__length+size;}
     -> nominal:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
 
-smo allocate(@mut Volatile self, u64 _size, Primitive) 
-    Primitive = Primitive
-    @body{u64 size = _size*sizeof(Primitive);}
+smo allocate(@access @mut Volatile self, u64 _size, Primitive) 
+    primitive = Primitive
+    @body{u64 size = _size*sizeof(primitive);}
     if size>self.contents.size -> fail("Failed a Volatile allocation")
     @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length);}
     @body{self__length = self__length+size;}
     -> nominal:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
-smo read(@mut Arena self)
+smo read(@access @mut Arena self)
     @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
@@ -182,11 +182,11 @@ union BoundedMemory
     Volatile
     --
 
-smo is(@mut Memory self, @mut Memory) 
+smo is(@access @mut Memory self, @mut Memory) 
     -> self
 
-smo arena(@mut Memory self, u64 size) 
+smo arena(@access @mut Memory self, u64 size) 
     -> nominal:Arena(self:allocate(size))
     
-smo volatile(@mut Memory self, u64 size) 
+smo volatile(@access @mut Memory self, u64 size) 
     -> nominal:Volatile(self:allocate(size))

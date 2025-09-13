@@ -138,7 +138,6 @@ class Def {
     void signature_until_position(vector<unordered_map<Variable, Type>>& results, const vector<Variable>& parametric_names, size_t i, const unordered_map<Variable, Type>& current, const Types& types);
     static void print_depth();
     unordered_map<Variable, Type> retrievable_parameters;
-    unordered_set<Variable> can_access_mutable_fields;
     void parse_implementation(size_t& p, bool with_signature);
     Types saved_types;
     bool complete_option_resolution(const Types& _types);
@@ -186,6 +185,7 @@ class Def {
     Variable next_var_buffer_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
     Variable next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
 public:
+    unordered_set<Variable> can_access_mutable_fields;
     unordered_map<Variable, Type> vars;
     inline bool contains(const Variable& var) const {
         return vars.find(var)!=vars.end() && vars.find(var)->second;
