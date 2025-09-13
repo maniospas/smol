@@ -41,14 +41,10 @@ smo process(@mut Sphere s, f64 dt)
 smo draw(Sphere sphere, @mut Window window)
     window:circ(sphere.x, sphere.y, sphere.r, Color(200, 50, 50))
     --
-
-// smo test()
-//     s = Sphere[]:new(100.0, 100.0, 30.0, 1000.0, 650.0)
-//     --
-
+    
 smo process(@mut Sphere[] spheres, f64 dt)
     range(spheres:len)
-    :while next(u64 &i)
+    :while next(@mut u64 i)
         spheres[i]
         ::process(dt)
     ----

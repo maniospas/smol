@@ -70,7 +70,7 @@ smo Rand()
     }
     -> Rand(seed)
 
-smo next(@mut Rand self)
+smo next(@access @mut Rand self)
     @body{
         u64 result = self__s0 + self__s3;
         u64 t = self__s1 << 17;

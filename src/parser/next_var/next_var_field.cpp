@@ -83,6 +83,14 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
         && vars[next]->retrievable_parameters.find(next_token)
             !=vars[next]->retrievable_parameters.end()
     ) {
+        if(can_access_mutable_fields.find(next)==can_access_mutable_fields.end() 
+            && vars[next]->mutables.find(next_token)!=vars[next]->mutables.end())
+            imp->error(--p, "You cannot directly access mutable field: "
+                +pretty_var((next+next_token).to_string())
+                +"\nMutable fields are marked with `@mut` at their first declaration."
+                +"\nAdd `@access` to argument variable to access their mutable fields."
+            );
+
         Type prevType = vars[next];
         if(prevType->options.size()==1) 
             prevType = *prevType->options.begin();
@@ -115,13 +123,21 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
                 +pretty_var(next_token)
                 +" in "+vars[next]->signature(types)
             );
-        //if(!contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next)); // declare all up to this point
+        if(!contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next.to_string())); // declare all up to this point
         if(vars[next]->buffer_ptr==next_token)
             if(!can_mutate(next+next_token) && !imp->allow_unsafe)
                 imp->error(--p, "Buffer surface is not mutable: "
                     +pretty_var(next.to_string()+"__"+next_token)
                     +"\nIt might have been used elsewhere. Mark this file as @unsafe to allow a union view."
                 );
+        
+        if(can_access_mutable_fields.find(next)==can_access_mutable_fields.end() 
+            && vars[next]->mutables.find(next_token)!=vars[next]->mutables.end())
+            imp->error(--p, "You cannot directly access mutable field: "
+                +pretty_var((next+next_token).to_string())
+                +"\nMutable fields are marked with `@mut` at their first declaration."
+                +"\nAdd `@access` to argument variable to access their mutable fields."
+            );
         has_been_service_arg[next+next_token] = true;
         next = next+next_token;
         if(p>=imp->size()) 

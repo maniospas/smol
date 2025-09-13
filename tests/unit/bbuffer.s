@@ -1,6 +1,9 @@
 @include std.builtins
 
-smo data(u64 id, @mut u64[] values) 
+smo data(
+        u64 id, 
+        u64[] values
+    ) 
     -> @args
 
 service main()

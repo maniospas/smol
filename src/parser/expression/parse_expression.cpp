@@ -34,7 +34,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         || first_token=="and"
         || first_token=="or"
         || first_token=="="
-        || first_token=="@"
+        //|| first_token=="@"
         || first_token=="union"
         || first_token=="smo"
         || first_token=="service"
@@ -88,6 +88,18 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
                 +first_token.to_string()
             );
         return next_var(imp, p, first_token, types); //ASSIGNMENT TO ALREADY EXISTING VARIABLE
+    }
+    if(first_token=="@" && p<imp->size() && imp->at(p)=="mut") {
+        p++;
+        if(p >= imp->size()) 
+            imp->error(--p, "Expecting runtype after @mut");
+        Variable runtype = imp->at(p++); 
+        if(!types.contains(runtype))
+            imp->error(--p, "Unknown runtype after @mut: " + runtype.to_string());
+        Variable var = parse_expression(imp, p, runtype, types, EMPTY_VAR);
+        mutables.insert(var);
+        type_trackers.insert(var);
+        return  var;
     }
     if(types.contains(first_token)) {
         auto type = types.vars.find(first_token)->second;

@@ -242,7 +242,7 @@ smo Split(String _query, IndependentString _sep)
     -> nominal:Split(_query:str, _sep:str, u64 &pos) // splits are str (not cstr or nstr)
 
 smo next(
-        @mut Split self, 
+        @access @mut Split self, 
         @mut str value
     )
     ret = self.pos<self.query:len

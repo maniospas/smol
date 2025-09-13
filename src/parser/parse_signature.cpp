@@ -37,6 +37,7 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
     while(true) {
         bool autoconstruct = false;
         bool mut = false;
+        bool can_access_mutables = false;
         string next = imp->at(p++);
         if(next==")") 
             break;
@@ -48,10 +49,24 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         if(next==",") 
             next = imp->at(p++);//spaghetios
         if(next=="@") {
-            mut = true;
             next = imp->at(p++);
+            if(next!="access" && next!="mut")
+                imp->error(p, "Only a `@mut` or `@access` directive is allowed here");
+            if(next=="access")
+                can_access_mutables = true;
+            else 
+                mut = true;
+            next = imp->at(p++);
+        }
+        if(next=="@") {
+            next = imp->at(p++);
+            if(next=="access")
+                imp->error(--p, "`@access` should be placed before `@mut`");
+            if(mut)
+                imp->error(--p, "Already declared `@mut`");
+            mut = true;
             if(next!="mut")
-                imp->error(--p, "Only a @mut directive is allowed here");
+                imp->error(--p, "Only a `@mut` directive is allowed here");
             next = imp->at(p++);
         }
         if(!accepted_var_name(next)) 
@@ -60,6 +75,8 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             imp->error(--p, "Missing runtype: "+next);
 
         Variable arg_name = imp->at(p++);
+        if(can_access_mutables)
+            can_access_mutable_fields.insert(arg_name);
         bool arg_is_buffer = false;
         if(arg_name=="[") {
             arg_is_buffer = true;

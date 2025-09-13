@@ -119,6 +119,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
             else if(buffer_types[next]->vars[pack]->name == NOM_VAR) {
                 Variable tmp = create_temp();
                 vars[tmp] = buffer_types[next]->vars[pack];
+                alignments[tmp] = buffer_types[next]->alignments[pack];
                 if(packname.is_empty()) {
                     assign_variable(
                         buffer_types[next]->vars[pack],
@@ -209,6 +210,8 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
                     SEMICOLON_VAR
                 );
             }
+            else 
+                alignments[next+pack] = buffer_types[next]->alignments[pack];
             pack_index++;
         }
         return ret;

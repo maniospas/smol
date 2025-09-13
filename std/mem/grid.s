@@ -38,13 +38,17 @@ smo GridEntry (
 smo at(@mut MemoryGrid self, u64 id) 
     -> nominal:GridEntry(self, id)
 
-smo at(GridEntry self, u64 pos) 
+smo at(@access GridEntry self, u64 pos) 
     true_pos = pos
     :mul(self.grid.squares)
     :add(self.id)
     -> self.grid.surface[true_pos]
 
-smo put(@mut GridEntry self, u64 pos, Primitive value)
+smo put(
+        @access @mut GridEntry self, 
+        u64 pos, 
+        Primitive value
+    )
     with 
         Primitive:is(self.MemoryGrid.Primitive) 
         --
@@ -54,7 +58,7 @@ smo put(@mut GridEntry self, u64 pos, Primitive value)
     self.grid.surface:__unsafe_put(true_pos, value)
     --
 
-smo len(GridEntry self) 
+smo len(@access GridEntry self) 
     -> self.grid.size
 
 smo grid(@mut Memory memory, u64 size, u64 squares, Primitive)

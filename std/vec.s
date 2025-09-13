@@ -29,7 +29,7 @@ smo Vec(nominal, ptr contents, u64 size, ptr surface)
 
 smo vector(@mut Memory memory, u64 size)
     mem = memory:allocate(size,f64)
-    range(size):while next(u64 &i)
+    range(size):while next(@mut u64 i)
         @body{((f64*)mem__mem)[i] = 0;}
     ---> nominal:Vec(mem.mem, size, mem.mem)
 
@@ -48,7 +48,7 @@ smo slice(Vec v, u64 from, u64 to)
 smo vector(@mut Memory memory, @mut Rand rand, u64 size)
     mem = memory:allocate(size,f64)
     range(size)
-    :while next(u64 &i)
+    :while next(@mut u64 i)
         value = rand:next
         @body{((f64*)mem__mem)[i] = value;}
     ---> nominal:Vec(mem.mem, size, mem.mem)
@@ -204,7 +204,7 @@ smo print(Vec v)
     size = if v.size>10 -> 10 else -> v.size
     printin("[")
     range(size)
-    :while next(u64 &pos)
+    :while next(@mut u64 pos)
         if pos:bool
             -> printin(" ")
         printin(v[pos])

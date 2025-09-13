@@ -138,6 +138,7 @@ class Def {
     void signature_until_position(vector<unordered_map<Variable, Type>>& results, const vector<Variable>& parametric_names, size_t i, const unordered_map<Variable, Type>& current, const Types& types);
     static void print_depth();
     unordered_map<Variable, Type> retrievable_parameters;
+    unordered_set<Variable> can_access_mutable_fields;
     void parse_implementation(size_t& p, bool with_signature);
     Types saved_types;
     bool complete_option_resolution(const Types& _types);
