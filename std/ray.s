@@ -3,9 +3,9 @@
 // This is free and unencumbered software released into the public domain.
 // See <http://unlicense.org/> for more details.
 
-@include std.builtins.num
-@include std.builtins.str
-@include std.builtins.err
+@include std.core.num
+@include std.core.str
+@include std.core.err
 @include std.mem
 //@install std.rayget
 

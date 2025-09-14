@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 @include std.vec
 
 smo pointr(f64 r, @mut f64 t)  // t is mutable (the returned t also becomes mutable)

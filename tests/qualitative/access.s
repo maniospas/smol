@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 
 smo Point(u64 _x, u64 _y)
     @mut x = _x

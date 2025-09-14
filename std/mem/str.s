@@ -15,7 +15,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@include std.builtins
+@include std.core
 @include std.mem.arena
 @unsafe
 @about "Standard library implementation of string operations using its own allocators and C memory operations."

@@ -15,7 +15,7 @@
 // // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-// @include std.builtins
+// @include std.core
 // @include std.mem
 // @unsafe
 // @about "Standard library implementation of maps that requires unsafe entry casts to u64."

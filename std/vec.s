@@ -20,7 +20,7 @@
 @about print "Prints a vector to the console."
 @about slice "Slices a vector from a given to an ending position. This is a transparent view of vector data."
 
-@include std.builtins
+@include std.core
 @include std.rand
 @include std.mem
 

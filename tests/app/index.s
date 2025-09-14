@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 @include std.mem
 
 smo Segment(nominal, str value)

@@ -1,6 +1,6 @@
 // this file demonstrates various errors that are correctly created
 
-@include std.builtins
+@include std.core
 @include std.map
 @include std.mem
 

@@ -238,7 +238,7 @@ smo str (
   </p>
 
   <div style="position: relative; margin-bottom: 2em;">
-<pre><code class="language-smolambda">@include std.builtins // basic arithmetics, etc
+<pre><code class="language-smolambda">@include std.core // basic arithmetics, etc
 
 service samples()
     buf = u64[]
@@ -294,7 +294,7 @@ service main()
   </p>
 
   <div style="position: relative; margin-bottom: 2em;">
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 @include std.mem
 
 service greet(str name)

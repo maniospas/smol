@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 
 smo data(
         u64 id, 

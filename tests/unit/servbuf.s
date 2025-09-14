@@ -1,4 +1,4 @@
-@include std.builtins // basic arithmetics, etc
+@include std.core // basic arithmetics, etc
 
 service samples()
     buf = u64[]

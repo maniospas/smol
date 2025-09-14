@@ -188,9 +188,12 @@ arithmetics are externally implemented in the standard library with a C/C++ inte
 Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="repository">GitHub</a> to track progress.</p>
 
 
-<p>Overall, there are two main constructs: a) runtypes denoted by <code class="language-smolambda">smo</code>
-that declare short inlined operations, and b) services that are executed in parallel and handle internal failures gracefully.
-Use the former for speedy intermediate operations and the latter for error handling over large chunks of business logic.
+<p>Overall, there are two main constructs: </p>
+<ul>
+<li><code class="language-smolambda">smo</code> - runtypes that declare as both a type and fast inlined implementations.</li>
+<li><code class="language-smolambda">service</code> - executed in parallel and handle internal failures gracefully.</li>
+</ul>
+<p></p>Use runtypes for speedy intermediate operations and the latter for error handling over large chunks of business logic.
 </p><p>
 The type system is algebraic with overloads, unions, and basic type inference - just enough to keep
 code simple without hiding behavior. All code is fastly executed on the stack, but there are heap buffers to handle 
@@ -216,7 +219,7 @@ The language server offers tooltips, error traces, and jumping to definitions.</
 <h3 id="interesting">Basic structure <a href="#interesting" class="anchor-link">🔗</a></h3>
 <p>Look at an example of how <i>smoλ</i> manages data structures:</p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo Point(f64 x, f64 y) 
     -> @args
@@ -239,14 +242,17 @@ service main()
 
 <p>First, <code class="language-smolambda">@include</code> brings code from
 other files with the <i>.s</i> extension. Paths are separated by dots.
-Here we include builtins from the <a href="#std">standard library</a> that we
+Here we include some basic operations from the <a href="#std">standard library</a> that we
 are going to use, mainly arithmetic operations and printing. 
-Nothing exciting yet.</p>
+Nothing exciting yet. If, for example, you needed to bring only numbers and
+associated operations, 
+you could write <code class="language-smolambda">@include std.core -> Number</code>.
+</p>
 
-<p>Next are some so-called <i>runtypes</i>, declared by the <code class="language-smolambda">smo</code>
+<p>Next are some so-called <i>runtypes</i>, declared with the <code class="language-smolambda">smo</code>
 keyword. These merge the concept of types and functions, where <code class="language-smolambda">-></code>
 returns a value or tuple. If variable names are part of the returned tuple, they can be accessed as fields
-from the result. <code class="language-smolambda">@nominal</code> is a shorthand for
+from the result. <code class="language-smolambda">@args</code> is a shorthand for
 returning a tuple of all arguments. It is useful for declaring structural data without functionality - though
 those data may make runtime assertions.</p>
 
@@ -310,17 +316,12 @@ available in the standard library.
         <td>Values expand into primitives</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">@include</code></td>
+      <td><code class="language-smolambda">@include lib</code></td>
       <td>Import external file</td>
       <td>Dot-path notation used for `.s` files</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">@noshare</code></td>
-      <td>Mark as unsafe to share</td>
-      <td>Prevents sharing to other services</td>
-    </tr>
-    <tr>
-      <td><code class="language-smolambda">@release</code></td>
+      <td><code class="language-smolambda">@release var</code></td>
       <td>Release all resources</td>
       <td>Invalidates any variables using those</td>
     </tr>
@@ -361,7 +362,7 @@ available in the standard library.
       <td>E.g., escape loops from inside conditions</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">@nominal</code></td>
+      <td><code class="language-smolambda">@args</code></td>
       <td>Return all inputs</td>
       <td>Prioritized on runtype conflicts</td>
     </tr>
@@ -371,9 +372,14 @@ available in the standard library.
         <td>Omitted in tuple unpack</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">&amp;</code></td>
-      <td>Call by reference</td>
-      <td>Before name in signature, mutates values</td>
+      <td><code class="language-smolambda">@mut</code></td>
+      <td>Allow mutation</td>
+      <td>Placed before variable declaration</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@access</code></td>
+      <td>Access mutable fields</td>
+      <td>Those fields are hidden otherwise</td>
     </tr>
     <tr class="section-header"><td colspan="3"><u>Control flow</u></td></tr>
     <tr>
@@ -411,14 +417,14 @@ available in the standard library.
       <td>Deferred assignment</td>
       <td>Evaluated now, assigned at end of block</td>
     </tr>
-    <tr class="section-header"><td colspan="3"><u>Builtins</u></td></tr>
+    <tr class="section-header"><td colspan="3"><u>Primitives</u></td></tr>
     <tr>
       <td><code class="language-smolambda">nominal</code></td>
       <td>Nominal type checking</td>
       <td>Automatic unique value in arguments</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">i64, u64, f64, ...</code></td>
+      <td><code class="language-smolambda">i64, u64, f64, bool</code></td>
       <td>Builtin runtypes</td>
       <td>Can be called to convert to each other</td>
     </tr>
@@ -437,11 +443,16 @@ available in the standard library.
       <td>Slicing by length</td>
       <td>Number of elements instead of end</td>
     </tr>
-    <tr class="section-header"><td colspan="3"><u>C/C++ ABI</u></td></tr>
+    <tr class="section-header"><td colspan="3"><u>C/C++ Unsafe Injection</u></td></tr>
+    <tr>
+      <td><code class="language-smolambda">@unsafe</code></td>
+      <td>Enable non-safety</td>
+      <td>Place at the beginning of file</td>
+    </tr>
     <tr>
       <td><code class="language-smolambda">@body{...}</code></td>
       <td>Inline C/C++ code</td>
-      <td>ABI-level logic inside runtypes</td>
+      <td>Foreign implementation segment</td>
     </tr>
     <tr>
       <td><code class="language-smolambda">@head{...}</code></td>
@@ -457,6 +468,26 @@ available in the standard library.
       <td><code class="language-smolambda">@finally{...}</code></td>
       <td>C/C++ to free resources</td>
       <td>Can also tie the resources to a variable</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@noshare</code></td>
+      <td>Mark as unsafe to share</td>
+      <td>Prevents sharing to other services</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@noassign</code></td>
+      <td>Mark as unsafe to assign</td>
+      <td>Makes each declaration unique</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@nozero</code></td>
+      <td>Mark as unsafe to zero-initialize</td>
+      <td>Makes all initializations of the result as explicit</td>
+    </tr>
+    <tr>
+      <td><code class="language-smolambda">@noother</code></td>
+      <td>Mark as unsafe to zero-initialize</td>
+      <td>Makes all initializations of the result as explicit</td>
     </tr>
   </tbody>
 </table>
@@ -486,7 +517,7 @@ Similarly, adding parentheses may help clarity but is not
 required because the end of expressions is always unique.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     @mut i = 0
@@ -507,7 +538,7 @@ we use <code class="language-smolambda">0.0</code> below.
 Different types of numbers can be converted to each other but are normally
 not allowed to mingle for safety.</p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     x = f64:read // more on this syntax later
@@ -525,7 +556,7 @@ service main()
 <p>Equivalently, replace the pattern <code class="language-smolambda">else->if</code> with the <code class="language-smolambda">elif</code>
 keyword, which is more ergonomic. Below is the same example rewritten more concisely.</p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     x = f64:read
@@ -546,7 +577,7 @@ defined as part of the language and apply only on <code class="language-smolambd
 They further short-circuit logic expressions. That is, they do not compute redundant segments, as shown
 below.</p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo test() 
   print("called") 
@@ -578,7 +609,7 @@ you tried to return a value in one of the branches. Syntax is equivalent
 to printing and then ending code blocks with <code class="language-smolambda">--</code>. 
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     @mut i = 0
@@ -604,7 +635,7 @@ loops, although we will later see a simpler notation.
 </p>
 
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     @mut i=0 
@@ -636,7 +667,7 @@ below  <code class="language-smolambda">if true</code>
 is used to isolate the next values and intercept the internal return.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     @mut i = 1
@@ -672,7 +703,7 @@ a simple example.
 </p>
 
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     @mut i = 511 
@@ -692,7 +723,7 @@ one tried to assign the value returned by the top loop to a variable.
 </p>
 
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     @mut i=0 
@@ -771,7 +802,7 @@ you get direct access to that value, without of treating it as a field.
 An example of this concept is presented below, where the overloaded <i>Point</i>
 runtype with no arguments directly returns a version constructed with two arguments.</p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo Point(f64 x, f64 y) 
     -> @args
@@ -793,11 +824,11 @@ However, only returned symbols can be accessed as fields.
 For example, below the input variable <code class="language-smolambda">x</code>
 cannot be accessed after computations conclude.
 We already saw that it may be convenient to unpack all runtype inputs with
-<code class="language-smolambda">@nominal</code> to directly declare a structural type
+<code class="language-smolambda">@args</code> to directly declare a structural type
 without internal implementation.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo multi_out(u64 x)
     xinc = add(x,1)
@@ -826,7 +857,7 @@ calls occur by reference by prepending
 <code class="language-smolambda">@mut</code> to arguments in the signature. In this case,
 internal modifications are retained. Below is an example.</p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo inc(@mut u64 x)
     x = add(x,1)
@@ -846,7 +877,7 @@ its mutable fields can be Passed as mutable arguments. The same
 DOES hold true for the nominally typed <code>Point pt</code>.</p>
 
 <pre><code class="language-smolambda">
-@include std.builtins
+@include std.core
 
 smo Point(f64 px, f64 py)
     @mut x = px
@@ -876,7 +907,7 @@ service main()
     --
 </code></pre>
 
-<p>ℹ️ <i>As a rule of thumb, allow maximal extensibility by only adding <code>&</code> 
+<p>ℹ️ <i>As a rule of thumb, allow maximal extensibility and safety by only adding <code>@mut</code> 
 if the compiler complains about mutability.</i></p>
 
 <p>
@@ -889,7 +920,7 @@ prevents the modification of the immutable <code>map</code>'s entries.
 </p>
 
 <pre><code class="language-smolambda">
-@include std.builtins
+@include std.core
 @include std.map
 
 service map_printer(Map map)
@@ -920,7 +951,7 @@ parentheses if there is only one argument and you curry it. Below is an example,
 have as little nesting as possible.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     1:add(2):mul(3):print
@@ -937,14 +968,14 @@ to have side-effects.
 
 <p>If currying is followed by <code>if</code> or <code>while</code> then the curried expression result is transferred to
 the condition. This enables runtypes that serve as iterators by modifying an
-iterated value by reference. Below is an example, where <code class="language-smolambda">u64 &i</code> 
+iterated value by reference. Below is an example, where <code class="language-smolambda">@mut u64 i</code> 
 declares a zero-initialized variable to hold the iteration state. For safety, this pattern is available
 only if <code>i</code> has not been declared. The standard library provides a richer <code>range</code>
 based on the same principles.
 </p>
 
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 
 smo custom_range(u64 start, u64 end) 
@@ -976,7 +1007,7 @@ different when converted to a flat representation of primitives
 Consider nominal types presented later as primitives. For now, you can see the automatic application of the appropriate runtype.
 Do note that conflicting definitions will create errors.
 
-<pre><code class="language-smolambda">@include std.builtins 
+<pre><code class="language-smolambda">@include std.core 
 
 smo point(f64 x, f64 y)
     -> @args
@@ -1077,7 +1108,7 @@ does not take up storage), as it is mostly used for disambiguating between struc
 equivalent runtypes.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo Type1(nominal, f64 value) 
     -> @args
@@ -1102,7 +1133,7 @@ service main()
 </code></pre>
 
 
-<p>Till now we used <code class="language-smolambda">->@nominal</code> returns as a shorthand for returning
+<p>Till now we used <code class="language-smolambda">->@args</code> returns as a shorthand for returning
 input values. However, this also helps disambiguate overloading when there is no clear resolution. 
 In particular, if exactly one of the competing runtypes
 has this kind of return declaration or argument, that is used as the choice that breaks the stalemate.
@@ -1113,7 +1144,7 @@ with a standard library implementation. The <code class="language-smolambda">str
 to allow various conversions to other primitives. However, we are still able to identify a specific variation, 
 which in turn is used to identify and call <code class="language-smolambda">str:read</code>.</p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 @include std.mem
 
 service main()
@@ -1143,7 +1174,7 @@ and calling the corresponding overloaded addition.
 Unions account for overloads of their options up to the point
 where they are defined.</p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 union Type
     i64 
@@ -1180,7 +1211,7 @@ indexing, and <code class="language-smolambda">len</code> to count the number of
 in the buffer. Below is a simple example:
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 @include std.mem
 
 service main()
@@ -1203,7 +1234,7 @@ own buffers, but <i>smoλ</i> actively promotes the faster memory management of
 its standard library
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo strbuf(nominal, @mut str[] ref)
     -> @args
@@ -1253,7 +1284,7 @@ is a first glimpse on this dynamism, where <i>first</i> employs a different patt
 the data it is called with. The implementation could also be overloaded, though code selection is an
 ergonomic alternative. More on overloading later.</p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 @include std.vec // more on vectors later
 
 smo point(f64 x, f64 y) 
@@ -1300,7 +1331,7 @@ with runtypes so that it's easy to change your mind as you write code.
 You will often not notice anything different.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service square(f64 x) 
     -> x*x
@@ -1336,7 +1367,7 @@ main service.
 </p>
 
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service square(f64 x) 
     fail("Don't wanna!") // manually fail
@@ -1359,7 +1390,7 @@ when unpacking values to let service returns be used interchangeably to runtypes
 the hotpath.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service square(f64 x) 
     fail("Don't wanna!") // manually fail
@@ -1386,7 +1417,7 @@ service fail too.
 </p>
 
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service get_age() 
     print("What's your age?")
@@ -1454,7 +1485,7 @@ segment- strings. Reading failure fails the current service under <i>smoλ</i>'s
 instead of trying to recover from invalid states. Here's an example:
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     success = false
@@ -1474,7 +1505,7 @@ a) they retain c-style strings for quoted characters, and b) they keep track of 
 to enable fast comparison without going through heap data.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     i = 0
@@ -1502,7 +1533,7 @@ under the hood. Those operations apply bound checks but
 do not copy memory and are therefore performant. Here is
 an example of obtaining substrings with the slicing notation.</p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 service main()
     s = "I like bananas!"
     print(s[2 to 7])  // prints "like"
@@ -1517,7 +1548,7 @@ Manipulating characters at individual string positions without losing safety
 will be covered in future versions of the standard library.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service add_service(str v1, str v2) 
     i = 0
@@ -1538,7 +1569,7 @@ service main()
 
 <p><i>Section under construction.</i></p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 @include std.mem
 
 smo zero(Memory, u64 n)
@@ -1587,7 +1618,7 @@ vector computations. These include the generation
 of vectors with uniformly random elements.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 @include std.vec
 @include std.time
 
@@ -1608,7 +1639,7 @@ service main()
 <p>Various trigonometric operations are available, namely <code>cos, sin, tan, acos, asin, atan</code>.
 In addition to those, you can compute multiples of <code>π=3.14159...</code> per <code class="language-smolambda">value:pi</code> like below.
 </p>
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 @include std.math
 
 service main()

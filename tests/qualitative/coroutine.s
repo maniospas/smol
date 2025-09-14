@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 
 service print_service(u64 x)
     -> print(x)

@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 
 service main()
     @mut pos = 0

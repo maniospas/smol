@@ -15,8 +15,8 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@include std.builtins.num
-@include std.builtins.err
+@include std.core.num
+@include std.core.err
 
 @unsafe
 @about "Standard library wrapping of C time (provided by posix time.h or windows.h)."

@@ -1,4 +1,4 @@
-@include std.builtins 
+@include std.core 
 
 smo point(f64 x, f64 y)
     -> @args

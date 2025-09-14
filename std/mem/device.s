@@ -15,8 +15,8 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@include std.builtins.num
-@include std.builtins.err
+@include std.core.num
+@include std.core.err
 @unsafe
 @about "Standard library implementation of memory management that accounts for the stack and heap and depends on the runtime.h implementation of heap memory, and GCC implementation of alloca. Stack alloactions cannot be returned from services, as the stack is pruned when programming function calls end. Smo runtypes are not implemented as functions, so it is fine to return stack allocations from them."
 @about Stack        "Represents call stack memory. Allocating on this is near-zero cost by being just an arithmetic addition but its total size is limited - typically up to a few megabytes. Prefer this for small localized data that need to be processed exceedingly fast."

@@ -15,13 +15,13 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@include std.builtins.num
-@include std.builtins.str
+@include std.core.num
+@include std.core.str
 @unsafe
 @about "Standard library wrapping and simplification of C console commands."
 @about read "Reads several string and primitive types from console text input given by the user; they need to press enter after entering the input. String reading is restricted to 1024 bytes allocated on the heap. You can have more control of string reading on alternatives. Non-string variations of this method are restricted to local variables. Invalid inputs create service failures."
 
-smo read(i64)
+smo read(@access i64)
     @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @body{
@@ -34,7 +34,7 @@ smo read(i64)
         @fail{printf("Error: invalid integer read\n");} 
     ---> number
 
-smo read(u64)
+smo read(@access u64)
     @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @body{
@@ -52,7 +52,7 @@ smo read(u64)
         @fail{printf("Error: invalid unsigned integer read\n");} 
     ---> number
 
-smo read(f64)
+smo read(@access f64)
     @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @body{
@@ -65,7 +65,7 @@ smo read(f64)
         @fail{printf("Error: invalid number read\n");} 
     ---> number
 
-smo convert(i64, String _s)
+smo convert(@access i64, String _s)
     s = _s:str
     @body{
         i64 number = 0;
@@ -100,7 +100,7 @@ smo convert(i64, String _s)
     ---> number
 
 
-smo convert(u64, String _s)
+smo convert(@access u64, String _s)
     s = _s:str
     @body{
         u64 number = 0;
@@ -126,7 +126,7 @@ smo convert(u64, String _s)
     ---> number
 
 
-smo convert(f64, String _s)
+smo convert(@access f64, String _s)
     s = _s:str
     @body{
         f64 number = 0.0;
@@ -150,7 +150,7 @@ smo convert(f64, String _s)
                 char c = chars[i];
                 if(c >= '0' && c <= '9') {number = number * 10.0 + (c - '0');} 
                 else if(c == '.') {i++;break;} 
-                else {success = false; }
+                else {success = false;}
             }
             if (success && i < s__length) {
                 f64 frac = 0.0;
@@ -181,7 +181,8 @@ smo convert(f64, String _s)
                 if(expNeg) expVal = -expVal;
                 number *= pow(10.0, expVal);
             }
-            if(negative) number = -number;
+            if(negative) 
+                number = -number;
         }
     }
     if success:not 

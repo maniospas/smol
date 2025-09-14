@@ -15,7 +15,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@include std.builtins.num
+@include std.core.num
 @unsafe
 @about "Standard library implementation of the extensible string model based on C pointers and an implementation for const char arrays."
 @about str     "A memory allocated string and converters from constant strings and booleans to the type. Other standard library implementations provide more converters."

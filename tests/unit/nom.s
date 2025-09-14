@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 @unsafe
 
 smo point(nominal type, u64 x, u64 y)

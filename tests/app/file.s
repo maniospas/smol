@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 @include std.mem -> Memory, arena
 @include std.file
 

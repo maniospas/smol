@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 
 smo Point(f64 px, f64 py)
     @mut x = px

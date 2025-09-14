@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 
 service affine(u64 x, u64 y, u64 z) -> (x+y)/z
 service main()

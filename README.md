@@ -27,7 +27,7 @@ Here's what smoλ programs look like.
 </ul>
 
 ```rust
-@include std.builtins
+@include std.core
 @include std.mem
 @include std.file
 
@@ -45,7 +45,7 @@ smo print(file_stats stats)
     print(" bytes")
     --
 
-smo file_reader(String path, @mut Memorymemory)
+smo file_reader(String path, @mut Memory memory)
     &stat_lines = 0
     &stat_chars = 0
     &file = ReadFile:open(path) // the ReadFile type as the first argument to open
@@ -57,8 +57,7 @@ smo file_reader(String path, @mut Memorymemory)
             print(line)
             stat_lines = stat_lines + 1
             stat_chars = stat_chars + line:len
-        ----
-    -> nominal:Stats(stat_lines, stat_chars)
+    -- -- -> nominal:Stats(stat_lines, stat_chars)
 
 service main()
     &memory = Stack.arena(1048576) // 1MB

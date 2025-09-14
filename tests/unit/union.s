@@ -1,4 +1,4 @@
-@include std.builtins
+@include std.core
 
 union Type
     i64 

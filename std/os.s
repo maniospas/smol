@@ -16,7 +16,7 @@
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
 
-@include std.builtins
+@include std.core
 @include std.mem
 @unsafe
 @about "Standard library wrapping of C system calls and of process management using C popen."

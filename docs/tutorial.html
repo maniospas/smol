@@ -158,7 +158,7 @@ with the text below. Open a terminal in the same folder and run
 </p>
 
 <pre><code class="language-smolambda">// main.s
-@include std.builtins
+@include std.core
 
 service main()
     print("Hello world!")
@@ -170,10 +170,10 @@ Hello world!
 </pre>
 
 <p>
-As a quick preview, <code class="language-smolambda">@include std.builtins</code> 
-adds basic tools like <code class="language-smolambda">print</code>,  
-<code class="language-smolambda">service main()</code> is where your program starts, 
-and the line with <code class="language-smolambda">--</code> marks the end 
+As a quick preview, <code class="language-smolambda">@include std.core</code> 
+adds basic tools, like <code class="language-smolambda">print</code>. Then  
+<code class="language-smolambda">service main()</code> is where your program starts.
+Finally, the line with <code class="language-smolambda">--</code> marks the end 
 of the program.
 </p>
 
@@ -182,14 +182,16 @@ of the program.
 <p>
 A variable is a named box that holds a value. You give it a name, then 
 put a value in it once with the pattern <code class="language-smolambda">variable_name = value</code>. 
-This process is called an <i>assignment</i>. Names cannot start with numbers or contain
-spaces or special symbols other than the underscore <code class="language-smolambda">_</code>. 
-Having two consecutive underscores is also not allowed. Below is an example where we set a 
-constant text known during program creation (<code class="language-smolambda">cstr</code>) 
+In programming, this process is called <i>assignment</i>. 
+Names cannot start with numbers or contain
+spaces or special symbols other than the underscore <code class="language-smolambda">_</code>.
+They can also not be existing variables or other operations. 
+Having two consecutive underscores is also not allowed. 
+Below is an example where we set a constant text known during program creation (<code class="language-smolambda">cstr</code>) 
 to a variable.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     greeting = "Hello world!"
@@ -228,7 +230,7 @@ Lack of native error checking from the standard results in performant code.
 </p>
 
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     print(1+2)      // 3
@@ -244,7 +246,7 @@ by placing <code class="language-smolambda">@mut</code> before its first declara
 Variables are immutable -that is, not mutable- by default to avoid many logic bugs. Look out for mutable ones.</p>
 
 <pre><code class="language-smolambda">// main.s
-@include std.builtins
+@include std.core
 
 service main()
     @mut name = "Ada"
@@ -271,7 +273,7 @@ Like before, the block ends at <code class="language-smolambda">--</code>.
 </p>
 
 <pre><code class="language-smolambda">// main.s
-@include std.builtins
+@include std.core
 
 service main()
     if true
@@ -292,7 +294,7 @@ For example, <code class="language-smolambda">2 &lt; 3</code> checks whether two
 </p>
 
 <pre><code class="language-smolambda">// main.s
-@include std.builtins
+@include std.core
 
 service main()
     if 2&lt;3
@@ -322,7 +324,7 @@ and <code class="language-smolambda">else</code> branches to cover other cases.
 Each branch is tried in order until one runs.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     x = 0.0-2.0
@@ -341,11 +343,13 @@ negative
 </pre>
 
 <p>
-Notice here that, above, each branch returns a string. All branches must return the same type, or nothing.  
-For example, you could also just perform an action inside each branch:
+Notice that, above, each branch returns a string. All branches must return either the same type, 
+or nothing by ending at <code class="language-smolambda">--</code>.  
+For example, you could perform some actions inside each branch and return nothing, like below.
+This is actually the most common case.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     x = 5
@@ -378,7 +382,7 @@ and the block's contents. Those must end at <code class="language-smolambda">--<
 If a variable changes inside the loop, make it mutable during its first assignment.</p>
 
 <pre><code class="language-smolambda">// main.s
-@include std.builtins
+@include std.core
 
 service main()
     @mut i = 0
@@ -409,7 +413,7 @@ files is also implemented as an iterator.
 </p>
 
 <pre><code class="language-smolambda">// main.s
-@include std.builtins
+@include std.core
 
 service main()
     range(5)
@@ -427,11 +431,11 @@ up to a certain level. In those cases,
 put a vertical bar <code class="language-smolambda">|</code> before the return symbol 
 for each level you want to “jump up”. For example,
 <code class="language-smolambda">|--</code> ends the current block and its parent. 
-Similarly, <code class="language-smolambda">|-&gt;</code> returns a to the parent.  
-Two bars (<code class="language-smolambda">||</code>) jump two levels, and so on.
+Similarly, <code class="language-smolambda">|-&gt; value</code> returns a value to the parent.  
+Two bars (<code class="language-smolambda">||</code>) jump two levels/parents upwards, and so on.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 service main()
     @mut i = 0
@@ -447,20 +451,20 @@ service main()
 
 <p>
 You can name a block of code and call it with inputs. These are called arguments.
-There are two kinds of named blocks of code:
+There are two kinds of named blocks:
 </p>
 <ul>
   <li><code class="language-smolambda">smo</code> — a lightweight function. It is called a <i>runtype</i>.</li>
   <li><code class="language-smolambda">service</code> — a safer unit that handles errors and resources for you.</li>
 </ul>
 
-<p>For most simple programs, you will only mostly runtypes. Services are complex pieces of code that run
+<p>For most simple programs, you will mostly declare runtypes. Services are more complex in that they run
 independently to each other. Adding arguments to a service is as simple as adding a list of comma-separated
 variable types and names. Types are needed so that the service can know what inputs to expect. 
 For example, <code class="language-smolambda">f64 x</code> denotes an argument that is a float named <code>x</code>.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo affine(f64 x, f64 y, f64 z) 
     -> (x+y)*z
@@ -475,13 +479,13 @@ service main()
 
 <p>
 Inputs are passed "by value" (without affecting the call site) unless you explicitly allow changes.  
-Place <code class="language-smolambda">&</code> before argument names to declare that 
+Place <code class="language-smolambda">@mut</code> before argument names to declare that 
 the variable passed as an argument may be modified inside the runtype or service - and hence
 must already be mutable. This also makes the argument variable internally mutable. 
 Below is an example.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo increment(@mut u64 x)
     x = x + 1
@@ -508,7 +512,7 @@ You can use types as arguments to help disambiguate between similarly-named runt
 This is useful for choosing a behavior without passing a dummy value.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo zero(f64) 
     -> 0.0
@@ -531,7 +535,7 @@ The colon <code class="language-smolambda">:</code> sends the value on the left 
 This reads left-to-right and removes extra parentheses when you chain steps.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo triple(f64 x) 
     -> x*3.0
@@ -552,7 +556,7 @@ A block can return a value using <code class="language-smolambda">-&gt;</code>, 
 Returning early is just a return higher up the page; use uplifting if you need to jump out of an extra level.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo abs(f64 x)
     if x&lt;0.0 
@@ -569,42 +573,84 @@ service main()
 
 <p>
 You can return several named values at once and then access them as fields.  
-<code class="language-smolambda">@nominal</code> is a shorthand that returns all inputs by name.
+<code class="language-smolambda">@args</code> is a shorthand that returns all inputs by name.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<pre><code class="language-smolambda">@include std.core
 
 smo Point(f64 x, f64 y) 
     -> @args
 
 smo moved(Point p, f64 dx, f64 dy)
-    @mut nx = p.x + dx
-    @mut ny = p.y + dy
+    nx = p.x + dx
+    ny = p.y + dy
     -> Point(nx, ny)
 
 service main()
-    p = Point(1.0, 2.0)
+    @mut p = Point(1.0, 2.0)
     print(p.x) // 1
     print(p.y) // 2
-    q = p:moved(3.0, 4.0)
-    print(q.x) // 4
-    print(q.y) // 6
+    p = p:moved(3.0, 4.0)
+    print(p.x) // 4
+    print(p.y) // 6
     --
 </code></pre>
 
 <p>
-If a runtype returns only one value, you use that directly (no extra field name needed).
+If a runtype returns only one value, you use that directly, that is, without an extra field name.
 </p>
+
+<p>
+To help you write secure code that does not arbitrarily access mutable fields, <i>smoλ</i> normally
+precents you from accessing or setting them. To be able to do so, add <code class="language-smolambda">@access</code>
+at the very start of respective arguments. Below is an example where, without this notation, even immutable versions
+of a runtype will not let you view mutable fields.
+</p>
+
+
+<pre><code class="language-smolambda">@include std.core
+
+smo Point(f64 _x, f64 _y) 
+    @mut x = _x
+    @mut y = _y
+    -> x,y
+
+smo print(@access Point p)
+    // p is not mutable but you still need `@access` 
+    // to look at p.x, p.y because their original 
+    // declaration was mutable
+    printin(x)
+    printin(",")
+    print(y)
+    --
+
+service main()
+    @mut p = Point(1.0, 2.0)
+    // print(p.x) // not allowed
+    print(p)
+    --
+</code></pre>
+
 
 <h1 id="errors">Error handling <a href="#errors" class="anchor-link">🔗</a></h1>
 
 <p>
-When something is wrong, say it clearly and stop that unit of work.  
-In a service, call <code class="language-smolambda">fail("message")</code>. The caller can check <code class="language-smolambda">result.err:bool</code>.  
-If you don’t check, the error will bubble up until it reaches a place that does.
+Now is the right time to talk about services and their philosophy: they are basically
+runtypes that run in parallel threads 
+(in truth: with a co-routine model but this is too advanced 
+for this tutorial) and, when something is wrong -including in one of their called runtypes-, 
+they complain and stop their work. When they stop, they also safely release any resources so that 
+you do not have memory leaks or other similar issues.
+Anywhere, call <code class="language-smolambda">fail("message")</code> to stop the current service.
 </p>
 
-<pre><code class="language-smolambda">@include std.builtins
+<p>
+The caller can check <code class="language-smolambda">result.err:bool</code>.  
+If you don’t check but try to use a value, the error will bubble up until it reaches a place that does.
+Your code waits for computations to conclude by called services only when values are used.
+</p>
+
+<pre><code class="language-smolambda">@include std.core
 
 service divide(f64 x, f64 y)
     if y==0.0 

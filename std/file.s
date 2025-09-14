@@ -15,9 +15,9 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-@include std.builtins.num
-@include std.builtins.str
-@include std.builtins.err 
+@include std.core.num
+@include std.core.str
+@include std.core.err 
 @include std.mem
 @unsafe
 @about "Standard library implementation of file management that uses the C filesystem."
