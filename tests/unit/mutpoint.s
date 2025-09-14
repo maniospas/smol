@@ -1,21 +1,27 @@
 @include std.builtins
 
 smo Point(f64 px, f64 py)
-    x = px
-    y = py
-    -> x,y
-
-smo TPoint(nominal type, f64 px, f64 py)
     @mut x = px
     @mut y = py
-    -> type, x,y
+    -> x,y
 
-smo IPoint(nominal type, f64 x, f64 y) 
+smo print(@access Point p)
+    printin(p.x)
+    printin(",")
+    print(p.y)
+    --
+
+smo TPoint(@mut nominal type, f64 px, f64 py)
+    @mut x = px
+    @mut y = py
+    -> type, x, y
+
+smo IPoint(@mut nominal type, f64 x, f64 y) 
     -> @args
 
-smo scale(@mut Point p, f64 factor) 
-    //p.x = p.x*factor
-    //p.y = p.y*factor
+smo scale(@access @mut Point p, f64 factor) 
+    p.x = p.x*factor
+    p.y = p.y*factor
     --
 
 smo zero(@mut Point p)
@@ -29,11 +35,10 @@ smo zero(@mut IPoint p)
 
 service main()
     @mut p = Point(1.0,1.0)
-    //p.x = p.x + 1.0
     p:scale(5.0)
-    print(p.x) // 10
-    //zero(p)
-    print(p.x) // 0
+    print(p) // 5.0, 5.0
+    zero(p)
+    print(p) // 0
     
     @mut ip = nominal:IPoint(1.0,1.0)
     print(ip.x) // 1 

@@ -1,5 +1,6 @@
-@include std.builtins
-@include std.os
+@include std.builtins -> String // as an example, load only string ops but nothing about numbers
+@include std.mem -> Memory
+@include std.os  -> Process
 
 service run(String command)
     @mut process = Process:open(command)

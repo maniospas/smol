@@ -75,8 +75,6 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             imp->error(--p, "Missing runtype: "+next);
 
         Variable arg_name = imp->at(p++);
-        if(can_access_mutables)
-            can_access_mutable_fields.insert(arg_name);
         bool arg_is_buffer = false;
         if(arg_name=="[") {
             arg_is_buffer = true;
@@ -101,10 +99,12 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             arg_name = create_temp();
             --p;
         }
-        if(!accepted_var_name(arg_name.to_string())) 
+        if(!accepted_var_name(arg_name.to_string()))
             imp->error(--p, "Not a valid name");
         if(types.vars.find(arg_name)!=types.vars.end()) 
             imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
+        if(can_access_mutables)
+            can_access_mutable_fields.insert(arg_name);
         if(argType->lazy_compile) {
             if(argType->options.size()==0) imp->error(--p, "Internal error: No options for type: "
                 +argType->name.to_string()
@@ -202,7 +202,8 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             }
             else {
                 vars[arg_name] = argType;
-                if(mut) mutables.insert(arg_name);
+                if(mut) 
+                    mutables.insert(arg_name);
                 if(!mut && argType->noborrow) 
                     imp->error(--p, "Argument's "
                         +arg_name.to_string()

@@ -43,112 +43,112 @@ union Number
     i64
     --
 
-smo print(f64 message)
+smo print(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f\n", message);}
     --
-smo print(i64 message)
+smo print(@access i64 message)
     @head{#include <stdio.h>}
     @body{printf("%ld\n", message);}
     --
-smo print(u64 message)
+smo print(@access u64 message)
     @head{#include <stdio.h>}
     @body{printf("%lu\n", message);}
     --
-smo print(bool message)
+smo print(@access bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true\n"):printf("false\n");}
     --
-smo print(char message)
+smo print(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c\n", message);}
     --
-smo printin(f64 message)
+smo printin(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f", message);}
     --
-smo printin(i64 message)
+smo printin(@access i64 message)
     @head{#include <stdio.h>}
     @body{printf("%ld", message);}
     --
-smo printin(u64 message)
+smo printin(@access u64 message)
     @head{#include <stdio.h>}
     @body{printf("%lu", message);}
     --
-smo printin(bool message)
+smo printin(@access bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true"):printf("false");}
     --
-smo printin(char message)
+smo printin(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c", message);}
     --
 
-smo le(Number x, Number y)  
+smo le(@access Number x, Number y)  
     @body{bool z=x<=y;}   
     -> z
 
-smo ge(Number x, Number y)  
+smo ge(@access Number x, Number y)  
     @body{bool z=x>=y;}
     -> z
 
-smo lt(Number x, Number y)  
+smo lt(@access Number x, Number y)  
     @body{bool z=x<y;}
     -> z
 
-smo gt(Number x, Number y)
+smo gt(@access Number x, Number y)
     @body{bool z=x>y;}
     -> z
 
-smo leq(Number x, Number y)
+smo leq(@access Number x, Number y)
     @body{bool z=x<=y;}
     -> z
 
-smo geq(Number x, Number y)
+smo geq(@access Number x, Number y)
     @body{bool z=x>=y;}
     -> z
 
-smo eq(Number x, Number y)
+smo eq(@access Number x, Number y)
     @body{bool z=(x==y);} 
     -> z
 
-smo neq(Number x, Number y)
+smo neq(@access Number x, Number y)
     @body{bool z=(x!=y);}
     -> z
 
-smo eq(ptr x, ptr y)
+smo eq(@access ptr x, ptr y)
     @body{bool z=(x==y);}
     -> z
 
-smo neq(ptr x, ptr y)
+smo neq(@access ptr x, ptr y)
     @body{bool z=(x!=y);} 
     -> z
 
-smo eq(bool x, bool y)
+smo eq(@access bool x, bool y)
     @body{bool z=(x==y);} 
     -> z
 
-smo neq(bool x, bool y)
+smo neq(@access bool x, bool y)
     @body{bool z=(x!=y);} 
     -> z
 
-smo not(bool x)
+smo not(@access bool x)
     @body{bool z=(!x);}
     -> z
 
-smo exists(ptr x)
+smo exists(@access ptr x)
     @body{bool z=(x);} 
     -> z
 
-smo add(u64 x, u64 y)
+smo add(@access u64 x, u64 y)
     @body{u64 z=x+y;} 
     -> z
 
-smo mul(u64 x, u64 y)
+smo mul(@access u64 x, u64 y)
     @body{u64 z=x*y;}
     -> z
 
-smo div(u64 x, u64 y)
+smo div(@access u64 x, u64 y)
     if y==0 
         @fail{printf("Error: division by zero\n");} 
         --
@@ -156,14 +156,14 @@ smo div(u64 x, u64 y)
     @body{u64 z=x/y;}
     -> z
 
-smo sub(u64 x, u64 y)
+smo sub(@access u64 x, u64 y)
     if y>x 
         @fail{printf("Error: unsigned substraction yielded a negative\n");} 
         --
     @body{u64 z=x-y;}
     -> z
 
-smo mod(u64 x, u64 y) 
+smo mod(@access u64 x, u64 y) 
     if y==0
         @fail{printf("Error: modulo by zero\n");}
         --
@@ -171,11 +171,11 @@ smo mod(u64 x, u64 y)
     @body{u64 z=x%y;} 
     -> z
 
-smo add(i64 x, i64 y) 
+smo add(@access i64 x, i64 y) 
     @body{i64 z=x+y;} 
     -> z
 
-smo mod(i64 x, i64 y)
+smo mod(@access i64 x, i64 y)
     if y<=0:i64
         @fail{printf("Error: modulo by non-positive\n");} 
         --
@@ -183,18 +183,18 @@ smo mod(i64 x, i64 y)
     @body{i64 z=x%y;}
     -> z
 
-smo sub(i64 x, i64 y)
+smo sub(@access i64 x, i64 y)
     @body{i64 z=x-y;}
     -> z
 
-smo negative(i64 x)
+smo negative(@access i64 x)
     -> sub(0:i64, x)
 
-smo mul(i64 x, i64 y)
+smo mul(@access i64 x, i64 y)
     @body{i64 z=x*y;}
     -> z
 
-smo div(i64 x, i64 y)
+smo div(@access i64 x, i64 y)
     if y==0:i64
         @fail{printf("Error: division by zero\n");} 
         --
@@ -202,21 +202,21 @@ smo div(i64 x, i64 y)
     @body{i64 z=x/y;}
     -> z
 
-smo add(f64 x, f64 y) 
+smo add(@access f64 x, f64 y) 
     @body{f64 z=x+y;} 
     -> z
 
-smo sub(f64 x, f64 y)
+smo sub(@access f64 x, f64 y)
     @body{f64 z=x-y;} 
     -> z
 
-smo mul(f64 x, f64 y)
+smo mul(@access f64 x, f64 y)
     @body{f64 z=x*y;} 
     -> z
 
-smo negative(f64 x) 
+smo negative(@access f64 x) 
     -> sub(0.0, x)
 
-smo div(f64 x, f64 y) 
+smo div(@access f64 x, f64 y) 
     @body{f64 z=x/y;} 
     -> z

@@ -78,7 +78,7 @@ smo is(String self, String)
 smo str(nstr other)
     -> nominal:str(other.contents, other.length, other.first, other.memory)
 
-smo str(cstr raw)
+smo str(@access cstr raw)
     @head{#include <string.h>}
     @body{
         u64 length=strlen(raw);
@@ -88,7 +88,7 @@ smo str(cstr raw)
     }
     -> nominal:str(contents, length, first, noptr)
 
-smo nstr(cstr raw)
+smo nstr(@access cstr raw)
     @head{#include <string.h>}
     @body{
         u64 length=strlen(raw);
@@ -98,59 +98,59 @@ smo nstr(cstr raw)
     }
     -> nominal:nstr(contents, length, first, noptr)
 
-smo str(bool value) 
+smo str(@access bool value) 
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
     if value @body{cstr _contents=__truestr;} --
     else @body{cstr _contents=__falsestr;} --
     -> str(_contents)
 
-smo nstr(bool value)
+smo nstr(@access bool value)
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
     if value @body{cstr _contents=__truestr;} --
     else @body{cstr _contents=__falsestr;} --
     -> nstr(_contents)
 
-smo print(cstr message)
+smo print(@access cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", message);}
     --
 
-smo print(nstr message)
+smo print(@access nstr message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", (char*)message__contents);}
     --
 
-smo print(str message)
+smo print(@access str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
     --
 
-smo printin(cstr message)
+smo printin(@access cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s", message);}
     --
 
-smo printin(nstr message)
+smo printin(@access nstr message)
     @head{#include <stdio.h>}
     @body{printf("%s", (char*)message__contents);}
     --
 
-smo printin(str message)
+smo printin(@access str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s", (int)message__length, (char*)message__contents);}
     --
 
-smo eq(char x, char y)  
+smo eq(@access char x, char y)  
     @body{bool z=(x==y);} 
     -> z
 
-smo neq(char x, char y)
+smo neq(@access char x, char y)
     @body{bool z=(x!=y);}
     -> z
 
-smo slice(String self, u64 from, u64 to) 
+smo slice(@access String self, u64 from, u64 to) 
     s = self:str
     if to<from 
         @fail{printf("String slice cannot end before it starts\n");} 
@@ -164,10 +164,10 @@ smo slice(String self, u64 from, u64 to)
     }
     -> nominal:str(contents, to-from, first, s.contents)
     
-smo slice(String self, u64 from) 
+smo slice(@access String self, u64 from) 
     -> self:slice(from, 0)
 
-smo strip(String _s)
+smo strip(@access String _s)
     s = _s:str
     @body{
         u64 start = 0;
@@ -187,14 +187,14 @@ smo strip(String _s)
     }
     -> s:slice(start, end)
 
-smo eq(String _x, IndependentString _y)
+smo eq(@access String _x, IndependentString _y)
     x = _x:str
     y = _y:str
     @head{#include <string.h>}
     @body{bool z = x__first==y__first && (x__length == y__length) && (memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) == 0);}
     -> z
 
-smo neq(String _x, IndependentString _y)
+smo neq(@access String _x, IndependentString _y)
     x = _x:str
     y = _y:str
     @head{#include <string.h>}
@@ -208,19 +208,19 @@ smo neq(String _x, IndependentString _y)
     }
     -> z
 
-smo len(str x) 
+smo len(@access str x) 
     -> x.length
 
-smo len(nstr x) 
+smo len(@access nstr x) 
     -> x.length
 
-smo len(cstr x)
+smo len(@access cstr x)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{u64 z = strlen(x);}
     -> z
 
-smo at(str x, u64 pos) 
+smo at(@access str x, u64 pos) 
     if x__length<=pos 
         @fail{printf("String index out of bounds\n");} 
         --
@@ -228,7 +228,7 @@ smo at(str x, u64 pos)
     @body{char z= (__builtin_constant_p(pos) && pos == 0) ? x__first: ((char*)x__contents)[pos];} 
     -> z
 
-smo at(nstr x, u64 pos) 
+smo at(@access nstr x, u64 pos) 
     -> at(x:str, pos)
 
 smo Split(nominal, 
@@ -238,7 +238,7 @@ smo Split(nominal,
     ) 
     -> @args
     
-smo Split(String _query, IndependentString _sep) 
+smo Split(@access String _query, @access IndependentString _sep) 
     -> nominal:Split(_query:str, _sep:str, u64 &pos) // splits are str (not cstr or nstr)
 
 smo next(
@@ -263,7 +263,7 @@ smo next(
     -----> ret
 
 
-smo print(str[] messages)
+smo print(@access str[] messages)
     @mut i = 0
     n = messages:len
     while i<n

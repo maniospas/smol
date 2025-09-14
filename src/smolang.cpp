@@ -91,11 +91,24 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                         p++;
                     }
                 }
+                // add unions
                 for(const auto& it : files[path].vars) 
+                    if(filter.find(it.first)!=filter.end())
+                        for(const auto& option : it.second->options) 
+                            filter.insert(option->name);
+
+                // add @access
+                for(const auto& it : files[path].vars) {
+                    for(const auto& access : it.second->can_access_mutable_fields) 
+                        if(it.second->contains(access) && filter.find(it.second->vars[access]->name)!=filter.end())
+                            filter.insert(it.second->name);
                     for(const auto& option : it.second->options) 
                         for(const auto& access : option->can_access_mutable_fields) 
-                            if(option->contains(access) && filter.find(option->vars[access]->name)!=filter.end())
-                                filter.insert(option->name);
+                            if(option->contains(access) && filter.find(option->vars[access]->name)!=filter.end()) {
+                               filter.insert(option->name);
+                               break;
+                            }
+                }
                 for(const auto& it : files[path].vars) {
                     const Variable& name = it.first;
                     if(filter.size() && filter.find(name)==filter.end()) 
