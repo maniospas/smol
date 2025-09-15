@@ -33,11 +33,22 @@
                "\n    ..."
                "\n    --</pre>"
 @about IndependentString "A copy of the String union that can be used when a second argument is needed for a string of a potentially different variation."
-@about is      "Compile-time check of a String exact type matching compared to an arbitrary type.<br>Example usage: <code>smo foo(String s) with s:is(str) ... -- else ...----</code>"
+@about is      "Compile-time check of a String exact type matching compared to an arbitrary type.<br>Example usage:"
+               "<pre>smo foo(String s)\n    with s:is(str)\n        ...\n        --\n    else\n        ...\n    ----</pre>"
 @about print   "Prints strings or bools to the console."
 @about printin "Prints strings or bools to the console without evoking a new line at the end."
-@about next    "Retrieves the next element over a Split string iteration. Example: <code>Split('I like bananas', ' '):while next(str& word) print(word) --</code>"
-@about Split   "Splits a String given a query String. Optionally, you may also provide a starting position, where the default is 0. The result of the split can be iterated through with <code>next</code>. This does not allocate memory in that a substring is retrieved, so you might consider copying the splits - or store them on data structures like maps that automatically copy data if needed."
+@about next    "Retrieves the next element over a Split string iteration. Example:"
+               "<pre>Split(\"I like bananas\", \" \")\n:while next(@mut str word)\n    print(word)\n    --</pre>"
+@about Split   "Splits a String given a query String. Optionally, you may also provide a starting position, where the default is 0. "
+               "The result of the split can be iterated through with <code>next</code>. This does not allocate memory in that a substring is retrieved, so you might consider copying the splits - or store them on data structures like maps that automatically copy data if needed."
+@about eq      "Checks for equality between String types when considering their contents. Implementation of this operation varies, "
+               "ensuring that the cached first element of strings (not available for cstr) is compared first and then the lengths "
+               "are taken into account to compare memory bytes. Example: <pre>if \"me\"==\"me\" -> print(\"me!\")</pre>"
+@about neq     "Equivalent to logical enversion of String <i>eq</i>. It is faster to write and run."
+@about slice   "Obtains a substring slice out of a String. This always produces a <code>str</code> results, because null termination "
+               "cannot be guaranteed for most results - and is dropped even if it could be guaranteed to save computations. "
+               ""
+
 
 smo str (
         nominal, 

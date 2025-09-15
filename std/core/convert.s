@@ -19,7 +19,9 @@
 @include std.core.str
 @unsafe
 @about "Standard library wrapping and simplification of C console commands."
-@about read "Reads several string and primitive types from console text input given by the user; they need to press enter after entering the input. String reading is restricted to 1024 bytes allocated on the heap. You can have more control of string reading on alternatives. Non-string variations of this method are restricted to local variables. Invalid inputs create service failures."
+@about read    "Reads several string and primitive types from console text input given by the user; they need to press enter after entering the input. String reading is restricted to 1024 bytes allocated on the heap. You can have more control of string reading on alternatives. Non-string variations of this method are restricted to local variables. Invalid inputs create service failures."
+@about convert "Converts a String representation to various numeric types. This is lightweight and does not consume any memory. "
+               "The current service fails if the conversion is not possible. Here is an example:<pre>x = f64:convert(\"1.2\")\nprint(x)</pre>"
 
 smo read(@access i64)
     @acquire "std.terminal.read"

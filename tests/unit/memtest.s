@@ -5,7 +5,7 @@
 smo test(@mut File file)
     on Heap:volatile(32)
         file
-        :while next_chunk(str& chunk)
+        :while next_chunk(@mut str chunk)
             printin(chunk)
         ----
     print("")

@@ -3,11 +3,12 @@
 string Def::signature_like(Types& types, vector<Variable> args) {
     string ret("");
     for(size_t i=0;i<args.size();++i) {
-        //size_t prev_i = i;
+        size_t prev_i = i;
         if(ret.size()) 
             ret += ",";
         if(contains(args[i]) && buffer_types.find(args[i])!=buffer_types.end()) {
-            ret += pretty_runtype(buffer_types[args[i]]->name.to_string())+"[]";
+            ret += (mutables.find(args[i])!=mutables.end()?"\033[31m@mut ":"")
+                +pretty_runtype(buffer_types[args[i]]->name.to_string())+"[]";
             i += 1;
         }
         else if(alignments[args[i]] 
@@ -15,29 +16,33 @@ string Def::signature_like(Types& types, vector<Variable> args) {
             && types.reverse_alignment_labels[alignments[args[i]]]!=this 
             && types.reverse_alignment_labels[alignments[args[i]]]->packs.size()>=1
         ) {
-            ret += pretty_runtype(types.reverse_alignment_labels[alignments[args[i]]]->name.to_string())
-                +"["+to_string(types.reverse_alignment_labels[alignments[args[i]]]->packs.size())+"]";
+            ret += (mutables.find(args[i])!=mutables.end()?"\033[31m@mut ":"")
+                +pretty_runtype(types.reverse_alignment_labels[alignments[args[i]]]->name.to_string())
+                /*+"["+to_string(types.reverse_alignment_labels[alignments[args[i]]]->packs.size())+"]"*/;
             i += types.reverse_alignment_labels[alignments[args[i]]]->packs.size()-1;
         }
         else 
             ret += ""+pretty_runtype(vars[args[i]]->name.to_string());
-        /*string arg_name = pretty_var(args[prev_i].to_string());
+        string arg_name = pretty_var(args[prev_i].to_string());
         if(arg_name.size()) 
-            ret += " \033[38m"+arg_name;*/
+            ret += " \033[38m"+arg_name;
         ret += "\033[32m";
     }
     return "\033[32m("+ret+")\033[0m";
 }
 
 string Def::signature(Types& types) {
-    if(_is_primitive) return pretty_runtype(name.to_string());
+    if(_is_primitive) 
+        return pretty_runtype(name.to_string());
     string ret("");
     for(size_t i=0;i<args.size();++i) {
-        //size_t prev_i = i;
+        size_t prev_i = i;
         if(ret.size()) 
             ret += ",";
         if(contains(args[i].name) && buffer_types.find(args[i].name)!=buffer_types.end()) {
-            ret += pretty_runtype(buffer_types[args[i].name]->name.to_string())+"[]"+(args[i].mut?"\033[31m&\033[0m":"");
+            ret += (args[i].mut?"\033[31m@mut ":"")
+                +pretty_runtype(buffer_types[args[i].name]->name.to_string())
+                +"[]";
             i += types.vars[BUFFER_VAR]->packs.size()-1;
         }
         else if(alignments[args[i].name] && !types.reverse_alignment_labels[alignments[args[i].name]]) 
@@ -45,32 +50,33 @@ string Def::signature(Types& types) {
                 +to_string(alignments[args[i].name])
                 +" in type of "+pretty_var(name.to_string()+"__"+args[i].name.to_string())
             );
-        if(alignments[args[i].name] 
+        else if(alignments[args[i].name] 
             && types.reverse_alignment_labels[alignments[args[i].name]]!=this 
             && types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()>=1
         ) {
             ret += (args[i].mut?"\033[31m@mut ":"")
                 +pretty_runtype(types.reverse_alignment_labels[alignments[args[i].name]]->name.to_string())
-                +"\033[0m["
+                /*+"\033[0m["
                 +to_string(types.reverse_alignment_labels[alignments[args[i].name]]->packs.size())
-                +"]";
+                +"]"*/;
             i += types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()-1;
         }
         else if(args[i].type->name==NOM_VAR 
             && types.reverse_alignment_labels[alignments[args[i].name]]!=this 
             && args[i].type->packs.size()>=1
         ) {
-            ret += pretty_runtype(args[i].type->name.to_string())
-                +(args[i].mut?"\033[31m&\033[0m":"")
-                +"["+to_string(args[i].type->packs.size())
-                +"]";
+            ret += (args[i].mut?"\033[31m@mut ":"")
+                +pretty_runtype(args[i].type->name.to_string())
+                /*+"["+to_string(args[i].type->packs.size())
+                +"]"*/;
             i += args[i].type->packs.size()-1;
         }
         else 
-            ret += pretty_runtype(args[i].type->name.to_string())+(args[i].mut?"\033[31m&\033[0m":"");
-        /*string arg_name = pretty_var(args[prev_i].name.to_string());
+            ret += (args[i].mut?"\033[31m@mut ":"")
+                +pretty_runtype(args[i].type->name.to_string());
+        string arg_name = pretty_var(args[prev_i].name.to_string());
         if(arg_name.size()) 
-            ret += " \033[38m"+arg_name;*/
+            ret += " \033[38m"+arg_name;
         ret += "\033[32m";
     }
     if(lazy_compile) 

@@ -20,9 +20,21 @@
 @include std.mem
 @unsafe
 @about "Standard library wrapping of C system calls and of process management using C popen."
-@about Process     "A running process whose stdout can be read as a file-like object."
+@about Process     "A running process whose stdout can be read as a file-like object. "
+                   "When the process is eventually released, services fail if there is pending "
+                   "output or if the exit code is non-zero. Here is an example:"
+                   "<pre>service run(String command)"
+                   "\n    @mut process = Process:open(command)"
+                   "\n    process:to_end"
+                   "\n    @release process // explicitly release here"
+                   "\n    --"
+                   "\n"
+                   "\nservice main()"
+                   "\n    run(\"invalid command\").err:assert_ok // synchronize"
+                   "\n    --"
+                   "</pre>"
 @about open        "Opens a Process given a command string. This starts the process and lets you read its output."
-@about to_end      "Reads all remaining output from the process without returning it, moving to EOF.  Returns a boolean indicating whether \"Error:\" is part of the output."
+@about to_end      "Reads all remaining output from the process without storng it."
 @about next_chunk  "Reads the next chunk of process output into a provided buffer."
 @about next_line   "Reads the next line of process output into a provided buffer."
 
@@ -64,13 +76,12 @@ smo to_end(@access @mut Process p)
     @head{#include <string.h>}
     @head{#include <sys/wait.h>}
     @body{
-        i64 status = 0;
         if(p__contents) {
             char buf[1024];
             while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) {}
         }
     }
-    -> status:bool
+    --
 
 smo next_chunk(
         @mut DerivedMemory reader, 

@@ -3,7 +3,7 @@
 @include std.mem
 @include std.map
 
-smo tokenize(@mut Memorymemory, ReadFile& f)
+smo tokenize(@mut Memory memory, @mut ReadFile f)
     program_size = 100000
     map_size = 1000
 
@@ -13,10 +13,10 @@ smo tokenize(@mut Memorymemory, ReadFile& f)
     lpar = "(":str.first
     rpar = ")":str.first
 
-    &names = memory:Map(map_size, u64, str)
-    &names2tokens = memory:Map(map_size, str, u64)
-    &tokens = memory:allocate(program_size, u64)
-    &num_tokens = 0
+    @mut names = memory:Map(map_size, u64, str)
+    @mut names2tokens = memory:Map(map_size, str, u64)
+    @mut tokens = memory:allocate(program_size, u64)
+    @mut num_tokens = 0
 
     on memory:volatile(1024)
         controlled_corrupt()

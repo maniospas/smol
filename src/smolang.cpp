@@ -515,7 +515,7 @@ int main(int argc, char* argv[]) {
                                 try {
                                     string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;→&nbsp;";
                                     if(subtype->alias_for.exists() && subtype->vars[subtype->alias_for]->name==subtype->name) sig = sig+ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
-                                    else if(subtype->alias_for.exists()) sig = sig+ansi_to_html(pretty_runtype(subtype->vars[subtype->alias_for]->name.to_string())+"["+to_string(subtype->vars[subtype->alias_for]->args.size())+"]");//ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
+                                    else if(subtype->alias_for.exists()) sig = sig+ansi_to_html(pretty_runtype(subtype->vars[subtype->alias_for]->name.to_string())/*+"["+to_string(subtype->vars[subtype->alias_for]->args.size())+"]"*/);//ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
                                     else if(subtype->packs.size()==1) sig += ansi_to_html(pretty_runtype(subtype->vars[subtype->packs[0]]->name.to_string()));
                                     else if(subtype->packs.size()==0) sig += "()";
                                     else sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
