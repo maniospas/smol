@@ -1,18 +1,33 @@
 // Written in 2025 by Emmanouil Krasanakis (maniospas@hotmail.com)
 //
-// This is free and unencumbered software released into the public domain.
+// To the extent possible under law, the author has dedicated all copyright
+// and related and neighboring rights to this software to the public domain
+// worldwide.
+// 
+// Permission to use, copy, modify, and/or distribute this software for any
+// purpose with or without fee is hereby granted.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+// WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+// ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+// ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+// IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//
+// Raylib is free and unencumbered software released into the public domain.
 // See <http://unlicense.org/> for more details.
 
 @include std.core.num
 @include std.core.str
 @include std.core.err
 @include std.mem
-//@install std.rayget
+@install std.rayget
 
 @unsafe
 @about "Raylib wrapper for smoλ providing window, input and drawing primitives."
 
-smo Color(u64 r, u64 g, u64 b, u64 a) 
+smo Color(u64 r, u64 g, u64 b, u64 a)
     if r>255 
         -> fail("Color r greater than 255")
     if g>255 

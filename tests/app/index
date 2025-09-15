@@ -332,7 +332,7 @@ _Z9main__785Pv:
 	.section	.rodata.main.str1.8,"aMS",@progbits,1
 	.align 8
 .LC9:
-	.string	"Compiler: smo\316\273 (https://github.com/maniospas/smol)\nThreads: 1 (compiled in single threaded mode)\n"
+	.string	"Compiler: smo\316\273 (https://github.com/maniospas/smol)\nThreads: 1 (single threaded mode)\n"
 	.section	.text.startup.main,"ax",@progbits
 	.p2align 4
 	.globl	main

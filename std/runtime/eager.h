@@ -102,7 +102,7 @@ static inline void __smolambda_task_sleep(double secs) {
 }
 
 #ifndef SMOLAMBDA_RUNTIME_MESSAGE
-#define SMOLAMBDA_RUNTIME_MESSAGE(num_threads) printf("Compiler: smoλ (https://github.com/maniospas/smol)\nThreads: 1 (compiled in single threaded mode)\n");
+#define SMOLAMBDA_RUNTIME_MESSAGE(num_threads)
 #endif 
 
 static inline void __smolambda_task_destroy(void *task_ptr) {}

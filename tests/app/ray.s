@@ -87,5 +87,5 @@ service test()
 
 service main()
     test()
-    print("running") // services are async, this will be printed
+    //print("running") // services are async, this will be printed
     --

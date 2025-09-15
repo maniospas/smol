@@ -427,7 +427,7 @@ int __smolambda_get_core_count() {
 
 
 #ifndef SMOLAMBDA_RUNTIME_MESSAGE
-#define SMOLAMBDA_RUNTIME_MESSAGE(num_threads) printf("Compiler: smoλ (https://github.com/maniospas/smol)\nThreads: %d\n", num_threads);
+#define SMOLAMBDA_RUNTIME_MESSAGE(num_threads)
 #endif 
 
 /* ---------------- START SERVICE WITH EXAMPLE ---------------- */

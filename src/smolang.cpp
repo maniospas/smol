@@ -21,6 +21,56 @@
 #include <string>
 #include <filesystem>
 
+vector<string> installation_permissions;
+
+
+#include <iostream>
+#include <string>
+#include <array>
+#include <memory>
+#include <stdexcept>
+
+#ifdef _WIN32
+#  include <windows.h>
+#  define POPEN  _popen
+#  define PCLOSE _pclose
+#else
+#  include <sys/wait.h>
+#  define POPEN  popen
+#  define PCLOSE pclose
+#endif
+
+int run_with_prefix(const std::string& command) {
+    // Redirect stderr to stdout so we capture both
+    std::string full_cmd = command + " 2>&1";
+
+    std::array<char, 256> buffer{};
+    FILE* raw_pipe = POPEN(full_cmd.c_str(), "r");
+    if (!raw_pipe) {
+        std::cerr << "  Failed to open pipe for command: " << command << std::endl;
+        return -1;
+    }
+
+    while (fgets(buffer.data(), buffer.size(), raw_pipe) != nullptr) {
+        std::cout << "    " << buffer.data();
+    }
+
+    int status = PCLOSE(raw_pipe);
+
+#ifdef _WIN32
+    // _pclose returns the child exit code directly
+    return status;
+#else
+    // pclose returns encoded status → decode with WEXITSTATUS
+    if (WIFEXITED(status)) {
+        return WEXITSTATUS(status);
+    } else {
+        return -1; // abnormal termination
+    }
+#endif
+}
+
+
 enum class Task {
     Assemble,
     Transpile,
@@ -69,6 +119,38 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     imp->docs[next] = desc;
                 }
             }
+            else if (imp->at(p) == "@" && imp->at(p + 1) == "install") {
+                p += 2;
+                string found = "";
+                string path = imp->at(p);
+                string test_path = path;
+                while(p<imp->size()-1 && imp->at(p+1)==".") {
+                    p += 2;
+                    path += "/"+imp->at(p);
+                    test_path += "."+imp->at(p);
+                }
+                path += ".s"; 
+                if(selected_task==Task::Compile || selected_task==Task::Run) {
+                    for (const auto& it : installation_permissions) 
+                        if (test_path.rfind(it, 0) == 0) { 
+                            found = it;
+                            break;
+                        }
+                    if(found.empty())
+                        imp->error(p, "Missing permissions to @install "+test_path+
+                            "\nFor example, allow std scipts with: --safe std"
+                            "\nIn this case, add this to the compiler: --safe "+test_path);
+                    
+                    cout << "\033[30;43m INSTALL \033[0m " << test_path << "\n";
+                    int run_status = run_with_prefix((EXEC_PREFIX+("smol "+path+" --runtime eager")).c_str());
+                    if(run_status) 
+                        imp->error(p, "Failed to run installer: "+test_path);
+                } 
+                else if(!filesystem::exists(path))
+                    imp->error(p, "Missing installer: "+test_path);
+                else
+                    errors = codegen(files, path, builtins, selected_task, task_report) || errors;
+            }
             else if (imp->at(p) == "@" && imp->at(p + 1) == "include") {
                 p += 2;
                 string path = imp->at(p);
@@ -77,7 +159,8 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 if(path==file) imp->error(p, "Circular include");
                 {
                     ifstream file(path);
-                    if (!file) imp->error(p, "Could not open file: " + path);
+                    if (!file) 
+                        imp->error(p, "Could not open file: " + path);
                 }
                 errors = codegen(files, path, builtins, selected_task, task_report) || errors;
                 unordered_set<Variable> filter;
@@ -248,7 +331,8 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                         if(imp->at(p)=="smo" 
                             || imp->at(p)=="union" 
                             || imp->at(p)=="service"
-                            || (imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") 
+                            || (imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include")
+                            || (imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="install") 
                             || (imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="unsafe") 
                             || (imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="about") 
                         )
@@ -302,7 +386,7 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 --p;
                 def->assert_options_validity(imp, p);
             }
-            else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union`, `@include`, `@about`, or `@unsafe` allowed");
+            else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union`, `@include`, `@install`, `@about`, or `@unsafe` allowed");
             p++;
         }
         catch(const std::runtime_error& e) {
@@ -321,6 +405,7 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 p++;
                 if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
                 if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
+                if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="install") break;
                 if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="unsafe") break;
                 if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="about") break;
             }
@@ -409,6 +494,13 @@ int main(int argc, char* argv[]) {
                 cerr << "\033[30;41m ERROR \033[0m " << e.what() << endl; 
                 return 1;
             }
+        } 
+        else if (arg == "--safe") {
+            if(i + 1 >= argc) {
+                cerr << "\033[30;41m ERROR \033[0m --safe requires a string" << endl;
+                return 1;
+            }
+            installation_permissions.emplace_back(argv[++i]);
         } 
         else if (arg == "--back") {
             if(i + 1 >= argc) {
