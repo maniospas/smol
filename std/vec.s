@@ -17,8 +17,24 @@
 
 @unsafe
 @about "Standard library implementation of vectors that are allocated with safe memory management but use C pointers for element access."
-@about print "Prints a vector to the console."
+@about print "Prints a vector to the console. To avoid large prints, at most the first 10 elements are printed."
 @about slice "Slices a vector from a given to an ending position. This is a transparent view of vector data."
+@about add   "Adds two vectors element-by-element and stores the result on eiter a third mutable vector also of the same size, or on a "
+             "newlly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
+             "the required space. Example where an <code>on</code> context is used to allow operator overloading:"
+             "<pre>@mut rnd = Rand()\nv1 = rnd:vector(10)\nv2 = rnd:vector(10)\non Heap:dynamic\n    v3 = v1+v2\n    --</pre>"
+@about mul   "Multiplies two vectors element-by-element and stores the result on eiter a third mutable vector also of the same size, or on a "
+             "newlly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
+             "the required space. Example where an <code>on</code> context is used to allow operator overloading:"
+             "<pre>@mut rnd = Rand()\nv1 = rnd:vector(10)\nv2 = rnd:vector(10)\non Heap:dynamic\n    v3 = v1*v2\n    --</pre>"
+@about sub   "Substracts two vectors element-by-element and stores the result on eiter a third mutable vector also of the same size, or on a "
+             "newlly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
+             "the required space. Example where an <code>on</code> context is used to allow operator overloading:"
+             "<pre>@mut rnd = Rand()\nv1 = rnd:vector(10)\nv2 = rnd:vector(10)\non Heap:dynamic\n    v3 = v1-v2\n    --</pre>"
+@about div   "Divides two vectors element-by-element and stores the result on eiter a third mutable vector also of the same size, or on a "
+             "newlly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
+             "the required space. Division may create NaN values. Example where an <code>on</code> context is used to allow operator overloading:"
+             "<pre>@mut rnd = Rand()\nv1 = rnd:vector(10)\nv2 = rnd:vector(10)\non Heap:dynamic\n    v3 = v1/v2\n    --</pre>"
 
 @include std.core
 @include std.rand
@@ -33,10 +49,10 @@ smo vector(@mut Memory memory, u64 size)
         @body{((f64*)mem__mem)[i] = 0;}
     ---> nominal:Vec(mem.mem, size, mem.mem)
 
-smo len(Vec v) 
+smo len(@access Vec v) 
     -> v.size
 
-smo slice(Vec v, u64 from, u64 to) 
+smo slice(@access Vec v, u64 from, u64 to) 
     if from >= to 
         -> fail("Empty Vec slice")
     if to > v.size
@@ -56,19 +72,19 @@ smo vector(@mut Memory memory, @mut Rand rand, u64 size)
 smo vector(@mut Rand rand, @mut Memory memory, u64 size) 
     -> vector(memory, rand, size)
 
-smo at(Vec v, u64 pos) 
+smo at(@access Vec v, u64 pos) 
     if pos>=v.size
         -> fail("Vec out of bounds")
     @body{f64 value = ((f64*)v__contents)[pos];} 
     -> value
 
-smo put(@mut Vec v, u64 pos, f64 value)
+smo put(@access @mut Vec v, u64 pos, f64 value)
     if pos>=v.size
         -> fail("Vec out of bounds")
     @body{((f64*)v__contents)[pos] = value;}
     -> v
 
-smo dot(Vec x1, Vec x2)
+smo dot(@access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @mut sum = 0.0
@@ -81,7 +97,7 @@ smo dot(Vec x1, Vec x2)
         :add(sum)
     ---> sum 
 
-smo put(@mut Vec x1, Vec x2)
+smo put(@access @mut Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -92,7 +108,7 @@ smo put(@mut Vec x1, Vec x2)
     }
     --
 
-smo add(@mut Memory memory, Vec x1, Vec x2)
+smo add(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -104,7 +120,7 @@ smo add(@mut Memory memory, Vec x1, Vec x2)
     }
     -> nominal:Vec(mem.mem, size, mem.mem)
 
-smo sub(@mut Memory memory, Vec x1, Vec x2)
+smo sub(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -116,7 +132,7 @@ smo sub(@mut Memory memory, Vec x1, Vec x2)
     }
     -> nominal:Vec(mem.mem, size, mem.mem)
 
-smo mul(@mut Memory memory, Vec x1, Vec x2)
+smo mul(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -128,7 +144,7 @@ smo mul(@mut Memory memory, Vec x1, Vec x2)
     }
     -> nominal:Vec(mem.mem, size, mem.mem)
 
-smo div(@mut Memory memory, Vec x1, Vec x2)
+smo div(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         -> fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -140,7 +156,7 @@ smo div(@mut Memory memory, Vec x1, Vec x2)
     }
     -> nominal:Vec(mem.mem, size, mem.mem)
 
-smo add(@mut Vec result, Vec x1, Vec x2)
+smo add(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if result.size!=x1.size 
         -> fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -155,7 +171,7 @@ smo add(@mut Vec result, Vec x1, Vec x2)
     }
     -> result
 
-smo sub(@mut Vec result, Vec x1, Vec x2)
+smo sub(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if result.size!=x1.size 
         -> fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -170,7 +186,7 @@ smo sub(@mut Vec result, Vec x1, Vec x2)
     }
     -> result
 
-smo mul(@mut Vec result, Vec x1, Vec x2)
+smo mul(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if result.size!=x1.size 
         -> fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -185,7 +201,7 @@ smo mul(@mut Vec result, Vec x1, Vec x2)
     }
     -> result
 
-smo div(@mut Vec result, Vec x1, Vec x2)
+smo div(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if result.size!=x1.size 
         -> fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -200,7 +216,7 @@ smo div(@mut Vec result, Vec x1, Vec x2)
     }
     -> result
 
-smo print(Vec v)
+smo print(@access Vec v)
     size = if v.size>10 -> 10 else -> v.size
     printin("[")
     range(size)

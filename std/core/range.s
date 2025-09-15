@@ -21,7 +21,7 @@
 @about next  "Obtains the next element in the range. Using a combination of a range and next element traversal is safer than manually checking bounds."
              "\n<br><br>Below is the main usage pattern. Notice that next's argument is an in-place constructed u64 number that is mutable to obtain the next value. The function progress the range's state and set that value."
              "\n<pre>range(10)"
-             "\n:while next(u64 &i)"
+             "\n:while next(@mut u64 i)"
              "\n    print(i)"
              "\n    --</pre>"
 

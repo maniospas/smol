@@ -4,6 +4,6 @@
 service main()
     rand = Rand()
     range(10)
-    :while next(u64 &i)
+    :while next(@mut u64 i)
         print(rand:next)
     ----

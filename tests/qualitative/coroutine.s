@@ -5,7 +5,7 @@ service print_service(u64 x)
 
 service main()
     range(10)
-    :while next(u64 &i)
+    :while next(@mut u64 i)
         print_service(i)
         --
     --

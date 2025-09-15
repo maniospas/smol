@@ -64,4 +64,30 @@
 
 #endif
 
+#include <stdio.h>      // FILE, fileno / _fileno
+#include <stdint.h>     // uint64_t
+#include <sys/types.h>  // struct stat / _stat64
+#include <sys/stat.h>   // stat / fstat
+#ifdef _WIN32
+#include <io.h>         // _fileno, _fstat64
+#else
+#include <unistd.h>     // fileno, fstat
+#endif
+#include <stdint.h>
+
+uint64_t __smo_file_size(FILE* fp) {
+    if (!fp) return 0;
+#if defined(_WIN32)
+    struct _stat64 st;
+    if (_fstat64(_fileno(fp), &st) == 0) {
+        return (u64)st.st_size;
+    }
+#else
+    struct stat st;
+    if (fstat(fileno(fp), &st) == 0) 
+        return (uint64_t)st.st_size;
+#endif
+    return 0;
+}
+
 #endif // SMOLAMBDA_COMMON_OS_H

@@ -447,39 +447,10 @@ int main(int argc, char* argv[]) {
         }
         try {
             errors = codegen(included, file, builtins, selected_task, task_report);
-    
+            size_t number = 1;
             if (Def::export_docs) {
-            std::string docs = "<!DOCTYPE html>\n<html>\n<head>\n"
-                    "<meta charset=\"UTF-8\">\n"
-                    "<title>Documentation</title>\n"
-                    "<link href=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css\" rel=\"stylesheet\" />\n"
-                    "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js\"></script>\n"
-                    "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-clike.min.js\"></script>\n"
-                    "<style>\n"
-                    "body { font-family: sans-serif; max-width: 960px; margin: auto; padding: 2em; background: #fafaff; }\n"
-                    "h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.2em;}\n"
-                    ".sig { font-size:1.3em; font-family: monospace; }\n"
-                    ".notice { color: #888; margin-left:3em; margin-right:3em; }\n"
-                    ".unsafe-badge { font-size: 0.65em; height:1em; color: #fff; background: #d72a2a; border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
-                    ".overload-badge { font-size: 0.65em; height:1em; color: #fff; background:rgb(126, 123, 149); border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
-                    "</style>\n"
-                    "<script>\n"
-                    "Prism.languages.smolambda = {\n"
-                    "  'comment': /\\/\\/.*/,\n"
-                    "  'directive': { pattern: /@\\w+/, alias: 'important' },\n"
-                    "  'keyword': [\n"
-                    "    { pattern: /\\b(?:smo|service|if|else|elif|with|include|do|while|on|union|to|upto|lento|len|and|or)\\b/, greedy: true },\n"
-                    "    { pattern: /(?:\\|\\|\\|->|\\|\\|->|\\|\\|--|\\|->|\\|--|->|--|:|=)/, greedy: true }\n"
-                    "  ],\n"
-                    "  'builtin': /\\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\\b/,\n"
-                    "  'punctuation': /[{}();,\\[\\]]/,\n"
-                    "  'number': /\\b\\d+\\b/,\n"
-                    "  'string': { pattern: /\"(?:\\\\.|[^\"\\\\])*\"/, greedy: true }\n"
-                    "};\n"
-                    "Prism.highlightAll();\n"
-                    "</script>\n"
-                    "</head>\n<body>\n";
-
+                std::string docs = "";
+                std::string toc = "<h1 id=\"toc\">Contents</h1>\n";
                 for (auto& include : included) {
                     string display_name = include.first;
                     if (display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  
@@ -488,14 +459,15 @@ int main(int argc, char* argv[]) {
                     string unsafe_html = "";
                     if (include.second.imp->allow_unsafe) 
                         unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
-
-                    docs += "<h1><span style=\"color:blue;\"></span> " 
+                    string file_anchor = "file_" + display_name;
+                    toc += "<br><b><a href=\"#" + file_anchor + "\">" + display_name + "</a></b><div style=\"color:gray;padding-left: 2em;\">";
+                    docs += "<h1 id=\"file_" + display_name + "\"><span style=\"color:blue\"> " 
                         + display_name 
                         + unsafe_html 
-                        + "</h1>\n";
-                    docs += "<p>" 
+                        + "</span><a href=\"#toc\">&nbsp;🔝</a></h1>\n"
                         + include.second.imp->about.substr(1, include.second.imp->about.size() - 2) 
                         + "</p>\n";
+                    number++;
                     if(unsafe_html.size()) 
                         docs += "<p class=\"notice\"><i>This file is marked with the unsafe keyword. This means that its "
                             "internal implementation (<i>only</i>) could be subject to bugs that the language's design otherwise "
@@ -507,7 +479,7 @@ int main(int argc, char* argv[]) {
                     std::sort(keys.begin(), keys.end(), [](pair<Variable, Type>& lhs, pair<Variable, Type>& rhs) {
                         return lhs.second->pos < rhs.second->pos;
                     });
-
+                    bool has_prev = false;
                     for (const auto& type : keys) {
                         string type_docs("");
                         for (const auto& subtype : type.second->options)
@@ -535,16 +507,61 @@ int main(int argc, char* argv[]) {
                                 replaceAll(desc, "</pre>", "</code></pre>");
                                 desc = "<p>"+(desc.substr(1,desc.size()-2))+"</p>";
                             }
+                            string type_anchor = file_anchor + "_" + type.first.to_string();
+                            if(has_prev)
+                                toc += "&nbsp;&nbsp;-&nbsp;&nbsp;";
+                            toc += "<a style=\"color:gray\" href=\"#" + type_anchor + "\">" + type.first.to_string() + "</a>";
+                            has_prev = true;
                             
-                            if(type.second->options.size()!=1) overload_docs += "<h2>" + type.first.to_string() + "</h2>\n" +desc+ type_docs;
-                            else docs += "<h2>" + type.first.to_string() + "</h2>\n" +desc+ type_docs;
+                            if (type.second->options.size() != 1) 
+                                overload_docs += "<h2 id=\"" + type_anchor + "\">" 
+                                    + type.first.to_string() +"<a href=\"#toc\">&nbsp;🔝</a></h2>\n" 
+                                    + desc + type_docs;
+                            else 
+                                docs += "<h2 id=\"" + type_anchor + "\">" 
+                                    + type.first.to_string() + "<a href=\"#toc\">&nbsp;🔝</a></h2>\n" 
+                                    + desc + type_docs;
                         }
                     }
                     docs += overload_docs;
+                    toc += "</div>";
                 }
-                docs += "</body>\n</html>\n";
                 std::ofstream out(file.substr(0, file.size()-2)+".html");
-                out << docs;
+                out << "<!DOCTYPE html>\n<html>\n<head>\n"
+                "<meta charset=\"UTF-8\">\n"
+                "<title>Documentation</title>\n"
+                "<link href=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css\" rel=\"stylesheet\" />\n"
+                "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js\"></script>\n"
+                "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-clike.min.js\"></script>\n"
+                "<style>\n"
+                "a { text-decoration: none; display: inline-block; transition: transform 0.2s ease;  }"
+                "a:hover { transform: scale(1.2); }"
+                "body { font-family: sans-serif; max-width: 960px; margin: auto; padding: 2em; background: #fafaff; }\n"
+                "h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.2em;}\n"
+                ".sig { font-size:1.3em; font-family: monospace; }\n"
+                ".notice { color: #888; margin-left:3em; margin-right:3em; }\n"
+                ".unsafe-badge { font-size: 0.65em; height:1em; color: #fff; background: #d72a2a; border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
+                ".overload-badge { font-size: 0.65em; height:1em; color: #fff; background:rgb(126, 123, 149); border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
+                "</style>\n"
+                "<script>\n"
+                "Prism.languages.smolambda = {\n"
+                "  'comment': /\\/\\/.*/,\n"
+                "  'directive': { pattern: /@\\w+/, alias: 'important' },\n"
+                "  'keyword': [\n"
+                "    { pattern: /\\b(?:smo|service|if|else|elif|with|include|do|while|on|union|to|upto|lento|len|and|or)\\b/, greedy: true },\n"
+                "    { pattern: /(?:\\|\\|\\|->|\\|\\|->|\\|\\|--|\\|->|\\|--|->|--|:|=)/, greedy: true }\n"
+                "  ],\n"
+                "  'builtin': /\\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\\b/,\n"
+                "  'punctuation': /[{}();,\\[\\]]/,\n"
+                "  'number': /\\b\\d+\\b/,\n"
+                "  'string': { pattern: /\"(?:\\\\.|[^\"\\\\])*\"/, greedy: true }\n"
+                "};\n"
+                "Prism.highlightAll();\n"
+                "</script>\n"
+                "</head>\n<body>\n"
+                <<toc
+                <<docs
+                <<"</body>\n</html>\n";
                 included.clear();
                 continue;
             }

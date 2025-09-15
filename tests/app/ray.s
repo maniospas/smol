@@ -68,7 +68,7 @@ service test()
             :clear(Color(50,50,80))
 
             range(spheres:len)
-            :while next(u64 &i)
+            :while next(@mut u64 i)
                 spheres[i]:draw(window)
                 --
 

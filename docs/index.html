@@ -81,7 +81,7 @@ smo Segment(String _value)
     -> nominal:Segment(value)
 
 smo combine(Segment[] segments)
-    &s = "":str  // mutable
+    @mut s = "":str  // mutable
     on Stack:arena(1024)
         range(segments:len)
         :while next(@mut u64 i)

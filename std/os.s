@@ -20,7 +20,8 @@
 @include std.mem
 @unsafe
 @about "Standard library wrapping of C system calls and of process management using C popen."
-@about Process     "A running process whose stdout can be read as a file-like object. "
+@about Process     "A running process whose stdout can be read as a file-like object."
+@about open        "Opens a Process given a command string. This starts the process and lets you read its output."
                    "When the process is eventually released, services fail if there is pending "
                    "output or if the exit code is non-zero. Here is an example:"
                    "<pre>service run(String command)"
@@ -33,7 +34,6 @@
                    "\n    run(\"invalid command\").err:assert_ok // synchronize"
                    "\n    --"
                    "</pre>"
-@about open        "Opens a Process given a command string. This starts the process and lets you read its output."
 @about to_end      "Reads all remaining output from the process without storng it."
 @about next_chunk  "Reads the next chunk of process output into a provided buffer."
 @about next_line   "Reads the next line of process output into a provided buffer."
@@ -94,7 +94,7 @@ smo next_chunk(
     @body{
         u64 bytes_read = p__contents ? fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)p__contents) : 0;
         if(reader__contents__size) 
-            ((char*)reader__contents__mem)[ (bytes_read < reader__contents__size) ? bytes_read : (reader__contents__size - 1) ] = '\0';
+            ((char*)reader__contents__mem)[ (bytes_read < reader__contents__size) ? bytes_read : (reader__contents__size - 1) ] = 0;
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
         char first = ((char*)reader__contents__mem)[0];
     }

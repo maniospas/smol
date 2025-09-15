@@ -7,7 +7,8 @@ string Def::signature_like(Types& types, vector<Variable> args) {
         if(ret.size()) 
             ret += ",";
         if(contains(args[i]) && buffer_types.find(args[i])!=buffer_types.end()) {
-            ret += (mutables.find(args[i])!=mutables.end()?"\033[31m@mut ":"")
+            ret += (can_access_mutable_fields.find(args[i])!=can_access_mutable_fields.end()?"\033[31m@access ":"") 
+                +string(mutables.find(args[i])!=mutables.end()?"\033[31m@mut ":"")
                 +pretty_runtype(buffer_types[args[i]]->name.to_string())+"[]";
             i += 1;
         }
@@ -16,13 +17,16 @@ string Def::signature_like(Types& types, vector<Variable> args) {
             && types.reverse_alignment_labels[alignments[args[i]]]!=this 
             && types.reverse_alignment_labels[alignments[args[i]]]->packs.size()>=1
         ) {
-            ret += (mutables.find(args[i])!=mutables.end()?"\033[31m@mut ":"")
+            ret +=  (can_access_mutable_fields.find(args[i])!=can_access_mutable_fields.end()?"\033[31m@access ":"") 
+                +string(mutables.find(args[i])!=mutables.end()?"\033[31m@mut ":"")
                 +pretty_runtype(types.reverse_alignment_labels[alignments[args[i]]]->name.to_string())
                 /*+"["+to_string(types.reverse_alignment_labels[alignments[args[i]]]->packs.size())+"]"*/;
             i += types.reverse_alignment_labels[alignments[args[i]]]->packs.size()-1;
         }
         else 
-            ret += ""+pretty_runtype(vars[args[i]]->name.to_string());
+            ret += (can_access_mutable_fields.find(args[i])!=can_access_mutable_fields.end()?"\033[31m@access ":"") 
+                +string(mutables.find(args[i])!=mutables.end()?"\033[31m@mut ":"")
+                +pretty_runtype(vars[args[i]]->name.to_string());
         string arg_name = pretty_var(args[prev_i].to_string());
         if(arg_name.size()) 
             ret += " \033[38m"+arg_name;
@@ -40,7 +44,8 @@ string Def::signature(Types& types) {
         if(ret.size()) 
             ret += ",";
         if(contains(args[i].name) && buffer_types.find(args[i].name)!=buffer_types.end()) {
-            ret += (args[i].mut?"\033[31m@mut ":"")
+            ret += (can_access_mutable_fields.find(args[i].name)!=can_access_mutable_fields.end()?"\033[31m@access ":"") 
+                +string(args[i].mut?"\033[31m@mut ":"")
                 +pretty_runtype(buffer_types[args[i].name]->name.to_string())
                 +"[]";
             i += types.vars[BUFFER_VAR]->packs.size()-1;
@@ -54,7 +59,8 @@ string Def::signature(Types& types) {
             && types.reverse_alignment_labels[alignments[args[i].name]]!=this 
             && types.reverse_alignment_labels[alignments[args[i].name]]->packs.size()>=1
         ) {
-            ret += (args[i].mut?"\033[31m@mut ":"")
+            ret += (can_access_mutable_fields.find(args[i].name)!=can_access_mutable_fields.end()?"\033[31m@access ":"") 
+                +string(args[i].mut?"\033[31m@mut ":"")
                 +pretty_runtype(types.reverse_alignment_labels[alignments[args[i].name]]->name.to_string())
                 /*+"\033[0m["
                 +to_string(types.reverse_alignment_labels[alignments[args[i].name]]->packs.size())
@@ -65,14 +71,17 @@ string Def::signature(Types& types) {
             && types.reverse_alignment_labels[alignments[args[i].name]]!=this 
             && args[i].type->packs.size()>=1
         ) {
-            ret += (args[i].mut?"\033[31m@mut ":"")
+            ret += (can_access_mutable_fields.find(args[i].name)!=can_access_mutable_fields.end()?"\033[31m@access ":"") 
+                +string(can_access_mutable_fields.find(args[i].name)!=can_access_mutable_fields.end()?"\033[31m@access ":"") 
+                +string(args[i].mut?"\033[31m@mut ":"")
                 +pretty_runtype(args[i].type->name.to_string())
                 /*+"["+to_string(args[i].type->packs.size())
                 +"]"*/;
             i += args[i].type->packs.size()-1;
         }
         else 
-            ret += (args[i].mut?"\033[31m@mut ":"")
+            ret += (can_access_mutable_fields.find(args[i].name)!=can_access_mutable_fields.end()?"\033[31m@access ":"") 
+                +string(args[i].mut?"\033[31m@mut ":"")
                 +pretty_runtype(args[i].type->name.to_string());
         string arg_name = pretty_var(args[prev_i].name.to_string());
         if(arg_name.size()) 

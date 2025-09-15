@@ -29,8 +29,15 @@
                   "already exist to be opened."
 @about to_start   "Go to the beginning of a File. You can continue read or writing from there. May cause service failure due to external factors."
 @about to_end     "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. Returns a boolean indicating a successful operation."
-@about len        "Computes the size of a File in bytes."
-@about write      "Writes a string on a WriteFile."
+@about len        "Computes the size of a File in bytes. This tries to leverage operating system metadata first, but if it fails it explicitly reads through the file once."
+@about print      "Writes a string on a WriteFile."
+@about tempfile   "Creates a WriteFile of a given size that is constrained to fixed memory provided by a Memory allocator. "
+                  "Thanks to safety mechanisms provided by operating systems, operations on this file may be slower than simple memory read and writes. "
+                  "If the operating system does not properly support memory mapped files, this may even end up consuming disk storage space of "
+                  "up to the given size by being stored as a temporary file. In general, reads and writes (with print) will be at most as slow as a normal "
+                  "file, with the contract that data cannot be recovered after termination. Do note that some operating systems require manual deletion of "
+                  "temporary file folders if systems are abruptly powered off. This type of file should be mostly used to store temporary data or for "
+                  "testing purposes."
 @about file "Creates a virtual file by of a given size on top of some memory allocator."
 @about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
                   "Here is an example where volatile memory is used to avoid repeated or large allocations:"
@@ -56,7 +63,7 @@
 @about is_file    "Checks if a String path is a file system file."
 @about is_dir     "Checks if a String path is a file system directory."
 @about create_dir "Creates a directory given a String path. May cause service failure due to external factors or if the directory already exists."
-@about remove_file "Deletes a file from the system. May cause service failure due to external factors or if the file is already open."
+@about remove_file "Deletes a file from the system. May cause service failure due to external factors, or if the file is already open."
 
 smo ReadFile(nominal, ptr contents)
     @noborrow
@@ -71,7 +78,7 @@ union File
     WriteFile
     --
 
-smo open(@mut ReadFile, String _path) 
+smo open(@access @mut ReadFile, String _path) 
     path = _path:str
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -86,14 +93,14 @@ smo open(@mut ReadFile, String _path)
         @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} 
     ---> nominal:ReadFile(contents)
 
-smo to_start(@mut File f) 
+smo to_start(@access @mut File f) 
     if f.contents:exists:not 
         @fail{printf("Failed to move to start of closed file");} 
         --
     @body{fseek((FILE*)f__contents, 0, SEEK_SET);}
     --
 
-smo to_end(@mut WriteFile f) 
+smo to_end(@access @mut WriteFile f) 
     // only useful for moving to the end of write files. For read files, close them instead.
     @body{
         if(f__contents) 
@@ -101,11 +108,14 @@ smo to_end(@mut WriteFile f)
     }
     -> f.contents:exists
 
-smo len(@mut File f)
+smo len(@access @mut File f)
+    @head{#include "std/oscommon.h"}
     @head{#include <stdio.h>}
     @body{
         u64 size = 0;
-        if(f__contents) {
+        if(f__contents)
+            size = __smo_file_size((FILE*)f__contents);
+        if(f__contents && !size) {
             u64 pos = ftell((FILE*)f__contents);
             if(pos != -1L && fseek((FILE*)f__contents, 0, SEEK_END) == 0) {
                 size = ftell((FILE*)f__contents);
@@ -115,7 +125,7 @@ smo len(@mut File f)
     }
     -> size
 
-smo print(@mut WriteFile f, String _s)
+smo print(@access @mut WriteFile f, String _s)
     s = _s:str
     if f.contents:exists:not 
         @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
@@ -146,7 +156,7 @@ smo tempfile(@mut Memory memory, u64 size)
     
 smo next_chunk (
         @mut Volatile reader, 
-        @mut File f,
+        @access @mut File f,
         @mut nstr value
     )
     contents = reader.contents.mem
@@ -167,7 +177,7 @@ smo next_chunk (
 
 smo next_line (
         @mut Volatile reader, 
-        @mut File f, 
+        @access @mut File f, 
         @mut nstr value
     )
     contents = reader.contents.mem
@@ -192,7 +202,7 @@ smo next_line (
 
 smo next_chunk (
         @mut Arena reader, 
-        @mut File f,
+        @access @mut File f,
         @mut nstr value
     )
     @head{#include <stdio.h>}
@@ -210,7 +220,7 @@ smo next_chunk (
 
 smo next_line(
         @mut Arena reader,
-        @mut File f,
+        @access @mut File f,
         @mut nstr value
     )
     @head{#include <stdio.h>}
@@ -232,7 +242,7 @@ smo next_line(
 
 smo next_line (
         @mut BoundedMemory reader,
-        @mut File f, 
+        @access @mut File f, 
         @mut str value
     )
     ret = next_line(reader, f, nstr &retvalue)
@@ -241,14 +251,14 @@ smo next_line (
 
 smo next_chunk (
         @mut BoundedMemory reader, 
-        @mut File f, 
+        @access @mut File f, 
         @mut str value
     )
     ret = next_chunk(reader, f, nstr &retvalue)
     value = retvalue:str
     -> ret
 
-smo ended(@mut File f)
+smo ended(@access @mut File f)
     @head{#include <stdio.h>}
     @body{
         char c = fgetc((FILE*)f__contents);
@@ -285,7 +295,7 @@ smo remove_file(String _path)
     if status:bool @fail{printf("Failed to remove file - make sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
     ----
 
-smo open(@mut WriteFile, String _path)
+smo open(@access @mut WriteFile, String _path)
     path = _path:str
     @head{#include <stdio.h>}
     @head{
@@ -323,7 +333,7 @@ smo create_dir(String _path)
         @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
     ----
     
-smo console(@mut WriteFile)
+smo console(@access @mut WriteFile)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <unistd.h>}

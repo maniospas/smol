@@ -12,7 +12,7 @@ smo combine(Segment[] segments)
     @mut combined = "":str  // mutable null-terminated string
     on Stack:arena(1024)
         range(segments:len)
-        :while next(u64 &i)
+        :while next(@mut u64 i)
             combined = str(combined+segments[i].value+" ")
             --
         --
