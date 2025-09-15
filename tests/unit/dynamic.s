@@ -1,4 +1,4 @@
-@include std.core
+@include std.core -> Number, range, fail
 @include std.math
 
 // ----- Circle -----
@@ -77,7 +77,10 @@ service main()
     shapes:push(nominal:Square(1.0))
     shapes:push(nominal:Circle(1.0))
 
-    shapes:len:range:while next(@mut u64 i) 
+    shapes
+    :len
+    :range
+    :while next(@mut u64 i) 
         if shapes:is(i, Square)
             shapes
             :at(i, Square)

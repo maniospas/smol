@@ -460,8 +460,8 @@ int main(int argc, char* argv[]) {
                     if (include.second.imp->allow_unsafe) 
                         unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
                     string file_anchor = "file_" + display_name;
-                    toc += "<br><b><a href=\"#" + file_anchor + "\">" + display_name + "</a></b><div style=\"color:gray;padding-left: 2em;\">";
-                    docs += "<h1 id=\"file_" + display_name + "\"><span style=\"color:blue\"> " 
+                    toc += "<br><b><a href=\"#" + file_anchor + "\">" + display_name + "</a></b><div style=\"color:gray\">";
+                    docs += "<h1 id=\"file_" + display_name + "\"><span style=\"color:black\"> " 
                         + display_name 
                         + unsafe_html 
                         + "</span><a href=\"#toc\">&nbsp;🔝</a></h1>\n"
@@ -509,7 +509,7 @@ int main(int argc, char* argv[]) {
                             }
                             string type_anchor = file_anchor + "_" + type.first.to_string();
                             if(has_prev)
-                                toc += "&nbsp;&nbsp;-&nbsp;&nbsp;";
+                                toc += "<br>";
                             toc += "<a style=\"color:gray\" href=\"#" + type_anchor + "\">" + type.first.to_string() + "</a>";
                             has_prev = true;
                             

@@ -62,7 +62,7 @@
 @about ended      "Checks if the ending of the file has been reached. This is normal to be true for WriteFile."
 @about is_file    "Checks if a String path is a file system file."
 @about is_dir     "Checks if a String path is a file system directory."
-@about create_dir "Creates a directory given a String path. May cause service failure due to external factors or if the directory already exists."
+@about create_dir "Creates a directory given a String path. May cause service failure due to external factors, or if the directory already exists."
 @about remove_file "Deletes a file from the system. May cause service failure due to external factors, or if the file is already open."
 
 smo ReadFile(nominal, ptr contents)

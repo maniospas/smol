@@ -48,9 +48,14 @@ smo fail(cstr error)
     @fail {printf("%s\n", error);}
     --
 
-smo fail(str error)
+smo fail(nstr error)
     @head{#include <stdio.h>}
     @fail {printf("%s\n", (char*)error__contents);}
+    --
+
+smo fail(str error)
+    @head{#include <stdio.h>}
+    @fail {printf("%.*s\n", (int)error__length, (char*)error__contents);}
     --
 
 smo print(errcode error)
