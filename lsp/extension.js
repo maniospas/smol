@@ -1,35 +1,6 @@
 const path = require('path');
 const vscode = require('vscode');
 const { LanguageClient, TransportKind } = require('vscode-languageclient/node');
-let arrowDecoration = vscode.window.createTextEditorDecorationType({
-  color: 'transparent', // hide the actual text, but keep space and cursor behavior
-  //letterSpacing: '-1ch',
-  after: {
-    contentText: "―▶",
-    color: "#58f",
-    fontWeight: "bold",
-    margin: "0 0 0 -2ch", // shift left to draw over original
-  },
-  rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
-});
-let dashDecoration = vscode.window.createTextEditorDecorationType({
-  color: 'transparent', // hide the actual text, but keep space and cursor behavior
-  //letterSpacing: '-1ch',
-  after: {
-    contentText: "――",
-    color: "#58f",
-    fontWeight: "bold",
-    margin: "0 0 0 -2ch", // shift left to draw over original
-  },
-  rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
-});
-let dashDecoration2 = vscode.window.createTextEditorDecorationType({
-  after: {
-    contentText: " [end] ",
-    color: "#5588ff99",
-  },
-  rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
-});
 
 const fileDiagnostics = new Map();
 
@@ -63,12 +34,7 @@ async function activate(context) {
       if(!editor) return;
       const arrowRanges = (arrows || []).map(d => ({range: new vscode.Range(d.range.start.line, d.range.start.character,d.range.end.line, d.range.end.character)}));
       const dashRanges = (dashes || []).map(d => ({range: new vscode.Range(d.range.start.line, d.range.start.character,d.range.end.line, d.range.end.character)}));
-      //editor.setDecorations(dashDecoration, dashRanges);
-      //editor.setDecorations(arrowDecoration, arrowRanges);
-      //editor.setDecorations(dashDecoration2, dashRanges);
-    });
-
-
+    }); 
     client.onNotification("smolambda/htmlNotification", ({ uri, diagnostics }) => {fileDiagnostics.set(uri, diagnostics);});
   } 
   catch (err) {

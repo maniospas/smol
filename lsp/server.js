@@ -12,6 +12,7 @@ const fs = require("fs");
 const path = require("path");
 const keywords = require("./smol_keywords");
 const builtins = require("./smol_builtins");
+const directives = require("./smol_directives");
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
 const symbolTable = new Map();  // uri => [{name, line}]
@@ -98,7 +99,7 @@ connection.onInitialize((params) => {
     capabilities: {
       textDocumentSync: documents.syncKind,
       completionProvider: {
-        triggerCharacters: [".", ":"]
+        triggerCharacters: [".", ":", "@"]
       },
       semanticTokensProvider: {
         legend: {
@@ -114,31 +115,82 @@ connection.onInitialize((params) => {
 
 connection.onCompletion((params) => {
   const uri = params.textDocument.uri;
+  const document = documents.get(uri);
+  if (!document) return [];
+
+  const pos = params.position;
+  const lines = document.getText().split(/\r?\n/);
+
+  // include / install (FIRST so it doesn't get shadowed by the directive branch)
+  {
+    const lineText = lines[pos.line].slice(0, pos.character);
+    const incMatch = lineText.match(/@(include|install)(?:\s+([\w./]*))?$/); // path optional
+
+    if (incMatch) {
+      let basePath = (incMatch[2] || "").replace(/\./g, "/");
+      const currentFile = decodeURIComponent(uri.replace("file://", ""));
+      const currentDir = path.dirname(currentFile);
+      let resolvedDir = basePath === "" ? currentDir : path.resolve(currentDir, basePath);
+      if (!fs.existsSync(resolvedDir)) resolvedDir = path.resolve(workspaceRoot, basePath || ".");
+
+      // if user typed a partial file, list its parent
+      if (!fs.existsSync(resolvedDir) || !fs.statSync(resolvedDir).isDirectory()) {
+        resolvedDir = path.dirname(resolvedDir);
+      }
+
+      if (fs.existsSync(resolvedDir) && fs.statSync(resolvedDir).isDirectory()) {
+        const entries = fs.readdirSync(resolvedDir);
+        return entries.map(entry => {
+          const entryPath = path.join(resolvedDir, entry);
+          const isDir = fs.existsSync(entryPath) && fs.statSync(entryPath).isDirectory();
+          return {
+            label: isDir ? entry : entry.replace(/\.s$/, ""),
+            kind: isDir ? CompletionItemKind.Folder : CompletionItemKind.File,
+            detail: isDir ? "Directory" : "File"
+          };
+        });
+      }
+    }
+  }
+
+  // directives after '@' (but NOT @include/@install)
+  {
+    const lineText = lines[pos.line];
+    const regex = /@[A-Za-z_.]*/g;
+    let match, found = null;
+    while ((match = regex.exec(lineText)) !== null) {
+      const start = match.index, end = start + match[0].length;
+      if (pos.character >= start && pos.character <= end) { found = match[0]; break; }
+    }
+    if (found && !/^@(include|install)\b/.test(found)) {
+      return Object.entries(directives).map(([name, description]) => ({
+        label: name,
+        kind: CompletionItemKind.Keyword,
+        detail: description,
+        insertText: name + " "
+      }));
+    }
+  }
+
+  // normal completions
   const symbols = new Set();
-  function collect(uri, visited = new Set()) {
-    if (visited.has(uri)) return;
-    visited.add(uri);
-    const defs = symbolTable.get(uri) || [];
+  function collect(u, visited = new Set()) {
+    if (visited.has(u)) return;
+    visited.add(u);
+    const defs = symbolTable.get(u) || [];
     defs.forEach(d => symbols.add(d.name));
-    const includes = includeGraph.get(uri) || new Set();
+    const includes = includeGraph.get(u) || new Set();
     includes.forEach(included => collect(included, visited));
   }
   collect(uri);
+
   return [
-    ...builtins.map(k => ({
-      label: k,
-      kind: CompletionItemKind.Keyword
-    })),
-    ...keywords.map(k => ({
-      label: k,
-      kind: CompletionItemKind.Keyword
-    })),
-    ...[...symbols].map(s => ({
-      label: s,
-      kind: CompletionItemKind.Function
-    }))
+    ...builtins.map(k => ({ label: k, kind: CompletionItemKind.Keyword })),
+    ...keywords.map(k => ({ label: k, kind: CompletionItemKind.Keyword })),
+    ...[...symbols].map(s => ({ label: s, kind: CompletionItemKind.Function }))
   ];
 });
+
 
 connection.onDefinition((params) => {
   const uri = params.textDocument.uri;
@@ -146,6 +198,28 @@ connection.onDefinition((params) => {
   if (!document) return null;
   const pos = params.position;
   const lines = document.getText().split(/\r?\n/);
+
+  // First: check if cursor is on an @include directive
+  const includeLine = lines[pos.line];
+  const includeMatch = includeLine.match(/@include\s+([\w.]+)/);
+  if (includeMatch) {
+    const wordRange = includeMatch[0];
+    const wordStart = includeLine.indexOf(includeMatch[1]);
+    const wordEnd = wordStart + includeMatch[1].length;
+    if (pos.character >= wordStart && pos.character <= wordEnd) {
+      const includePath = includeMatch[1].replace(/\./g, "/") + ".s";
+      const basePath = decodeURIComponent(uri.replace("file://", ""));
+      const dir = path.dirname(basePath);
+      let resolvedPath = path.resolve(dir, includePath);
+      if (!fs.existsSync(resolvedPath)) resolvedPath = path.resolve(workspaceRoot, includePath);
+      if (fs.existsSync(resolvedPath)) {
+        const includedUri = "file://" + resolvedPath;
+        return Location.create(includedUri, Range.create(0, 0, 0, 0));
+      }
+    }
+  }
+
+  // Otherwise: do normal symbol definition search
   function getWordAt(line, character) {
     const regex = /\b[A-Za-z_][A-Za-z0-9_]*\b/g;
     let match;
@@ -159,9 +233,9 @@ connection.onDefinition((params) => {
     return null;
   }
   const word = getWordAt(lines[pos.line], pos.character);
-  if(!word) return null;
-  const searchOrder = [];
+  if (!word) return null;
 
+  const searchOrder = [];
   function collect(uri, visited = new Set()) {
     if (visited.has(uri)) return;
     visited.add(uri);
@@ -176,42 +250,19 @@ connection.onDefinition((params) => {
     const defs = symbolTable.get(u) || [];
     for (const { name, line } of defs) {
       if (name === word) {
-        let defLineText;
-        if (u === uri) defLineText = lines[line];
-        else {
-          const filePath = decodeURIComponent(u.replace("file://", ""));
-          if (!fs.existsSync(filePath)) continue;
-          const fileLines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
-          defLineText = fileLines[line] || "";
-        }
-        var start = defLineText.indexOf(name);
-        while (start !== -1) {
-          const end = start + name.length;
-          foundLocations.push(Location.create(u, Range.create(line, start, line, end)));
-          start = defLineText.indexOf(name, end+1);
+        const filePath = decodeURIComponent(u.replace("file://", ""));
+        if (!fs.existsSync(filePath)) continue;
+        const fileLines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
+        const defLineText = fileLines[line] || "";
+        const start = defLineText.indexOf(name);
+        if (start !== -1) {
+          foundLocations.push(Location.create(u, Range.create(line, start, line, start + name.length)));
         }
       }
     }
   }
-  if(foundLocations.length) return foundLocations;
-
-  const includeLine = lines[pos.line];
-  const includeMatch = includeLine.match(/@include\s+([\w.]+)/);
-  if (includeMatch) {
-    const includePath = includeMatch[1].replace(/\./g, "/") + ".s";
-    const basePath = decodeURIComponent(uri.replace("file://", ""));
-    const dir = path.dirname(basePath);
-    let resolvedPath = path.resolve(dir, includePath);
-    if (!fs.existsSync(resolvedPath)) resolvedPath = path.resolve(workspaceRoot, includePath);
-    if (fs.existsSync(resolvedPath)) {
-      const includedUri = "file://" + resolvedPath;
-      return Location.create(includedUri, Range.create(0, 0, 0, 0));
-    }
-  }
-
-  return null;
+  return foundLocations.length ? foundLocations : null;
 });
-
 
 connection.languages.semanticTokens.on((params) => {
   const uri = params.textDocument.uri;
