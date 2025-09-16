@@ -3,7 +3,7 @@
   "displayName": "Smoλ (smolambda)",
   "description": "Support for development in the smoλ language.",
   "publisher": "maniospas",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "engines": {
     "vscode": "^1.70.0"
   },
@@ -28,6 +28,13 @@
           ".s"
         ],
         "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "smolambda",
+        "scopeName": "source.smolambda",
+        "path": "./syntaxes/smolambda.tmLanguage.json"
       }
     ]
   },

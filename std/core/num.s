@@ -35,6 +35,7 @@
 @about div     "Division of two numbers of the same type. Division by zero for i64 or u64 creates a service failure, but for f64 it yields NaN. Overloads the corresponding operator. Here is an example that yields zero by performing integer division: <pre>print(1/2)</pre>"
 @about mod     "Modulo operation for signed or unsigned integers. For i64, only positive divisors are allowed. Fails on zero divisor. Overloads the corresponding operator. Here is an example: <pre>print(1%2)</pre>"
 @about negative "Returns the additive inverse (negation) of an i64 or f64. Does NOT overload any operation.  Having u64 as the default type helps avoid many spurious negation errors, especially when memory handling is concerned.<br><br>Both examples below print -1: <pre>print(0:i64-1:i64)\nprint(1:i64:negative)</pre>"
+@about Number  "One of u64, f64, i64"
 
 
 union Number 

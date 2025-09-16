@@ -174,7 +174,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         else if(is_next_assignment) 
             imp->error(p, "Expecting assignment to variable after @next");
         else if(is_mutable_assignment) 
-            imp->error(p, "Expecting assignment to variable after &");
+            imp->error(p, "Expecting assignment to variable after `@mut`");
         else 
             parse_expression(imp, p, next, types);
     }

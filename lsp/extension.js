@@ -29,13 +29,6 @@ async function activate(context) {
       }
     });
     client.onNotification('server/error', (message) => {vscode.window.showErrorMessage(`Smoλ language server error: ${message}`);});
-    client.onNotification("smolambda/decorations", ({ uri, arrows, dashes }) => {
-      const editor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === uri);
-      if(!editor) return;
-      const arrowRanges = (arrows || []).map(d => ({range: new vscode.Range(d.range.start.line, d.range.start.character,d.range.end.line, d.range.end.character)}));
-      const dashRanges = (dashes || []).map(d => ({range: new vscode.Range(d.range.start.line, d.range.start.character,d.range.end.line, d.range.end.character)}));
-    }); 
-    client.onNotification("smolambda/htmlNotification", ({ uri, diagnostics }) => {fileDiagnostics.set(uri, diagnostics);});
   } 
   catch (err) {
     vscode.window.showErrorMessage(`Smoλ language server failed to start: ${err.message}`);
@@ -43,29 +36,6 @@ async function activate(context) {
   }
   context.subscriptions.push({ dispose: () => client?.stop() });
 }
-
-
-vscode.languages.registerHoverProvider("smolambda", {
-  provideHover(document, position, token) {
-    const line = position.line;
-    const text = document.lineAt(line).text;
-    const uri = document.uri.toString();
-    const diagnostic = (fileDiagnostics.get(uri) || []).find(d => {
-      const start = d.range.start;
-      const end = d.range.end;
-      return (
-        (position.line > start.line || (position.line === start.line && position.character >= start.character)) &&
-        (position.line < end.line || (position.line === end.line && position.character <= end.character))
-      );
-    });
-    const markdown = new vscode.MarkdownString();
-    markdown.appendCodeblock(text.trim(), "rust");
-    if (diagnostic) markdown.appendMarkdown("\n\n---\n\n" + diagnostic.message);
-    markdown.isTrusted = true;
-    return new vscode.Hover(markdown);
-  }
-});
-
 
 function deactivate() { return client?.stop();}
 module.exports = {activate,deactivate};

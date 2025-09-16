@@ -76,8 +76,10 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             }
             if(type->choice_power<highest_choice_power) continue;
             successfullType = type;
-            if(markdown_errors) multipleFound += "\n";
-            else multipleFound += "\n- ";
+            if(markdown_errors) 
+                multipleFound += "\n";
+            else 
+                multipleFound += "\n- ";
             multipleFound += type->signature(types);
             numberOfFound++;
         }
@@ -86,8 +88,10 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                 overloading_errors = "";
                 numberOfErrors = 0;
             }
-            if(markdown_errors) overloading_errors += "\n";
-            else overloading_errors += "\n- ";
+            if(markdown_errors) 
+                overloading_errors += "\n";
+            else 
+                overloading_errors += "\n- ";
             overloading_errors += e.what();
             numberOfErrors++;
         }
@@ -98,7 +102,8 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
         vector<Variable> new_unpacks;
         if(vars[active_context]->_is_primitive) new_unpacks.push_back(active_context);
         else for(const Variable& pack : vars[active_context]->packs) new_unpacks.push_back(active_context+pack);
-        for(const Variable& pack : unpacks) new_unpacks.push_back(pack);
+        for(const Variable& pack : unpacks) 
+            new_unpacks.push_back(pack);
         prev_errors = previousType->name.to_string()
             +signature_like(types, unpacks)
             +"\namong "+to_string(numberOfErrors)

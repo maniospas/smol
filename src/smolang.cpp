@@ -130,7 +130,7 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     test_path += "."+imp->at(p);
                 }
                 path += ".s"; 
-                if(selected_task==Task::Compile || selected_task==Task::Run) {
+                if(selected_task==Task::Compile || selected_task==Task::Run || selected_task==Task::Transpile) {
                     for (const auto& it : installation_permissions) 
                         if (test_path.rfind(it, 0) == 0) { 
                             found = it;
@@ -386,7 +386,8 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 --p;
                 def->assert_options_validity(imp, p);
             }
-            else imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union`, `@include`, `@install`, `@about`, or `@unsafe` allowed");
+            else 
+                imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union`, `@include`, `@install`, `@about`, or `@unsafe` allowed");
             p++;
         }
         catch(const std::runtime_error& e) {
@@ -412,28 +413,32 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
             if(p>=imp->size()-1) break;
         }
     }
-
+    
     for(const auto& err : types.all_errors) {
         cerr << err.first;
         if(types.suppressed.find(err.first)!=types.suppressed.end()) 
             cerr << "\033[33m -- "<<types.suppressed[err.first]<<" similar errors in this file\033[0m";
-        cerr << err.second << "\n";
+        if(!Def::markdown_errors) 
+            cerr << err.second;
+        cerr << "\n";
         errors = true;
     }
 
-    if(imp->allow_unsafe && imp->about.size()==0) 
-        imp->about = "\"Unsafe code without description at "+imp->path+"\"";
-    else if(imp->about.size()==0) 
-        imp->about = "\""+imp->path+"\"";
-    if(selected_task==Task::Verify && warnings) 
-        task_report += "\033[30;41m "
-            +string(warnings<10?" ":"")
-            +to_string(warnings)
-            +" ERRORS \033[0m " 
-            + file 
-            + "\n"; 
-    else if(selected_task==Task::Verify) 
-        task_report += "\033[30;42m OK \033[0m " + file + "\n"; 
+    if(!Def::markdown_errors) {
+        if(imp->allow_unsafe && imp->about.size()==0) 
+            imp->about = "\"Unsafe code without description at "+imp->path+"\"";
+        else if(imp->about.size()==0) 
+            imp->about = "\""+imp->path+"\"";
+        if(selected_task==Task::Verify && warnings) 
+            task_report += "\033[30;41m "
+                +string(warnings<10?" ":"")
+                +to_string(warnings)
+                +" ERRORS \033[0m " 
+                + file 
+                + "\n"; 
+        else if(selected_task==Task::Verify) 
+            task_report += "\033[30;42m OK \033[0m " + file + "\n"; 
+    }
     return errors;
 
     //imp->tokens.clear();  // DO NOT CLEAR HERE BECAUSE IT PREVENTS LAZY DEFS FROM PARSING
@@ -872,7 +877,7 @@ int main(int argc, char* argv[]) {
         remove("__smolambda__temp__main.cpp");
         included.clear();
     }
-    if(selected_task==Task::Verify) 
+    if(selected_task==Task::Verify && !Def::markdown_errors) 
         for(const auto& def : all_types) 
             if(def 
                 && def->imp 

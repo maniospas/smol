@@ -3,7 +3,9 @@
 @include std.file
 
 service main()
-    @mut file = Heap:tempfile(1024)
+    on Heap:dynamic
+        @mut file = WriteFile:temp(1024)
+        --
     file:print("hello world!")
     file:to_start
     on Stack:volatile(1024)

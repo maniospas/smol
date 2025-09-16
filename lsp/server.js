@@ -18,6 +18,8 @@ const documents = new TextDocuments(TextDocument);
 const symbolTable = new Map();  // uri => [{name, line}]
 const includeGraph = new Map(); // uri => Set<includedUri>
 let workspaceRoot = "";
+const fileDiagnostics = new Map(); // uri -> array of diagnostics
+
 
 function sendErrorToClient(msg) {
   try { connection.sendNotification('server/error', msg);} 
@@ -29,63 +31,47 @@ process.on("unhandledRejection", (reason) => { sendErrorToClient("Unhandled Reje
 function analyzeDocument(uri, text) {
   const lines = text.split(/\r?\n/);
   const symbols = [];
-  const decorations_arrow = [];
-  const decorations_dash = [];
   const includes = new Set();
-  for(let i = 0; i < lines.length; i++) {
+  const abouts = new Map(); // name -> description
+  let fileAbout = null;
+  for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    // function defs
     const defMatch = line.match(/^\s*(smo|service|union)\s+([A-Za-z_][A-Za-z0-9_]*)/);
-    if(defMatch) symbols.push({ name: defMatch[2], line: i });
+    if (defMatch) symbols.push({ name: defMatch[2], line: i, kind: "function" });
+    // @about
+    if (line.trim().startsWith("@about")) {
+      let collected = line;
+      let j = i + 1;
+      while (j < lines.length && /^\s*"/.test(lines[j])) {
+        collected += " " + lines[j].trim();
+        j++;
+      }
+      i = j - 1;
+      const parts = [...collected.matchAll(/"((?:\\.|[^"\\])*)"/g)].map(m => m[1].replace(/\\"/g, '"'));
+      const nameMatch = collected.match(/^@about\s+([A-Za-z_][A-Za-z0-9_]*)/);
+      if (nameMatch) abouts.set(nameMatch[1], parts.join(" "));
+      else if (parts.length) fileAbout = parts.join(" ");
+    }
+    // includes
     const includeMatch = line.match(/@include\s+([\w.]+)/);
-    if(includeMatch) {
+    if (includeMatch) {
       const includePath = includeMatch[1].replace(/\./g, "/") + ".s";
       const basePath = decodeURIComponent(uri.replace("file://", ""));
       const dir = path.dirname(basePath);
       let resolvedPath = path.resolve(dir, includePath);
       if (!fs.existsSync(resolvedPath)) resolvedPath = path.resolve(workspaceRoot, includePath);
-
       const includedUri = "file://" + resolvedPath;
       includes.add(includedUri);
-      if(!symbolTable.has(includedUri) && fs.existsSync(resolvedPath)) analyzeDocument(includedUri, fs.readFileSync(resolvedPath, "utf8"));
-    }
-    /*const arrowOrDashRegex = /--|->/g;
-    let match;
-    const consumed = new Set();
-
-    while ((match = arrowOrDashRegex.exec(line)) !== null) {
-      const startIdx = match.index;
-
-      // If already consumed, skip
-      if (consumed.has(startIdx)) continue;
-
-      if (match[0] === '--') {
-        decorations_dash.push({
-          range: {
-            start: { line: i, character: startIdx },
-            end: { line: i, character: startIdx + 2 }
-          },
-          text: "--"
-        });
-        consumed.add(startIdx);
-        consumed.add(startIdx + 1);
-      } else if (match[0] === '->') {
-        decorations_arrow.push({
-          range: {
-            start: { line: i, character: startIdx },
-            end: { line: i, character: startIdx + 2 }
-          },
-          text: "->"
-        });
-        consumed.add(startIdx);
-        consumed.add(startIdx + 1);
+      if (!symbolTable.has(includedUri) && fs.existsSync(resolvedPath)) {
+        analyzeDocument(includedUri, fs.readFileSync(resolvedPath, "utf8"));
       }
-    }*/
-
+    }
   }
-  symbolTable.set(uri, symbols);
+  symbolTable.set(uri, { symbols, abouts, fileAbout });
   includeGraph.set(uri, includes);
-  connection.sendNotification("smolambda/decorations", {uri, arrows: decorations_arrow, dashes: decorations_dash});
 }
+
 
 documents.onDidOpen(e => {analyzeDocument(e.document.uri, e.document.getText());});
 documents.onDidChangeContent(e => {analyzeDocument(e.document.uri, e.document.getText());});
@@ -108,7 +94,8 @@ connection.onInitialize((params) => {
         },
         full: true
       },
-      definitionProvider: true
+      definitionProvider: true,
+      hoverProvider: true
     }
   };
 });
@@ -173,23 +160,206 @@ connection.onCompletion((params) => {
   }
 
   // normal completions
-  const symbols = new Set();
+  const collectedSymbols = new Map();
   function collect(u, visited = new Set()) {
     if (visited.has(u)) return;
     visited.add(u);
-    const defs = symbolTable.get(u) || [];
-    defs.forEach(d => symbols.add(d.name));
-    const includes = includeGraph.get(u) || new Set();
-    includes.forEach(included => collect(included, visited));
+    const entry = symbolTable.get(u);
+    if (!entry) return;
+    entry.symbols.forEach(d => collectedSymbols.set(d.name, d));
+    (includeGraph.get(u) || new Set()).forEach(included => collect(included, visited));
   }
   collect(uri);
 
   return [
     ...builtins.map(k => ({ label: k, kind: CompletionItemKind.Keyword })),
     ...keywords.map(k => ({ label: k, kind: CompletionItemKind.Keyword })),
-    ...[...symbols].map(s => ({ label: s, kind: CompletionItemKind.Function }))
+    ...[...collectedSymbols.values()].map(sym => ({
+      label: sym.name,
+      kind: CompletionItemKind.Function,
+      insertText: sym.name,
+      detail: "Function",
+    }))
   ];
 });
+
+connection.onHover((params) => {
+  const uri = params.textDocument.uri;
+  const doc = documents.get(uri);
+  if (!doc) return null;
+
+  const lines = doc.getText().split(/\r?\n/);
+  const pos = params.position;
+  const word = getWordAt(lines[pos.line], pos.character);
+  if (!word) return null;
+
+  let err_contents = "";
+  const diags = fileDiagnostics.get(uri) || [];
+  for (const d of diags) {
+    const { start, end } = d.range;
+    if (
+      pos.line === start.line &&
+      pos.character >= start.character &&
+      pos.character <= end.character &&
+      d.message
+    ) {
+      err_contents += d.message+"\n";
+    }
+  }
+  let contents = "";
+  
+  // --- handle @include hover ---
+  {
+    const includeLine = lines[pos.line];
+    const includeMatch = includeLine.match(/@include\s+([\w.]+)/);
+    if (includeMatch) {
+      const includeWordStart = includeLine.indexOf(includeMatch[1]);
+      const includeWordEnd = includeWordStart + includeMatch[1].length;
+      if (pos.character >= includeWordStart && pos.character <= includeWordEnd) {
+        const includePath = includeMatch[1].replace(/\./g, "/") + ".s";
+        const basePath = decodeURIComponent(uri.replace("file://", ""));
+        const dir = path.dirname(basePath);
+        let resolvedPath = path.resolve(dir, includePath);
+        if (!fs.existsSync(resolvedPath)) {
+          resolvedPath = path.resolve(workspaceRoot, includePath);
+        }
+        if (fs.existsSync(resolvedPath)) {
+          if (contents) contents += "\n\n---\n\n";
+          contents += `**@include** → \`${resolvedPath}\``;
+        }
+      }
+    }
+  }
+
+  {
+    // --- handle @include hover ---
+    const includeLine = lines[pos.line];
+    const includeMatch = includeLine.match(/@install\s+([\w.]+)/);
+    if (includeMatch) {
+      const includeWordStart = includeLine.indexOf(includeMatch[1]);
+      const includeWordEnd = includeWordStart + includeMatch[1].length;
+      if (pos.character >= includeWordStart && pos.character <= includeWordEnd) {
+        const includePath = includeMatch[1].replace(/\./g, "/") + ".s";
+        const basePath = decodeURIComponent(uri.replace("file://", ""));
+        const dir = path.dirname(basePath);
+        let resolvedPath = path.resolve(dir, includePath);
+        if (!fs.existsSync(resolvedPath)) {
+          resolvedPath = path.resolve(workspaceRoot, includePath);
+        }
+        if (fs.existsSync(resolvedPath)) {
+          if (contents) contents += "\n\n---\n\n";
+          contents += `**@install** → \`${resolvedPath}\``;
+        }
+      }
+    }
+  }
+
+  // smo / service keywords themselves
+  if (word === "smo") 
+    contents += "**smo** — defines a new *runtype* that is inlined.";
+  else if (word === "service") 
+    contents += "**service** — defines a new *runtype* that runs as a co-routine service with safe execution, even on internal failures.";
+  else if (word === "union") 
+    contents += "**union** — defines a symbol that expands definitions to several type alternatives.";
+  else if (word === "if") 
+    contents += "**if** — decides what to execute next based on a condition.";
+  else if (word === "while") 
+    contents += "**while** — repeats a code block based on a condition.";
+  else if (word === "with") 
+    contents += "**with** — decides what to execute next based on whether its block of context can be compiled (if not, an alternative or no compilation takes place).";
+  else if (word === "else") 
+    contents += "**else** — marks an alternative branch of code.";
+  else if (word === "elif") 
+    contents += "**elif** — marks an alternative branch of code that is still checked for a condition. It is equivalent to <code>else->if</code>";
+  else if (word === "on") 
+    contents += "**on** — declares a context variable, which may be prepended to all internal calls if they cannot be resolved otherwise.";
+  else if (word === "u64") 
+    contents += "**u64** — unsigned 64-bit integer.";
+  else if (word === "i64") 
+    contents += "**i64** — signed 64-bit integers.";
+  else if (word === "f64") 
+    contents += "**f64** — 64-bit precision number.";
+  else if (word === "bool") 
+    contents += "**bool** — a true/false value.";
+  else if (word === "cstr") 
+    contents += "**cstr** — a constant c-style string enclosed in \"quotations\". This is contained in the compiled program's binary.";
+  else if (word === "ptr") 
+    contents += "**ptr** — a pointer to a memory address. Manual pointer handling is inherently unsafe and usually requires the file to be set as <code>@unsafe</code>.";
+  else if (word === "char") 
+    contents += "**char** — a single byte character. This is the only primitive that is stored in 8 instead of 64 bits. When moved to buffers, however, it still aligned to 64 bits.";
+  
+  // Directives (use regex to capture @identifier under cursor)
+  {
+    const lineText = lines[pos.line];
+    const regex = /@[A-Za-z_.]+/g;
+    let match;
+    while ((match = regex.exec(lineText)) !== null) {
+      const start = match.index;
+      const end = start + match[0].length;
+      if (pos.character >= start && pos.character <= end) {
+        const directiveName = match[0].slice(1); // strip leading "@"
+        if (directives[directiveName]) {
+          if (contents) contents += "\n\n---\n\n";
+          contents += `**${match[0]}** — ${directives[directiveName]}`;
+        }
+        break;
+      }
+    }
+  }
+
+  // Walk current file + imports to collect abouts and fileAbout
+  function collect(u, visited = new Set()) {
+    if (visited.has(u)) return [];
+    visited.add(u);
+    const entry = symbolTable.get(u);
+    if (!entry) return [];
+    const results = [];
+    if (entry.abouts.has(word)) {
+      const filePath = decodeURIComponent(u.replace("file://", ""));
+      const relPath = path.relative(workspaceRoot, filePath);
+      results.push(`**${word}** — ${relPath}`)
+      results.push(entry.abouts.get(word));
+    }
+    const includes = includeGraph.get(u) || new Set();
+    for (const inc of includes) results.push(...collect(inc, visited));
+    return results;
+  }
+
+  const allContents = collect(uri);
+  if (allContents.length) {
+    if (contents) contents += "\n\n---\n\n";
+    contents += allContents.join("\n\n---\n\n");
+  }
+  if(contents && err_contents) contents = "\n\n---\n\n"+contents;
+  if(err_contents) contents = err_contents + contents;
+
+
+  contents = contents
+  .replace(/\\n/g, "\n")
+  .replace(/<pre>/g, "\n```rust\n")
+  .replace(/<\/pre>/g, "\n```\n")
+  .replace(/<code>/g, "`")
+  .replace(/<\/code>/g, "`");
+
+
+  return contents
+    ? { contents: { kind: "markdown", value: contents } }
+    : null;
+});
+
+
+function getWordAt(line, character) {
+  const regex = /\b[A-Za-z_][A-Za-z0-9_]*\b/g;
+  let match;
+  while ((match = regex.exec(line)) !== null) {
+    if (character >= match.index && character <= match.index + match[0].length) {
+      return match[0];
+    }
+  }
+  return null;
+}
+
+
 
 
 connection.onDefinition((params) => {
@@ -226,9 +396,7 @@ connection.onDefinition((params) => {
     while ((match = regex.exec(line)) !== null) {
       const start = match.index;
       const end = start + match[0].length;
-      if (character >= start && character <= end) {
-        return match[0];
-      }
+      if (character >= start && character <= end) return match[0];
     }
     return null;
   }
@@ -244,11 +412,11 @@ connection.onDefinition((params) => {
     includes.forEach(included => collect(included, visited));
   }
   collect(uri);
-
   const foundLocations = [];
   for (const u of searchOrder) {
-    const defs = symbolTable.get(u) || [];
-    for (const { name, line } of defs) {
+    const entry = symbolTable.get(u);
+    if (!entry) continue;
+    for (const { name, line } of entry.symbols) {
       if (name === word) {
         const filePath = decodeURIComponent(u.replace("file://", ""));
         if (!fs.existsSync(filePath)) continue;
@@ -256,60 +424,84 @@ connection.onDefinition((params) => {
         const defLineText = fileLines[line] || "";
         const start = defLineText.indexOf(name);
         if (start !== -1) {
-          foundLocations.push(Location.create(u, Range.create(line, start, line, start + name.length)));
+          foundLocations.push(
+            Location.create(u, Range.create(line, start, line, start + name.length))
+          );
         }
       }
     }
   }
   return foundLocations.length ? foundLocations : null;
+
 });
 
 connection.languages.semanticTokens.on((params) => {
   const uri = params.textDocument.uri;
   const document = documents.get(uri);
-  if(!document) return { data: [] };
+  if (!document) return { data: [] };
   const builder = new SemanticTokensBuilder();
   const text = document.getText();
   const lines = text.split(/\r?\n/);
-  for(let line = 0; line < lines.length; line++) {
+
+  // Collect function names declared in this file + imports
+  const declared = new Set();
+  function collect(u, visited = new Set()) {
+    if (visited.has(u)) return;
+    visited.add(u);
+    const entry = symbolTable.get(u);
+    if (!entry) return;
+    entry.symbols.forEach(sym => declared.add(sym.name));
+    (includeGraph.get(u) || new Set()).forEach(inc => collect(inc, visited));
+  }
+  collect(uri);
+
+  for (let line = 0; line < lines.length; line++) {
     const textLine = lines[line];
     let pos = 0;
-    while(pos < textLine.length) {
-      if(/\s/.test(textLine[pos])) { pos++; continue; }
-      if(textLine.startsWith("//", pos)) {
+    while (pos < textLine.length) {
+      if (/\s/.test(textLine[pos])) { pos++; continue; }
+      if (textLine.startsWith("//", pos)) {
         const length = textLine.length - pos;
-        builder.push(line, pos, length, 8, 0)
+        builder.push(line, pos, length, 8, 0); // comment
         break;
       }
-      if(textLine[pos] === '"') {
+      if (textLine[pos] === '"') {
         let end = pos + 1;
-        while(end < textLine.length && textLine[end] !== '"') {
-          if(textLine[end] === '\\' && end + 1 < textLine.length) end += 2; 
+        while (end < textLine.length && textLine[end] !== '"') {
+          if (textLine[end] === '\\' && end + 1 < textLine.length) end += 2;
           else end++;
         }
-        end = Math.min(end + 1, textLine.length); // include closing quote
+        end = Math.min(end + 1, textLine.length);
         const length = end - pos;
-        builder.push(line, pos, length, 6, 0);
+        builder.push(line, pos, length, 6, 0); // string
         pos = end;
         continue;
       }
-  
-      if(textLine.startsWith("->", pos) || textLine.startsWith("--", pos)) {builder.push(line, pos, 2, 3, 0);pos += 2;continue;}
-      if(textLine.startsWith("|", pos)) {builder.push(line, pos, 1, 3, 0);pos += 1;continue;}
-      if(textLine[pos] === ':') {builder.push(line, pos, 1, 3, 0);pos += 1;continue;}
+
+      if (textLine.startsWith("->", pos) || textLine.startsWith("--", pos)) {
+        builder.push(line, pos, 2, 3, 0); pos += 2; continue;
+      }
+      if (textLine.startsWith("|", pos)) {
+        builder.push(line, pos, 1, 3, 0); pos += 1; continue;
+      }
+      if (textLine[pos] === ':') {
+        builder.push(line, pos, 1, 3, 0); pos += 1; continue;
+      }
+
       const match = textLine.slice(pos).match(/^@?[A-Za-z_][A-Za-z0-9_.]*/);
-      if(match) {
+      if (match) {
         const word = match[0];
-        if (word[0] === "@") builder.push(line, pos, word.length, 3, 0);
-        else if (keywords.includes(word)) builder.push(line, pos, word.length, 0, 0);
-        else if (builtins.includes(word)) builder.push(line, pos, word.length, 1, 0);
+        if (word[0] === "@") builder.push(line, pos, word.length, 3, 0); // directive
+        else if (keywords.includes(word)) builder.push(line, pos, word.length, 0, 0); // keyword
+        else if (builtins.includes(word)) builder.push(line, pos, word.length, 1, 0); // type
+        else if (declared.has(word)) builder.push(line, pos, word.length, 1, 0); // highlight declared functions as type
         pos += word.length;
       } 
-      else pos++;
+      else {
+        pos++;
+      }
     }
   }
-  
-  
   return builder.build();
 });
 
@@ -325,7 +517,10 @@ function runCompilerAndSendDiagnostics(document) {
   const state = compileState.get(uri);
   if(state.debounceTimer) clearTimeout(state.debounceTimer);
   state.debounceTimer = setTimeout(() => {
-    if(state.running) {state.rerunRequested = true;return;}
+    if(state.running) {
+      state.rerunRequested = true;
+      return;
+    }
     state.running = true;
     state.debounceTimer = null;
     const tempFilePath = path.join(os.tmpdir(), `smol_${randomUUID()}.s`);
@@ -338,25 +533,26 @@ function runCompilerAndSendDiagnostics(document) {
       const diagnostics = [];
       const diagnostics_no_text = [];
       let messageLines = [];
-      for(let i = 0; i < lines.length - 2; i++) {
-        const line = lines[i].trim();
+      for(let i = 0; i < lines.length; i++) {
+        const line = stripAnsi(lines[i]);
         if(line.startsWith("at")) {
           const locMatch = line.match(/^at\s+(.*)\s+line\s+(\d+)\s+col\s+(\d+)/);
-          if (!locMatch) continue;
+          if (!locMatch) 
+            continue;
           const [, , lineStr, colStr] = locMatch;
           const lineNum = parseInt(lineStr, 10) - 1;
           const colNum = parseInt(colStr, 10) - 1;
           const caretLine = lines[i + 2] || "";
           const caretMatch = caretLine.match(/\^+/);
           const tokenLength = caretMatch ? caretMatch[0].length : 1;
-          const message = messageLines.map(stripAnsi).join("\n") || "Unknown error";
+          const message = messageLines.slice(1).join("\n\n") || "";
           diagnostics.push({
             severity: 1,
             range: {
               start: { line: lineNum, character: colNum },
               end: { line: lineNum, character: colNum + tokenLength }
             },
-            message,
+            message: message,
             source: "smol"
           });
           diagnostics_no_text.push({
@@ -365,18 +561,19 @@ function runCompilerAndSendDiagnostics(document) {
               start: { line: lineNum, character: colNum },
               end: { line: lineNum, character: colNum + tokenLength }
             },
-            message: "ERROR",
+            message: "ERROR - "+messageLines[0],
             source: "smol"
           });
-          i += 2;
           messageLines = [];
+          i += 2;
         } 
-        else messageLines.push(lines[i]);
+        else messageLines.push(line);
       }
       try {fs.unlinkSync(tempFilePath);} 
       catch(e) {console.error("Failed to remove temp file:", tempFilePath);}
-      connection.sendNotification("smolambda/htmlNotification", { uri, diagnostics });
+      //connection.sendNotification("smolambda/htmlNotification", { uri, diagnostics });
       connection.sendDiagnostics({ uri, diagnostics: diagnostics_no_text });
+      fileDiagnostics.set(uri, diagnostics);
       if(state.rerunRequested) {
         state.rerunRequested = false;
         state.running = false;
@@ -386,6 +583,7 @@ function runCompilerAndSendDiagnostics(document) {
     });
   }, 300);
   function stripAnsi(line) {
+    if(!line) return '';
     return line 
       .replace(/\x1b\[31m/g, '')
       .replace(/\x1b\[32m/g, '')

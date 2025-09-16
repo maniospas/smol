@@ -6,7 +6,7 @@
 @include std.time
 
 smo Sphere(
-        f64 x, 
+        f64 x,
         f64 y, 
         f64 r, 
         f64 dx, 

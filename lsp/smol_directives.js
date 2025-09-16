@@ -9,7 +9,10 @@ module.exports = {
   "nozero": "no zero initialization",
   "body": "inline C/C++ code",
   "head": "C/C++ header code",
-  "link": "C/C++ linker instructions",
+  "link": "C/C++ linker flags",
   "finally": "C/C++ error code",
-  "release": "free all used resources"
+  "release": "free all used resources",
+  "args": "returns all input arguments",
+  "about": "defines documentation",
+  "fail": "inline C/C++ code and fail"
 };

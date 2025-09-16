@@ -31,14 +31,21 @@
 @about to_end     "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. Returns a boolean indicating a successful operation."
 @about len        "Computes the size of a File in bytes. This tries to leverage operating system metadata first, but if it fails it explicitly reads through the file once."
 @about print      "Writes a string on a WriteFile."
-@about tempfile   "Creates a WriteFile of a given size that is constrained to fixed memory provided by a Memory allocator. "
-                  "Thanks to safety mechanisms provided by operating systems, operations on this file may be slower than simple memory read and writes. "
+@about temp       "Creates a WriteFile of a given size that is constrained to fixed memory provided by a Memory allocator. "
+                  "\n\nDue to safety mechanisms provided by operating systems, operations on this file may be slower than simple memory read and writes. "
                   "If the operating system does not properly support memory mapped files, this may even end up consuming disk storage space of "
                   "up to the given size by being stored as a temporary file. In general, reads and writes (with print) will be at most as slow as a normal "
-                  "file, with the contract that data cannot be recovered after termination. Do note that some operating systems require manual deletion of "
+                  "file, with the contract that data cannot be recovered after termination. Some operating systems require manual deletion of "
                   "temporary file folders if systems are abruptly powered off. This type of file should be mostly used to store temporary data or for "
-                  "testing purposes."
-@about file "Creates a virtual file by of a given size on top of some memory allocator."
+                  "testing purposes.\n\nExample usage:"
+                  "<pre>on Heap:dynamic // allocator for the file"
+                  "\n    @mut f = WrteFile:temp(1024)"
+                  "\n    --"
+                  "\nf:print(\"hello from withing a temp file!\")"
+                  "\nf:to_start"
+                  "\nf:next_line(@mut u64 line)"
+                  "\nprint(line)"
+                  "\n</pre>"
 @about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
                   "Here is an example where volatile memory is used to avoid repeated or large allocations:"
                   "<pre>on Heap:volatile(1024)"
@@ -139,7 +146,7 @@ smo print(@access @mut WriteFile f, String _s)
         @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
     ----
 
-smo tempfile(@mut Memory memory, u64 size)
+smo temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     // using temporary files can be exceptionall 
     @head{#include <stdio.h>}
     @head{#include <string.h>}
