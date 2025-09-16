@@ -16,22 +16,21 @@ string Def::recommend_runtype(const Types& types, const Variable& candidate) {
     int min_distance = numeric_limits<int>::max();
     string recommendation = "";
     for(const auto& it : types.vars) {
-        if(it.first == candidate) continue; // don't recommend itself
-        int distance = (it.first.to_string().rfind(candidate.to_string(), 0) == 0)?0:sellersMinimumEditDistance(
-            candidate.to_string(), 
-            it.first.to_string())+sellersMinimumEditDistance(it.first.to_string(), 
-            candidate.to_string()
-        );
+        if(it.first == candidate) 
+            continue; // don't recommend itself
+        string it_first = it.first.to_string();
+        if(it_first.size()>=2 && it_first[0]=='_' && it_first[1]=='_')
+            continue;
+        if (it_first.find("____") != std::string::npos)
+            continue;
+        int distance = 4*sellersMinimumEditDistance(candidate.to_string(), it_first)
+                           +sellersMinimumEditDistance(it_first, candidate.to_string());
         if(distance<min_distance) {
             min_distance = distance;
             recommendation = it.first.to_string();
         }
     }
     if(!recommendation.size()) 
-        return recommendation;
-    if(recommendation.size()>=2 
-        && recommendation[0]=='_' 
-        && recommendation[1]=='_') 
         return "";
     return "\nDid you mean "+recommendation+"?";
 }
@@ -39,20 +38,21 @@ string Def::recommend_runtype(const Types& types, const Variable& candidate) {
 string Def::recommend_variable(const Types& types, const Variable& candidate) {
     int min_distance = numeric_limits<int>::max();
     string recommendation = "";
-    for(const auto& it : vars) if(!released[it.first]) {
-        int distance = sellersMinimumEditDistance(
-            candidate.to_string(), 
-            it.first.to_string())+sellersMinimumEditDistance(it.first.to_string(), 
-            candidate.to_string()
-        );
-        if(distance<min_distance) {
-            min_distance = distance;
-            recommendation = it.first.to_string();
+    for(const auto& it : vars) 
+        if(!released[it.first] && it.first!=candidate) {
+            string it_first = it.first.to_string();
+            if(it_first.size()>=2 && it_first[0]=='_' && it_first[1]=='_')
+                continue;
+            if (it_first.find("____") != std::string::npos)
+                continue;
+            int distance = 4*sellersMinimumEditDistance(candidate.to_string(), it_first)
+                           +sellersMinimumEditDistance(it_first, candidate.to_string()); // it_first can have extra trailing characters at small cost (our current writing may just be incomplete)
+            if(distance<min_distance) {
+                min_distance = distance;
+                recommendation = it_first;
+            }
         }
-    }
-    if(!recommendation.size()) 
-        return recommendation;
-    if(recommendation.size()>=2 && recommendation[0]=='_' && recommendation[1]=='_') 
+    if(!recommendation.size()) // need at least two characters to gain some sense 
         return "";
     return "\nDid you mean "+pretty_var(recommendation)+"?";
 }

@@ -119,13 +119,19 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
         if(!imp->allow_unsafe && contains(next) && vars[next]->name==NOM_VAR)
             imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     }
+    else if(next.exists() && contains(next) && !vars[next]->contains(next_token))
+        imp->error(--p, "Not found: "
+            +pretty_var(next.to_string()+"__"+next_token)
+            +recommend_variable(types, next.to_string()+"__"+next_token)
+        );
     else {
         if(type_trackers.find(next)!=type_trackers.end())
             imp->error(--p, "Not found: "
                 +pretty_var(next_token)
                 +" in "+vars[next]->signature(types)
             );
-        if(!contains(next)) imp->error(--p, "Symbol not declared: "+pretty_var(next.to_string())); // declare all up to this point
+        if(!contains(next)) 
+            imp->error(--p, "Symbol not declared: "+pretty_var(next.to_string())); // declare all up to this point
         if(vars[next]->buffer_ptr==next_token)
             if(!can_mutate(next+next_token) && !imp->allow_unsafe)
                 imp->error(--p, "Buffer surface is not mutable: "

@@ -20,15 +20,20 @@
 @unsafe
 @about "Standard library implementations of error utilities."
 @about assert_ok "Checks if an error code corresponds to no error. If it does not, the service fails while printing the type of error. Error codes can be user errors, buffer errors, unknown errors, or no errors."
-@about fail  "Causes the current service to fail given a String message. This creates a user error code."
-@about print "Prints an interpretation of the error code. Error codes can be user errors, buffer errors, unknown errors, or no errors."
+@about fail  "Causes the current service to fail given a String message. This creates a user error code. "
+             "Example: <pre>printin(\"Give a number:\")"
+             "\nx = i64:read"
+             "\nif x==0.0"
+             "\n    -> fail(\"Cannot compute the inverse of zero\")"
+             "\nprintin(\"Its inverse is:\")"
+             "\nprint(1.0/x)</pre>"
+@about print "Prints a string interpretation of an error code."
 
 smo assert_ok(errcode error)
     @body{bool isuser = (error==__USER__ERROR);}
     @body{bool isbuffer = (error==__BUFFER__ERROR);}
     @body{bool iserror = (error==__BUFFER__ERROR);}
     @body{bool isunhandled = (error==__UNHANDLED__ERROR);}
-    
     if isuser 
         @fail{printf("User error\n");} 
         --
@@ -37,10 +42,10 @@ smo assert_ok(errcode error)
         --
     if isunhandled 
         @fail{printf("Unhandled error\n");}
-         --
+        --
     if iserror 
         @fail{printf("Unknown error\n");}
-         --
+        --
     --
 
 smo fail(cstr error)
