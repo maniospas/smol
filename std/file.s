@@ -22,13 +22,24 @@
 @unsafe
 @about "Standard library implementation of file management that uses the C filesystem."
 @about ReadFile   "An opened file that is meant to be read only."
-@about WriteFile  "An opened file that is meant to be read or write."
+@about WriteFile  "An opened file that is meant to be read or written."
 @about File       "A union between file types that allows common reading and positioning operations."
-@about open       "Opens a File given a String path, in which case you might get service failure due to external factors. Opening a WriteFile, "
-                  "may also cause service failure if the file already exists - in that case remove it first. On the other hand, a ReadFile must "
-                  "already exist to be opened."
-@about to_start   "Go to the beginning of a File. You can continue read or writing from there. May cause service failure due to external factors."
-@about to_end     "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. Returns a boolean indicating a successful operation."
+@about open       "Opens a File given a String path. There might be service failure due to external factors. Opening a WriteFile, "
+                  "may also cause failure if it already exists - in that case remove it first and it will be created. "
+                  "On the other hand, a ReadFile must already exist to be opened. "
+                  "Files must be set as mutables to allow reads and writes. Otherwise, only a few operations become available."
+                  "\n\nExample for overwriting a file:"
+                  "<pre>if is_file(\"hi.txt\")"
+                  "\n    remove_file(\"hi.txt\")"
+                  "\n    --"
+                  "\n@mut file = WriteFile:open(\"tmp.txt\")"
+                  "\nfile:print(\"Hello world!\")"
+                  "\n@release file // early release closes the file"
+                  "\n</pre>"
+@about to_start   "Go to the beginning of a File. You can continue reading or writing from there. This may cause service failure "
+                  "due to external factors."
+@about to_end     "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. "
+                  "Returns a boolean indicating a successful operation."
 @about len        "Computes the size of a File in bytes. This tries to leverage operating system metadata first, but if it fails it explicitly reads through the file once."
 @about print      "Writes a string on a WriteFile."
 @about temp       "Creates a WriteFile of a given size that is constrained to fixed memory provided by a Memory allocator. "
@@ -108,7 +119,7 @@ smo to_start(@access @mut File f)
     --
 
 smo to_end(@access @mut WriteFile f) 
-    // only useful for moving to the end of write files. For read files, close them instead.
+    // only useful for moving to the end of write files. For read files, @release them instead.
     @body{
         if(f__contents) 
             fseek((FILE*)f__contents, 0, SEEK_END);

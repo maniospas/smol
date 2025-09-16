@@ -16,7 +16,8 @@ string Def::recommend_runtype(const Types& types, const Variable& candidate) {
     int min_distance = numeric_limits<int>::max();
     string recommendation = "";
     for(const auto& it : types.vars) {
-        int distance = sellersMinimumEditDistance(
+        if(it.first == candidate) continue; // don't recommend itself
+        int distance = (it.first.to_string().rfind(candidate.to_string(), 0) == 0)?0:sellersMinimumEditDistance(
             candidate.to_string(), 
             it.first.to_string())+sellersMinimumEditDistance(it.first.to_string(), 
             candidate.to_string()
