@@ -73,8 +73,15 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, 
                 imp->error(--p, 
                     "Incompatible returns\nprevious "
                     +signature_like(types, packs)
-                    +" vs last "+signature_like(types, tentative)
+                    +" vs previous "+signature_like(types, tentative)
                 );
+            // if(packs[i]!=tentative[i] && !tentative[i].is_private() && !packs[i].is_private() && packs.size()>=(is_service?2:1))
+            //     imp->error(--p, "You are returning a differently named value : "
+            //         +pretty_var(packs[i].to_string())
+            //         +" vs previous "
+            //         +pretty_var(tentative[i].to_string())
+            //         +"\nThis would create ambiguity on what field access looks like"
+            //     );
             assign_variable(vars[packs[i]], packs[i], tentative[i], imp, p, false, false);
         }
     implementation += Code(token_goto,uplifting_targets[0],SEMICOLON_VAR);

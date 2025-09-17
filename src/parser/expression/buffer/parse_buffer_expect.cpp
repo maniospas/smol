@@ -1,3 +1,15 @@
+// Copyright 2025 Emmanouil Krasanakis (maniospas@hotmail.com)
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 #include "../../../def.h"
 
 
@@ -45,7 +57,7 @@ Variable Def::parse_buffer_expect(const shared_ptr<Import>& imp, size_t& p, cons
     // compute count_packs (valid packs only)
     size_t count_packs = 0;
     for(const auto& pack : buffer_types[curry]->packs)
-        if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR)
+        if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR)
             count_packs++;
     if(buffer_types[curry]->_is_primitive) 
         count_packs++;

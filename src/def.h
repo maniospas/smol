@@ -164,6 +164,8 @@ class Def {
     Variable parse_buffer_push(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
     Variable parse_buffer_put(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
     
+    Variable parse_primitive(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
     Variable parse_expression(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, const Variable &curry=EMPTY_VAR);
     Variable parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry=EMPTY_VAR);
     Variable call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, Types& types);

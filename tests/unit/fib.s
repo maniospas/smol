@@ -5,8 +5,7 @@
 service fib(u64 n)
     if n<2
         |-> 1
-    n2 = n+1
-    -> n2
+    -> fib(n-1)+fib(n-2)
 
 service main()
     print(1:fib)
