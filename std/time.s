@@ -20,17 +20,19 @@
 
 @unsafe
 @about "Standard library wrapping of C time (provided by posix time.h or windows.h)."
-@about time "Retrieve time elapsed from the start of the program in f64 seconds."
+@about time  "Retrieve time elapsed from the start of the program in f64 seconds."
 @about sleep "Make the current service wait for AT LEAST a number of f64 seconds."
-             "While yielding, other services may be called asynchronously to fill in"
-             "the missing time. There is no guarantee for this, though."
-             "Sleeping for 0.0 duration does not incur delays, but may still run"
-             "other services. Negative durations skip over this. Use exact_slepp"
-             "to sleep without yielding and thus get a guarantee on the sleep"
+             "\n\nWhile yielding, other services may be called asynchronously to fill in "
+             "the missing time. There is no guarantee for this, though. "
+             "Sleeping for 0.0 duration does not incur delays, but may still run "
+             "other services. Negative durations skip over this. Use exact_slepp "
+             "to sleep without yielding and thus get a guarantee on the sleep "
              "duration. This method's exact implementation is ported from the runtime."
-@about exact_sleep "Make the current service wait for exactly a specified number"
-             "of f64 seconds. Control flow is not transferred to other services,"
+             "\n\nExample: <pre>sleep(1.0) // yields for at least 1 sec</pre> "
+@about exact_sleep "Make the current service wait for exactly a specified number "
+             "of f64 seconds. Control flow is not transferred to other services, "
              "so use sparingly (e.g., in main game loops)."
+             "\n\nExample: <pre>sleep(1.0) // waits for 1 sec of inactivity</pre> "
 
 // time.h or windows.h imported by all runtimes
 
@@ -39,7 +41,8 @@ smo sleep(f64 duration)
     --
 
 smo exact_sleep(f64 duration)
-    if duration<=0.0 |--
+    if duration<=0.0 
+        |--
     @head{#include "std/oscommon.h"}
     @body{__smo_exact_sleep(duration);}
     --
@@ -48,3 +51,4 @@ smo time()
     @head{#include "std/oscommon.h"}
     @body{f64 elapsed = __smo_time_eta();}
     -> elapsed
+

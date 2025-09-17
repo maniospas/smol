@@ -32,7 +32,7 @@ string Def::recommend_runtype(const Types& types, const Variable& candidate) {
     }
     if(!recommendation.size()) 
         return "";
-    return "\nDid you mean "+recommendation+"?";
+    return "\nDo you mean `"+recommendation+"`?";
 }
 
 string Def::recommend_variable(const Types& types, const Variable& candidate) {
@@ -54,5 +54,5 @@ string Def::recommend_variable(const Types& types, const Variable& candidate) {
         }
     if(!recommendation.size()) // need at least two characters to gain some sense 
         return "";
-    return "\nDid you mean "+pretty_var(recommendation)+"?";
+    return "\nDo you mean `"+pretty_var(recommendation)+"`?";
 }

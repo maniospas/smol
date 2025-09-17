@@ -57,9 +57,10 @@ service test()
     @mut dt = 0.0
     @mut window = nominal:Window(800.0, 450.0, "Hello from smoλ+raylib")
     @mut prev_t = time()
-    @mut accum_fps = 3600.0
+    @mut accum_fps = 60.0
     on Heap:volatile(1024)
         while window:is_open
+            start_t = time()
             spheres
             :process(dt)
 
@@ -73,15 +74,15 @@ service test()
                 --
 
             window
-            :text((accum_fps/60.0):u64:str+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
+            :text((accum_fps):u64:str+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
             :end
             
             // time computation
             t = time()
             dt = t-prev_t
             prev_t = t
-            accum_fps = (0.0001/dt)+(accum_fps*0.9999)
-            exact_sleep(0.015-dt)
+            accum_fps = add(accum_fps*0.99, 0.01:div(dt))
+            exact_sleep(0.015-(t-start_t))
             --
     ----
 

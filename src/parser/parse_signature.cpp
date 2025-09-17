@@ -94,6 +94,8 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
             imp->error(--p, "Misplaced align\nCan only be the first argument of a runtype"
                 "\nor the argument of dependent runtypes"
             );
+        if(next==NOM_VAR && mut) 
+            imp->error(p-2, "Cannot have a @mut nominal argument");
         Type argType = types.vars[next];
         if(arg_name=="," || arg_name==")") {
             arg_name = create_temp();

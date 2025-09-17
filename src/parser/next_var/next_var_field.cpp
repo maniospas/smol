@@ -85,7 +85,7 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
     ) {
         if(can_access_mutable_fields.find(next)==can_access_mutable_fields.end() 
             && vars[next]->mutables.find(next_token)!=vars[next]->mutables.end())
-            imp->error(--p, "You cannot directly access originally mutable field: "
+            imp->error(--p, "No access to immutable field: "
                 +pretty_var((next+next_token).to_string())
                 +"\nMutable fields are marked with `@mut` at their first declaration."
                 +" Mutability may be transferred only through `@mut` arguments, but"
@@ -133,7 +133,7 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
         if(!contains(next)) 
             imp->error(--p, "Symbol not declared: "+pretty_var(next.to_string())); // declare all up to this point
         if(vars[next]->buffer_ptr==next_token)
-            if(!can_mutate(next+next_token) && !imp->allow_unsafe)
+            if(!can_mutate(next+next_token, p) && !imp->allow_unsafe)
                 imp->error(--p, "Buffer surface is not mutable: "
                     +pretty_var(next.to_string()+"__"+next_token)
                     +"\nIt might have been used elsewhere. Mark this file as @unsafe to allow a union view."
@@ -141,14 +141,15 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
         
         if(can_access_mutable_fields.find(next)==can_access_mutable_fields.end() 
             && vars[next]->mutables.find(next_token)!=vars[next]->mutables.end())
-            imp->error(--p, "You cannot directly access mutable field: "
+            imp->error(--p, "No access to immutable field: "
                 +pretty_var((next+next_token).to_string())
                 +"\nMutable fields are marked with `@mut` at their first declaration."
                 +" Mutability may be transferred only through `@mut` arguments, but"
                 +" this check considers only the original runtype declaration, even if mutability qualifiers have been lost."
                 +" Add `@access` to argument variables to be able to access their mutable fields."
             );
-        has_been_service_arg[next+next_token] = true;
+        if(vars[next]->can_mutate_any_part(next_token))
+            has_been_service_arg[next+next_token] = true;
         next = next+next_token;
         if(p>=imp->size()) 
             return first_token;

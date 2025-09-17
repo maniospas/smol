@@ -41,7 +41,10 @@ void Def::parse_directive_release(const shared_ptr<Import>& imp, size_t& p, stri
             +pretty_var(released_var.to_string())
         );
     }
-    if(has_been_service_arg[released_var]) imp->error(--p, "Cannot release a variable that has been previously passed to a service: "+pretty_var(released_var.to_string()));
+    if(has_been_service_arg[released_var]) 
+        imp->error(--p, "Cannot release a variable that has been previously passed to a service: "
+            +pretty_var(released_var.to_string())
+        );
     //for(const auto& arg : args) if(arg.name==next) imp->error(--p, "Cannot @release an argument");
     for(const auto& arg : args) if(arg.name==released_var) imp->error(--p, "Cannot @release an argument: "+pretty_var(arg.name.to_string()));
     for(const auto& it : vars[next]->vars) {

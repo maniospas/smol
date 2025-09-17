@@ -14,18 +14,16 @@ service run(String command)
     --
 
 service std_test(String name)
-    on Heap:dynamic// memory surface for string concatenations
+    on Heap:dynamic // memory surface for string concatenations
         redirect = " 2>&1"
         command = "./smol tests/unit/"+name+".s --runtime eager"+redirect
         --
-    if run(command).err:bool
-        on Heap:dynamic
-            print("[ \033[31mERROR\033[0m ] "+name)
-        ----
-    else 
-        on Heap:dynamic
-            print("[ \033[32mOK\033[0m ] "+name)
-    ------
+    on Heap:dynamic // new memory surface because the previous one was mutated by feeding into
+        if run(command).err:bool
+            -> print("[ \033[31mERROR\033[0m ] "+name+".s")
+        else 
+            -> print("[ \033[32mOK\033[0m ] "+name+".s")
+    ----
 
 service main()
     // services are asynchronous co-routines
@@ -49,5 +47,6 @@ service main()
     std_test("strcat")
     std_test("vec")
     std_test("virtfile")
+    std_test("accessvar")
     //std_test("release") // THIS IS AN ERROR
     --

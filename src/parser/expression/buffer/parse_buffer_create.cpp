@@ -13,7 +13,7 @@ Variable Def::parse_buffer_create(const shared_ptr<Import>& imp, size_t& p, cons
                 +" is a runtype (not a local variable), [] is expected to declare a buffer here"
                 +" or a @buffer runtype must be returned to serve as the buffer's allocation"
             );
-        if(!can_mutate(surface) && !imp->allow_unsafe)
+        if(!can_mutate(surface, p) && !imp->allow_unsafe)
             imp->error(--p, "Buffer surface is not mutable: "+pretty_var(surface.to_string())+"\nIt might have been used elsewhere. Mark this file as @unsafe to allow a union view.");
     }
     p++;

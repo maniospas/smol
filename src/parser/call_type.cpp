@@ -65,7 +65,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                     throw runtime_error(type->signature(types));
                     
                 arg_progress++;
-                if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) {
+                if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i], p)) {
                     throw runtime_error(type->signature(types));     
                 }
             }
@@ -172,7 +172,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                     if(buffer_types.find(unpacks[i])!=buffer_types.end() && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) 
                         throw runtime_error(type->signature(types));
                     arg_progress++;
-                    if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])) 
+                    if(type->not_primitive() && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i], p)) 
                         throw runtime_error(type->signature(types));     
                 }
                 if(type->choice_power>highest_choice_power) {
@@ -309,7 +309,7 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             );
         }
         if(type->not_primitive() 
-            && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i])
+            && (type->args[i].mut || type->mutables.find(type->args[i].name)!=type->mutables.end()) && !can_mutate(unpacks[i], p)
         ) 
             throw runtime_error(type->signature(types));
     }

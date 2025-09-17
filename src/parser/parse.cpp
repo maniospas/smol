@@ -82,6 +82,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
     unordered_set<Variable> next_assignments;
     while(p<imp->size()) {
         bool is_next_assignment = false;
+        bool is_access_assignment = false;
         bool is_mutable_assignment = false;
         string next = imp->at(p++);
         if(next=="@") {
@@ -94,6 +95,18 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                 is_mutable_assignment=true;
                 p++;
                 next = imp->at(p++);
+                if(next=="@" && imp->at(p)=="access") 
+                    imp->error(--p, "`@access` should be placed before `@mut`");
+            }
+            else if(p<imp->size() && imp->at(p)=="access"){
+                is_access_assignment=true;
+                p++;
+                next = imp->at(p++);
+                if(next=="@" && imp->at(p)=="mut") {
+                    is_mutable_assignment=true;
+                    p++;
+                    next = imp->at(p++);
+                }
             }
             else {
                 parse_directive(imp, p, next, types);
@@ -132,6 +145,8 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                     ); 
                 mutables.insert(var);
             }
+            if(is_access_assignment)
+                can_access_mutable_fields.insert(var);
             size_t assignment_start = p-1;
             if(imp->at(p++)!="=") {
                 --p;

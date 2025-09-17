@@ -214,7 +214,7 @@ public:
     shared_ptr<Import> imp;
     vector<Variable> packs;
     Variable alias_for;
-    size_t pos, start, end;
+    size_t pos, start, end, p;
     Variable name;
     Code vardecl, implementation, errors;
     size_t number_of_calls;
@@ -228,6 +228,7 @@ public:
     unordered_map<Variable, Variable> original_calls;
     unordered_map<Variable, bool> released;
     unordered_map<Variable, bool> has_been_service_arg;
+    unordered_map<Variable, bool> has_been_retrieved_as_immutable;
     unordered_map<Variable, Code> finals;              // resource closing code (transferred around)
     unordered_map<Variable, Type> parametric_types;    // type name resolution in signature (all argument types - even those not overloaded)
     unordered_map<Variable, unsigned long> alignments; // the type id that `nom` vlues represent
@@ -257,7 +258,8 @@ public:
     void coallesce_finals(const Variable& original);
     void notify_release(const Variable& original);
     void notify_service_arg(const Variable& original);
-    bool can_mutate(const Variable& _text);
+    bool can_mutate_any_part(const Variable& _text);
+    bool can_mutate(const Variable& _text, size_t p);
     
     // various types of exports
     string signature_like(Types& types, vector<Variable> args);
