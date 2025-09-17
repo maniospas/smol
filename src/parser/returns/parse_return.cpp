@@ -75,7 +75,7 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, 
                     +signature_like(types, packs)
                     +" vs last "+signature_like(types, tentative)
                 );
-            assign_variable(vars[packs[i]], tentative[i], packs[i], imp, p, false, false);
+            assign_variable(vars[packs[i]], packs[i], tentative[i], imp, p, false, false);
         }
     implementation += Code(token_goto,uplifting_targets[0],SEMICOLON_VAR);
     has_returned = true;

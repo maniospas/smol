@@ -17,7 +17,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
     vector<Variable> packs;
     Variable next = imp->at(p++);
     bool hasComma = false;
-    if(is_service && is_zero_level) {
+    if(is_service && is_zero_level && !ranges::contains(packs, ERR_VAR)) {
         packs.push_back(ERR_VAR);
         vars[ERR_VAR] = types.vars[ERRCODE_VAR];
     }
@@ -28,8 +28,8 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
         //choice_power += 4; 
         if(is_service 
             && !uplifting_targets.size() 
-            && !ranges::any_of(packs, [](const Variable& pack) {return pack == ERR_VAR;})
-        ) {
+            && !ranges::contains(packs, ERR_VAR)
+        ){
             packs.push_back(ERR_VAR);
             vars[ERR_VAR] = types.vars[ERRCODE_VAR];
         }

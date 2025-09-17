@@ -42,6 +42,7 @@ const Variable STATE_VAR = Variable("__state");
 const Variable STRUCT_VAR = Variable("struct");
 const Variable ARGS_VAR = Variable("args");
 const Variable VALUE_VAR = Variable("__value");
+const Variable RET_VAR = Variable("__ret");
 const Variable AT_VAR = Variable("@");
 const Variable DOT_VAR = Variable(".");
 const Variable ARROW_VAR = Variable("->");

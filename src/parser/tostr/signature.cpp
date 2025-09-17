@@ -117,7 +117,7 @@ string Def::raw_signature_state() {
     string ret("");
     ret += "errcode err;";
     for(size_t i=1;i<packs.size();++i) 
-        ret += vars[packs[i]]->name.to_string()+" *"+packs[i].to_string()+";";
+        ret += vars[packs[i]]->name.to_string()+" *"+(packs[i]+RET_VAR).to_string()+";";
     for(const auto& arg : args) 
         ret += arg.type->name.to_string()+" "+(arg.mut?"*":"")+arg.name.to_string()+";";
     string name = raw_signature_state_name();

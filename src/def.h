@@ -51,6 +51,7 @@ const extern Variable BOOL_VAR;
 const extern Variable EMPTY_VAR;
 const extern Variable ZERO_VAR;
 const extern Variable ASSIGN_VAR;
+const extern Variable RET_VAR;
 const extern Variable PLUS_VAR;
 const extern Variable MUL_VAR;
 const extern Variable REF_VAR;

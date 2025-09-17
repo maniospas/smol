@@ -408,13 +408,13 @@ Variable Def::call_type(
             Variable arg = var+ret;
             assign_variable(type->vars[ret], arg, ZERO_VAR, imp, fp);
             mutables.insert(arg);
-            impl += Code(var+STATE_VAR, ARROW_VAR, ret, ASSIGN_VAR, REF_VAR, arg, SEMICOLON_VAR);
+            impl += Code(var+STATE_VAR, ARROW_VAR, ret+RET_VAR, ASSIGN_VAR, REF_VAR, arg, SEMICOLON_VAR);
             //type->coallesce_finals(ret);
             //finals[var+"__"+ret] += type->rebase(type->finals[ret], var);
         }
         for(const auto& it : type->vars) 
             vars[var+it.first] = it.second;
-        for(size_t i=0;i<unpacks.size();++i) {
+        for(size_t i=0;i<type->args.size();++i) {
             notify_service_arg(unpacks[i]);
             if(type->args[i].mut) {
                 impl += Code(var+STATE_VAR, ARROW_VAR, type->args[i].name, ASSIGN_VAR, REF_VAR, unpacks[i],SEMICOLON_VAR);

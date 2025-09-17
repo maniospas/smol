@@ -205,21 +205,15 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     else if(types.vars[name]==impl) {
                     }
                     else {
-                        auto def = make_shared<Def>(types);
-                        for(const auto& option : types.vars[name]->options) {
-                            bool found = false;
-                            for(const auto& it : def->options) if(it==option) {found=true;break;}
-                            if(!found) def->options.push_back(option);
-                        }
-                        for(const auto& option : impl->options) {
-                            bool found = false;
-                            for(const auto& it : def->options) if(it==option) {
-                                found=true;
-                                break;
+                        auto def = std::make_shared<Def>(types);
+                        auto add_unique = [&](const auto& options) {
+                            for (const auto& option : options) {
+                                if (!std::ranges::contains(def->options, option)) 
+                                    def->options.push_back(option);
                             }
-                            if(!found) 
-                                def->options.push_back(option);
-                        }
+                        };
+                        add_unique(types.vars[name]->options);
+                        add_unique(impl->options);
                         all_types.push_back(def);
                         def->imp = imp;
                         def->lazy_compile = true;//treat as union
@@ -300,29 +294,16 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     types.vars[def->name]->pos = p;
                     types.vars[def->name]->lazy_compile = true;
                     types.vars[def->name]->name = prev->name;
-                    for(const auto& d : prev->options) {
-                        bool found = false;
-                        for(const auto& it : types.vars[def->name]->options) 
-                            if(it==d) {
-                                found=true;
-                                break;
-                            }
-                        if(!found) 
+                    for (const auto& d : prev->options) 
+                        if (!ranges::contains(types.vars[def->name]->options, d)) 
                             types.vars[def->name]->options.push_back(d);
-                    }
                 }
                 if(def->lazy_compile) {
                     Def::log_depth = 0;
                     for(const auto& d : lazy_options) {
                         if(d->lazy_compile) 
                             imp->error(--p, "Internal error: failed to compile "+d->signature(types));
-                        bool found = false;
-                        for(const auto& it : types.vars[def->name]->options) 
-                            if(it==d) {
-                                found=true;
-                                break;
-                            }
-                        if(!found) 
+                        if (!ranges::contains(types.vars[def->name]->options, d))
                             types.vars[def->name]->options.push_back(d);
                     }
                     p--;
@@ -368,13 +349,7 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                             continue;
                         if(option->lazy_compile) 
                             imp->error(--p, "Internal error: failed to compile runtype "+option->signature(types));
-                        bool found = false;
-                        for(const auto& it : def->options) 
-                            if(it==option) {
-                                found=true;
-                                break;
-                            }
-                        if(!found) {
+                        if(!ranges::contains(def->options, option)) {
                             def->options.push_back(option);
                             added = true;
                         }
@@ -583,11 +558,16 @@ int main(int argc, char* argv[]) {
                             if (/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second.imp.get()==subtype->imp.get()) {
                                 try {
                                     string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;→&nbsp;";
-                                    if(subtype->alias_for.exists() && subtype->vars[subtype->alias_for]->name==subtype->name) sig = sig+ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
-                                    else if(subtype->alias_for.exists()) sig = sig+ansi_to_html(pretty_runtype(subtype->vars[subtype->alias_for]->name.to_string())/*+"["+to_string(subtype->vars[subtype->alias_for]->args.size())+"]"*/);//ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
-                                    else if(subtype->packs.size()==1) sig += ansi_to_html(pretty_runtype(subtype->vars[subtype->packs[0]]->name.to_string()));
-                                    else if(subtype->packs.size()==0) sig += "()";
-                                    else sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
+                                    if(subtype->alias_for.exists() && subtype->vars[subtype->alias_for]->name==subtype->name) 
+                                        sig = sig+ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
+                                    else if(subtype->alias_for.exists()) 
+                                        sig = sig+ansi_to_html(pretty_runtype(subtype->vars[subtype->alias_for]->name.to_string())/*+"["+to_string(subtype->vars[subtype->alias_for]->args.size())+"]"*/);//ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
+                                    else if(subtype->packs.size()==1) 
+                                        sig += ansi_to_html(pretty_runtype(subtype->vars[subtype->packs[0]]->name.to_string()));
+                                    else if(subtype->packs.size()==0) 
+                                        sig += "()";
+                                    else 
+                                        sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
                                     sig +=  "<br>\n";
                                     //for(const auto& param : subtype->parametric_types) {
                                     //    sig += "&nbsp;&nbsp;&nbsp;&nbsp;"+param.first + " = " + ansi_to_html(param.second->signature(include.second))+"<br>\n";
@@ -758,13 +738,12 @@ int main(int argc, char* argv[]) {
                     out << "__SmolambdaLinkedMemory* __smolambda_all_task_results = 0;\n";
                 }
                 out << "struct "<<service->raw_signature_state_name()<<" *__state=(struct "<<service->raw_signature_state_name()<<"*)__void__state;\n";
-                for(const auto& var : service->args) 
-                    out << var.type->name.to_string()<<" "<<var.name.to_string()<<"=__state->"<<var.name.to_string()<<";\n";
                 out << service->vardecl.to_string();
                 //out << service->vardecl;
                 string finals_on_error = "";
                 string enref_at_end = "";
-                for(const auto& var : service->packs) {
+                for(size_t i=1;i<service->packs.size();++i) {
+                    Variable var = service->packs[i];
                     service->coallesce_finals(var); // so that we can hard-remove finals in the next line (these are transferred on call instead)
                     if(service->finals[var].exists()) {
                         finals_on_error += service->finals[var].to_string();
@@ -772,12 +751,14 @@ int main(int argc, char* argv[]) {
                         service->finals[var] = Code();
                     }
                     if(var!=ERR_VAR && service->vars[var]->name!=NOM_VAR) {
-                        out << service->vars[var]->name.to_string()<<" "<<var.to_string() << "= *__state->" << var.to_string() << ";\n";
-                        enref_at_end += "*__state->"+var.to_string()+"="+var.to_string()+";\n";
+                        out << service->vars[var]->name.to_string()<<" "<<var.to_string() << "= *__state->" << (var+RET_VAR).to_string() << ";\n";
+                        enref_at_end += "*__state->"+(var+RET_VAR).to_string()+"="+var.to_string()+";\n";
                     }
-                    service->vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through vars
+                    service->vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through `vars` next
                 }
                 for(const auto& arg : service->args) {
+                    if(arg.type->name==NOM_VAR)     
+                        continue;
                     if(arg.mut) {
                         service->coallesce_finals(arg.name); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
                         if(service->finals[arg.name].exists()) {
@@ -788,7 +769,9 @@ int main(int argc, char* argv[]) {
                         out << arg.type->name.to_string()<<" "<<arg.name.to_string() << "= *__state->" << arg.name.to_string() << ";\n";
                         enref_at_end += "*__state->"+arg.name.to_string()+"="+arg.name.to_string()+";\n";
                     }
-                    service->vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through internalTypes
+                    else
+                        out << arg.type->name.to_string()<<" "<<arg.name.to_string() << "= __state->" << arg.name.to_string() << ";\n";
+                    service->vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through `vars` next
                 }
                 for(const auto& var : service->vars) 
                     if(var.second && var.second->_is_primitive && var.second->name!=LABEL_VAR) 
