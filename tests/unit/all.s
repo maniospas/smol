@@ -18,7 +18,7 @@ service std_test(String name)
         redirect = " 2>&1"
         command = "./smol tests/unit/"+name+".s --runtime eager"+redirect
         --
-    on Heap:dynamic // new memory surface because the previous one was mutated by feeding into
+    on Heap:dynamic // new memory surface because the previous one was mutated by feeding into service call
         if run(command).err:bool
             -> print("[ \033[31mERROR\033[0m ] "+name+".s")
         else 

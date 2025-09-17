@@ -1,7 +1,14 @@
 #include "../def.h"
 
 
-Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, Types& types) {
+Variable Def::call_type(
+    const shared_ptr<Import>& imp, 
+    size_t& p, Type& type, 
+    vector<Variable>& unpacks, 
+    const size_t first_token_pos, 
+    const Variable& first_token, 
+    Types& types
+) {
     static const Variable token_if = Variable("if(");
     static const Variable token_goto = Variable(")goto");
     string overloading_errors("");
@@ -47,18 +54,33 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
             for(size_t i=0;i<unpacks.size();++i) {
                 arg_progress++;
                 auto arg_type = type->_is_primitive?type:type->args[i].type;
-                if(type->not_primitive() && arg_type->not_primitive()) throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name.to_string());
-                if(!contains(unpacks[i])) throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i].to_string()));
-                if(type->not_primitive() && arg_type!=vars[unpacks[i]] && !is_primitive(unpacks[i].to_string())) 
+                if(type->not_primitive() && arg_type->not_primitive()) 
+                    throw runtime_error(type->signature(types)+": Cannot unpack abstract " + arg_type->signature(types) + " "+type->args[i].name.to_string());
+                if(!contains(unpacks[i])) 
+                    throw runtime_error(type->signature(types)+": No runtype for "+pretty_var(unpacks[i].to_string()));
+                if(type->not_primitive() 
+                    && arg_type!=vars[unpacks[i]] 
+                    && !is_primitive(unpacks[i].to_string())
+                ) 
                     throw runtime_error(type->signature(types));
                 if(type->not_primitive() && arg_type->_is_primitive && arg_type->name==NOM_VAR && alignments[unpacks[i]]!=type->alignments[type->args[i].name]) {
-                    if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(type->alignments[type->args[i].name])+" of "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
-                    if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) imp->error(first_token_pos, "Internal error: cannot find alignment "+to_string(alignments[unpacks[i]])+" for "+unpacks[i].to_string()+" argument "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())+" within "+signature(types));
-                    if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) {}//REMINDER THAT THIS IS AN ERROR THAT POLUTES NEXT LOOP: alignments[unpacks[i]] = type->alignments[type->args[i].name];
-                    else throw runtime_error(type->signature(types));/*+": nominal "+pretty_var(type->name.to_string())+"__"+ pretty_var(type->args[i].name.to_string())
-                        +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
-                        +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
-                    */
+                    if(type->alignments[type->args[i].name] && !types.reverse_alignment_labels[type->alignments[type->args[i].name]]) 
+                        imp->error(first_token_pos, "Internal error: cannot find alignment "
+                            +to_string(type->alignments[type->args[i].name])
+                            +" of "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())
+                            +" within "+signature(types)
+                        );
+                    if(alignments[unpacks[i]] && !types.reverse_alignment_labels[alignments[unpacks[i]]]) 
+                        imp->error(first_token_pos, "Internal error: cannot find alignment "
+                            +to_string(alignments[unpacks[i]])
+                            +" for "+unpacks[i].to_string()
+                            +" argument "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())
+                            +" within "+signature(types)
+                        );
+                    if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) 
+                        {}//REMINDER THAT THIS IS AN ERROR THAT POLUTES NEXT LOOP: alignments[unpacks[i]] = type->alignments[type->args[i].name];
+                    else 
+                        throw runtime_error(type->signature(types));
                 }
                 arg_progress++;
                 if(buffer_types.find(unpacks[i])!=buffer_types.end() && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) 
@@ -100,8 +122,10 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
     string prev_errors("");
     if(!type && active_context.exists()) { // 
         vector<Variable> new_unpacks;
-        if(vars[active_context]->_is_primitive) new_unpacks.push_back(active_context);
-        else for(const Variable& pack : vars[active_context]->packs) new_unpacks.push_back(active_context+pack);
+        if(vars[active_context]->_is_primitive) 
+            new_unpacks.push_back(active_context);
+        else for(const Variable& pack : vars[active_context]->packs) 
+            new_unpacks.push_back(active_context+pack);
         for(const Variable& pack : unpacks) 
             new_unpacks.push_back(pack);
         prev_errors = previousType->name.to_string()
@@ -163,10 +187,13 @@ Variable Def::call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, ve
                                 +" argument "+pretty_var(type->name.to_string()+"__"+type->args[i].name.to_string())
                                 +" within "+signature(types)
                             );
-                        if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) {}//REMINDER THAT THIS IS AN ERROR THAT POLUTES NEXT LOOP: alignments[unpacks[i]] = type->alignments[type->args[i].name];
-                        else throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name.to_string())+"__"+ pretty_var(type->args[i].name.to_string())
-                            +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
-                            +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]]));
+                        if(!alignments[unpacks[i]] || types.reverse_alignment_labels[alignments[unpacks[i]]]==type.get()) 
+                            {}//REMINDER THAT THIS IS AN ERROR THAT POLUTES NEXT LOOP: alignments[unpacks[i]] = type->alignments[type->args[i].name];
+                        else 
+                            throw runtime_error(type->signature(types)+": nom "+pretty_var(type->name.to_string())+"__"+ pretty_var(type->args[i].name.to_string())
+                                +" expects data from "+((!type->alignments[type->args[i].name] || !types.reverse_alignment_labels[type->alignments[type->args[i].name]])?"nothing":types.reverse_alignment_labels[type->alignments[type->args[i].name]]->signature(types))+" with id "+to_string(type->alignments[type->args[i].name])
+                                +" but got "+((alignments[unpacks[i]] && types.reverse_alignment_labels[alignments[unpacks[i]]])?types.reverse_alignment_labels[alignments[unpacks[i]]]->signature(types):"nothing")+" with id "+to_string(alignments[unpacks[i]])
+                            );
                     }
                     arg_progress++;
                     if(buffer_types.find(unpacks[i])!=buffer_types.end() && buffer_types[unpacks[i]]!=type->buffer_types[type->args[i].name]) 

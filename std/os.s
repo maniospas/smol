@@ -150,7 +150,7 @@ smo open(@access @mut Process, str command)
         char first = 0;
         if(mem__mem) {
             memcpy((char*)mem__mem, command__contents, command__length);
-            ((char*)mem__mem)[command__length] = '\0';
+            ((char*)mem__mem)[command__length] = 0;
         }
         // we need the following line as a means of casting void* to const char*
         // but we can do this only because Process is @noborrow so that the allocated
