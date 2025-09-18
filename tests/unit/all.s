@@ -1,4 +1,4 @@
-@include std.core -> String // as an example, load only string ops but nothing about numbers
+@include std.core -> String, fail // as an example, load only string ops but nothing about numbers
 @include std.mem  -> Memory
 @include std.os   -> Process
 

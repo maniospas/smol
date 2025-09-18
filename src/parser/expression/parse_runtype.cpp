@@ -14,7 +14,19 @@
 
 
 Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
-    auto type = types.vars.find(first_token)->second;
+    auto type = types.contains(first_token)?types.vars.find(first_token)->second:(first_token==name?shared_from_this():nullptr);
+    if(!type)
+        imp->error(--p, "Unknown type: "
+            +pretty_runtype(first_token.to_string())
+            +recommend_runtype(types, first_token)
+        );
+    if(type.get()==this && options.size()==0) {
+        if(!is_service)
+            imp->error(--p, "Smo definition cannot return itself\nConsider converting it to a service or use a previous runtype.");
+        if(!has_returned)
+            imp->error(--p, "Service has not yet returned\nFor a runtype to call itself, a previous return needs to have determined its format");
+        options.push_back(shared_from_this());
+    }
     if(p<imp->size()-1 && imp->at(p)=="[" && !curry.exists()) {
         p++;
         return parse_buffer_create(imp, p, first_token, types, curry, first_token_pos, type);
@@ -121,7 +133,7 @@ Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Vari
             candidates += "\n"+option->signature(types);
         }
 
-        if(num_choices==0) 
+        if(num_choices==0)
             imp->error(--p, "Overloaded or union runtype has no alternative");
         if(num_choices!=1) {
             if(!highest_choice_power) 

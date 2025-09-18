@@ -129,21 +129,18 @@ public:
 extern bool log_type_resolution;
 extern vector<Type> all_types;
 
-class Def {
+class Def : public std::enable_shared_from_this<Def> {
     static int temp;
     static string create_temp() {return "__"+numberToVar(++temp);}
     unordered_map<Variable, Variable> current_renaming;
     string recommend_runtype(const Types& types, const Variable& candidate);
     string recommend_variable(const Types& types, const Variable& candidate);
-    void parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types);
     void signature_until_position(vector<unordered_map<Variable, Type>>& results, const vector<Variable>& parametric_names, size_t i, const unordered_map<Variable, Type>& current, const Types& types);
     static void print_depth();
     unordered_map<Variable, Type> retrievable_parameters;
-    void parse_implementation(size_t& p, bool with_signature);
     Types saved_types;
     bool complete_option_resolution(const Types& _types);
     bool start_option_resolution(const Types& _types);
-    void simplify();
 
     // helpers to perform variable assignment and gather tuples
     void assign_variable(const Type& type, const Variable& from, const Variable& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false, bool check_mutables=true);
@@ -188,6 +185,8 @@ class Def {
     Variable next_var_buffer_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
     Variable next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
 public:
+    void simplify();
+    static bool calls_on_heap;
     unordered_set<Variable> can_access_mutable_fields;
     unordered_map<Variable, Type> vars;
     inline bool contains(const Variable& var) const {
@@ -282,6 +281,8 @@ public:
     Code rename_var(const Code& impl, const Variable& from, const Variable& to);
     Code rename_var(const Code& impl, const Variable& from, const Code& to);
     void parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
+    void parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types);
+    void parse_implementation(size_t& p, bool with_signature);
     void parse_no_implementation(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
 };
 

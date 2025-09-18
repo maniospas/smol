@@ -15,7 +15,8 @@
 
 Variable Def::call_type(
     const shared_ptr<Import>& imp, 
-    size_t& p, Type& type, 
+    size_t& p, 
+    Type& type, 
     vector<Variable>& unpacks, 
     const size_t first_token_pos, 
     const Variable& first_token, 
@@ -405,7 +406,24 @@ Variable Def::call_type(
     if(type->is_service) {
         vardecl += Code(STRUCT_VAR, Variable(type->raw_signature_state_name()+"*"), var+STATE_VAR, ASSIGN_VAR, ZERO_VAR, SEMICOLON_VAR);
         vars[var+STATE_VAR] = types.vars[STATE_VAR];
-        Code impl = Code(var+STATE_VAR, ASSIGN_VAR, Variable("(struct "+type->raw_signature_state_name()+"*)__runtime_calloc(sizeof(struct "+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
+
+        Code impl;
+        if(!Def::calls_on_heap){
+            impl = Code(var+STATE_VAR, ASSIGN_VAR, Variable("(struct "+type->raw_signature_state_name()+"*)alloca(sizeof(struct "+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
+            impl += Code(Variable("__smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results,"), var+STATE_VAR, RPAR_VAR, SEMICOLON_VAR);
+            
+            impl += Code(
+                Variable("memset("), 
+                var+STATE_VAR, 
+                COMMA_VAR, 
+                Variable("0"), 
+                COMMA_VAR, 
+                Variable("sizeof(struct "+type->raw_signature_state_name()+"))"), 
+                SEMICOLON_VAR
+            );
+        }
+        else
+            impl = Code(var+STATE_VAR, ASSIGN_VAR, Variable("(struct "+type->raw_signature_state_name()+"*)__runtime_calloc(sizeof(struct "+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
         impl += Code(Variable("__smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results,"), var+STATE_VAR, RPAR_VAR, SEMICOLON_VAR);
         vars[var+ERR_VAR] = types.vars[ERRCODE_VAR];
         vars[var+TASK_VAR] = types.vars[PTR_VAR];

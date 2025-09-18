@@ -85,7 +85,7 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         type_trackers.insert(var);
         return  var;
     }
-    if(types.contains(first_token)) 
+    if(types.contains(first_token) || first_token==name) 
         return parse_runtype(imp, p, first_token, types, curry, first_token_pos);
 
     // parse normal variables

@@ -13,6 +13,7 @@
 #include "def.h"
 
 int Def::temp = 0;
+bool Def::calls_on_heap = true;
 bool Def::debug = false;
 bool Def::export_docs = false;
 bool Def::markdown_errors = false;

@@ -1,14 +1,14 @@
 @include std.core -> Number
-@include std.time -> sleep
-@include std.mem -> Heap
+@include std.time -> sleep, time
+
 
 service fib(u64 n)
-    if n<2
-        |-> 1
-    -> fib(n-1)+fib(n-2)
+    if n<=2
+        |-> 1 // need at least one return before calling fib from itself
+    -> fib(n-1):add(fib(n-2))
 
 service main()
-    print(1:fib)
-    print(2:fib)
-    print(3:fib)
+    tic = time()
+    print(25:fib)
+    print(time()-tic)
     --

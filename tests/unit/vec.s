@@ -22,7 +22,7 @@ smo one_hot(@mut Memory memory, u64 pos, u64 size)
 service main() 
     @mut memory = Stack:arena(1024)
     // `on` context adds a first argument as needed (e.g. could use `on nominal:Heap`)
-    on memory 
+    on memory  
         a = one_hot(1, 10)
         b = one_hot(1, 10)
         print(a*b) // calls add(Memory&, Vec, Vec)

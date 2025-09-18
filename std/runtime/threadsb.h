@@ -227,8 +227,8 @@ static inline void __smolambda_task_wait(void *task_ptr) {
 #ifdef _WIN32
         EnterCriticalSection(&target->wait_mutex);
         if (!target->completed) {
-            /* ~1000 ms; adjust as desired */
-            SleepConditionVariableCS(&target->wait_cond, &target->wait_mutex, 1000);
+            /* ~1 ms; adjust as desired */
+            SleepConditionVariableCS(&target->wait_cond, &target->wait_mutex, 1);
         }
         LeaveCriticalSection(&target->wait_mutex);
 #else
@@ -236,7 +236,11 @@ static inline void __smolambda_task_wait(void *task_ptr) {
         if (!target->completed) {
             struct timespec ts;
             clock_gettime(CLOCK_REALTIME, &ts);
-            ts.tv_sec += 1;
+            ts.tv_nsec += 50000000; // +50ms
+            if (ts.tv_nsec >= 1000000000L) {
+                ts.tv_sec += 1;
+                ts.tv_nsec -= 1000000000L;
+            }
             pthread_cond_timedwait(&target->wait_cond, &target->wait_mutex, &ts);
         }
         pthread_mutex_unlock(&target->wait_mutex);
@@ -318,6 +322,7 @@ static inline void __smolambda_task_sleep(double secs) {
 #endif
     }
 }
+
 
 
 /* ---------------- DESTROY TASK ---------------- */

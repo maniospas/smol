@@ -475,6 +475,9 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
         } 
+        else if (arg == "--stackargs") {
+            Def::calls_on_heap = false;
+        }
         else if (arg == "--safe") {
             if(i + 1 >= argc) {
                 cerr << "\033[30;41m ERROR \033[0m --safe requires a string" << endl;
@@ -721,16 +724,21 @@ int main(int argc, char* argv[]) {
 
             for(const string& pre : preample) 
                 out << pre << "\n";
+            unordered_set<Type> added_services; // we track added services because somtimes services add themselves to themselves
             for(const auto& it : included[file].vars) 
                 if(it.second->is_service) 
-                    for(const auto& service : it.second->options) {
-                        out << service->raw_signature_state()<<"\n";
-                        out << "void "+service->raw_signature()+";\n";
-                    }
+                    for(const auto& service : it.second->options)
+                        if(!ranges::contains(added_services, it.second) && !service->lazy_compile) {
+                            out << service->raw_signature_state()<<"\n";
+                            out << "void "+service->raw_signature()+";\n";
+                            added_services.insert(service);
+                        }
             Type main_service;
             // implement services
-            for(const auto& it : included[file].vars) if(it.second->is_service) for(const auto& service : it.second->options) {
-                if(service->name=="main") main_service = service;
+            for(const auto& service : added_services) {
+                service->simplify();
+                if(service->name=="main") 
+                    main_service = service;
                 out << "\n";
                 out << "void "<<service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
                 if(service->active_calls.size()) {
@@ -750,6 +758,9 @@ int main(int argc, char* argv[]) {
                         finals_on_error += var.to_string()+"=0;\n";
                         service->finals[var] = Code();
                     }
+                    if(!service->contains(var))
+                        continue;
+                        //service->imp->error(service->pos+1, "Unknown runype for internal variable: "+(var.to_string()));
                     if(var!=ERR_VAR && service->vars[var]->name!=NOM_VAR) {
                         out << service->vars[var]->name.to_string()<<" "<<var.to_string() << "= *__state->" << (var+RET_VAR).to_string() << ";\n";
                         enref_at_end += "*__state->"+(var+RET_VAR).to_string()+"="+var.to_string()+";\n";
@@ -802,7 +813,7 @@ int main(int argc, char* argv[]) {
                     if(final.second.exists()) 
                         out << final.second;
                 out << enref_at_end;
-                if(service->active_calls.size()) 
+                if(Def::calls_on_heap && service->active_calls.size()) 
                     out << "__runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);\n"; // do this after running all finalization code
                 out << "__state->err =  __result__errocode;\n";
                 out << "}\n\n";

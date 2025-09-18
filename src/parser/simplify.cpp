@@ -21,129 +21,169 @@
 #include <memory>
 
 void Def::simplify() {
-    return;
+    // TODO: & variable should not be optimized for equality anywhere
     if(implementation.is_empty()) 
         return;
-    unordered_set<Variable> in_packs;
-    for(const Variable& pack : packs)
-        in_packs.insert(pack);
-    if(alias_for.exists() && vars[alias_for]->not_primitive()) {
-        in_packs.insert(alias_for);
-        for(const Variable& pack : vars[alias_for]->packs) 
-            in_packs.insert(alias_for+pack);
+    unordered_map<Variable, size_t> usage;
+    unordered_map<Variable, size_t> sets;
+    for(const Variable& pack : packs) {
+        usage[pack] = 100000; // always consider it used
+        sets[pack] = 100000;
     }
-    unordered_map<Variable, Variable> renaming;
-    unordered_set<Variable> all_tokens;
-    unordered_set<Variable> use_before_renamed;
-    unordered_map<Variable, unsigned int> total_uses;
-    unordered_map<Variable, unsigned int> used;
-    Code code;
-    code.segments.reserve(implementation.segments.size()/8);
+    for(const auto& it : finals) {
+        usage[it.first] = 100000; // always consider it used
+        sets[it.first] = 100000;
+    }
+    for(const auto& it : args) {
+        usage[it.name] = 100000; // always consider it used
+        sets[it.name] = 100000;
+    }
+        
     size_t n = implementation.segments.size();
     for(size_t i=0;i<n;++i) {
         const Variable& var = implementation.segments[i];
-        total_uses[var] += 1;
-    }
-    for(size_t i=0;i<n;++i) {
-        const Variable& var = implementation.segments[i];
-        if(i<n-1 && implementation.segments[i+1]==SEMICOLON_VAR && contains(var)) 
-            used[var] += 1;
+        if(contains(var)) {
+            usage[var] += 1;
+        }
         if(i<n-3 
-            && implementation.segments[i+1]==ASSIGN_VAR 
-            && implementation.segments[i+3]==SEMICOLON_VAR
+            && (i==0 || implementation.segments[i-1]==SEMICOLON_VAR || implementation.segments[i-1]==COLON_VAR )
             && contains(var)
-            && vars[var]->name!=NOM_VAR
-            && in_packs.find(var)==in_packs.end() // do not rename returned values
-            && (contains(implementation.segments[i+2]) 
-                /*|| (is_primitive(implementation.segments[i+2].to_string()))*/)
-            && (mutables.find(var)==mutables.end())
-            && (mutables.find(implementation.segments[i+2])==mutables.end() || total_uses[implementation.segments[i+2]]==2)
+            && implementation.segments[i+1]==ASSIGN_VAR 
+            && implementation.segments[i+3]==SEMICOLON_VAR 
+            && contains(implementation.segments[i+2])
         ) {
-                if(all_tokens.find(var)!=all_tokens.end()) 
-                    use_before_renamed.insert(var);
-                const Variable& sub = implementation.segments[i+2];
-                if(renaming.find(sub)==renaming.end()) 
-                    renaming[var] = sub;
-                else 
-                    renaming[var] = renaming[sub];
-                i += 3;
-        }
-        else {
-            if(renaming.find(var)==renaming.end()) {
-                code.segments.push_back(var);
-                all_tokens.insert(var);
-            }
-            else 
-                code.segments.push_back(renaming[var]);
+            sets[var] += 1;
         }
     }
-    implementation = code;
-    n = implementation.segments.size();
-    code = Code();
+
+    for(auto& it : finals) 
+        for(size_t i=0;i<it.second.segments.size();++i) {
+            Variable& var = it.second.segments[i];
+            if(contains(var)) 
+                usage[var] += 1;
+        }
+    for(size_t i=0;i<errors.segments.size();++i) {
+        Variable& var = errors.segments[i];
+        if(contains(var)) 
+            usage[var] += 1;
+    }
+
+
+    unordered_map<Variable, Variable> renaming;
+    Code code;
+    code.segments.reserve(implementation.segments.size()/8);
     for(size_t i=0;i<n;++i) {
-        //skip gotos that jump to just the next line
-        if(i<n-4
-            && implementation.segments[i]==Variable("goto") 
+        Variable& var = implementation.segments[i];
+        if(renaming.find(var)!=renaming.end() && implementation.segments[i-1]!=ARROW_VAR) {
+            var = renaming[var];
+        }
+        // rename assignments to variables that have been assigned to once, or which are private
+        if(i<n-3 
+            && (i==0 || implementation.segments[i-1]==SEMICOLON_VAR || implementation.segments[i-1]==COLON_VAR ) 
+            && implementation.segments[i+1]==ASSIGN_VAR 
+            && implementation.segments[i+3]==SEMICOLON_VAR 
+            && (sets[var]==1 || var==implementation.segments[i+2])// || sets[var]<100000) // once used later and once assigned here
+            && contains(var)
+            && contains(implementation.segments[i+2])
+        ) {
+            if(renaming.find(implementation.segments[i+2])!=renaming.end())
+                renaming[var] = renaming[implementation.segments[i+2]];
+            else
+                renaming[var] = implementation.segments[i+2];
+            i += 3;
+            continue;
+        }
+        // skip goto label;label:
+        if(var=="goto" && i<n-4 
             && implementation.segments[i+2]==SEMICOLON_VAR 
-            && implementation.segments[i+4]==COLON_VAR
             && implementation.segments[i+3]==implementation.segments[i+1]
-            && used[implementation.segments[i+1]]==1) {
-                i += 4;
-                continue;
+            && implementation.segments[i+4]==COLON_VAR) {
+            i+=2; // skip only the goto, not the label setting
+            continue;
+        } 
+        // scip unused ops
+        if(i<n-3 
+            && implementation.segments[i+1]==ASSIGN_VAR
+            && (i==0 || implementation.segments[i-1]==SEMICOLON_VAR || implementation.segments[i-1]==COLON_VAR ) 
+            && contains(var)
+            && usage[var]<=1 
+        ) {
+            while(var!=SEMICOLON_VAR) {
+                i++;
+                var = implementation.segments[i];
             }
-        //skip unused gotos
-        if(i<n-1 
-            && implementation.segments[i+1]==COLON_VAR 
-            && used.find(implementation.segments[i])==used.end()
-            && contains(implementation.segments[i])
-            && vars[implementation.segments[i]]->name==LABEL_VAR) {
-                i += 1;
-                continue;
-            }
-        code.segments.push_back(implementation.segments[i]);
+            continue;
+        }
+        // remove renaming in case of some unknown assignment
+        if(i<n-3 
+            && (i==0 || implementation.segments[i-1]==SEMICOLON_VAR || implementation.segments[i-1]==COLON_VAR ) 
+            && implementation.segments[i+1]==ASSIGN_VAR
+            && contains(var)
+        ) {
+            renaming.erase(var);
+        }
+        code.segments.push_back(var);
     }
     implementation = code;
 
+    // update errors and finals
+    Code new_errors;
+    new_errors.segments.reserve(errors.segments.size()/8);
+    for(size_t i=0;i<errors.segments.size();++i) {
+        Variable& var = errors.segments[i];
+        if(renaming.find(var)!=renaming.end() && errors.segments[i-1]!=ARROW_VAR) 
+            var = renaming[var];
+        new_errors.segments.push_back(var);
+    }
+    errors = new_errors;
 
-    unordered_map<Variable, Code> new_finals;
-    new_finals.reserve(finals.size());
-    for(const auto& it : finals) {
-        Code renamed;
-        renamed.segments.reserve(it.second.segments.size());
+    // update finals
+    for(auto& it : finals) {
+        Code new_finals;
+        new_finals.segments.reserve(it.second.segments.size()/8);
+        for(size_t i=0;i<it.second.segments.size();++i) {
+            Variable& var = it.second.segments[i];
+            if(renaming.find(var)!=renaming.end() && it.second.segments[i-1]!=ARROW_VAR) 
+                var = renaming[var];
+            new_finals.segments.push_back(var);
+        }
+        it.second = new_finals;
+    }
+
+    // now remove vars that previously existed but don't anymore
+    unordered_map<Variable, Type> existing_vars;
+    for(const auto& it : vars) {
+        if(it.second && !it.second->_is_primitive) // keep meta-vars because it's complicated to find which to keep
+            existing_vars[it.first] = it.second;
+    }
+    // do not remove certain stuff
+    for(const Variable& pack : packs) 
+        existing_vars[pack] = vars[pack];
+    for(const auto& it : finals) 
+        existing_vars[it.first] = vars[it.first];
+    for(const auto& it : args) 
+        existing_vars[it.name] = vars[it.name];
+    // keep types only for stuff that exists
+    for(size_t i=0;i<implementation.segments.size();++i) {
+        const Variable& var = implementation.segments[i];
+        if(contains(var))
+            existing_vars[var] = vars[var];
+    }
+    for(size_t i=0;i<vardecl.segments.size();++i) {
+        const Variable& var = vardecl.segments[i];
+        if(contains(var))
+            existing_vars[var] = vars[var];
+    }
+    for(size_t i=0;i<errors.segments.size();++i) {
+        const Variable& var = errors.segments[i];
+        if(contains(var))
+            existing_vars[var] = vars[var];
+    }
+    for(const auto& it : finals) 
         for(size_t i=0;i<it.second.segments.size();++i) {
             const Variable& var = it.second.segments[i];
-            if(renaming.find(var)==renaming.end()) 
-                renamed.segments.push_back(var);
-            else 
-                renamed.segments.push_back(renaming[var]);
+            if(contains(var))
+                existing_vars[var] = vars[var];
         }
-        if(renaming.find(it.first)==renaming.end()) 
-            new_finals[it.first] = renamed;
-        else 
-            new_finals[renaming[it.first]] = renamed;
-    }
-    finals = new_finals;
-
-    for(size_t i=0;i<packs.size();++i) 
-        if(renaming.find(packs[i])!=renaming.end()) 
-            packs[i] = renaming[packs[i]];
-
-    Code renamed_errors;
-    renamed_errors.segments.reserve(errors.segments.size());
-    for(size_t i=0;i<errors.size();++i) {
-        const Variable& var = errors.segments[i];
-        if(renaming.find(var)==renaming.end()) 
-            renamed_errors.segments.push_back(var);
-        else
-            renamed_errors.segments.push_back(renaming[var]);
-    }
-    errors = renamed_errors;
-
-    unordered_map<Variable, Variable> new_renaming;
-    for(const auto& it : current_renaming) {
-        Variable new_first = renaming.find(it.first)==renaming.end()?it.first:renaming[it.first];
-        Variable new_second = renaming.find(it.second)==renaming.end()?it.second:renaming[it.second];
-        new_renaming[new_first] = new_second;
-    }
-    current_renaming = new_renaming;
+    vars = existing_vars;
 }
