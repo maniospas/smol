@@ -42,9 +42,10 @@ int compile_from_stringstream_with_flags(
     const std::string& output_file,
     const std::string& extra_flags 
 ) {
-    std::string cmd =
-        compiler+" -O3 -s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 -m64 -fpermissive " +
-        extra_flags + " -o \"" + output_file + "\" -x c++ -"+linker;
+    std::string cmd = compiler+string(" -O3 ")
+        //+ "-s -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 -m64 -fpermissive "
+        + extra_flags + " -o \"" + output_file + "\" -x c++ -"+linker;
+    //cout << cmd << "\n";
     FILE* pipe = SMOL_POPEN(cmd.c_str(), "w");
     if (!pipe) 
         return -1; // popen failed

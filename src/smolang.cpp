@@ -23,6 +23,22 @@
 
 vector<string> installation_permissions;
 
+string to_ctypes(const Type t) {
+    if (t->name == "f64") return "ctypes.c_double";
+    if (t->name == "i64") return "ctypes.c_long";
+    if (t->name == "u64") return "ctypes.c_uint64";
+    if (t->name == "cstr") return "ctypes.c_char_p";
+    if (t->name == "ptr") return "ctypes.c_void_p";
+    return "ctypes.c_void_p";
+}
+
+string to_python_type(const Type t) {
+    if (t->name == "f64") return "(float, int)";
+    if (t->name == "i64") return "int";
+    if (t->name == "u64") return "int";
+    if (t->name == "cstr") return "(bytes, str)";
+    return "object";
+}
 
 #include <iostream>
 #include <string>
@@ -76,17 +92,25 @@ enum class Task {
     Transpile,
     Compile,
     Verify,
-    Run
+    Run,
+    Library
 };
 
 Task parse_task(const string& arg) {
     if(arg == "compile") return Task::Compile;
     if(arg == "verify") return Task::Verify;
-    if(arg == "doc") {Def::export_docs=true; return Task::Verify;}
-    if(arg == "lsp") {Def::markdown_errors=true; return Task::Verify;}
+    if(arg == "doc") {
+        Def::export_docs=true; 
+        return Task::Verify;
+    }
+    if(arg == "lsp") {
+        Def::markdown_errors=true; 
+        return Task::Verify;
+    }
     if(arg == "run") return Task::Run;
     if(arg == "assemble") return Task::Assemble;
     if(arg == "transpile") return Task::Transpile;
+    if(arg == "lib") return Task::Library;
     throw invalid_argument("Unknown task: " + arg);
 }
 
@@ -674,7 +698,7 @@ int main(int argc, char* argv[]) {
             // globals
             std::stringstream out("");
             out << 
-                "#define SMOLAMBDA_SERVICES "<<count_services<<"\n"<<
+                "#define SMOLAMBDA_SERVICES "<<(selected_task==Task::Library?1:count_services)<<"\n" // libraries do not run on their own scheduler
                 //"#undef _FORTIFY_SOURCE"
                 "#include <string.h>\n"
                 "#include \""+runtime+"\"\n"
@@ -730,7 +754,7 @@ int main(int argc, char* argv[]) {
                     for(const auto& service : it.second->options)
                         if(!ranges::contains(added_services, it.second) && !service->lazy_compile) {
                             out << service->raw_signature_state()<<"\n";
-                            out << "void "+service->raw_signature()+";\n";
+                            out << "extern \"C\" void "+service->raw_signature()+";\n";
                             added_services.insert(service);
                         }
             Type main_service;
@@ -750,23 +774,10 @@ int main(int argc, char* argv[]) {
                 //out << service->vardecl;
                 string finals_on_error = "";
                 string enref_at_end = "";
-                for(size_t i=1;i<service->packs.size();++i) {
-                    Variable var = service->packs[i];
-                    service->coallesce_finals(var); // so that we can hard-remove finals in the next line (these are transferred on call instead)
-                    if(service->finals[var].exists()) {
-                        finals_on_error += service->finals[var].to_string();
-                        finals_on_error += var.to_string()+"=0;\n";
-                        service->finals[var] = Code();
-                    }
-                    if(!service->contains(var))
-                        continue;
-                        //service->imp->error(service->pos+1, "Unknown runype for internal variable: "+(var.to_string()));
-                    if(var!=ERR_VAR && service->vars[var]->name!=NOM_VAR) {
-                        out << service->vars[var]->name.to_string()<<" "<<var.to_string() << "= *__state->" << (var+RET_VAR).to_string() << ";\n";
-                        enref_at_end += "*__state->"+(var+RET_VAR).to_string()+"="+var.to_string()+";\n";
-                    }
-                    service->vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through `vars` next
-                }
+                unordered_map<Variable, Type> prev_vars;
+                prev_vars.reserve(service->vars.size());
+                for(const auto& it : service->vars)
+                    prev_vars[it.first] = it.second;
                 for(const auto& arg : service->args) {
                     if(arg.type->name==NOM_VAR)     
                         continue;
@@ -784,9 +795,32 @@ int main(int argc, char* argv[]) {
                         out << arg.type->name.to_string()<<" "<<arg.name.to_string() << "= __state->" << arg.name.to_string() << ";\n";
                     service->vars[arg.name] = nullptr; // hack to prevent redeclaration of arguments when iterating through `vars` next
                 }
+                for(size_t i=1;i<service->packs.size();++i) {
+                    Variable var = service->packs[i];
+                    service->coallesce_finals(var); // so that we can hard-remove finals in the next line (these are transferred on call instead)
+                    if(service->finals[var].exists()) {
+                        finals_on_error += service->finals[var].to_string();
+                        finals_on_error += var.to_string()+"=0;\n";
+                        service->finals[var] = Code();
+                    }
+                    if(!service->contains(var)) {
+                        // this means that it was an input too
+                        enref_at_end += "*__state->"+(var+RET_VAR).to_string()+"="+var.to_string()+";\n";
+                        continue;
+                    }
+                        //service->imp->error(service->pos+1, "Unknown runype for internal variable: "+(var.to_string()));
+                    if(var!=ERR_VAR && service->vars[var]->name!=NOM_VAR) {
+                        //out << "printf(\""<<var+RET_VAR<<"\\n\");\n";
+                        out << service->vars[var]->name.to_string()<<" "<<var.to_string() << " = 0;\n";// << "= *__state->" << (var+RET_VAR).to_string() << ";\n";
+                        enref_at_end += "*__state->"+(var+RET_VAR).to_string()+"="+var.to_string()+";\n";
+                        //out << "printf(\""<<var+RET_VAR<<"\\n\");\n";
+                    }
+                    service->vars[var] = nullptr ;// hack to prevent redeclaration of arguments when iterating through `vars` next
+                }
                 for(const auto& var : service->vars) 
                     if(var.second && var.second->_is_primitive && var.second->name!=LABEL_VAR) 
                         out << var.second->name << " " << var.first << "=0;\n";
+
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
                 out << "goto __return;\n"; // skip error handling block that resides at the end of the service
@@ -818,6 +852,10 @@ int main(int argc, char* argv[]) {
                     out << "__runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);\n"; // do this after running all finalization code
                 out << "__state->err =  __result__errocode;\n";
                 out << "}\n\n";
+
+                // restore variable types to be potentially used by further transpilation
+                for(const auto& it : prev_vars) 
+                    service->vars[it.first] = it.second;
             }
             out << "\n\nint main() {\n";
             out << "struct "<<main_service->raw_signature_state_name()<<" __main_args={0};\n";
@@ -825,12 +863,14 @@ int main(int argc, char* argv[]) {
             out << "return __main_args.err;\n";
             out << "}\n\n";
             //cout << out.str() << "\n";
-            for(const auto& it : included[file].vars) {
-                for(const auto& opt : it.second->options) 
-                    opt->vars.clear();
-                it.second->vars.clear();
-                it.second->options.clear();
-            }
+            
+            // for(const auto& it : included[file].vars) { // CREATES PROBLEM IN LIBRARY, ALL MEMORY WILL BE RELEASED AT THE END BY THE OS ANYWAY
+            //     for(const auto& opt : it.second->options) 
+            //         opt->vars.clear();
+            //     it.second->vars.clear();
+            //     it.second->options.clear();
+            // }
+
             if(selected_task == Task::Run) {
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "");
                 if(run_status != 0) 
@@ -839,6 +879,87 @@ int main(int argc, char* argv[]) {
                 run_status = system((EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str());
                 if (run_status) 
                     return run_status;
+            } 
+            else if(selected_task == Task::Library) {
+                int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-shared -fPIC");
+                if(run_status) 
+                    return run_status;
+                string py_filename = file.substr(0, file.size()-2) + ".py";
+                ofstream py_out(py_filename);
+                py_out << "import ctypes\n\n";
+                py_out << "_lib = ctypes.CDLL(\"" << file.substr(0, file.size()-2) << "\")\n";
+                py_out << "if _lib is None:\n";
+                py_out << "    raise RuntimeError('Library not loaded.')\n\n";
+
+                // Emit service wrappers + struct definitions
+                for (const auto& service : added_services) {
+                    string clsname = service->raw_signature_state_name();
+                    string symbol  = service->name.to_string()+"__"+to_string(service->identifier);
+                    py_out << "class " << clsname << "State(ctypes.Structure):\n";
+                    py_out << "    _fields_ = [\n";
+                    py_out << "        ('err', ctypes.c_int),\n";
+                    for (size_t i = 1; i < service->packs.size(); ++i) 
+                        py_out << "        ('" << service->packs[i]+RET_VAR << "', ctypes.POINTER(" << to_ctypes(service->vars[service->packs[i]]) << ")),\n";
+                    for (const auto& arg : service->args) {
+                        string aname = arg.name.to_string();
+                        string tname = arg.type->name.to_string();
+                        if (arg.mut) 
+                            py_out << "        ('" << aname << "', ctypes.POINTER(" << to_ctypes(arg.type) << ")),\n";
+                        else
+                            py_out << "        ('" << aname << "', " << to_ctypes(arg.type) << "),\n";
+                    }
+                    py_out << "    ]\n\n";
+                    py_out << "class " << clsname << ":\n";
+                    py_out << "    def __init__(self):\n";
+                    py_out << "        self._fn = _lib." << symbol << "\n";
+                    py_out << "        self._fn.restype = None\n";
+                    py_out << "        self._fn.argtypes = [ctypes.POINTER(" << service->raw_signature_state_name() << "State)]\n\n";
+                    py_out << "    def __call__(self";
+                    for (size_t i = 0; i < service->args.size(); i++) {
+                        py_out << ", " << service->args[i].name;
+                    }
+                    py_out << "):\n";
+                    py_out << "        state = " << service->raw_signature_state_name() << "State()\n";
+                    for (size_t i = 1; i < service->packs.size(); i++) {
+                        py_out << "        " << service->packs[i]+RET_VAR << " = " << to_ctypes(service->vars[service->packs[i]])  << "(0)\n";
+                        py_out << "        state." << service->packs[i]+RET_VAR << " = ctypes.pointer(" << service->packs[i]+RET_VAR << ")\n";
+                    }
+                    for (size_t i = 0; i < service->args.size(); i++) {
+                        const auto& arg = service->args[i];
+                        string aname = arg.name.to_string();
+                        string tname = arg.type->name.to_string();
+                        if(tname == "cstr") {
+                            py_out << "        if isinstance(" << aname << ", str):\n";
+                            py_out << "            " << aname << " = " << aname << ".encode('utf-8')\n";
+                            py_out << "        assert isinstance(" << aname << ", (bytes, str)), \"" 
+                                << aname << " must be cstr (str or bytes)\"\n";
+                        } 
+                        else if(arg.mut) 
+                            py_out << "        assert isinstance(" << aname 
+                                << ", ctypes.POINTER(" << to_ctypes(arg.type) << ")), \"" 
+                                << aname << " must be a pointer to " << tname << "\"\n";
+                        else 
+                            py_out << "        assert isinstance(" << aname << ", " 
+                                << to_python_type(arg.type) << "), \"" 
+                                << aname << " must be " << tname << "\"\n";
+                        py_out << "        state." << aname << " = " << aname << "\n";
+                    }
+                    py_out << "        self._fn(ctypes.byref(state))\n";
+                    py_out << "        if state.err:\n";
+                    py_out << "             raise Exception('Failed service execution')\n";
+                    py_out << "        return (";
+                    for (size_t i = 1; i < service->packs.size(); i++) {
+                        if (i > 1) py_out << ", ";
+                        py_out << "state." << service->packs[i]+RET_VAR<< ".contents.value";
+                    }
+                    py_out << ")\n\n";
+                }
+
+                // Emit top-level instances
+                for (const auto& service : added_services) {
+                    py_out << service->name << " = " << service->raw_signature_state_name() << "()\n";
+                }
+
             } 
             else if(selected_task == Task::Assemble) {
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-S -masm=intel");
@@ -869,7 +990,7 @@ int main(int argc, char* argv[]) {
                 cout << "\033[30;41m ERROR \033[0m " << file << "\n";
             cerr << e.what() << std::endl;
         }
-        remove("__smolambda__temp__main.cpp");
+        
         included.clear();
     }
     if(selected_task==Task::Verify && !Def::markdown_errors) 
