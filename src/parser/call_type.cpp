@@ -495,7 +495,8 @@ Variable Def::call_type(
 
     //for(const auto& final : type->finals) finals[var+"__"+final.first] += type->rebase(final.second, var); // splt into immediate and delayed finals
     //finals = type->rebase(type->finals, var)+finals; // inverse order for finals to ensure that any inner memory is released first (future-proofing)
-    errors = errors+type->rebase(type->errors, var);
+    for(const auto& error : type->errors)
+        errors.insert(type->rebase(error, var));
     for(const auto& it : type->current_renaming) 
         current_renaming[var+it.first] = var+it.second;
     for(const auto& it : type->active_calls) 

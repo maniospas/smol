@@ -27,7 +27,7 @@ void Def::parse_directive_release(const shared_ptr<Import>& imp, size_t& p, stri
         Variable fail_var = create_temp();
         vars[fail_var] = types.vars[LABEL_VAR];
         implementation += Code(token_if,call_var+ERR_VAR,token_goto,fail_var, SEMICOLON_VAR);
-        errors += Code(fail_var, token_print, vars[call_var]->name, call_var, token_failsafe);
+        errors.insert(Code(fail_var, token_print, vars[call_var]->name, call_var, token_failsafe));
         add_preample("#include <stdio.h>");
         active_calls[call_var] = EMPTY_VAR;
         next_var = call_var;

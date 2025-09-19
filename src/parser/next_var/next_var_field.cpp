@@ -53,13 +53,13 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
                     fail_var, 
                     SEMICOLON_VAR
                 );
-            errors += Code(
+            errors.insert(Code(
                 fail_var, 
                 token_print, 
                 contains(var)?vars[var]->name:EMPTY_VAR, 
                 call_var, 
                 token_failsafe
-            );
+            ));
             add_preample("#include <stdio.h>");
         }
         next = active_calls[var]+next_token;

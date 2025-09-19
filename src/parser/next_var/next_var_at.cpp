@@ -133,13 +133,13 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
                 fail_var, 
                 SEMICOLON_VAR
             );
-            errors += Code(
+            errors.insert(Code(
                 fail_var, 
                 token_print, 
                 vars[next]->name, 
                 call_var, 
                 token_failsafe
-            );
+            ));
             add_preample("#include <stdio.h>");
         }
         if(active_calls[next].exists() && active_calls[active_calls[next]].exists()) 

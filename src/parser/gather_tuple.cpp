@@ -50,7 +50,7 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
                 Variable fail_var = create_temp();
                 vars[fail_var] = types.vars[LABEL_VAR];
                 implementation += Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
-                errors += Code(fail_var, token_print, type->name, call_var, token_failsafe);
+                errors.insert(Code(fail_var, token_print, type->name, call_var, token_failsafe));
                 add_preample("#include <stdio.h>");
             }
             for(size_t i=1;i<type->packs.size();++i) 
@@ -86,7 +86,7 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
                 Variable fail_var = create_temp();
                 vars[fail_var] = types.vars[LABEL_VAR];
                 implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
-                errors = errors+Code(fail_var, token_print, type->name, call_var, token_failsafe);
+                errors.insert(Code(fail_var, token_print, type->name, call_var, token_failsafe));
                 add_preample("#include <stdio.h>");
             }
             for(size_t i=1;i<type->packs.size();++i) 

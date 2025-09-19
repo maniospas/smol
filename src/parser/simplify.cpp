@@ -42,9 +42,8 @@ void Def::simplify() {
     size_t n = implementation.segments.size();
     for(size_t i=0;i<n;++i) {
         const Variable& var = implementation.segments[i];
-        if(contains(var)) {
+        if(contains(var)) 
             usage[var] += 1;
-        }
         if(i<n-3 
             && (i==0 || implementation.segments[i-1]==SEMICOLON_VAR || implementation.segments[i-1]==COLON_VAR )
             && contains(var)
@@ -58,22 +57,23 @@ void Def::simplify() {
 
     for(auto& it : finals) 
         for(size_t i=0;i<it.second.segments.size();++i) {
-            Variable& var = it.second.segments[i];
+            const Variable& var = it.second.segments[i];
             if(contains(var)) 
                 usage[var] += 1;
         }
-    for(size_t i=0;i<errors.segments.size();++i) {
-        Variable& var = errors.segments[i];
-        if(contains(var)) 
-            usage[var] += 1;
-    }
-
+    for(auto& error : errors) 
+        for(size_t i=0;i<error.segments.size();++i) {
+            const Variable& var = error.segments[i];
+            if(contains(var)) 
+                usage[var] += 1;
+        }
+    
 
     unordered_map<Variable, Variable> renaming;
     Code code;
     code.segments.reserve(implementation.segments.size()/8);
     for(size_t i=0;i<n;++i) {
-        Variable& var = implementation.segments[i];
+        Variable var = implementation.segments[i];
         if(renaming.find(var)!=renaming.end() && implementation.segments[i-1]!=ARROW_VAR) {
             var = renaming[var];
         }
@@ -85,6 +85,7 @@ void Def::simplify() {
             && (sets[var]==1 || var==implementation.segments[i+2])// || sets[var]<100000) // once used later and once assigned here
             && contains(var)
             && contains(implementation.segments[i+2])
+            && vars[var]==vars[implementation.segments[i+2]] // do not make a renaming for value casting
         ) {
             if(renaming.find(implementation.segments[i+2])!=renaming.end())
                 renaming[var] = renaming[implementation.segments[i+2]];
@@ -100,15 +101,25 @@ void Def::simplify() {
             && implementation.segments[i+4]==COLON_VAR) {
             i+=2; // skip only the goto, not the label setting
             continue;
-        } 
-        // scip unused ops
+        }
+        //skip empty labels
+        if(i<n-2
+            && (i==0 || implementation.segments[i-1]==SEMICOLON_VAR || implementation.segments[i-1]==COLON_VAR || implementation.segments[i-1]==UNREACHABLE_VAR ) 
+            && implementation.segments[i+1]==COLON_VAR
+            && usage[var] <=1
+        ) {
+            i += 1;
+            continue;
+        }
+        // scip unused ops 
         if(i<n-3 
             && implementation.segments[i+1]==ASSIGN_VAR
-            && (i==0 || implementation.segments[i-1]==SEMICOLON_VAR || implementation.segments[i-1]==COLON_VAR ) 
+            && (i==0 || implementation.segments[i-1]==SEMICOLON_VAR || implementation.segments[i-1]==COLON_VAR )
             && contains(var)
-            && usage[var]<=1 
+            && usage[var]<=1  
+            && contains(implementation.segments[i+2]) && implementation.segments[i+3]==SEMICOLON_VAR//TODO: added this line because it does not work properly with "path":is_dir
         ) {
-            while(var!=SEMICOLON_VAR) {
+            while(i<n && var!=SEMICOLON_VAR && var!=";") {
                 i++;
                 var = implementation.segments[i];
             }
@@ -127,13 +138,17 @@ void Def::simplify() {
     implementation = code;
 
     // update errors and finals
-    Code new_errors;
-    new_errors.segments.reserve(errors.segments.size()/8);
-    for(size_t i=0;i<errors.segments.size();++i) {
-        Variable& var = errors.segments[i];
-        if(renaming.find(var)!=renaming.end() && errors.segments[i-1]!=ARROW_VAR) 
-            var = renaming[var];
-        new_errors.segments.push_back(var);
+    unordered_set<Code> new_errors;
+    for(const auto& error : errors) {
+        Code new_error;
+        new_error.segments.reserve(error.segments.size()/8);
+        for(size_t i=0;i<error.segments.size();++i) {
+            Variable var = error.segments[i];
+            if(renaming.find(var)!=renaming.end() && error.segments[i-1]!=ARROW_VAR) 
+                var = renaming[var];
+            new_error.segments.push_back(var);
+        }
+        new_errors.insert(new_error);
     }
     errors = new_errors;
 
@@ -174,11 +189,12 @@ void Def::simplify() {
         if(contains(var))
             existing_vars[var] = vars[var];
     }
-    for(size_t i=0;i<errors.segments.size();++i) {
-        const Variable& var = errors.segments[i];
-        if(contains(var))
-            existing_vars[var] = vars[var];
-    }
+    for(const auto& error : errors) 
+        for(size_t i=0;i<error.segments.size();++i) {
+            const Variable& var = error.segments[i];
+            if(contains(var))
+                existing_vars[var] = vars[var];
+        }
     for(const auto& it : finals) 
         for(size_t i=0;i<it.second.segments.size();++i) {
             const Variable& var = it.second.segments[i];

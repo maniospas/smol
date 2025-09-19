@@ -1,7 +1,7 @@
 	.file	"<stdin>"
 	.intel_syntax noprefix
 	.text
-	.section	.rodata._Z9main__785Pv.str1.1,"aMS",@progbits,1
+	.section	.rodata._Z9main__787Pv.str1.1,"aMS",@progbits,1
 .LC0:
 	.string	""
 .LC1:
@@ -11,20 +11,18 @@
 .LC3:
 	.string	"%.*s\n"
 .LC4:
-	.string	"Buffer index out of range\n"
-.LC5:
 	.string	" "
-.LC6:
+.LC5:
 	.string	"Failed an Arena allocation"
-.LC7:
+.LC6:
 	.string	"%s\n"
-.LC8:
-	.string	"Buffer error \n"
-	.section	.text._Z9main__785Pv,"ax",@progbits
+.LC7:
+	.string	"Buffer error\n"
+	.section	.text._Z9main__787Pv,"ax",@progbits
 	.p2align 4
-	.globl	_Z9main__785Pv
-	.type	_Z9main__785Pv, @function
-_Z9main__785Pv:
+	.globl	_Z9main__787Pv
+	.type	_Z9main__787Pv, @function
+_Z9main__787Pv:
 .LFB97:
 	.cfi_startproc
 	endbr64
@@ -58,25 +56,8 @@ _Z9main__785Pv:
 	mov	rdx, r13
 	btr	rdx, 63
 	cmp	r14, rdx
-	jb	.L3
-	test	r13, r13
-	js	.L4
-	mov	rax, rdx
-	shr	rax, 2
-	lea	r13, 1[rax+rdx]
-	mov	rsi, r13
-	sal	rsi, 5
-	test	r14, r14
-	je	.L5
-	mov	rdi, QWORD PTR [r15]
-	call	realloc@PLT
-.L6:
-	mov	QWORD PTR [r15], rax
-	mov	QWORD PTR 16[r15], r13
-	test	rax, rax
-	je	.L4
-	mov	rdx, r13
-	btr	rdx, 63
+	jnb	.L35
+	mov	rax, QWORD PTR [rax]
 .L7:
 	mov	r12, r14
 	lea	rcx, 1[r14]
@@ -90,50 +71,38 @@ _Z9main__785Pv:
 	cmp	rcx, rdx
 	jb	.L8
 	test	r13, r13
-	js	.L9
+	js	.L4
 	mov	rax, rdx
 	shr	rax, 2
 	lea	r13, 1[rdx+rax]
 	mov	rsi, r13
 	sal	rsi, 5
 	test	rcx, rcx
-	jne	.L37
+	jne	.L36
 	mov	rdi, rsi
 	call	malloc@PLT
-.L11:
+.L10:
 	mov	QWORD PTR [r15], rax
 	mov	QWORD PTR 16[r15], r13
 	test	rax, rax
-	jne	.L12
-.L9:
-	lea	rsi, .LC8[rip]
-	mov	edi, 2
-	xor	eax, eax
-	call	__printf_chk@PLT
-.L19:
-	cmp	QWORD PTR 16[r15], 0
-	mov	r12d, 2
-	je	.L26
-	jmp	.L24
-	.p2align 4,,10
-	.p2align 3
+	jne	.L11
 .L4:
-	lea	rsi, .LC8[rip]
+	lea	rsi, .LC7[rip]
 	mov	edi, 2
 	xor	eax, eax
 	mov	r12d, 2
 	call	__printf_chk@PLT
-.L24:
+.L22:
 	mov	rdi, QWORD PTR [r15]
 	call	free@PLT
-.L26:
+.L24:
 	mov	rdi, r15
 	call	free@PLT
-.L25:
+.L23:
 	mov	DWORD PTR [rbx], r12d
 	mov	rax, QWORD PTR -56[rbp]
 	sub	rax, QWORD PTR fs:40
-	jne	.L38
+	jne	.L37
 	lea	rsp, -40[rbp]
 	pop	rbx
 	pop	r12
@@ -146,21 +115,32 @@ _Z9main__785Pv:
 	ret
 	.p2align 4,,10
 	.p2align 3
-.L3:
+.L35:
 	.cfi_restore_state
-	mov	rax, QWORD PTR [rax]
-	jmp	.L7
-	.p2align 4,,10
-	.p2align 3
-.L5:
+	test	r13, r13
+	js	.L4
+	mov	rax, rdx
+	shr	rax, 2
+	lea	r13, 1[rax+rdx]
+	mov	rsi, r13
+	sal	rsi, 5
+	test	r14, r14
+	jne	.L38
 	mov	rdi, rsi
 	call	malloc@PLT
-	jmp	.L6
+.L6:
+	mov	QWORD PTR [r15], rax
+	mov	QWORD PTR 16[r15], r13
+	test	rax, rax
+	je	.L4
+	mov	rdx, r13
+	btr	rdx, 63
+	jmp	.L7
 	.p2align 4,,10
 	.p2align 3
 .L8:
 	mov	rax, QWORD PTR [r15]
-.L12:
+.L11:
 	lea	rdi, .LC2[rip]
 	mov	BYTE PTR 48[rax+r12], 84
 	lea	rdx, 2[r14]
@@ -170,20 +150,20 @@ _Z9main__785Pv:
 	mov	rax, rsp
 	mov	QWORD PTR 8[r15], rdx
 	cmp	rsp, rax
-	je	.L14
+	je	.L13
 .L39:
 	sub	rsp, 4096
 	or	QWORD PTR 4088[rsp], 0
 	cmp	rsp, rax
 	jne	.L39
-.L14:
+.L13:
 	sub	rsp, 1040
 	or	QWORD PTR 1032[rsp], 0
 	lea	rax, 15[rsp]
 	and	rax, -16
 	mov	QWORD PTR -96[rbp], rax
 	test	rdx, rdx
-	je	.L40
+	je	.L26
 	mov	rax, QWORD PTR [r15]
 	xor	r13d, r13d
 	mov	QWORD PTR -128[rbp], rdx
@@ -196,35 +176,35 @@ _Z9main__785Pv:
 	mov	QWORD PTR -104[rbp], rax
 	mov	QWORD PTR -144[rbp], r15
 	mov	QWORD PTR -152[rbp], rbx
-	jmp	.L18
+	jmp	.L16
 	.p2align 4,,10
 	.p2align 3
-.L28:
+.L41:
 	mov	QWORD PTR -104[rbp], r15
-	mov	r14, r9
-.L18:
+	mov	r13, r9
+.L16:
 	mov	rax, QWORD PTR -88[rbp]
 	mov	r15, QWORD PTR 8[rax]
 	mov	rsi, QWORD PTR [rax]
-	lea	rbx, 2[r13+r15]
+	lea	rbx, 2[r14+r15]
 	lea	rax, 1[r15]
 	mov	QWORD PTR -80[rbp], rax
 	cmp	rbx, 1024
-	ja	.L20
+	ja	.L19
 	mov	rdx, QWORD PTR -96[rbp]
 	mov	ecx, 1024
-	sub	rcx, r13
-	lea	r12, [rdx+r13]
+	sub	rcx, r14
+	lea	r12, [rdx+r14]
 	mov	rdx, r15
 	mov	QWORD PTR -112[rbp], rcx
 	mov	rdi, r12
 	call	__memcpy_chk@PLT
-	lea	rax, 0[r13+r15]
+	lea	rax, [r14+r15]
 	mov	edx, 1024
 	mov	rcx, QWORD PTR -112[rbp]
 	cmp	rax, rdx
 	lea	rdi, [r12+r15]
-	lea	rsi, .LC5[rip]
+	lea	rsi, .LC4[rip]
 	cmovb	rax, rdx
 	sub	rcx, r15
 	mov	edx, 1
@@ -233,31 +213,31 @@ _Z9main__785Pv:
 	mov	rax, QWORD PTR -80[rbp]
 	mov	BYTE PTR 1[r12+r15], 0
 	mov	r8d, 1024
-	lea	r9, [rax+r14]
-	lea	r13, 1[rbx+r9]
-	cmp	r13, 1024
-	ja	.L20
+	lea	r9, 0[r13+rax]
+	lea	r14, 1[rbx+r9]
+	cmp	r14, 1024
+	ja	.L19
 	mov	rax, QWORD PTR -96[rbp]
 	mov	rcx, r8
 	mov	rsi, QWORD PTR -104[rbp]
-	mov	rdx, r14
+	mov	rdx, r13
 	sub	rcx, rbx
 	mov	QWORD PTR -120[rbp], r9
 	lea	r15, [rax+rbx]
 	mov	QWORD PTR -112[rbp], rcx
-	add	rbx, r14
+	add	rbx, r13
 	mov	rdi, r15
 	call	__memcpy_chk@PLT
 	mov	rcx, QWORD PTR -112[rbp]
 	mov	rdx, QWORD PTR -80[rbp]
 	mov	rsi, r12
 	mov	eax, 1024
-	lea	rdi, [r15+r14]
+	lea	rdi, [r15+r13]
 	cmp	rbx, rcx
 	cmovb	rbx, rcx
 	cmp	rbx, rax
 	cmovb	rbx, rax
-	sub	rcx, r14
+	sub	rcx, r13
 	lea	rcx, -1024[rbx+rcx]
 	call	__memcpy_chk@PLT
 	mov	r9, QWORD PTR -120[rbp]
@@ -265,74 +245,82 @@ _Z9main__785Pv:
 	mov	rax, QWORD PTR -72[rbp]
 	mov	BYTE PTR [r15+r9], 0
 	cmp	QWORD PTR -128[rbp], rax
-	jb	.L41
+	jb	.L40
 	add	QWORD PTR -88[rbp], 32
 	mov	rsi, QWORD PTR -136[rbp]
 	cmp	QWORD PTR -72[rbp], rsi
-	jne	.L28
-	lea	rsi, .LC4[rip]
+	jne	.L41
+.L18:
+	lea	rsi, .LC7[rip]
 	mov	edi, 2
 	xor	eax, eax
 	mov	r15, QWORD PTR -144[rbp]
 	mov	rbx, QWORD PTR -152[rbp]
+	mov	r12d, 2
 	call	__printf_chk@PLT
-	jmp	.L19
+.L17:
+	cmp	QWORD PTR 16[r15], 0
+	je	.L24
+	jmp	.L22
 	.p2align 4,,10
 	.p2align 3
-.L37:
+.L36:
 	mov	rdi, QWORD PTR [r15]
 	call	realloc@PLT
-	jmp	.L11
+	jmp	.L10
 	.p2align 4,,10
 	.p2align 3
-.L20:
-	mov	r15, QWORD PTR -144[rbp]
-	xor	eax, eax
-	lea	rdx, .LC6[rip]
-	lea	rsi, .LC7[rip]
+.L38:
+	mov	rdi, QWORD PTR [r15]
+	call	realloc@PLT
+	jmp	.L6
+	.p2align 4,,10
+	.p2align 3
+.L19:
+	lea	rdx, .LC5[rip]
+	lea	rsi, .LC6[rip]
 	mov	edi, 2
+	xor	eax, eax
+	mov	r15, QWORD PTR -144[rbp]
 	mov	rbx, QWORD PTR -152[rbp]
 	mov	r12d, 1
 	call	__printf_chk@PLT
-	cmp	QWORD PTR 16[r15], 0
-	je	.L26
-	jmp	.L24
+	jmp	.L17
 	.p2align 4,,10
 	.p2align 3
-.L41:
+.L40:
 	mov	r14, r15
 	mov	rbx, QWORD PTR -152[rbp]
 	mov	r15, QWORD PTR -144[rbp]
 	mov	edx, r9d
-.L23:
-	xor	eax, eax
+.L15:
 	mov	rcx, r14
 	lea	rsi, .LC3[rip]
+	xor	eax, eax
 	xor	r12d, r12d
 	mov	edi, 2
 	call	__printf_chk@PLT
-	cmp	QWORD PTR 16[r15], 0
-	je	.L26
-	jmp	.L24
-.L40:
+	jmp	.L17
+.L26:
+	xor	edx, edx
 	lea	r14, .LC0[rip]
-	jmp	.L23
-.L38:
+	jmp	.L15
+.L37:
 	call	__stack_chk_fail@PLT
 .L2:
-	lea	rsi, .LC8[rip]
+	lea	rsi, .LC7[rip]
 	mov	edi, 2
 	xor	eax, eax
 	mov	r12d, 2
 	call	__printf_chk@PLT
-	jmp	.L25
+	jmp	.L23
 	.cfi_endproc
 .LFE97:
-	.size	_Z9main__785Pv, .-_Z9main__785Pv
+	.size	_Z9main__787Pv, .-_Z9main__787Pv
 	.section	.rodata.main.str1.8,"aMS",@progbits,1
 	.align 8
-.LC9:
-	.string	"Compiler: smo\316\273 (https://github.com/maniospas/smol)\nThreads: 1 (single threaded mode)\n"
+.LC8:
+	.string	"smo\316\273 - https://github.com/maniospas/smol\nSingle threaded\n"
 	.section	.text.startup.main,"ax",@progbits
 	.p2align 4
 	.globl	main
@@ -343,14 +331,14 @@ main:
 	endbr64
 	sub	rsp, 24
 	.cfi_def_cfa_offset 32
-	lea	rsi, .LC9[rip]
+	lea	rsi, .LC8[rip]
 	mov	edi, 2
 	mov	rax, QWORD PTR fs:40
 	mov	QWORD PTR 8[rsp], rax
 	xor	eax, eax
 	call	__printf_chk@PLT
 	lea	rdi, 4[rsp]
-	call	_Z9main__785Pv
+	call	_Z9main__787Pv
 	mov	eax, DWORD PTR 4[rsp]
 	mov	rdx, QWORD PTR 8[rsp]
 	sub	rdx, QWORD PTR fs:40

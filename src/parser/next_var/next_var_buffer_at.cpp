@@ -36,7 +36,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
             count_packs++;
     if(buffer_types[next]->_is_primitive) 
         count_packs++;
-    Variable fail_var = create_temp();
+    Variable fail_var = Variable("__result__buffer_error"); //create_temp();
     
     implementation += Code(
         token_ifnot, 
@@ -61,7 +61,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         SEMICOLON_VAR
     );
 
-    vars[fail_var] = types.vars[LABEL_VAR];
+    //vars[fail_var] = types.vars[LABEL_VAR];
     implementation += Code(
         token_if, 
         idx, 
@@ -71,10 +71,10 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         fail_var, 
         SEMICOLON_VAR
     );
-    errors += Code(
+    errors.insert(Code(
         fail_var, 
-        Variable(":\nprintf(\"Buffer index out of range\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")
-    );
+        Variable(":\nprintf(\"Buffer error\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")
+    ));
     Variable elem = create_temp();
     Variable packname = EMPTY_VAR;
     // TODO: the following has only issue with buffers stored into buffers

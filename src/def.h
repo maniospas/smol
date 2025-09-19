@@ -218,7 +218,8 @@ public:
     Variable alias_for;
     size_t pos, start, end, p;
     Variable name;
-    Code vardecl, implementation, errors;
+    Code vardecl, implementation;
+    unordered_set<Code> errors;
     size_t number_of_calls;
     Variable active_context;
     set<string> preample;

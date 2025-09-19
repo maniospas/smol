@@ -790,9 +790,10 @@ int main(int argc, char* argv[]) {
                 out << "\n// IMPLEMENTATION\n";
                 out << service->implementation;
                 out << "goto __return;\n"; // skip error handling block that resides at the end of the service
-                if(service->errors.exists()) {
+                if(service->errors.size()) {
                     out << "\n// ERROR HANDLING\n";
-                    out << service->errors;
+                    for(const auto& error : service->errors)
+                        out << error;
                 }
                 out << "\n// DEALLOCATE RESOURCES BY ERRORS\n";
                 out << "__failsafe:\n";

@@ -36,7 +36,7 @@ void Def::parse_directive_body(const shared_ptr<Import>& imp, size_t& p, string 
             && !is_symbol(next) 
             && !is_symbol(nextnext)
         ) {
-            // identified assignment so we are creaeting a primitive
+            // identified assignment so we are creating a primitive
             string argname = nextnext;
             string argtype = next;
             if(types.vars.find(argtype)==types.vars.end() || types.vars.find(argtype)->second->not_primitive()) 

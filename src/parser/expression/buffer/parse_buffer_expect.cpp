@@ -38,7 +38,7 @@ Variable Def::parse_buffer_expect(const shared_ptr<Import>& imp, size_t& p, cons
     vars[curry+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
     vars[curry+Variable("__buffer_contents")]      = types.vars[Variable("ptr")];
 
-    Variable fail_var = create_temp();
+    Variable fail_var = Variable("__result__buffer_error"); //create_temp();
     implementation += Code(
         token_ifnot, 
         curry, 
@@ -66,8 +66,7 @@ Variable Def::parse_buffer_expect(const shared_ptr<Import>& imp, size_t& p, cons
     implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
     implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[2] & ~(1ULL << 63)"), SEMICOLON_VAR);
 
-    static const Variable token_print = Variable(":\nprintf(\"Buffer error");
-    static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
+    static const Variable token_print = Variable(":\nprintf(\"Buffer error\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
 
     // check if resize needed
     implementation += Code(token_if, amount, Variable("&&"), curry+Variable("__buffer_size"), PLUS_VAR, amount, Variable(">"), curry+Variable("__buffer_capacity"), Variable("){"));
@@ -119,9 +118,9 @@ Variable Def::parse_buffer_expect(const shared_ptr<Import>& imp, size_t& p, cons
     implementation += Code(Variable("((u64*)"), curry, Variable(")[2]"), ASSIGN_VAR, curry+Variable("__buffer_capacity"), SEMICOLON_VAR);
     implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
 
-    vars[fail_var] = types.vars[LABEL_VAR];
+    //vars[fail_var] = types.vars[LABEL_VAR];
     implementation += Code(token_if, Variable("!"), curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
-    errors += Code(fail_var, token_print, token_failsafe);
+    errors.insert(Code(fail_var, token_print));
 
     implementation += Code(Variable("} else "));
     implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);

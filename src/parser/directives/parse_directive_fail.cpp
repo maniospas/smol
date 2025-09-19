@@ -17,7 +17,7 @@ void Def::parse_directive_fail(const shared_ptr<Import>& imp, size_t& p, string 
         imp->error(--p, "@fail is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     Variable fail_label = create_temp();
     vars[fail_label] = types.vars[LABEL_VAR];
-    errors = errors+Code(fail_label, COLON_VAR);
+    Code directive_errors = Code(fail_label, COLON_VAR);
     next = imp->at(p++);
     if(next!="{") 
         imp->error(--p, "Expected brackets");
@@ -55,11 +55,12 @@ void Def::parse_directive_fail(const shared_ptr<Import>& imp, size_t& p, string 
                     ++p;
                     nextnext = imp->at(p);
                 }
-            errors += Code(Variable(next));
+            directive_errors += Code(Variable(next));
         }
     }
     static const Variable token_error = Variable("\n__result__errocode=__USER__ERROR;\ngoto __failsafe;\n");
     static const Variable token_goto = Variable("goto");
-    errors += Code(token_error);
+    directive_errors += Code(token_error);
     implementation += Code(token_goto, fail_label, SEMICOLON_VAR, UNREACHABLE_VAR);
+    errors.insert(directive_errors);
 }

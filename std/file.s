@@ -285,8 +285,8 @@ smo ended(@access @mut File f)
     }
     -> has_ended
 
-smo is_file(String _path)
-    path = _path:str
+smo is_file(CString _path)
+    path = _path:nstr
     @head{#include <stdio.h>}
     @body{
         ptr f = fopen((char*)path__contents, "r");
@@ -295,16 +295,16 @@ smo is_file(String _path)
     }
     -> exists
 
-smo is_dir(String _path)
-    path = _path:str
+smo is_dir(CString _path)
+    path = _path:nstr
     @head{#include <sys/stat.h> #ifdef _WIN32 #define stat _stat #endif}
     @body{
         ptr info = (ptr)malloc(sizeof(struct stat));
         i64 status = stat((char*)path__contents, (struct stat*)info);
-        bool is_dir = (status == 0 && (((struct stat*)info)->st_mode & S_IFMT) == S_IFDIR);
+        bool result = (status == 0 && (((struct stat*)info)->st_mode & S_IFMT) == S_IFDIR);
         free(info);
     }
-    -> is_dir
+    -> result
 
 smo remove_file(String _path)
     path = _path:str
