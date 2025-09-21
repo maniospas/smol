@@ -78,16 +78,15 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         ERROR("Internal error: tried to parse a runtype implementation without a file "+name.to_string());
     if(lazy_compile && with_signature) 
         return;
-    Types& types = saved_types;
-    unordered_set<Variable> next_assignments;
-    bool single_statement = false;
-    if(p<imp->size() && imp->at(p)=="do") {
-        p++;
-        single_statement = true;
-    }
-    size_t start_p = p;
+    auto& types = saved_types;
+    auto next_assignments = unordered_set<Variable>{};
+    auto single_statement = false;
     while(p<imp->size()) {
-        if(p!=start_p && single_statement) {
+        if(p<imp->size() && imp->at(p)=="do") {
+            p++;
+            single_statement = true;
+        }
+        else if(single_statement) { // 'else if' to allow chaining of 'do's 
             --p;
             break;
         }
@@ -132,11 +131,21 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             is_mutable_assignment=true;
         }*/
         if(next=="|") {
+            if(single_statement)
+                imp->error(p-2, "Cannot accept `do` before a `return` statement"
+                    "\n- `do` marks a block end after the next expression (does not yield a value)"
+                    "\n- `return` ends the block while returning a value"
+                );
             parse_return(imp, p, next, types);
             end = p--;
             break;
         }
         if(next=="-") {
+            if(single_statement)
+                imp->error(p-2, "Cannot accept `do` before a `return` statement"
+                    "\n- `do` marks a block end after the next expression (does not yield a value)"
+                    "\n- `return` ends the block while returning a value"
+                );
             parse_return(imp, p, next, types);
             end = p--;
             break;

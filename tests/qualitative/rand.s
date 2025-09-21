@@ -6,4 +6,3 @@ service main()
     range(10)
     :while next(@mut u64 i)
         print(rand:next)
-    ----

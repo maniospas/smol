@@ -28,13 +28,13 @@
 
 smo range(u64 start, u64 end, u64 step) 
     @mut pos = start 
-    -> @args, pos
+    return @args, pos
 
 smo range(u64 start, u64 end) 
-    -> range(start,end,1)
+    return range(start,end,1)
 
 smo range(u64 end)  
-    -> range(0,end,1)
+    return range(0,end,1)
 
 smo next(
         @access @mut range self, 
@@ -42,4 +42,4 @@ smo next(
     )
     value = self.pos 
     self.pos = self.pos+1
-    -> (self.pos)<=(self.end) 
+    return (self.pos)<=(self.end) 

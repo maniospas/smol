@@ -12,42 +12,36 @@ smo Sphere(
         f64 dx, 
         f64 dy
     ) 
-    -> @args
+    return @args
 
 smo process(@mut Sphere s, f64 dt)
     @mut nx = s.x:add(s.dx * dt)
     @mut ny = s.y:add(s.dy * dt)
     @mut ndx = s.dx
     @mut ndy = s.dy
-    if (nx - s.r)< 0.0 
+    if (nx - s.r)< 0.0
         nx = s.r
         ndx = ndx:negative
-        --
     elif (nx + s.r) > 800.0
         nx = 800.0 - s.r
         ndx = ndx:negative
-        --
+        return ended
     if (ny - s.r) < 0.0
         ny = s.r
         ndy = ndy:negative
-        --
     elif (ny + s.r) > 450.0
         ny = 450.0 - s.r
         ndy = ndy:negative
-        --
+        return ended
     s = Sphere(nx, ny, s.r, ndx, ndy)
-    --
 
 smo draw(Sphere sphere, @mut Window window)
-    window:circ(sphere.x, sphere.y, sphere.r, Color(200, 50, 50))
-    --
+    do window:circ(sphere.x, sphere.y, sphere.r, Color(200, 50, 50))
     
 smo process(@mut Sphere[] spheres, f64 dt)
     range(spheres:len)
     :while next(@mut u64 i)
-        spheres[i]
-        ::process(dt)
-    ----
+        do spheres[i]::process(dt)
 
 service test()
     @mut spheres = Sphere[]
@@ -59,7 +53,7 @@ service test()
     @mut prev_t = time()
     @mut accum_fps = 60.0
     on Heap:volatile(1024)
-        while window:is_open
+        do while window:is_open
             start_t = time()
             spheres
             :process(dt)
@@ -70,8 +64,7 @@ service test()
 
             range(spheres:len)
             :while next(@mut u64 i)
-                spheres[i]:draw(window)
-                --
+                do spheres[i]:draw(window)
 
             window
             :text((accum_fps):u64:str+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
@@ -83,10 +76,8 @@ service test()
             prev_t = t
             accum_fps = add(accum_fps*0.99, 0.01:div(dt))
             exact_sleep(0.015-(t-start_t))
-            --
-    ----
+            do ended
 
 service main()
     test()
     //print("running") // services are async, this will be printed
-    --

@@ -4,7 +4,7 @@ service samples()
     buf = u64[]
     :push(42)
     :push(10)
-    -> buf // return statement
+    return buf // return statement
 
 service main()
     buf = samples()

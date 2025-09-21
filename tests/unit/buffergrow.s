@@ -6,4 +6,4 @@ service main()
     :expect(2)
     print(p[0])
     print(p[1])
-    --
+    return ended

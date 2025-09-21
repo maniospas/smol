@@ -3,7 +3,7 @@
 smo Point(u64 _x, u64 _y)
     @mut x = _x
     @mut y = _y
-    -> x,y
+    return x,y
 
 service main()
     p = Point(1,2)

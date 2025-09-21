@@ -1,7 +1,7 @@
 @include std.core
 
 service print_service(u64 x)
-    -> print(x)
+    return print(x)
 
 service main()
     range(10)

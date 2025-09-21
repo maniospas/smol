@@ -11,13 +11,11 @@ service main()
         a = rand:vector(10)
         b = rand:vector(10)
         c = rand:vector(10)
-        --
+        return ended
     // operator results in a preallocated vector 
     // that is eventually returned (only one 
     // allocation but we need operations to apply
     // sequentially)
-    result = on Stack:vector(10) 
-        -> (a*b*c)+a+b+c
+    result = on Stack:vector(10) return (a*b*c)+a+b+c
     print(result)
-    --
 

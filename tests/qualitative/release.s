@@ -7,15 +7,13 @@
 
 service test() 
     @mut mem = Heap:arena(10000)
-    on mem
+    @mut mapon = on mem
         s = "123":str:copy
-        @mut map = map(100, str, u64)
-        --
+        return map(100, str, u64)
     @release mem
     map:put(s, 1) // ERROR - mem used in map has been released
     print(map["123"])
-    -> map // ERROR - even if we comment the above two lines, we wouldn't be able to return something with a released segment
+    return map // ERROR - even if we comment the above two lines, we wouldn't be able to return something with a released segment
 
 service main()
     test()
-    --

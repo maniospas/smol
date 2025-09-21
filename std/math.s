@@ -22,56 +22,56 @@
 smo cos(f64 x)
     @head{#include <math.h>}
     @body{f64 z = cos(x);}
-    -> z
+    return z
 
 smo acos(f64 x)
     @head{#include <math.h>} 
     @body{f64 z = acos(x);}
-    -> z
+    return z
 
 smo sin(f64 x)
     @head{#include <math.h>}
     @body{f64 z = sin(x);}
-    -> z
+    return z
 
 smo asin(f64 x)
     @head{#include <math.h>} 
     @body{f64 z = asin(x);}
-    -> z
+    return z
 
 smo exp(f64 x) 
     @head{#include <math.h>} 
     @body{f64 z = exp(x);}
-    -> z
+    return z
 
 smo pi(f64 x) 
     @head{#include <math.h>} 
     @body{f64 z = x * M_PI;} 
-    -> z
+    return z
 
 smo tan(f64 x)
     @head{#include <math.h>}
     @body{f64 z = tan(x);}
-    -> z
+    return z
 
 smo atan(f64 x) 
     @head{#include <math.h>} 
     @body{f64 z = atan(x);}
-    -> z
+    return z
 
 smo atan2(f64 y, f64 x) 
     @head{#include <math.h>} 
     @body{f64 z = atan2(y, x);} 
-    -> z
+    return z
 
 smo is_nan(f64 x) 
     @body{bool z=(x!=x);} 
-    -> z
+    return z
 
 smo is_inf(f64 x) 
     @head{#include <cmath>} 
     @body{bool z=std::isinf(x);}
-    -> z
+    return z
 
 smo sqrt(f64 x)
     if x<0.0 
@@ -79,7 +79,7 @@ smo sqrt(f64 x)
         --
     @head{#include <math.h>}
     @body{f64 z = sqrt(x);}
-    -> z
+    return z
 
 smo pow(f64 base, f64 exponent)
     if base<0.0 
@@ -87,7 +87,7 @@ smo pow(f64 base, f64 exponent)
         --
     @head{#include <math.h>}
     @body{f64 z = pow(base, exponent);}
-    -> z
+    return z
     
 smo log(f64 x)
     if x<=0.0 
@@ -95,4 +95,4 @@ smo log(f64 x)
         --
     @head{#include <math.h>}
     @body{f64 z = log(x);}
-    -> z
+    return z

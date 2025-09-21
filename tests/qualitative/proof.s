@@ -6,55 +6,53 @@
 //   keep track of their nature.
 
 smo x(nominal) 
-    -> @args
+    return @args
     
 smo y(nominal) 
-    -> @args
+    return @args
 
 smo z(nominal) 
-    -> @args
+    return @args
 
 smo zero(nominal) 
-    -> @args
+    return @args
 
 union Var
     x
     y
     z
-    --
 
 union Number
     Var
     zero
-    --
 
 union Number2
     Number
-    --
 
 smo neg(nominal,Var) 
-    -> @args
+    return @args
 
 smo neg(nominal,neg arg) 
-    -> arg.Var
+    return arg.Var
 
 smo neg(nominal,zero) 
-    -> nominal:zero
+    return nominal:zero
 
 smo add(nominal,Var,neg) 
     with 
         @mut equals=Var 
         equals=neg.Var 
-    ---> nominal:zero
+        --
+    return nominal:zero
 
 smo add(nominal,Var,zero) 
-    -> Var
+    return Var
 smo sub(nominal,Number,Number2) 
     with 
         result = nominal:add(Number,nominal:neg(Number2)) 
-    ---> result
+        --
+    return result
 
 service main() 
     @mut equals = nominal:sub(nominal:neg(nominal:neg(x)), zero) // (0-(0-x))-zero == x
     equals = nominal:x // this would have an error if we used nominal:z
-    --

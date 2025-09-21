@@ -26,23 +26,23 @@ smo MemoryGrid (
         u64 squares
     )
     surface = memory:allocate(size*squares, Primitive)
-    -> type, surface, size, squares
+    return type, surface, size, squares
 
 smo GridEntry (
         nominal,
         @mut MemoryGrid grid,
         u64 id
     ) 
-    -> @args
+    return @args
 
 smo at(@mut MemoryGrid self, u64 id) 
-    -> nominal:GridEntry(self, id)
+    return nominal:GridEntry(self, id)
 
 smo at(@access GridEntry self, u64 pos) 
     true_pos = pos
     :mul(self.grid.squares)
     :add(self.id)
-    -> self.grid.surface[true_pos]
+    return self.grid.surface[true_pos]
 
 smo put(
         @access @mut GridEntry self, 
@@ -56,10 +56,10 @@ smo put(
     :mul(self.grid.squares)
     :add(self.id)
     self.grid.surface:__unsafe_put(true_pos, value)
-    --
+    return ended
 
 smo len(@access GridEntry self) 
-    -> self.grid.size
+    return self.grid.size
 
 smo grid(@mut Memory memory, u64 size, u64 squares, Primitive)
-    -> nominal:MemoryGrid(memory, Primitive, size, squares)
+    return nominal:MemoryGrid(memory, Primitive, size, squares)

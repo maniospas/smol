@@ -5,7 +5,7 @@
 service reader()
     printin("give a number: ")
     value = f64:read
-    -> value
+    return value
 
 service main()
     @mut messages = str[]

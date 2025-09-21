@@ -40,7 +40,7 @@
 
 smo __rotl(u64 x, u64 k)
     @body{u64 z = (x << k) | (x >> (64 - k));}
-    -> z
+    return z
 
 smo splitmix64(@mut u64 x)
     @body {
@@ -49,7 +49,7 @@ smo splitmix64(@mut u64 x)
         z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
         z = z ^ (z >> 31);
     }
-    -> z
+    return z
 
 smo Rand(u64 seed)
     @nozero
@@ -62,7 +62,7 @@ smo Rand(u64 seed)
     @finally s1 {}
     @finally s2 {}
     @finally s3 {}
-    -> s0,s1,s2,s3
+    return s0,s1,s2,s3
 
 smo splitmix64()
     @head{#include <time.h>}
@@ -73,11 +73,11 @@ smo splitmix64()
         u64 seed = (u64)((struct timespec*)ts)->tv_sec * (u64)1000000000 + ((struct timespec*)ts)->tv_nsec;
     }
     @finally seed {}
-    -> seed
+    return seed
 
 smo Rand() 
     @nozero
-    -> Rand(splitmix64())
+    return Rand(splitmix64())
 
 smo next(@access @mut Rand self)
     @body{
@@ -91,5 +91,5 @@ smo next(@access @mut Rand self)
     }
     self.s3 = __rotl(self.s3, 45)
     @body{f64 value = ((f64)(result >> 11)) / ((f64)((unsigned long long)(1) << 53));}
-    -> value
+    return value
 

@@ -24,19 +24,28 @@
 vector<string> installation_permissions;
 
 string to_ctypes(const Type t) {
-    if (t->name == "f64") return "ctypes.c_double";
-    if (t->name == "i64") return "ctypes.c_long";
-    if (t->name == "u64") return "ctypes.c_uint64";
-    if (t->name == "cstr") return "ctypes.c_char_p";
-    if (t->name == "ptr") return "ctypes.c_void_p";
+    if (t->name == "f64") 
+        return "ctypes.c_double";
+    if (t->name == "i64") 
+        return "ctypes.c_long";
+    if (t->name == "u64") 
+        return "ctypes.c_uint64";
+    if (t->name == "cstr") 
+        return "ctypes.c_char_p";
+    if (t->name == "ptr")   
+        return "ctypes.c_void_p";
     return "ctypes.c_void_p";
 }
 
 string to_python_type(const Type t) {
-    if (t->name == "f64") return "(float, int)";
-    if (t->name == "i64") return "int";
-    if (t->name == "u64") return "int";
-    if (t->name == "cstr") return "(bytes, str)";
+    if (t->name == "f64") 
+        return "(float, int)";
+    if (t->name == "i64") 
+        return "int";
+    if (t->name == "u64") 
+        return "int";
+    if (t->name == "cstr") 
+        return "(bytes, str)";
     return "object";
 }
 
@@ -56,8 +65,10 @@ enum class Task {
 };
 
 Task parse_task(const string& arg) {
-    if(arg == "compile") return Task::Compile;
-    if(arg == "verify") return Task::Verify;
+    if(arg == "compile") 
+        return Task::Compile;
+    if(arg == "verify") 
+        return Task::Verify;
     if(arg == "doc") {
         Def::export_docs=true; 
         return Task::Verify;
@@ -66,25 +77,29 @@ Task parse_task(const string& arg) {
         Def::markdown_errors=true; 
         return Task::Verify;
     }
-    if(arg == "run") return Task::Run;
-    if(arg == "assemble") return Task::Assemble;
-    if(arg == "transpile") return Task::Transpile;
-    if(arg == "lib") return Task::Library;
-    throw invalid_argument("Unknown task: " + arg);
+    if(arg == "run") 
+        return Task::Run;
+    if(arg == "assemble") 
+        return Task::Assemble;
+    if(arg == "transpile") 
+        return Task::Transpile;
+    if(arg == "lib") 
+        return Task::Library;
+    throw invalid_argument("Unknown task: " + arg+" is not one of --run, --assemble, --transpile, --lib, --lsp, --verify, --doc");
 }
 
 bool codegen(map<string, Types>& files, string file, const Memory& builtins, Task selected_task, string& task_report) {
-    Types& types = files[file];
+    auto& types = files[file];
     if(types.vars.size()) 
         return false;
     auto imp = tokenize(file);
     types.imp = imp;
     for(const auto& it : builtins.vars) 
         types.vars[it.first] = it.second;
-    unordered_set<string> imported;
-    size_t p = 0;
-    size_t warnings = 0;
-    bool errors = 0;
+    auto imported = unordered_set<string>{};
+    auto p = size_t{0};
+    auto warnings = size_t{0};
+    auto errors = false;
     if(imp->tokens.size()) while(p<imp->tokens.size()-1) {
         try {
             if (imp->at(p) == "@" && imp->at(p + 1) == "unsafe") {
@@ -206,9 +221,9 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                         def->assert_options_validity(imp, p);
                     }
                 }
-                for(const auto& it : files[path].alignment_labels) 
+                for(auto& it : files[path].alignment_labels) 
                     types.alignment_labels[it.first] = it.second;
-                for(const auto& it : files[path].reverse_alignment_labels) 
+                for(auto& it : files[path].reverse_alignment_labels) 
                     types.reverse_alignment_labels[it.first] = it.second;
                 if(files[path].all_errors.size()) 
                     if(Def::markdown_errors) 
@@ -217,8 +232,8 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 continue;
             }
             else if(imp->at(p)=="smo" || imp->at(p)=="service") {
-                size_t start_p = p;
-                stack<pair<string, int>> brackets;
+                auto start_p = p;
+                auto brackets = stack<pair<string, int>> {};
                 for(;p<imp->size();++p) {
                     string next = imp->at(p);
                     if(next=="(" || next=="{" || next=="[") 
@@ -321,6 +336,10 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 p++;
                 while(true) {
                     string next = imp->at(p++);
+                    if(next=="smo" || next=="union" || next=="service"){
+                        --p;
+                        break;
+                    }
                     if(next=="-" && imp->at(p++)=="-") 
                         break;
                     const auto& found_type = types.vars.find(next);

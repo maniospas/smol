@@ -1,10 +1,10 @@
 @include std.core 
 
 smo point(f64 x, f64 y)
-    -> @args
+    return @args
 
 smo circle(point center, f64 r)
-    -> @args
+    return @args
 
 smo print(point p)
     printin("point (")
@@ -12,20 +12,20 @@ smo print(point p)
     printin(",")
     printin(p.y)
     print(")")
-    --
+    return ended
 
 smo print(circle c)
     printin("circle radious ")
     printin(c.r)
     printin(" centered at ")
     print(c.center)
-    --
+    return ended
 
 smo add(point a, point b) 
-    -> point(a.x+b.x, a.y+b.y)
+    return point(a.x+b.x, a.y+b.y)
 
 smo add(circle a, circle b) 
-    -> circle(a.center, a.r+b.r)
+    return circle(a.center, a.r+b.r)
 
 service main()
     p1 = point(1.0, 2.0)
@@ -34,4 +34,4 @@ service main()
     c2 = circle(p2, 10.0)
     print(add(p1,p2))
     print(add(c1,c2))
-    --
+    return ended

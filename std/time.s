@@ -38,17 +38,15 @@
 
 smo sleep(f64 duration)
     @body{__smolambda_task_sleep(duration);}
-    --
 
 smo exact_sleep(f64 duration)
     if duration<=0.0 
         |--
     @head{#include "std/oscommon.h"}
     @body{__smo_exact_sleep(duration);}
-    --
 
 smo time()
     @head{#include "std/oscommon.h"}
     @body{f64 elapsed = __smo_time_eta();}
-    -> elapsed
+    return elapsed
 

@@ -115,14 +115,14 @@ std::string Token::show() const {
 
 // ---------- tokenize ----------
 shared_ptr<Import> tokenize(const string& path) {
-    ifstream file(path);
+    auto file = ifstream{path};
     if(!file) 
         ERROR("Could not open file: " + path);
-    string line;
-    size_t line_num = 0;
+    auto line = string{""};
+    auto line_num = size_t{0};
     auto main_file = make_shared<Import>(path);
-    vector<Token>& tokens = main_file->tokens;
-    size_t in_brackets = 0;
+    auto& tokens = main_file->tokens;
+    auto in_brackets = size_t{0};
     while(getline(file, line)) {
         line_num++;
         size_t i = 0;
@@ -173,13 +173,6 @@ shared_ptr<Import> tokenize(const string& path) {
                 } else {
                     tokens.emplace_back(current_str_token, line_num, start_col, main_file);
                 }
-            }
-            else if (!in_brackets &&line.compare(i, 7, "return ")==0) {
-                tokens.emplace_back("-", line_num, col, main_file);
-                tokens.emplace_back(">", line_num, col + 1, main_file);
-                i += 7;
-                col += 7;
-                continue;
             }
             else if(!in_brackets && line[i]=='+') {
                 tokens.emplace_back(":", line_num, col, main_file);
@@ -325,7 +318,15 @@ shared_ptr<Import> tokenize(const string& path) {
                 while(i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) {i++; col++;}
                 if(start < i) {
                     string substr = line.substr(start, i - start);
-                    if(substr=="elif") {
+                    /*if (substr=="end") {
+                        tokens.emplace_back("-", line_num, col, main_file);
+                        tokens.emplace_back("-", line_num, col + 1, main_file);
+                    }
+                    else*/ if (substr=="return") {
+                        tokens.emplace_back("-", line_num, col, main_file);
+                        tokens.emplace_back(">", line_num, col + 1, main_file);
+                    }
+                    else if(substr=="elif") {
                         tokens.emplace_back("else", line_num, start_col, main_file);
                         tokens.emplace_back("-", line_num, start_col, main_file);
                         tokens.emplace_back(">", line_num, start_col, main_file);

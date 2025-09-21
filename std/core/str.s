@@ -43,7 +43,7 @@
                "The result of the split can be iterated through with <code>next</code>. This does not allocate memory in that a substring is retrieved, so you might consider copying the splits - or store them on data structures like maps that automatically copy data if needed."
 @about eq      "Checks for equality between String types when considering their contents. Implementation of this operation varies, "
                "ensuring that the cached first element of strings (not available for cstr) is compared first and then the lengths "
-               "are taken into account to compare memory bytes. Example: <pre>if \"me\"==\"me\" -> print(\"me!\")</pre>"
+               "are taken into account to compare memory bytes. Example: <pre>if \"me\"==\"me\" return print(\"me!\")</pre>"
 @about neq     "Equivalent to logical enversion of String <i>eq</i>. It is faster to write and run."
 @about slice   "Obtains a substring slice out of a String. This always produces a <code>str</code> results, because null termination "
                "cannot be guaranteed for most results - and is dropped even if it could be guaranteed to save computations. "
@@ -57,7 +57,7 @@ smo str (
         char first, 
         ptr memory
     ) 
-    -> @args
+    return @args
 
 smo nstr (
         nominal, 
@@ -66,7 +66,7 @@ smo nstr (
         char first, 
         ptr memory
     )  
-    -> @args
+    return @args
 
 union String
     cstr
@@ -84,10 +84,10 @@ union CString
     --
 
 smo is(String self, String) 
-    -> self
+    return self
 
 smo str(nstr other)
-    -> nominal:str(other.contents, other.length, other.first, other.memory)
+    return nominal:str(other.contents, other.length, other.first, other.memory)
 
 smo str(@access cstr raw)
     @head{#include <string.h>}
@@ -97,7 +97,7 @@ smo str(@access cstr raw)
         char first=raw[0];
         ptr noptr=(ptr)noptr; // use this to indicate a cstr
     }
-    -> nominal:str(contents, length, first, noptr)
+    return nominal:str(contents, length, first, noptr)
 
 smo nstr(@access cstr raw)
     @head{#include <string.h>}
@@ -107,21 +107,21 @@ smo nstr(@access cstr raw)
         char first=raw[0];
         ptr noptr = (ptr)noptr; // use this to indicate a cstr
     }
-    -> nominal:nstr(contents, length, first, noptr)
+    return nominal:nstr(contents, length, first, noptr)
 
 smo str(@access bool value) 
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
     if value @body{cstr _contents=__truestr;} --
     else @body{cstr _contents=__falsestr;} --
-    -> str(_contents)
+    return str(_contents)
 
 smo nstr(@access bool value)
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
     if value @body{cstr _contents=__truestr;} --
     else @body{cstr _contents=__falsestr;} --
-    -> nstr(_contents)
+    return nstr(_contents)
 
 smo print(@access cstr message)
     @head{#include <stdio.h>}
@@ -155,11 +155,11 @@ smo printin(@access str message)
 
 smo eq(@access char x, char y)  
     @body{bool z=(x==y);} 
-    -> z
+    return z
 
 smo neq(@access char x, char y)
     @body{bool z=(x!=y);}
-    -> z
+    return z
 
 smo slice(@access String self, u64 from, u64 to) 
     s = self:str
@@ -173,10 +173,10 @@ smo slice(@access String self, u64 from, u64 to)
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from==to?0:((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
     }
-    -> nominal:str(contents, to-from, first, s.contents)
+    return nominal:str(contents, to-from, first, s.contents)
     
 smo slice(@access String self, u64 from) 
-    -> self:slice(from, 0)
+    return self:slice(from, 0)
 
 smo strip(@access String _s)
     s = _s:str
@@ -196,14 +196,14 @@ smo strip(@access String _s)
             else break;
         }
     }
-    -> s:slice(start, end)
+    return s:slice(start, end)
 
 smo eq(@access String _x, IndependentString _y)
     x = _x:str
     y = _y:str
     @head{#include <string.h>}
     @body{bool z = x__first==y__first && (x__length == y__length) && (memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) == 0);}
-    -> z
+    return z
 
 smo neq(@access String _x, IndependentString _y)
     x = _x:str
@@ -217,19 +217,19 @@ smo neq(@access String _x, IndependentString _y)
                 || (x__length != y__length) 
                 || (memcmp((char*)x__contents + 1, (char*)y__contents + 1, x__length - 1) != 0);
     }
-    -> z
+    return z
 
 smo len(@access str x) 
-    -> x.length
+    return x.length
 
 smo len(@access nstr x) 
-    -> x.length
+    return x.length
 
 smo len(@access cstr x)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{u64 z = strlen(x);}
-    -> z
+    return z
 
 smo at(@access str x, u64 pos) 
     if x__length<=pos 
@@ -237,20 +237,20 @@ smo at(@access str x, u64 pos)
         --
     // trying to help the compiler below, but maybe it's too clever and it can optimize that
     @body{char z= (__builtin_constant_p(pos) && pos == 0) ? x__first: ((char*)x__contents)[pos];} 
-    -> z
+    return z
 
 smo at(@access nstr x, u64 pos) 
-    -> at(x:str, pos)
+    return at(x:str, pos)
 
 smo Split(nominal, 
         str query,
         str sep, 
         @mut u64 pos
     ) 
-    -> @args
+    return @args
     
 smo Split(@access String _query, @access IndependentString _sep) 
-    -> nominal:Split(_query:str, _sep:str, u64 &pos) // splits are str (not cstr or nstr)
+    return nominal:Split(_query:str, _sep:str, u64 &pos) // splits are str (not cstr or nstr)
 
 smo next(
         @access @mut Split self, 
@@ -271,7 +271,7 @@ smo next(
         if searching
             self.pos = self.query:len
             value = self.query[prev to self.pos] 
-    -----> ret
+    ----return ret
 
 
 smo print(@access str[] messages)

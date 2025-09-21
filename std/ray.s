@@ -44,20 +44,20 @@
 
 smo Color(u64 r, u64 g, u64 b, u64 a)
     if r>255 
-        -> fail("Color r greater than 255")
+        return fail("Color r greater than 255")
     if g>255 
-        -> fail("Color g greater than 255")
+        return fail("Color g greater than 255")
     if b>255 
-        -> fail("Color b greater than 255")
+        return fail("Color b greater than 255")
     if a>255 
-        -> fail("Color a greater than 255")
-    -> @args
+        return fail("Color a greater than 255")
+    return @args
 
 smo Position(f64 x, f64 y)
-    -> @args
+    return @args
 
 smo Size(f64 w, f64 h)
-    -> @args
+    return @args
 
 smo Window(nominal, Size size, cstr title)
     @nozero // always require an instantiated window
@@ -73,26 +73,26 @@ smo Window(nominal, Size size, cstr title)
     @link{-lGL}
     @link{-lX11}
     @body{ SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title); }
-    -> @args
+    return @args
 
 smo close(@mut Window window)
     --
 
 smo is_open(@mut Window)
     @body{ bool ret = WindowShouldClose(); }
-    -> ret:not
+    return ret:not
 
 smo begin(@mut Window window)
     @body{ BeginDrawing(); }
-    -> window
+    return window
 
 smo end(@mut Window window)
     @body{ EndDrawing(); }
-    -> window
+    return window
 
 smo clear(@mut Window window, Color color)
     @body{ ClearBackground((Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}); }
-    -> window
+    return window
 
 smo text(@mut Window window, CString _txt, Position pos, f64 size, Color color)
     txt = _txt:nstr
@@ -105,13 +105,13 @@ smo text(@mut Window window, CString _txt, Position pos, f64 size, Color color)
             (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}
         ); 
     }
-    -> window
+    return window
 
 smo Color(u64 r, u64 g, u64 b)
-    -> Color(r, g, b, 255)
+    return Color(r, g, b, 255)
 
 smo Texture(nominal, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
-    -> @args
+    return @args
 
 smo open(Texture, CString _path)
     path = _path:nstr
@@ -125,7 +125,7 @@ smo open(Texture, CString _path)
         __smolambda_ray_texture(id,width,heigh,mipmaps,format);
     }
     @finally mipmaps {UnloadTexture((Texture2D){id, width, height, mipmaps, format});}
-    -> nominal:Texture(id, width, height, mipmaps, format)
+    return nominal:Texture(id, width, height, mipmaps, format)
 
 smo draw(@mut Window window, Texture tex, Position pos, Color color)
     @body{ 
@@ -135,7 +135,7 @@ smo draw(@mut Window window, Texture tex, Position pos, Color color)
             (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}
         ); 
     }
-    -> window
+    return window
 
 smo circ(@mut Window window, Position pos, f64 radius, Color color)
     @body{
@@ -144,7 +144,7 @@ smo circ(@mut Window window, Position pos, f64 radius, Color color)
             (float)radius,
             (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a});
     }
-    -> window
+    return window
 
 smo rect(@mut Window window, Position pos, Size size, Color color)
     @body{
@@ -154,11 +154,11 @@ smo rect(@mut Window window, Position pos, Size size, Color color)
             (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}
         );
     }
-    -> window
+    return window
 
 smo rect_line(@mut Window window, Position pos, Size size, u64 thickness, Color color)
     @body{DrawRectangleLinesEx((Rectangle){(float)pos__x, (float)pos__y, (float)size__w, (float)size__h}, (int)thickness, (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a});}
-    -> window
+    return window
 
 smo circ_line(@mut Window window, Position pos, u64 radius, u64 thickness, Color color)
     @body{
@@ -175,4 +175,4 @@ smo circ_line(@mut Window window, Position pos, u64 radius, u64 thickness, Color
             (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}
         );
     }
-    -> window
+    return window

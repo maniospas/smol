@@ -1,7 +1,7 @@
 @include std.core
-@include std.mem  -> Memory
-@include std.os   -> Process
-@include std.time -> time
+@include std.mem  return Memory
+@include std.os   return Process
+@include std.time return time
 
 service run(String command)
     @mut process = Process:open(command)
@@ -12,7 +12,7 @@ service run(String command)
     // Releasng checks for failure of incomplete
     // status or non-zero exit code.
     @release process
-    return None
+    return ended
 
 service std_test(String name)
     redirect = " 2>&1"
@@ -24,7 +24,7 @@ service std_test(String name)
             do print("[ \033[31mERROR\033[0m ] "+name+".s")
         else
             do print("[ \033[32mOK\033[0m ] "+name+".s")
-    return None
+    return ended
 
 service all()
     // services are asynchronous co-routines
@@ -50,7 +50,7 @@ service all()
     std_test("virtfile")
     std_test("accessvar")
     //std_test("release") // THIS IS AN ERROR
-    return None
+    return ended
 
 service main()
     tic = time()
@@ -58,4 +58,4 @@ service main()
     printin("Completed in ")
     printin(time()-tic)
     print(" sec")
-    return None
+    return ended

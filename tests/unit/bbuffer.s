@@ -4,7 +4,7 @@ smo data(
         u64 id, 
         u64[] values
     ) 
-    -> @args
+    return @args
 
 service main()
     @mut vals = u64[]
@@ -16,4 +16,3 @@ service main()
     print(p[0].id)
     print(p[0].values[0])
     print(vals[0])
-    --

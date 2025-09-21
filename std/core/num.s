@@ -19,8 +19,8 @@
 @about "Standard library wrapping of C basic arithmetics and printing."
 @about print   "Prints a primitive number, character, or boolean to the console."
 @about printin "Prints a primitive number, character, or boolean to the console without changing line."
-@about le      "Checks if the first number is less than or equal to the second and overloads the corresponding operator. Only the same number types can be compared, and explicit casts are required otherwise. Example demonstrating the need to use an f64 zero (0.0 and not 0) to compare with another read value of the same type: <pre>x = f64:read\nif x<0.0\n    -> print(\"negative\")\nelse\n    -> print(\"non-negative\")</pre>"
-@about ge      "Checks if the first number is greater than or equal to the second and overloads the corresponding operator. Only the same number types can be compared, and explicit casts are required otherwise. Example demonstrating the need to use an f64 zero (0.0 and not 0) to compare with another read value of the same type: <pre>x = f64:read\nif x>0.0\n    -> print(\"positive\")\nelse\n    -> print(\"non-positive\")</pre>"
+@about le      "Checks if the first number is less than or equal to the second and overloads the corresponding operator. Only the same number types can be compared, and explicit casts are required otherwise. Example demonstrating the need to use an f64 zero (0.0 and not 0) to compare with another read value of the same type: <pre>x = f64:read\nif x<0.0\n    return print(\"negative\")\nelse\n    return print(\"non-negative\")</pre>"
+@about ge      "Checks if the first number is greater than or equal to the second and overloads the corresponding operator. Only the same number types can be compared, and explicit casts are required otherwise. Example demonstrating the need to use an f64 zero (0.0 and not 0) to compare with another read value of the same type: <pre>x = f64:read\nif x>0.0\n    return print(\"positive\")\nelse\n    return print(\"non-positive\")</pre>"
 @about lt      "Checks if the first number is less than the second and overloads the corresponding operator. Example: <pre>print(1>=2)</pre>"
 @about gt      "Checks if the first number is greater than the second and overloads the corresponding operator. Example:<pre>print(1>=2)</pre>"
 @about leq     "Checks if the first number is less than or equal to the second."
@@ -36,195 +36,193 @@
 @about mod     "Modulo operation for signed or unsigned integers. For i64, only positive divisors are allowed. Fails on zero divisor. Overloads the corresponding operator. Here is an example: <pre>print(1%2)</pre>"
 @about negative "Returns the additive inverse (negation) of an i64 or f64. Does NOT overload any operation.  Having u64 as the default type helps avoid many spurious negation errors, especially when memory handling is concerned.<br><br>Both examples below print -1: <pre>print(0:i64-1:i64)\nprint(1:i64:negative)</pre>"
 @about Number  "One of u64, f64, i64"
-@about None    "Used to indicate no returned value, for example like so: "
-               "<pre>@include std.core"
-               "\nservice main()"
-               "\n    print(\"Hello world!\")"
-               "\n    return None</pre>"
+@about ended    "Used to indicate no returned value, for example like so: "
+                "<pre>@include std.core"
+                "\nservice main()"
+                "\n    print(\"Hello world!\")"
+                "\n    return ended</pre>"
+
+smo ended() 
+    --
 
 union Number 
     u64
     f64
     i64
-    --
-
-smo None() 
-    --
 
 smo print(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f\n", message);}
-    --
+    
 smo print(@access i64 message)
     @head{#include <stdio.h>}
     @body{printf("%ld\n", message);}
-    --
+    
 smo print(@access u64 message)
     @head{#include <stdio.h>}
     @body{printf("%lu\n", message);}
-    --
+    
 smo print(@access bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true\n"):printf("false\n");}
-    --
+    
 smo print(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c\n", message);}
-    --
+    
 smo printin(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f", message);}
-    --
+    
 smo printin(@access i64 message)
     @head{#include <stdio.h>}
     @body{printf("%ld", message);}
-    --
+    
 smo printin(@access u64 message)
     @head{#include <stdio.h>}
     @body{printf("%lu", message);}
-    --
+    
 smo printin(@access bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true"):printf("false");}
-    --
+    
 smo printin(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c", message);}
-    --
 
 smo le(@access Number x, Number y)  
     @body{bool z=x<=y;}   
-    -> z
+    return z
 
 smo ge(@access Number x, Number y)  
     @body{bool z=x>=y;}
-    -> z
+    return z
 
 smo lt(@access Number x, Number y)  
     @body{bool z=x<y;}
-    -> z
+    return z
 
 smo gt(@access Number x, Number y)
     @body{bool z=x>y;}
-    -> z
+    return z
 
 smo leq(@access Number x, Number y)
     @body{bool z=x<=y;}
-    -> z
+    return z
 
 smo geq(@access Number x, Number y)
     @body{bool z=x>=y;}
-    -> z
+    return z
 
 smo eq(@access Number x, Number y)
     @body{bool z=(x==y);} 
-    -> z
+    return z
 
 smo neq(@access Number x, Number y)
     @body{bool z=(x!=y);}
-    -> z
+    return z
 
 smo eq(@access ptr x, ptr y)
     @body{bool z=(x==y);}
-    -> z
+    return z
 
 smo neq(@access ptr x, ptr y)
     @body{bool z=(x!=y);} 
-    -> z
+    return z
 
 smo eq(@access bool x, bool y)
     @body{bool z=(x==y);} 
-    -> z
+    return z
 
 smo neq(@access bool x, bool y)
     @body{bool z=(x!=y);} 
-    -> z
+    return z
 
 smo not(@access bool x)
     @body{bool z=(!x);}
-    -> z
+    return z
 
 smo exists(@access ptr x)
     @body{bool z=(x);} 
-    -> z
+    return z
 
 smo add(@access u64 x, u64 y)
     @body{u64 z=x+y;} 
-    -> z
+    return z
 
 smo mul(@access u64 x, u64 y)
     @body{u64 z=x*y;}
-    -> z
+    return z
 
 smo div(@access u64 x, u64 y)
+    @head{#include <stdio.h>}
     if y==0 
-        @fail{printf("Error: division by zero\n");} 
-        --
+        do @fail{printf("Error: division by zero\n");} 
     @head{#include <stdio.h>}
     @body{u64 z=x/y;}
-    -> z
+    return z
 
 smo sub(@access u64 x, u64 y)
+    @head{#include <stdio.h>}
     if y>x 
-        @fail{printf("Error: unsigned substraction yielded a negative\n");} 
-        --
+        do @fail{printf("Error: unsigned substraction yielded a negative\n");} 
     @body{u64 z=x-y;}
-    -> z
+    return z
 
 smo mod(@access u64 x, u64 y) 
+    @head{#include <stdio.h>}
     if y==0
-        @fail{printf("Error: modulo by zero\n");}
-        --
+        do @fail{printf("Error: modulo by zero\n");}
     @head{#include <stdio.h>}
     @body{u64 z=x%y;} 
-    -> z
+    return z
 
 smo add(@access i64 x, i64 y) 
     @body{i64 z=x+y;} 
-    -> z
+    return z
 
 smo mod(@access i64 x, i64 y)
+    @head{#include <stdio.h>}
     if y<=0:i64
-        @fail{printf("Error: modulo by non-positive\n");} 
-        --
+        do @fail{printf("Error: modulo by non-positive\n");} 
     @head{#include <stdio.h>}
     @body{i64 z=x%y;}
-    -> z
+    return z
 
 smo sub(@access i64 x, i64 y)
     @body{i64 z=x-y;}
-    -> z
+    return z
 
 smo negative(@access i64 x)
-    -> sub(0:i64, x)
+    return sub(0:i64, x)
 
 smo mul(@access i64 x, i64 y)
     @body{i64 z=x*y;}
-    -> z
+    return z
 
 smo div(@access i64 x, i64 y)
+    @head{#include <stdio.h>}
     if y==0:i64
-        @fail{printf("Error: division by zero\n");} 
-        --
+        do @fail{printf("Error: division by zero\n");} 
     @head{#include <stdio.h>}
     @body{i64 z=x/y;}
-    -> z
+    return z
 
 smo add(@access f64 x, f64 y) 
     @body{f64 z=x+y;} 
-    -> z
+    return z
 
 smo sub(@access f64 x, f64 y)
     @body{f64 z=x-y;} 
-    -> z
+    return z
 
 smo mul(@access f64 x, f64 y)
     @body{f64 z=x*y;} 
-    -> z
+    return z
 
 smo negative(@access f64 x) 
-    -> sub(0.0, x)
+    return sub(0.0, x)
 
 smo div(@access f64 x, f64 y) 
     @body{f64 z=x/y;} 
-    -> z
+    return z

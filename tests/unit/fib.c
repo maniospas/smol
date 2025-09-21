@@ -89,14 +89,14 @@ __0E = 1 ;
  __1E__input = 0 ;
  __1E____state = (struct adder__182__state*)__runtime_calloc(sizeof(struct adder__182__state)) ;
  __smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results, __1E____state ) ;
- __1E____state -> input____ret = & __1E__input ;
- __1E____state -> input = __0E ;
+ __1E____state return input____ret = & __1E__input ;
+ __1E____state return input = __0E ;
  __1E____task = __smolambda_add_task ( adder__182 , __1E____state ) ;
  __smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks, __1E____task ) ;
  if( __1E__err ) goto  __result_unhandled_error ;
  if( __1E__err ) goto  __result_unhandled_error ;
  __smolambda_task_wait ( __1E____task ) ;
- __1E__err = __1E____state -> err ;
+ __1E__err = __1E____state return err ;
  if( __1E__err )goto __2E ;
  printf ( "%lu\n" , __1E__input ); 
  __3E____end :

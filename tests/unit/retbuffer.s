@@ -1,25 +1,25 @@
 @include std.core
 
 
-smo strbuf(nominal, str[] &ref)
-    -> @args
+smo strbuf(nominal, @mut str[] ref)
+    return @args
 
 smo strbuf(String value)
-    -> nominal:strbuf(str[]:push(value:str))
+    return nominal:strbuf(str[]:push(value:str))
 
-smo put(strbuf &buf, String value)
-    -> buf.ref:put(0, value:str)
+smo put(@access @mut strbuf buf, String value)
+    return buf.ref:put(0, value:str)
 
-smo str(strbuf &buf) 
-    -> buf.ref[0]:str
+smo str(@access @mut strbuf buf) 
+    return buf.ref[0]:str
 
 service main()
-    &boxes = strbuf[]  // must be mutable to grant mutable access
+    @mut boxes = strbuf[]  // must be mutable to grant mutable access
     :push("first element":strbuf)
     :push("second element":strbuf)
-    &b = boxes[0]
+    @mut b = boxes[0]
     // the line bellow is fancier than b:put("overwritten element")
     on b 
-        -> "overwritten element":put 
+        return "overwritten element":put 
     print(b:str)
-    --
+    return ended

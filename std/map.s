@@ -57,42 +57,42 @@
 //     i64
 //     --
 
-// smo __unsafe_cast(str, str value) -> value
-// smo __unsafe_cast(str, cstr value) -> value
+// smo __unsafe_cast(str, str value) return value
+// smo __unsafe_cast(str, cstr value) return value
 // smo __unsafe_cast(str, ptr value) 
 //     @head{#include <string.h>}
 //     @body{
 //         cstr temp_cast = 0;
 //         memcpy(&temp_cast, &value, sizeof(temp_cast));
-//     } -> temp_cast
+//     } return temp_cast
 
 // smo __unsafe_cast(str, u64 value) 
 //     @head{#include <string.h>}
 //     @body{
 //         cstr temp_cast = 0;
 //         memcpy(&temp_cast, &value, sizeof(temp_cast));
-//     } -> temp_cast
+//     } return temp_cast
 
 // smo __unsafe_cast(u64, cstr value) 
 //     @head{#include <string.h>}
 //     @body{
 //         u64 temp_cast = 0;
 //         memcpy(&temp_cast, &value, sizeof(temp_cast));
-//     } -> temp_cast
+//     } return temp_cast
 
 // smo __unsafe_cast(u64, ptr value) 
 //     @head{#include <string.h>}
 //     @body{
 //         u64 temp_cast = 0;
 //         memcpy(&temp_cast, &value, sizeof(temp_cast));
-//     } -> temp_cast
+//     } return temp_cast
 
-// smo __unsafe_cast(u64, u64 value) -> value
-// smo __unsafe_cast(u64, i64 value) @body{u64 temp_cast = static_cast<u64>(value);} -> temp_cast
-// smo __unsafe_cast(u64, f64 value) @body{u64 temp_cast = static_cast<u64>(value);} -> temp_cast
-// smo __unsafe_ret(u64, u64 value, ptr context) -> value
-// smo __unsafe_ret(f64, u64 value, ptr context) @body{f64 temp_cast = static_cast<f64>(value);} -> temp_cast
-// smo __unsafe_ret(i64, u64 value, ptr context) @body{i64 temp_cast = static_cast<i64>(value);} -> temp_cast
+// smo __unsafe_cast(u64, u64 value) return value
+// smo __unsafe_cast(u64, i64 value) @body{u64 temp_cast = static_cast<u64>(value);} return temp_cast
+// smo __unsafe_cast(u64, f64 value) @body{u64 temp_cast = static_cast<u64>(value);} return temp_cast
+// smo __unsafe_ret(u64, u64 value, ptr context) return value
+// smo __unsafe_ret(f64, u64 value, ptr context) @body{f64 temp_cast = static_cast<f64>(value);} return temp_cast
+// smo __unsafe_ret(i64, u64 value, ptr context) @body{i64 temp_cast = static_cast<i64>(value);} return temp_cast
 // smo __unsafe_ret(str, u64 value, ptr context) 
 //     @head{#include <string.h>}
 //     @body{cstr raw = (cstr)(value);} 
@@ -101,12 +101,12 @@
 //         ptr contents=(ptr)raw;
 //         char first=raw[0];
 //     }
-//     -> nominal:str(contents, length, first, context)
+//     return nominal:str(contents, length, first, context)
 
 // smo __map_prepare_key(nstr value, @mut Memorymemory) 
 //     with memory:is(Heap) fail("Error: Cannot directly allocate `Heap` memory for map strings, use anything else (a heap Arena, Dynamic, Stack)") 
 //     --else--
-//     //if value.memory:exists:not |-> value.contents  // cstr wrappers
+//     //if value.memory:exists:not |return value.contents  // cstr wrappers
 //     mem = memory:allocate(value.length+1, char)
 //     @body{
 //         if(mem__mem) {
@@ -114,18 +114,18 @@
 //             ((char*)mem__mem)[value__length] = '\0';
 //         }
 //     }
-//     -> mem.mem
-// smo __map_prepare_key(cstr value, @mut Memorymemory) -> value
-// smo __map_prepare_key(f64 value, @mut Memorymemory) -> value
-// smo __map_prepare_key(i64 value, @mut Memorymemory) -> value
-// smo __map_prepare_key(u64 value, @mut Memorymemory) -> value+1
-// smo __map_prepare_key(str value) -> value
-// smo __map_prepare_key(cstr value) -> value
-// smo __map_prepare_key(f64 value) -> value
-// smo __map_prepare_key(i64 value) -> value
-// smo __map_prepare_key(u64 value) -> value+1
+//     return mem.mem
+// smo __map_prepare_key(cstr value, @mut Memorymemory) return value
+// smo __map_prepare_key(f64 value, @mut Memorymemory) return value
+// smo __map_prepare_key(i64 value, @mut Memorymemory) return value
+// smo __map_prepare_key(u64 value, @mut Memorymemory) return value+1
+// smo __map_prepare_key(str value) return value
+// smo __map_prepare_key(cstr value) return value
+// smo __map_prepare_key(f64 value) return value
+// smo __map_prepare_key(i64 value) return value
+// smo __map_prepare_key(u64 value) return value+1
 // smo __map_prepare_value(nstr value, @mut Memorymemory)
-//     //if value.memory:exists:not |-> value.contents  // cstr wrappers
+//     //if value.memory:exists:not |return value.contents  // cstr wrappers
 //     mem = memory:allocate(value.length+1, char)
 //     @body{
 //         if(mem__mem) {
@@ -133,11 +133,11 @@
 //             ((char*)mem__mem)[value__length] = '\0';
 //         }
 //     }
-//     -> mem.mem
-// smo __map_prepare_value(cstr value, @mut Memorymemory) -> value
-// smo __map_prepare_value(f64 value, @mut Memorymemory) -> value
-// smo __map_prepare_value(i64 value, @mut Memorymemory) -> value
-// smo __map_prepare_value(u64 value, @mut Memorymemory) -> value
+//     return mem.mem
+// smo __map_prepare_value(cstr value, @mut Memorymemory) return value
+// smo __map_prepare_value(f64 value, @mut Memorymemory) return value
+// smo __map_prepare_value(i64 value, @mut Memorymemory) return value
+// smo __map_prepare_value(u64 value, @mut Memorymemory) return value
 
 // smo hash(String _s)
 //     // djb2
@@ -145,7 +145,7 @@
 //     u64 &hash = 5381
 //     range(s:len):while next(u64& i) 
 //         @body{hash = ((hash << 5) + hash)+(unsigned char)((char*)s__contents)[i];}
-//     ---> hash
+//     --return hash
 
 // smo hash(u64 _x)
 //     // xorshift64
@@ -155,7 +155,7 @@
 //         x ^= x << 25;
 //         x ^= x >> 27;
 //     }
-//     -> x
+//     return x
 
 // // class Map
 // smo Map(
@@ -170,13 +170,13 @@
 //         mem:__unsafe_put(i, 0)
 //         --
 //     length = 0
-//     -> type, size, mem, length, memory
+//     return type, size, mem, length, memory
 
 // smo map(@mut Memorymemory, u64 size, Keys, Values) 
-//     -> nominal:Map(memory, size, Keys, Values)
+//     return nominal:Map(memory, size, Keys, Values)
 
 // smo len(Map &self) 
-//     -> self.length
+//     return self.length
 
 // smo has(Map &self, Keys _key)
 //     with 
@@ -188,8 +188,8 @@
 //         while(self.mem[idx]!=0)and((self.mem[idx]:__unsafe_cast)!=(key:__unsafe_cast))
 //             idx = idx + 2 
 //             if idx>=self.mem.size 
-//                 |||-> false
-//     -----> self.mem[idx] != 0
+//                 |||return false
+//     ----return self.mem[idx] != 0
 
 // smo put(Map &self, Keys _key, Values _val)
 //     with 
@@ -202,7 +202,7 @@
 //         while(self.mem[idx]!=0)and((self.mem[idx]:__unsafe_cast)!=(key:__unsafe_cast)) 
 //             idx = idx + 2 
 //             if idx>=self.mem.size 
-//                 -> fail("Error: Map out of space")
+//                 return fail("Error: Map out of space")
 //         ----
 //     if self.mem[idx] == 0 
 //         @body{self__length = self__length+1;} 
@@ -223,11 +223,11 @@
 //         while(self.mem[idx]!=0)and((self.mem[idx]:__unsafe_cast)!=(key:__unsafe_cast))
 //             idx = idx + 2
 //             if idx>=self.mem.size 
-//                 -> fail("Error: Map has no such entry")
+//                 return fail("Error: Map has no such entry")
 //         ----
 //     if self.mem[idx] == 0 
-//         -> fail("Error: Map has no such entry")
-//     -> on self.Values -> self.mem:at(idx+1):__unsafe_ret(self.mem.underlying)
+//         return fail("Error: Map has no such entry")
+//     return on self.Values return self.mem:at(idx+1):__unsafe_ret(self.mem.underlying)
 
 // smo put(Map &self, CString _mkey, Values _val) 
 //     with 
@@ -244,48 +244,48 @@
 // smo at(Map self, CString _mkey) 
 //     with 
 //         ret = at(self, _mkey:str)  
-//     ---> ret
+//     --return ret
 
 
 // // smo List(nominal, @mut Memorymemory, u64 capacity, Values)
 // //     mem = memory:allocate(capacity, u64)
 // //     //range(capacity):while next(u64& i) mem:__unsafe_put(i, 0)
 // //     length = 0
-// //     ---> capacity, mem, length, memory, Values
+// //     --return capacity, mem, length, memory, Values
 
 // // smo List(@mut Memorymemory, u64 capacity, Values)
-// //     -> nominal:List(memory, capacity, Values)
+// //     return nominal:List(memory, capacity, Values)
 
-// // smo len(List self) -> self.length
+// // smo len(List self) return self.length
 
 // // smo push(List &self, Values value)
-// //     if self.length >= self.capacity -> fail("List out of space")
+// //     if self.length >= self.capacity return fail("List out of space")
 // //     on u64 
 // //         self.mem:__unsafe_put(self.length, value:__map_prepare_value(self.memory):__unsafe_cast)
 // //         @body{self__length = self__length + 1;}
-// //     ---> self
+// //     --return self
 
 // // smo push(List &self, cstr value)
-// //    -> self:push(value:str)
+// //    return self:push(value:str)
 
 // // smo at(List self, u64 index)
-// //     if index >= self.length -> fail("Index out of bounds")
-// //     -> on self.Values -> self.mem:at(index):__unsafe_ret(self.mem.underlying)
+// //     if index >= self.length return fail("Index out of bounds")
+// //     return on self.Values return self.mem:at(index):__unsafe_ret(self.mem.underlying)
 
 // // smo set(List &self, u64 index, Values value)
 // //     with value:is(self.Values) --
-// //     if index >= self.length -> fail("Index out of bounds")
+// //     if index >= self.length return fail("Index out of bounds")
 // //     on u64 
 // //         self.mem:__unsafe_put(index, value:__map_prepare_value(self.memory):__unsafe_cast)
 // //     ----
 
 // // smo iter(List self) 
 // //     &pos = 0
-// //     -> self, pos
+// //     return self, pos
 
 // // smo next(List self, u64 &pos, Values &value)
 // //     with Values:is(List.Values) 
-// //         if pos >= self.length |-> false
+// //         if pos >= self.length |return false
 // //         value = self[pos]
 // //         pos = pos+1
-// //     ---> true
+// //     --return true

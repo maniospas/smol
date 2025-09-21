@@ -3,12 +3,12 @@
 
 smo pointr(f64 r, @mut f64 t)  // t is mutable (the returned t also becomes mutable)
     t = t*2.0
-    -> r,t
+    return r,t
 
 smo point2d(f64 _x, f64 _y)
     @mut x = _x  // x is mutable
     @mut y = _y
-    -> x,y
+    return x,y
 
 service main()
     @mut t0 = 90.0
@@ -20,4 +20,3 @@ service main()
     @access p2 = point2d(1.0, 2.0)
     p2.y = p2.y * 5.0
     print(p2.y)            // prints 10
-    -- 

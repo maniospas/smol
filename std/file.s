@@ -85,11 +85,11 @@
 
 smo ReadFile(nominal, ptr contents)
     @noborrow
-    -> @args
+    return @args
 
 smo WriteFile(nominal, ptr contents)
     @noborrow
-    -> @args
+    return @args
 
 union File
     ReadFile
@@ -109,7 +109,7 @@ smo open(@access @mut ReadFile, String _path)
     }
     if contents:exists:not 
         @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} 
-    ---> nominal:ReadFile(contents)
+    --return nominal:ReadFile(contents)
 
 smo to_start(@access @mut File f) 
     if f.contents:exists:not 
@@ -124,7 +124,7 @@ smo to_end(@access @mut WriteFile f)
         if(f__contents) 
             fseek((FILE*)f__contents, 0, SEEK_END);
     }
-    -> f.contents:exists
+    return f.contents:exists
 
 smo len(@access @mut File f)
     @head{#include "std/oscommon.h"}
@@ -141,7 +141,7 @@ smo len(@access @mut File f)
             }
         }
     }
-    -> size
+    return size
 
 smo print(@access @mut WriteFile f, String _s)
     s = _s:str
@@ -170,7 +170,7 @@ smo temp(@mut Memory memory, @access @mut WriteFile, u64 size)
             fclose((FILE*)contents);
         contents=0;
     }
-    -> nominal:WriteFile(contents)
+    return nominal:WriteFile(contents)
     
 smo next_chunk (
         @mut Volatile reader, 
@@ -191,7 +191,7 @@ smo next_chunk (
         reader__length = reader__length + bytes_read;
     }
     value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
-    -> ret:bool
+    return ret:bool
 
 smo next_line (
         @mut Volatile reader, 
@@ -216,7 +216,7 @@ smo next_line (
         reader__length = reader__length + bytes_read;
     }
     value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
-    -> ret:bool
+    return ret:bool
 
 smo next_chunk (
         @mut Arena reader, 
@@ -234,7 +234,7 @@ smo next_chunk (
         reader__length = reader__length + bytes_read;
     }
     value = nominal:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
-    -> ret:bool
+    return ret:bool
 
 smo next_line(
         @mut Arena reader,
@@ -256,7 +256,7 @@ smo next_line(
         reader__length = reader__length + bytes_read;
     }
     value = nominal:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
-    -> ret:bool
+    return ret:bool
 
 smo next_line (
         @mut BoundedMemory reader,
@@ -265,7 +265,7 @@ smo next_line (
     )
     ret = next_line(reader, f, nstr &retvalue)
     value = retvalue:str
-    -> ret
+    return ret
 
 smo next_chunk (
         @mut BoundedMemory reader, 
@@ -274,7 +274,7 @@ smo next_chunk (
     )
     ret = next_chunk(reader, f, nstr &retvalue)
     value = retvalue:str
-    -> ret
+    return ret
 
 smo ended(@access @mut File f)
     @head{#include <stdio.h>}
@@ -283,7 +283,7 @@ smo ended(@access @mut File f)
         bool has_ended = (c == EOF);
         if(!has_ended) ungetc(c, (FILE*)f__contents); 
     }
-    -> has_ended
+    return has_ended
 
 smo is_file(CString _path)
     path = _path:nstr
@@ -293,7 +293,7 @@ smo is_file(CString _path)
         bool exists = (f != 0);
         if(f) fclose((FILE*)f);
     }
-    -> exists
+    return exists
 
 smo is_dir(CString _path)
     path = _path:nstr
@@ -304,7 +304,7 @@ smo is_dir(CString _path)
         bool result = (status == 0 && (((struct stat*)info)->st_mode & S_IFMT) == S_IFDIR);
         free(info);
     }
-    -> result
+    return result
 
 smo remove_file(String _path)
     path = _path:str
@@ -330,7 +330,7 @@ smo open(@access @mut WriteFile, String _path)
     }
     if contents:exists:not 
         @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
-    ---> nominal:WriteFile(contents)
+    --return nominal:WriteFile(contents)
 
 smo create_dir(String _path)
     path = _path:str
@@ -395,7 +395,7 @@ smo console(@access @mut WriteFile)
         if(!has_gui && isatty(STDIN_FILENO)) has_gui = false;
     }
     if has_gui:not 
-        -> fail("Cannot open a console in the current environment")
+        return fail("Cannot open a console in the current environment")
     @body{
         ptr f = 0;
         SMOLAMBDA_CONSOLE(f)
@@ -404,4 +404,4 @@ smo console(@access @mut WriteFile)
         SMOLAMBDA_CONSOLE_CLOSE(f)
         f = 0;
     }
-    -> nominal:WriteFile(f)
+    return nominal:WriteFile(f)

@@ -6,17 +6,17 @@ smo split(str query, str sep)
     @mut prev = 0
     while pos<query:len-sep:len
         if sep==query[pos to pos+sep:len] 
-            if pos>prev -> query[prev to pos]:print
+            if pos>prev 
+                do print(query[prev to pos])
             pos = pos+sep:len
             prev = pos
-            --
+            do nothing
         pos = pos+1 
-        --
-    if prev<query:len -> query[prev to query:len]:print
-    -- 
+        do ended
+    if prev<query:len 
+        do query[prev to query:len]:print
 
 service main()
     print("Write some text to split:")
     on Heap:arena(4096)
-        Heap:arena(4096):read:split(" ":str)
-    ----
+        do Heap:arena(4096):read:split(" ":str)

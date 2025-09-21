@@ -28,10 +28,10 @@
 @about __unsafe_put "Can modify an allocated memory. This operation cannot be called in safe files."
 
 smo Stack(nominal) 
-    -> @args 
+    return @args 
 
 smo Heap(nominal) 
-    -> @args
+    return @args
 
 union MemoryDevice
     Stack
@@ -57,43 +57,43 @@ smo ContiguousMemory (
     primitive = Primitive
     @body{u64 bytesize = sizeof(primitive)*size;}
     @buffer mem bytesize underlying
-    -> @args, bytesize
+    return @args, bytesize
 
 smo is(@access Primitive self, Primitive) 
-    -> self
+    return self
 
 smo allocate(@access Stack, u64 size, Primitive) 
     if size==0 
-        -> fail("Cannot allocate zero size")
+        return fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
     primitive = Primitive
     @body{ptr mem=alloca(size*sizeof(primitive));}
     if mem:bool:not 
-        -> fail("Failed a Stack allocation")
+        return fail("Failed a Stack allocation")
     @noshare mem
-    -> nominal:ContiguousMemory(Stack, size, Primitive, mem, mem)
+    return nominal:ContiguousMemory(Stack, size, Primitive, mem, mem)
 
 smo allocate(@access Heap, u64 size, Primitive)
     if size==0 
-        -> fail("Cannot allocate zero size")
+        return fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
     primitive = Primitive
     @body{ptr mem=__runtime_alloc(size*sizeof(primitive));}
     if mem:bool:not 
-        -> fail("Failed a Heap allocation")
+        return fail("Failed a Heap allocation")
     @finally mem {
         if(mem)
             __runtime_free(mem);
         mem=0;
     }
-    -> nominal:ContiguousMemory(Heap, size, Primitive, mem, mem)
+    return nominal:ContiguousMemory(Heap, size, Primitive, mem, mem)
 
 smo allocate(@access MemoryDevice, u64 size) 
-    -> allocate(MemoryDevice, size, char)
+    return allocate(MemoryDevice, size, char)
 
 smo at(@access ContiguousMemory v, u64 pos) 
     if pos>=v.size 
-        -> fail("ContiguousMemory out of bounds")
+        return fail("ContiguousMemory out of bounds")
     with 
         v.Primitive:is(u64) 
         @body{u64 value = ((u64*)v__mem)[pos];}
@@ -109,14 +109,15 @@ smo at(@access ContiguousMemory v, u64 pos)
     else 
         v.Primitive:is(char) 
         @body{char value = ((char*)v__mem)[pos];}
-    ---> value
+        --
+    return value
     
 smo __unsafe_put(@access ContiguousMemory v, u64 pos, Primitive value)
     with 
         v.Primitive:is(Primitive) 
         --
     if pos>=v.size 
-        -> fail("ContiguousMemory out of bounds")
+        return fail("ContiguousMemory out of bounds")
     with value:is(u64) 
         @body{((u64*)v__mem)[pos] = value;}
         --
@@ -128,4 +129,5 @@ smo __unsafe_put(@access ContiguousMemory v, u64 pos, Primitive value)
         --
     else value:is(char) 
         @body{((char*)v__mem)[pos] = value;}
-    ---> v
+        --
+    return v

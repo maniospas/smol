@@ -10,10 +10,10 @@ smo Segment(String _value)
 
 smo combine(Segment[] segments)
     @mut combined = "":str  // mutable null-terminated string
-    on Stack:arena(1024) do
-        range(segments:len)
-        :while next(@mut u64 i) do
-            combined = str(combined+segments[i].value+" ")
+    on Stack:arena(1024)
+        do range(segments:len)
+        :while next(@mut u64 i) 
+            do combined = str(combined+segments[i].value+" ")
     return combined
 
 service main()
@@ -21,5 +21,5 @@ service main()
     :push("I think.":Segment)
     :push("Therefore I am.":Segment)
     print(segments:combine)
-    return None
+    return ended
     

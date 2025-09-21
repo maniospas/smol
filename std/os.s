@@ -40,7 +40,7 @@
 
 smo Process(nominal, ptr contents)
     @noborrow
-    -> @args
+    return @args
 
 smo open(@access @mut Process, CString _command)
     command = _command:nstr.contents
@@ -70,7 +70,7 @@ smo open(@access @mut Process, CString _command)
             goto __failsafe; // already cleaned resources will not have an issue with this
         }
     }
-    -> nominal:Process(contents)
+    return nominal:Process(contents)
 
 smo to_end(@access @mut Process p)
     @head{#include <string.h>}
@@ -99,7 +99,7 @@ smo next_chunk(
         char first = ((char*)reader__contents__mem)[0];
     }
     value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
-    -> ret:bool
+    return ret:bool
 
 smo next_line(
         @mut DerivedMemory reader, 
@@ -113,7 +113,7 @@ smo next_line(
         char first = ((char*)reader__contents__mem)[0];
     }
     value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
-    -> ret:bool
+    return ret:bool
 
 smo next_chunk(
         @mut DerivedMemory memory, 
@@ -122,7 +122,7 @@ smo next_chunk(
     ) 
     ret = next_chunk(memory, p, nstr &retvalue)
     value = retvalue:str
-    -> ret
+    return ret
 
 smo next_line(
         @mut DerivedMemory memory, 
@@ -131,13 +131,13 @@ smo next_line(
     ) 
     ret = next_line(memory, p, nstr &retvalue)
     value = retvalue:str
-    -> ret
+    return ret
 
 smo system(cstr command)
     @head{#include <stdlib.h>}
     @body{u64 result = system((char*)command);}
     if result!=0 
-        -> fail("Error: System call failed")
+        return fail("Error: System call failed")
     --
 
 smo system(str command) 
@@ -158,5 +158,5 @@ smo open(@access @mut Process, str command)
         // we don't do it)
         cstr mem = (const char*)mem__mem; 
     }
-    -> Process:open(mem)
+    return Process:open(mem)
 

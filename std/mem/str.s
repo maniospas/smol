@@ -33,7 +33,7 @@ smo copy(@access @mut Memory allocator, String _s)
         memcpy((char*)mem__mem, s__contents, s__length);
         ((char*)mem__mem)[s__length] = 0;
     }
-    -> nominal:nstr(mem.mem, s.length, first, mem.underlying)
+    return nominal:nstr(mem.mem, s.length, first, mem.underlying)
 
 smo add(@access @mut Memory allocator, String _x, IndependentString _y)
     x = _x:str
@@ -53,7 +53,7 @@ smo add(@access @mut Memory allocator, String _x, IndependentString _y)
         memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
         ((char*)_contents)[total_len] = 0;
     }
-    -> nominal:nstr(_contents, total_len, first, mem.underlying)
+    return nominal:nstr(_contents, total_len, first, mem.underlying)
 
 smo nstr(@access @mut Memory allocator, i64 number)
     @head{#include <stdio.h>}
@@ -77,7 +77,7 @@ smo nstr(@access @mut Memory allocator, i64 number)
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
         --
-    -> nominal:nstr(contents, length, first, mem.underlying)
+    return nominal:nstr(contents, length, first, mem.underlying)
 
 smo nstr(@access @mut Memory allocator, u64 number)
     @head{#include <stdio.h>}
@@ -101,7 +101,7 @@ smo nstr(@access @mut Memory allocator, u64 number)
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
         --
-    -> nominal:nstr(contents, length, first, mem.underlying)
+    return nominal:nstr(contents, length, first, mem.underlying)
 
 smo nstr(@access @mut Memory allocator, f64 number)
     @head{#include <stdio.h>}
@@ -125,13 +125,13 @@ smo nstr(@access @mut Memory allocator, f64 number)
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
         --
-    -> nominal:nstr(contents, length, first, mem.underlying)
+    return nominal:nstr(contents, length, first, mem.underlying)
 
 smo str(@access @mut Memory allocator, u64 number)
-    -> nstr(allocator, number):str
+    return nstr(allocator, number):str
 
 smo str(@access @mut Memory allocator, i64 number)
-    -> nstr(allocator, number):str
+    return nstr(allocator, number):str
 
 smo str(@access @mut Memory allocator, f64 number)
-    -> nstr(allocator, number):str
+    return nstr(allocator, number):str

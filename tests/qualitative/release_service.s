@@ -5,10 +5,8 @@
 
 service test(u64 x) 
     // @release x  // cannot release an argument
-    --
 
 service main()
     x = 1
     test(x)
     //@release x  // cannot release a service argument
-    --

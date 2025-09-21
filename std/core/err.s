@@ -24,7 +24,7 @@
              "Example: <pre>printin(\"Give a number:\")"
              "\nx = i64:read"
              "\nif x==0.0"
-             "\n    -> fail(\"Cannot compute the inverse of zero\")"
+             "\n    return fail(\"Cannot compute the inverse of zero\")"
              "\nprintin(\"Its inverse is:\")"
              "\nprint(1.0/x)</pre>"
 @about print "Prints a string interpretation of an error code."
