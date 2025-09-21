@@ -20,4 +20,4 @@ service main()
     @access p2 = point2d(1.0, 2.0)
     p2.y = p2.y * 5.0
     print(p2.y)            // prints 10
-    return ended
+    noreturn

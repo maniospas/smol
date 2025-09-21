@@ -12,4 +12,3 @@ service main()
     test1 = memory1:copy("123":str)
     test2 = memory2:copy("456":str)
     print(test1)  // prints 456
-    return ended

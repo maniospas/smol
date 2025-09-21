@@ -36,14 +36,6 @@
 @about mod     "Modulo operation for signed or unsigned integers. For i64, only positive divisors are allowed. Fails on zero divisor. Overloads the corresponding operator. Here is an example: <pre>print(1%2)</pre>"
 @about negative "Returns the additive inverse (negation) of an i64 or f64. Does NOT overload any operation.  Having u64 as the default type helps avoid many spurious negation errors, especially when memory handling is concerned.<br><br>Both examples below print -1: <pre>print(0:i64-1:i64)\nprint(1:i64:negative)</pre>"
 @about Number  "One of u64, f64, i64"
-@about ended    "Used to indicate no returned value, for example like so: "
-                "<pre>@include std.core"
-                "\nservice main()"
-                "\n    print(\"Hello world!\")"
-                "\n    return ended</pre>"
-
-smo ended() 
-    --
 
 union Number 
     u64
@@ -157,7 +149,8 @@ smo mul(@access u64 x, u64 y)
 smo div(@access u64 x, u64 y)
     @head{#include <stdio.h>}
     if y==0 
-        do @fail{printf("Error: division by zero\n");} 
+        @fail{printf("Error: division by zero\n");} 
+        noreturn
     @head{#include <stdio.h>}
     @body{u64 z=x/y;}
     return z
@@ -165,14 +158,16 @@ smo div(@access u64 x, u64 y)
 smo sub(@access u64 x, u64 y)
     @head{#include <stdio.h>}
     if y>x 
-        do @fail{printf("Error: unsigned substraction yielded a negative\n");} 
+        @fail{printf("Error: unsigned substraction yielded a negative\n");} 
+        noreturn
     @body{u64 z=x-y;}
     return z
 
 smo mod(@access u64 x, u64 y) 
     @head{#include <stdio.h>}
     if y==0
-        do @fail{printf("Error: modulo by zero\n");}
+        @fail{printf("Error: modulo by zero\n");}
+        noreturn
     @head{#include <stdio.h>}
     @body{u64 z=x%y;} 
     return z
@@ -184,7 +179,8 @@ smo add(@access i64 x, i64 y)
 smo mod(@access i64 x, i64 y)
     @head{#include <stdio.h>}
     if y<=0:i64
-        do @fail{printf("Error: modulo by non-positive\n");} 
+        @fail{printf("Error: modulo by non-positive\n");} 
+        noreturn
     @head{#include <stdio.h>}
     @body{i64 z=x%y;}
     return z
@@ -203,7 +199,8 @@ smo mul(@access i64 x, i64 y)
 smo div(@access i64 x, i64 y)
     @head{#include <stdio.h>}
     if y==0:i64
-        do @fail{printf("Error: division by zero\n");} 
+        @fail{printf("Error: division by zero\n");} 
+        noreturn
     @head{#include <stdio.h>}
     @body{i64 z=x/y;}
     return z

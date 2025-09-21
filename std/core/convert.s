@@ -40,7 +40,8 @@ smo read(@access i64)
         bool success = (result == 2 && (ch == 13 || ch == 10));
     }
     if success:not 
-        do @fail{printf("Error: invalid integer read\n");} 
+        @fail{printf("Error: invalid integer read\n");} 
+        noreturn
     return number
 
 smo read(@access u64)
@@ -58,7 +59,8 @@ smo read(@access u64)
         }
     }
     if success:not 
-        do @fail{printf("Error: invalid unsigned integer read\n");} 
+        @fail{printf("Error: invalid unsigned integer read\n");} 
+        noreturn
     return number
 
 smo read(@access f64)
@@ -71,7 +73,8 @@ smo read(@access f64)
         bool success = (result == 2 && (ch == 13 || ch == 10));
     }
     if success:not 
-        do @fail{printf("Error: invalid number read\n");} 
+        @fail{printf("Error: invalid number read\n");} 
+        noreturn
     return number
 
 smo convert(@access i64, String _s)
@@ -105,9 +108,9 @@ smo convert(@access i64, String _s)
         }
     }
     if success:not 
-        do @fail{printf("Error: invalid integer conversion from string\n");} 
+        @fail{printf("Error: invalid integer conversion from string\n");} 
+        noreturn
     return number
-
 
 smo convert(@access u64, String _s)
     s = _s:str
@@ -131,7 +134,8 @@ smo convert(@access u64, String _s)
         }
     }
     if success:not 
-        do @fail{printf("Error: invalid unsigned integer conversion from string\n");} 
+        @fail{printf("Error: invalid unsigned integer conversion from string\n");} 
+        noreturn
     return number
 
 
@@ -195,5 +199,6 @@ smo convert(@access f64, String _s)
         }
     }
     if success:not 
-        do @fail{printf("Error: invalid floating-point conversion from string\n");} 
+        @fail{printf("Error: invalid floating-point conversion from string\n");} 
+        noreturn
     return number

@@ -100,7 +100,7 @@ smo nstr(@access @mut Memory allocator, u64 number)
     }
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
-        --
+        noreturn
     return nominal:nstr(contents, length, first, mem.underlying)
 
 smo nstr(@access @mut Memory allocator, f64 number)
@@ -124,7 +124,7 @@ smo nstr(@access @mut Memory allocator, f64 number)
     }
     if contents:exists:not
         @fail{printf("Failed to allocate str from number\n");} 
-        --
+        noreturn
     return nominal:nstr(contents, length, first, mem.underlying)
 
 smo str(@access @mut Memory allocator, u64 number)

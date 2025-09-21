@@ -17,4 +17,4 @@ service main()
     // (this keeps data there) 
     buf = vec3[memory]:expect(1)
     print(buf[0].x)
-    return ended
+    noreturn

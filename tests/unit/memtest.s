@@ -4,12 +4,12 @@
 
 smo test(@mut File file)
     on Heap:volatile(32)
-        do file
+        file
         :while next_chunk(@mut str chunk) 
-            do printin(chunk)
+            printin(chunk)
+            noreturn
+        noreturn
     print("")
-    return ended
 
 service main()
     ReadFile:open("README.md"):test
-    return ended

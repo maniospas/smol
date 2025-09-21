@@ -21,5 +21,5 @@ service main()
     :push("I think.":Segment)
     :push("Therefore I am.":Segment)
     print(segments:combine)
-    return ended
+    noreturn
     

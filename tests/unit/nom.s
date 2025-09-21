@@ -9,9 +9,9 @@ smo print(point p)
     print(p.x)
     print(p.y)
     print(p.z)
-    return ended
+    noreturn
 
 service main()
     p = nominal:point(1,2)
     print(p.type,1,2,2)
-    return ended
+    noreturn

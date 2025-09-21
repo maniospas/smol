@@ -12,7 +12,7 @@ service run(String command)
     // Releasng checks for failure of incomplete
     // status or non-zero exit code.
     @release process
-    return ended
+    noreturn
 
 service std_test(String name)
     redirect = " 2>&1"
@@ -20,11 +20,14 @@ service std_test(String name)
     // new memory surface because the previous one was made immutable 
     // by feeding into a service call
     on Heap:dynamic
-        do if run(command).err:bool
-            do print("[ \033[31mERROR\033[0m ] "+name+".s")
+        if run(command).err:bool
+            print("[ \033[31mERROR\033[0m ] "+name+".s")
+            noreturn
         else
-            do print("[ \033[32mOK\033[0m ] "+name+".s")
-    return ended
+            print("[ \033[32mOK\033[0m ] "+name+".s")
+            noreturn
+        noreturn
+    noreturn
 
 service all()
     // services are asynchronous co-routines
@@ -50,7 +53,7 @@ service all()
     std_test("virtfile")
     std_test("accessvar")
     //std_test("release") // THIS IS AN ERROR
-    return ended
+    noreturn
 
 service main()
     tic = time()
@@ -58,4 +61,4 @@ service main()
     printin("Completed in ")
     printin(time()-tic)
     print(" sec")
-    return ended
+    noreturn

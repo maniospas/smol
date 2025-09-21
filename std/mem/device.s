@@ -36,14 +36,12 @@ smo Heap(nominal)
 union MemoryDevice
     Stack
     Heap
-    --
 
 union Primitive
     char
     u64
     f64
     i64
-    --
 
 smo ContiguousMemory (
         nominal, 
@@ -97,37 +95,37 @@ smo at(@access ContiguousMemory v, u64 pos)
     with 
         v.Primitive:is(u64) 
         @body{u64 value = ((u64*)v__mem)[pos];}
-        -- 
+        noreturn
     else 
         v.Primitive:is(i64) 
         @body{i64 value = ((i64*)v__mem)[pos];}
-        --
+        noreturn
     else 
         v.Primitive:is(f64) 
         @body{f64 value = ((f64*)v__mem)[pos];}
-        --
+        noreturn
     else 
         v.Primitive:is(char) 
         @body{char value = ((char*)v__mem)[pos];}
-        --
+        noreturn
     return value
     
 smo __unsafe_put(@access ContiguousMemory v, u64 pos, Primitive value)
     with 
         v.Primitive:is(Primitive) 
-        --
+        noreturn
     if pos>=v.size 
         return fail("ContiguousMemory out of bounds")
     with value:is(u64) 
         @body{((u64*)v__mem)[pos] = value;}
-        --
+        noreturn
     else value:is(i64) 
         @body{((i64*)v__mem)[pos] = value;}
-        --
+        noreturn
     else value:is(f64) 
         @body{((f64*)v__mem)[pos] = value;} 
-        --
+        noreturn
     else value:is(char) 
         @body{((char*)v__mem)[pos] = value;}
-        --
+        noreturn
     return v

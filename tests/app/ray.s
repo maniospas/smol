@@ -25,14 +25,14 @@ smo process(@mut Sphere s, f64 dt)
     elif (nx + s.r) > 800.0
         nx = 800.0 - s.r
         ndx = ndx:negative
-        return ended
+        noreturn
     if (ny - s.r) < 0.0
         ny = s.r
         ndy = ndy:negative
     elif (ny + s.r) > 450.0
         ny = 450.0 - s.r
         ndy = ndy:negative
-        return ended
+        noreturn
     s = Sphere(nx, ny, s.r, ndx, ndy)
 
 smo draw(Sphere sphere, @mut Window window)

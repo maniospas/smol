@@ -12,15 +12,20 @@ smo read_name(@mut Arena arn)
 service main()
     name = Heap:arena(24):read_name
     on Heap:dynamic
-        do print("Hi "+name+"!")
+        print("Hi "+name+"!")
+        noreturn
     on Stack:dynamic
-        do print("Hi "+name+"!")
+        print("Hi "+name+"!")
+        noreturn
     on Heap:arena(1024)
-        do print("Hi "+name+"!")
+        print("Hi "+name+"!")
+        noreturn
     on Stack:arena(1024)
-        do print("Hi "+name+"!")
+        print("Hi "+name+"!")
+        noreturn
     on Stack:volatile(1024)
-        do print("Hi "+name+"!")
+        print("Hi "+name+"!")
+        noreturn
     on Heap:volatile(1024)
-        do print("Hi "+name+"!")
-
+        print("Hi "+name+"!")
+        noreturn

@@ -82,14 +82,14 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
     auto next_assignments = unordered_set<Variable>{};
     auto single_statement = false;
     while(p<imp->size()) {
-        if(p<imp->size() && imp->at(p)=="do") {
-            p++;
-            single_statement = true;
-        }
-        else if(single_statement) { // 'else if' to allow chaining of 'do's 
-            --p;
-            break;
-        }
+        // if(p<imp->size() && imp->at(p)=="do") {
+        //     p++;
+        //     single_statement = true;
+        // }
+        // else if(single_statement) { // 'else if' to allow chaining of 'do's 
+        //     --p;
+        //     break;
+        // }
         bool is_next_assignment = false;
         bool is_access_assignment = false;
         bool is_mutable_assignment = false;

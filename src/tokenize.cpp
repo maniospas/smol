@@ -318,11 +318,11 @@ shared_ptr<Import> tokenize(const string& path) {
                 while(i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) {i++; col++;}
                 if(start < i) {
                     string substr = line.substr(start, i - start);
-                    /*if (substr=="end") {
+                    if (substr=="noreturn") {
                         tokens.emplace_back("-", line_num, col, main_file);
                         tokens.emplace_back("-", line_num, col + 1, main_file);
                     }
-                    else*/ if (substr=="return") {
+                    else if (substr=="return") {
                         tokens.emplace_back("-", line_num, col, main_file);
                         tokens.emplace_back(">", line_num, col + 1, main_file);
                     }

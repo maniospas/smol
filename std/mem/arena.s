@@ -39,7 +39,7 @@ smo controlled_corrupt(@access @mut Volatile self)
     if self.cycles:bool 
         return fail("Volatile corrupt detected that some data have already been corrupted by insufficient space instead.")
     @body{self__length=0;}
-    return ended
+    noreturn
 
 union DerivedMemory
     Arena

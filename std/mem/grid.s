@@ -51,12 +51,11 @@ smo put(
     )
     with 
         Primitive:is(self.MemoryGrid.Primitive) 
-        --
+        noreturn
     true_pos = pos
     :mul(self.grid.squares)
     :add(self.id)
     self.grid.surface:__unsafe_put(true_pos, value)
-    return ended
 
 smo len(@access GridEntry self) 
     return self.grid.size

@@ -36,32 +36,28 @@ smo assert_ok(errcode error)
     @body{bool isunhandled = (error==__UNHANDLED__ERROR);}
     if isuser 
         @fail{printf("User error\n");} 
-        --
+        noreturn
     if isbuffer 
         @fail{printf("Buffer error\n");} 
-        --
+        noreturn
     if isunhandled 
         @fail{printf("Unhandled error\n");}
-        --
+        noreturn
     if iserror 
         @fail{printf("Unknown error\n");}
-        --
-    --
+        noreturn
 
 smo fail(cstr error)
     @head{#include <stdio.h>}
     @fail {printf("%s\n", error);}
-    --
 
 smo fail(nstr error)
     @head{#include <stdio.h>}
     @fail {printf("%s\n", (char*)error__contents);}
-    --
 
 smo fail(str error)
     @head{#include <stdio.h>}
     @fail {printf("%.*s\n", (int)error__length, (char*)error__contents);}
-    --
 
 smo print(errcode error)
     @head{#include <stdio.h>}
@@ -77,9 +73,8 @@ smo print(errcode error)
         else 
             printf("No error\n");
     }
-    -- 
 
 smo assert(bool condition, cstr error)
     // prefer using this function as in the future constant evaluation of certain conditions will occur
-    if condition:not fail(error)
-    ----
+    if condition:not 
+        fail(error)

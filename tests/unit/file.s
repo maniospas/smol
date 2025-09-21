@@ -8,5 +8,6 @@ service main()
         :open("README.md")
         :while next_line(str &line)
             if line:len:bool and line[line:len-1]==endl 
-               do line = line[0 to line:len-1]
+               line = line[0 to line:len-1]
+               noreturn
             print(line)
