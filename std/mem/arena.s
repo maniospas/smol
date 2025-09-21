@@ -31,19 +31,22 @@ smo Volatile(nominal type, ContiguousMemory contents)
     @noborrow  // we need this so that controlled_corrupt can properly analyze corruptions
     length = 0
     cycles = 0
-    with contents.Primitive:is(char)
-    --
+    with 
+        contents.Primitive:is(char)
+        end
     return type, contents, length, cycles
 
 smo controlled_corrupt(@access @mut Volatile self)
     if self.cycles:bool 
-        return fail("Volatile corrupt detected that some data have already been corrupted by insufficient space instead.")
+        fail("Volatile corrupt detected that some data have already been corrupted by insufficient space instead.")
+        end
     @body{self__length=0;}
-    noreturn
+    end
 
 union DerivedMemory
     Arena
     Volatile
+    end
 
 smo len(@access @mut DerivedMemory self) 
     return self.contents.size
@@ -176,10 +179,12 @@ union Memory
     MemoryDevice
     DerivedMemory
     Dynamic
+    end
 
 union BoundedMemory
     Arena
     Volatile
+    end
 
 smo is(@access @mut Memory self, @mut Memory) 
     return self

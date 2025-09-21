@@ -9,7 +9,7 @@ smo print(@access Point p)
     printin(p.x)
     printin(",")
     print(p.y)
-    noreturn
+    end
 
 smo TPoint(f64 px, f64 py)
     x = px
@@ -22,16 +22,16 @@ smo IPoint(nominal, f64 x, f64 y)
 smo scale(@access @mut Point p, f64 factor) 
     p.x = p.x*factor
     p.y = p.y*factor
-    noreturn
+    end
 
 smo zero(@access @mut Point p)
     p = Point(0.0, 0.0)
-    noreturn
+    end
 
 smo zero(@mut IPoint p)
     p = nominal:IPoint(0.0, 0.0)
     // p.x = 0.0 // creates an ERROR (p is mutable as a whole only)
-    noreturn
+    end
 
 service main()
     @mut p = Point(1.0,1.0)
@@ -48,4 +48,4 @@ service main()
 
     @mut tp = TPoint(1.0,1.0)
     tp:scale(5.0) // creates an error if we remove @mut from before tp
-    noreturn
+    end

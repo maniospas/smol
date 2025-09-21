@@ -21,5 +21,5 @@ service main()
     // the line bellow is fancier than b:put("overwritten element")
     on b 
         "overwritten element":put 
-        noreturn
+        end
     print(b:str)

@@ -86,4 +86,4 @@ service main()
             :at(i, Square)
             :volume(1.0)
             :print
-    noreturn
+    end

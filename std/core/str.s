@@ -182,21 +182,21 @@ smo strip(@access String _s)
     s = _s:str
     @body{
         u64 start = 0;
-        u64 end = s__length;
-        while(start < end) {
+        u64 endpos = s__length;
+        while(start < endpos) {
             char c = ((char*)s__contents)[start];
             if (c == 32 || c == 9 || c == 13 || c == 10) 
                 start++; // ' ', '\t', '\r', '\n'
             else break;
         }
-        while(end > start) {
-            char c = ((char*)s__contents)[end - 1];
+        while(endpos > start) {
+            char c = ((char*)s__contents)[endpos - 1];
             if (c == 32 || c == 9 || c == 13 || c == 10) 
-                end--;
+                endpos--;
             else break;
         }
     }
-    return s:slice(start, end)
+    return s:slice(start, endpos)
 
 smo eq(@access String _x, IndependentString _y)
     x = _x:str

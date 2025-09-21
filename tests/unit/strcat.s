@@ -13,19 +13,19 @@ service main()
     name = Heap:arena(24):read_name
     on Heap:dynamic
         print("Hi "+name+"!")
-        noreturn
+        end
     on Stack:dynamic
         print("Hi "+name+"!")
-        noreturn
+        end
     on Heap:arena(1024)
         print("Hi "+name+"!")
-        noreturn
+        end
     on Stack:arena(1024)
         print("Hi "+name+"!")
-        noreturn
+        end
     on Stack:volatile(1024)
         print("Hi "+name+"!")
-        noreturn
+        end
     on Heap:volatile(1024)
         print("Hi "+name+"!")
-        noreturn
+        end

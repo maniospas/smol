@@ -11,4 +11,4 @@ service main()
     tic = time()
     print(25:fib)
     print(time()-tic)
-    noreturn
+    end

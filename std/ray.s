@@ -35,7 +35,7 @@
 @about text     "Draw at given position a String of given size and color"
 @about draw     "Draws a texture at specific coodinates and size"
 @about begin    "Begin drawing a new scene instance - must be followed by an end"
-@about end      "End drawing of a new scene instance"
+@about frame    "End drawing of a new scene instance"
 @about clear    "Clears the window's contents with given color"
 @about circ     "Draws at given position a circle of given f64 radious"
 @about rect     "Draws at given position a rectangle of given size"
@@ -86,7 +86,7 @@ smo begin(@mut Window window)
     @body{ BeginDrawing(); }
     return window
 
-smo end(@mut Window window)
+smo frame(@mut Window window)
     @body{ EndDrawing(); }
     return window
 

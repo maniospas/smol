@@ -94,10 +94,10 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         bool is_access_assignment = false;
         bool is_mutable_assignment = false;
         string next = imp->at(p++);
-        if(next=="smo" || next=="union" || next=="service") {
-            p -= 2;
-            break;
-        }
+        // if(next=="smo" || next=="union" || next=="service") {
+        //     p -= 2;
+        //     break;
+        // }
         if(next=="@") {
             if(p<imp->size() && imp->at(p)=="next"){
                 is_next_assignment=true;

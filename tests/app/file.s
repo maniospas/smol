@@ -14,7 +14,7 @@ smo print(file_stats stats)
     printin(" lines, ")
     printin(stats.chars)
     print(" bytes")
-    noreturn
+    end
 
 smo file_reader(
         String path,
@@ -30,12 +30,12 @@ smo file_reader(
             print(line)
             stat_lines = stat_lines + 1
             stat_chars = stat_chars + line:len
-            noreturn
-        noreturn
+            end
+        end
     return nominal:file_stats(stat_lines, stat_chars)
 
 service main()
     @mut memory = Stack:arena(1048576) // 1MB
     stats = file_reader("README.md", memory)
     print(stats)
-    noreturn
+    end

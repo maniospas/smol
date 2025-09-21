@@ -93,7 +93,7 @@ smo vector(@mut Memory memory, @mut Rand rand, u64 size)
     :while next(@mut u64 i)
         value = rand:next
         @body{((f64*)mem__mem)[i] = value;}
-        noreturn
+        end
     return nominal:Vec(mem.mem, size, mem.mem)
 
 smo vector(@mut Rand rand, @mut Memory memory, u64 size) 
@@ -122,7 +122,7 @@ smo dot(@access Vec x1, @access Vec x2)
         :at(i)
         :mul(x2:at(i))
         :add(sum)
-        noreturn
+        end
     return sum 
 
 smo put(@access @mut Vec x1, @access Vec x2)
@@ -255,10 +255,10 @@ smo print(@access Vec v)
     :while next(@mut u64 pos)
         if pos:bool
             printin(" ")
-            noreturn
+            end
         printin(v[pos])
-        noreturn
+        end
     if size!=v.size 
         printin(" ...")
-        noreturn
+        end
     print("]")

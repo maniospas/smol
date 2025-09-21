@@ -307,7 +307,8 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     p--;
                     while(p<imp->size()-1) {
                         p++;
-                        if(imp->at(p)=="smo" 
+                        if(
+                            imp->at(p)=="smo" 
                             || imp->at(p)=="union" 
                             || imp->at(p)=="service"
                             || (imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include")
@@ -336,10 +337,10 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 p++;
                 while(true) {
                     string next = imp->at(p++);
-                    if(next=="smo" || next=="union" || next=="service"){
-                        --p;
-                        break;
-                    }
+                    // if(next=="smo" || next=="union" || next=="service"){
+                    //     --p;
+                    //     break;
+                    // }
                     if(next=="-" && imp->at(p++)=="-") 
                         break;
                     const auto& found_type = types.vars.find(next);

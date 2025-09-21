@@ -41,46 +41,57 @@ union Number
     u64
     f64
     i64
+    end
 
 smo print(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f\n", message);}
+    end
     
 smo print(@access i64 message)
     @head{#include <stdio.h>}
     @body{printf("%ld\n", message);}
+    end
     
 smo print(@access u64 message)
     @head{#include <stdio.h>}
     @body{printf("%lu\n", message);}
+    end
     
 smo print(@access bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true\n"):printf("false\n");}
+    end
     
 smo print(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c\n", message);}
+    end
     
 smo printin(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f", message);}
+    end
     
 smo printin(@access i64 message)
     @head{#include <stdio.h>}
     @body{printf("%ld", message);}
+    end
     
 smo printin(@access u64 message)
     @head{#include <stdio.h>}
     @body{printf("%lu", message);}
+    end
     
 smo printin(@access bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true"):printf("false");}
+    end
     
 smo printin(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c", message);}
+    end
 
 smo le(@access Number x, Number y)  
     @body{bool z=x<=y;}   
@@ -150,7 +161,7 @@ smo div(@access u64 x, u64 y)
     @head{#include <stdio.h>}
     if y==0 
         @fail{printf("Error: division by zero\n");} 
-        noreturn
+        end
     @head{#include <stdio.h>}
     @body{u64 z=x/y;}
     return z
@@ -159,7 +170,7 @@ smo sub(@access u64 x, u64 y)
     @head{#include <stdio.h>}
     if y>x 
         @fail{printf("Error: unsigned substraction yielded a negative\n");} 
-        noreturn
+        end
     @body{u64 z=x-y;}
     return z
 
@@ -167,7 +178,7 @@ smo mod(@access u64 x, u64 y)
     @head{#include <stdio.h>}
     if y==0
         @fail{printf("Error: modulo by zero\n");}
-        noreturn
+        end
     @head{#include <stdio.h>}
     @body{u64 z=x%y;} 
     return z
@@ -180,7 +191,7 @@ smo mod(@access i64 x, i64 y)
     @head{#include <stdio.h>}
     if y<=0:i64
         @fail{printf("Error: modulo by non-positive\n");} 
-        noreturn
+        end
     @head{#include <stdio.h>}
     @body{i64 z=x%y;}
     return z
@@ -200,7 +211,7 @@ smo div(@access i64 x, i64 y)
     @head{#include <stdio.h>}
     if y==0:i64
         @fail{printf("Error: division by zero\n");} 
-        noreturn
+        end
     @head{#include <stdio.h>}
     @body{i64 z=x/y;}
     return z

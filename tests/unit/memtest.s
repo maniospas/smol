@@ -7,9 +7,12 @@ smo test(@mut File file)
         file
         :while next_chunk(@mut str chunk) 
             printin(chunk)
-            noreturn
-        noreturn
+        end
     print("")
+    end
 
 service main()
-    ReadFile:open("README.md"):test
+    ReadFile
+    :open("README.md")
+    :test
+    end
