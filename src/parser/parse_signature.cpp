@@ -21,8 +21,8 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
         is_as = true;
     else if(imp->at(p)=="service") 
         is_service = true;
-    else if(imp->at(p)!="smo") 
-        imp->error(--p, "Missing `service` or `smo` to declare runtype");
+    else if(imp->at(p)!="def") 
+        imp->error(--p, "Missing `service` or `def` to declare runtype");
     p++;
     if(!is_as) 
         name = imp->at(p++); 

@@ -75,7 +75,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
         if(is_service && finals.find(next)!=finals.end() && finals[next].find(TRANSIENT_VAR) != std::string::npos) 
             imp->error(--p, "You are returning @noshare data from a service: "
                 +pretty_var(next.to_string())
-                +"\nThose can only be returned from smo runtypes"
+                +"\nThose can only be returned from def runtypes"
             );
         if(vars[next]->nozero)
             nozero = true;
@@ -142,7 +142,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                             imp->error(--p, 
                                 "Returned @noshare data from a service: "
                                 +pretty_var(next.to_string()+"__"+pack.to_string())
-                                +"\nThose can only be returned from smo runtypes. Create those data in the caller (or in a wrapper runtype) and pass them to the service."
+                                +"\nThose can only be returned from def runtypes. Create those data in the caller (or in a wrapper runtype) and pass them to the service."
                             );
                     }
                     packs.push_back(pack);
@@ -179,7 +179,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                         if(finals.find(next_pack)!=finals.end() && finals[next_pack].find(TRANSIENT_VAR) != std::string::npos) 
                             imp->error(--p, "Returned @noshare data from a service: "
                                 +pretty_var((next+pack).to_string())
-                                +"\nThose can only be returned from smo runtypes. Create those data in the caller (or in a wrapper runtype) and pass them to the service."
+                                +"\nThose can only be returned from def runtypes. Create those data in the caller (or in a wrapper runtype) and pass them to the service."
                             );
                     }
                     if(contains(next_pack) && vars[next_pack]->name==NOM_VAR && !alignments[next_pack]) 

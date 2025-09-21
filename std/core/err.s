@@ -29,7 +29,7 @@
              "\nprint(1.0/x)</pre>"
 @about print "Prints a string interpretation of an error code."
 
-smo assert_ok(errcode error)
+def assert_ok(errcode error)
     @body{bool isuser = (error==__USER__ERROR);}
     @body{bool isbuffer = (error==__BUFFER__ERROR);}
     @body{bool iserror = (error==__BUFFER__ERROR);}
@@ -48,22 +48,22 @@ smo assert_ok(errcode error)
         end
     end
 
-smo fail(cstr error)
+def fail(cstr error)
     @head{#include <stdio.h>}
     @fail {printf("%s\n", error);}
     end
 
-smo fail(nstr error)
+def fail(nstr error)
     @head{#include <stdio.h>}
     @fail {printf("%s\n", (char*)error__contents);}
     end
 
-smo fail(str error)
+def fail(str error)
     @head{#include <stdio.h>}
     @fail {printf("%.*s\n", (int)error__length, (char*)error__contents);}
     end
 
-smo print(errcode error)
+def print(errcode error)
     @head{#include <stdio.h>}
     @body{
         if(error==__USER__ERROR)
@@ -79,7 +79,7 @@ smo print(errcode error)
     }
     end
 
-smo assert(bool condition, cstr error)
+def assert(bool condition, cstr error)
     // prefer using this function as in the future constant evaluation of certain conditions will occur
     if condition:not 
         fail(error)

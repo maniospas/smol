@@ -18,7 +18,7 @@
 @include std.mem.arena
 @unsafe
 
-smo MemoryGrid (
+def MemoryGrid (
         nominal type,
         @mut Memory memory,
         Primitive,
@@ -28,23 +28,23 @@ smo MemoryGrid (
     surface = memory:allocate(size*squares, Primitive)
     return type, surface, size, squares
 
-smo GridEntry (
+def GridEntry (
         nominal,
         @mut MemoryGrid grid,
         u64 id
     ) 
     return @args
 
-smo at(@mut MemoryGrid self, u64 id) 
+def at(@mut MemoryGrid self, u64 id) 
     return nominal:GridEntry(self, id)
 
-smo at(@access GridEntry self, u64 pos) 
+def at(@access GridEntry self, u64 pos) 
     true_pos = pos
     :mul(self.grid.squares)
     :add(self.id)
     return self.grid.surface[true_pos]
 
-smo put(
+def put(
         @access @mut GridEntry self, 
         u64 pos, 
         Primitive value
@@ -58,8 +58,8 @@ smo put(
     self.grid.surface:__unsafe_put(true_pos, value)
     end
 
-smo len(@access GridEntry self) 
+def len(@access GridEntry self) 
     return self.grid.size
 
-smo grid(@mut Memory memory, u64 size, u64 squares, Primitive)
+def grid(@mut Memory memory, u64 size, u64 squares, Primitive)
     return nominal:MemoryGrid(memory, Primitive, size, squares)

@@ -2,7 +2,7 @@
 @include std.vec
 @include std.mem
 
-smo one_hot(@mut Memory memory, u64 pos, u64 size)
+def one_hot(@mut Memory memory, u64 pos, u64 size)
     // Create intermediate (imd) vector as 
     // context and use it as first argument 
     // when needed. Intermediate values not

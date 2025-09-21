@@ -231,7 +231,7 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 p++;
                 continue;
             }
-            else if(imp->at(p)=="smo" || imp->at(p)=="service") {
+            else if(imp->at(p)=="def" || imp->at(p)=="service") {
                 auto start_p = p;
                 auto brackets = stack<pair<string, int>> {};
                 for(;p<imp->size();++p) {
@@ -262,7 +262,7 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                         brackets.pop();
                         continue;
                     }
-                    if(next=="smo" || next=="service") 
+                    if(next=="def" || next=="service") 
                         break;
                 }
                 if(brackets.size() && brackets.top().first=="(") 
@@ -308,7 +308,7 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                     while(p<imp->size()-1) {
                         p++;
                         if(
-                            imp->at(p)=="smo" 
+                            imp->at(p)=="def" 
                             || imp->at(p)=="union" 
                             || imp->at(p)=="service"
                             || (imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include")
@@ -337,7 +337,7 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 p++;
                 while(true) {
                     string next = imp->at(p++);
-                    // if(next=="smo" || next=="union" || next=="service"){
+                    // if(next=="def" || next=="union" || next=="service"){
                     //     --p;
                     //     break;
                     // }
@@ -382,7 +382,7 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
                 types.suppressed[preample] += 1;
             while(p<imp->size()-1) {
                 p++;
-                if(imp->at(p)=="smo" || imp->at(p)=="union" || imp->at(p)=="service") break;
+                if(imp->at(p)=="def" || imp->at(p)=="union" || imp->at(p)=="service") break;
                 if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="include") break;
                 if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="install") break;
                 if(imp->at(p)=="@" && p<imp->size()-1 && imp->at(p+1)=="unsafe") break;

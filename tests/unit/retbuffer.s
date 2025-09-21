@@ -1,16 +1,16 @@
 @include std.core
 
 
-smo strbuf(nominal, @mut str[] ref)
+def strbuf(nominal, @mut str[] ref)
     return @args
 
-smo strbuf(String value)
+def strbuf(String value)
     return nominal:strbuf(str[]:push(value:str))
 
-smo put(@access @mut strbuf buf, String value)
+def put(@access @mut strbuf buf, String value)
     return buf.ref:put(0, value:str)
 
-smo str(@access @mut strbuf buf) 
+def str(@access @mut strbuf buf) 
     return buf.ref[0]:str
 
 service main()

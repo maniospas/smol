@@ -1,20 +1,20 @@
 // This file uses the smol compiler's types as a proof verifier.
 //
-// - This is not a proof assistant. Which rule, i.e., smo runtype
+// - This is not a proof assistant. Which rule, i.e., def runtype
 //   applies on each step is deterministic based on argument types.
 // - Only nominal typing is applied to ensure that distinct properties
 //   keep track of their nature.
 
-smo x(nominal) 
+def x(nominal) 
     return @args
     
-smo y(nominal) 
+def y(nominal) 
     return @args
 
-smo z(nominal) 
+def z(nominal) 
     return @args
 
-smo zero(nominal) 
+def zero(nominal) 
     return @args
 
 union Var
@@ -29,25 +29,25 @@ union Number
 union Number2
     Number
 
-smo neg(nominal,Var) 
+def neg(nominal,Var) 
     return @args
 
-smo neg(nominal,neg arg) 
+def neg(nominal,neg arg) 
     return arg.Var
 
-smo neg(nominal,zero) 
+def neg(nominal,zero) 
     return nominal:zero
 
-smo add(nominal,Var,neg) 
+def add(nominal,Var,neg) 
     with 
         @mut equals=Var 
         equals=neg.Var 
         --
     return nominal:zero
 
-smo add(nominal,Var,zero) 
+def add(nominal,Var,zero) 
     return Var
-smo sub(nominal,Number,Number2) 
+def sub(nominal,Number,Number2) 
     with 
         result = nominal:add(Number,nominal:neg(Number2)) 
         --

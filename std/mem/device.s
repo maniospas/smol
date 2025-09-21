@@ -18,7 +18,7 @@
 @include std.core.num
 @include std.core.err
 @unsafe
-@about "Standard library implementation of memory management that accounts for the stack and heap and depends on the runtime.h implementation of heap memory, and GCC implementation of alloca. Stack alloactions cannot be returned from services, as the stack is pruned when programming function calls end. Smo runtypes are not implemented as functions, so it is fine to return stack allocations from them."
+@about "Standard library implementation of memory management that accounts for the stack and heap and depends on the runtime.h implementation of heap memory, and GCC implementation of alloca. Stack alloactions cannot be returned from services, as the stack is pruned when programming function calls end. def runtypes are not implemented as functions, so it is fine to return stack allocations from them."
 @about Stack        "Represents call stack memory. Allocating on this is near-zero cost by being just an arithmetic addition but its total size is limited - typically up to a few megabytes. Prefer this for small localized data that need to be processed exceedingly fast."
 @about Heap         "Random access memory (RAM) that can be allocated with __runtime_alloc. Writing to it and reading from it can be slow for programs that keep. Modern processors optimize heap usage by prefetching and caching nearby areas as the ones you access. For this reason, prefer creating Arena regions when you have a sense of the exact amount of data you will need. Allocating on the heap can leak memory under certain conditions, but the lnaguage's safety mechanism prevents this. Use other allocators in those cases. The standard library provides a Dynamic type that also accesses several heap allocations, though with an additional level of indirection. "
 @about MemoryDevice "Refers to either stack or heap memory."
@@ -27,10 +27,10 @@
 @about at           "Accesses a specific memory position of the corresponding base type. This operation includes bound checks."
 @about __unsafe_put "Can modify an allocated memory. This operation cannot be called in safe files."
 
-smo Stack(nominal) 
+def Stack(nominal) 
     return @args 
 
-smo Heap(nominal) 
+def Heap(nominal) 
     return @args
 
 union MemoryDevice
@@ -45,7 +45,7 @@ union Primitive
     i64
     end
 
-smo ContiguousMemory (
+def ContiguousMemory (
         nominal, 
         MemoryDevice, 
         u64 size,
@@ -59,10 +59,10 @@ smo ContiguousMemory (
     @buffer mem bytesize underlying
     return @args, bytesize
 
-smo is(@access Primitive self, Primitive) 
+def is(@access Primitive self, Primitive) 
     return self
 
-smo allocate(@access Stack, u64 size, Primitive) 
+def allocate(@access Stack, u64 size, Primitive) 
     if size==0 
         return fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
@@ -73,7 +73,7 @@ smo allocate(@access Stack, u64 size, Primitive)
     @noshare mem
     return nominal:ContiguousMemory(Stack, size, Primitive, mem, mem)
 
-smo allocate(@access Heap, u64 size, Primitive)
+def allocate(@access Heap, u64 size, Primitive)
     if size==0 
         return fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
@@ -88,10 +88,10 @@ smo allocate(@access Heap, u64 size, Primitive)
     }
     return nominal:ContiguousMemory(Heap, size, Primitive, mem, mem)
 
-smo allocate(@access MemoryDevice, u64 size) 
+def allocate(@access MemoryDevice, u64 size) 
     return allocate(MemoryDevice, size, char)
 
-smo at(@access ContiguousMemory v, u64 pos) 
+def at(@access ContiguousMemory v, u64 pos) 
     if pos>=v.size 
         return fail("ContiguousMemory out of bounds")
     with 
@@ -112,7 +112,7 @@ smo at(@access ContiguousMemory v, u64 pos)
         end
     return value
     
-smo __unsafe_put(@access ContiguousMemory v, u64 pos, Primitive value)
+def __unsafe_put(@access ContiguousMemory v, u64 pos, Primitive value)
     with 
         v.Primitive:is(Primitive) 
         end

@@ -2,14 +2,14 @@
 @include std.mem
 @unsafe 
 
-smo point(f64 x, f64 y) 
+def point(f64 x, f64 y) 
     return @args
 
-smo create(@mut ContiguousMemory memory)
+def create(@mut ContiguousMemory memory)
     p = point[memory]
     return p
 
-smo create()
+def create()
     p = create(Heap:allocate(1024)) // 1kB buffer
     :push(point(1.5, 2.2))
     :push(point(0.5, 4.0))

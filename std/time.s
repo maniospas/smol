@@ -36,18 +36,18 @@
 
 // time.h or windows.h imported by all runtimes
 
-smo sleep(f64 duration)
+def sleep(f64 duration)
     @body{__smolambda_task_sleep(duration);}
     end
 
-smo exact_sleep(f64 duration)
+def exact_sleep(f64 duration)
     if duration<=0.0 
         |--
     @head{#include "std/oscommon.h"}
     @body{__smo_exact_sleep(duration);}
     end
 
-smo time()
+def time()
     @head{#include "std/oscommon.h"}
     @body{f64 elapsed = __smo_time_eta();}
     return elapsed

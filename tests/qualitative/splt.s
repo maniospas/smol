@@ -1,7 +1,7 @@
 @include std.core
 @include std.mem
 
-smo split(str query, str sep)
+def split(str query, str sep)
     @mut pos = 0
     @mut prev = 0
     while pos<query:len-sep:len

@@ -65,20 +65,20 @@
 @include std.rand
 @include std.mem
 
-smo Vec(nominal, ptr contents, u64 size, ptr surface) 
+def Vec(nominal, ptr contents, u64 size, ptr surface) 
     return @args
 
-smo vector(@mut Memory memory, u64 size)
+def vector(@mut Memory memory, u64 size)
     mem = memory:allocate(size,f64)
     range(size)
     :while next(@mut u64 i)
         @body{((f64*)mem__mem)[i] = 0;}
     --return nominal:Vec(mem.mem, size, mem.mem)
 
-smo len(@access Vec v) 
+def len(@access Vec v) 
     return v.size
 
-smo slice(@access Vec v, u64 from, u64 to) 
+def slice(@access Vec v, u64 from, u64 to) 
     if from >= to 
         return fail("Empty Vec slice")
     if to > v.size
@@ -87,7 +87,7 @@ smo slice(@access Vec v, u64 from, u64 to)
     @body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
     return nominal:Vec(contents, to-from, v.surface)
 
-smo vector(@mut Memory memory, @mut Rand rand, u64 size)
+def vector(@mut Memory memory, @mut Rand rand, u64 size)
     mem = memory:allocate(size,f64)
     range(size)
     :while next(@mut u64 i)
@@ -96,22 +96,22 @@ smo vector(@mut Memory memory, @mut Rand rand, u64 size)
         end
     return nominal:Vec(mem.mem, size, mem.mem)
 
-smo vector(@mut Rand rand, @mut Memory memory, u64 size) 
+def vector(@mut Rand rand, @mut Memory memory, u64 size) 
     return vector(memory, rand, size)
 
-smo at(@access Vec v, u64 pos) 
+def at(@access Vec v, u64 pos) 
     if pos>=v.size
         return fail("Vec out of bounds")
     @body{f64 value = ((f64*)v__contents)[pos];} 
     return value
 
-smo put(@access @mut Vec v, u64 pos, f64 value)
+def put(@access @mut Vec v, u64 pos, f64 value)
     if pos>=v.size
         return fail("Vec out of bounds")
     @body{((f64*)v__contents)[pos] = value;}
     return v
 
-smo dot(@access Vec x1, @access Vec x2)
+def dot(@access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         return fail("Incompatible Vec sizes")
     @mut sum = 0.0
@@ -125,7 +125,7 @@ smo dot(@access Vec x1, @access Vec x2)
         end
     return sum 
 
-smo put(@access @mut Vec x1, @access Vec x2)
+def put(@access @mut Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         return fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -136,7 +136,7 @@ smo put(@access @mut Vec x1, @access Vec x2)
     }
     --
 
-smo add(@mut Memory memory, @access Vec x1, @access Vec x2)
+def add(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         return fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -148,7 +148,7 @@ smo add(@mut Memory memory, @access Vec x1, @access Vec x2)
     }
     return nominal:Vec(mem.mem, size, mem.mem)
 
-smo sub(@mut Memory memory, @access Vec x1, @access Vec x2)
+def sub(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         return fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -160,7 +160,7 @@ smo sub(@mut Memory memory, @access Vec x1, @access Vec x2)
     }
     return nominal:Vec(mem.mem, size, mem.mem)
 
-smo mul(@mut Memory memory, @access Vec x1, @access Vec x2)
+def mul(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         return fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -172,7 +172,7 @@ smo mul(@mut Memory memory, @access Vec x1, @access Vec x2)
     }
     return nominal:Vec(mem.mem, size, mem.mem)
 
-smo div(@mut Memory memory, @access Vec x1, @access Vec x2)
+def div(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         return fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
@@ -184,7 +184,7 @@ smo div(@mut Memory memory, @access Vec x1, @access Vec x2)
     }
     return nominal:Vec(mem.mem, size, mem.mem)
 
-smo add(@access @mut Vec result, @access Vec x1, @access Vec x2)
+def add(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if result.size!=x1.size 
         return fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -199,7 +199,7 @@ smo add(@access @mut Vec result, @access Vec x1, @access Vec x2)
     }
     return result
 
-smo sub(@access @mut Vec result, @access Vec x1, @access Vec x2)
+def sub(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if result.size!=x1.size 
         return fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -214,7 +214,7 @@ smo sub(@access @mut Vec result, @access Vec x1, @access Vec x2)
     }
     return result
 
-smo mul(@access @mut Vec result, @access Vec x1, @access Vec x2)
+def mul(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if result.size!=x1.size 
         return fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -229,7 +229,7 @@ smo mul(@access @mut Vec result, @access Vec x1, @access Vec x2)
     }
     return result
 
-smo div(@access @mut Vec result, @access Vec x1, @access Vec x2)
+def div(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if result.size!=x1.size 
         return fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
@@ -244,7 +244,7 @@ smo div(@access @mut Vec result, @access Vec x1, @access Vec x2)
     }
     return result
 
-smo print(@access Vec v)
+def print(@access Vec v)
     size = 
         if v.size>10 
             return 10 

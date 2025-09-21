@@ -83,11 +83,11 @@
 @about create_dir "Creates a directory given a String path. May cause service failure due to external factors, or if the directory already exists."
 @about remove_file "Deletes a file from the system. May cause service failure due to external factors, or if the file is already open."
 
-smo ReadFile(nominal, ptr contents)
+def ReadFile(nominal, ptr contents)
     @noborrow
     return @args
 
-smo WriteFile(nominal, ptr contents)
+def WriteFile(nominal, ptr contents)
     @noborrow
     return @args
 
@@ -96,7 +96,7 @@ union File
     WriteFile
     --
 
-smo open(@access @mut ReadFile, String _path) 
+def open(@access @mut ReadFile, String _path) 
     path = _path:str
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -111,14 +111,14 @@ smo open(@access @mut ReadFile, String _path)
         @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} 
     --return nominal:ReadFile(contents)
 
-smo to_start(@access @mut File f) 
+def to_start(@access @mut File f) 
     if f.contents:exists:not 
         @fail{printf("Failed to move to start of closed file");} 
         --
     @body{fseek((FILE*)f__contents, 0, SEEK_SET);}
     --
 
-smo to_end(@access @mut WriteFile f) 
+def to_end(@access @mut WriteFile f) 
     // only useful for moving to the end of write files. For read files, @release them instead.
     @body{
         if(f__contents) 
@@ -126,7 +126,7 @@ smo to_end(@access @mut WriteFile f)
     }
     return f.contents:exists
 
-smo len(@access @mut File f)
+def len(@access @mut File f)
     @head{#include "std/oscommon.h"}
     @head{#include <stdio.h>}
     @body{
@@ -143,7 +143,7 @@ smo len(@access @mut File f)
     }
     return size
 
-smo print(@access @mut WriteFile f, String _s)
+def print(@access @mut WriteFile f, String _s)
     s = _s:str
     if f.contents:exists:not 
         @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
@@ -157,7 +157,7 @@ smo print(@access @mut WriteFile f, String _s)
         @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
     ----
 
-smo temp(@mut Memory memory, @access @mut WriteFile, u64 size)
+def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     // using temporary files can be exceptionall 
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -172,7 +172,7 @@ smo temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     }
     return nominal:WriteFile(contents)
     
-smo next_chunk (
+def next_chunk (
         @mut Volatile reader, 
         @access @mut File f,
         @mut nstr value
@@ -193,7 +193,7 @@ smo next_chunk (
     value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret:bool
 
-smo next_line (
+def next_line (
         @mut Volatile reader, 
         @access @mut File f, 
         @mut nstr value
@@ -218,7 +218,7 @@ smo next_line (
     value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret:bool
 
-smo next_chunk (
+def next_chunk (
         @mut Arena reader, 
         @access @mut File f,
         @mut nstr value
@@ -236,7 +236,7 @@ smo next_chunk (
     value = nominal:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
     return ret:bool
 
-smo next_line(
+def next_line(
         @mut Arena reader,
         @access @mut File f,
         @mut nstr value
@@ -258,7 +258,7 @@ smo next_line(
     value = nominal:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
     return ret:bool
 
-smo next_line (
+def next_line (
         @mut BoundedMemory reader,
         @access @mut File f, 
         @mut str value
@@ -267,7 +267,7 @@ smo next_line (
     value = retvalue:str
     return ret
 
-smo next_chunk (
+def next_chunk (
         @mut BoundedMemory reader, 
         @access @mut File f, 
         @mut str value
@@ -276,7 +276,7 @@ smo next_chunk (
     value = retvalue:str
     return ret
 
-smo ended(@access @mut File f)
+def ended(@access @mut File f)
     @head{#include <stdio.h>}
     @body{
         char c = fgetc((FILE*)f__contents);
@@ -285,7 +285,7 @@ smo ended(@access @mut File f)
     }
     return has_ended
 
-smo is_file(CString _path)
+def is_file(CString _path)
     path = _path:nstr
     @head{#include <stdio.h>}
     @body{
@@ -295,7 +295,7 @@ smo is_file(CString _path)
     }
     return exists
 
-smo is_dir(CString _path)
+def is_dir(CString _path)
     path = _path:nstr
     @head{#include <sys/stat.h> #ifdef _WIN32 #define stat _stat #endif}
     @body{
@@ -306,14 +306,14 @@ smo is_dir(CString _path)
     }
     return result
 
-smo remove_file(String _path)
+def remove_file(String _path)
     path = _path:str
     @head{#include <stdio.h>}
     @body{u64 status = remove((char*)path__contents);}
     if status:bool @fail{printf("Failed to remove file - make sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
     ----
 
-smo open(@access @mut WriteFile, String _path)
+def open(@access @mut WriteFile, String _path)
     path = _path:str
     @head{#include <stdio.h>}
     @head{
@@ -332,7 +332,7 @@ smo open(@access @mut WriteFile, String _path)
         @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
     --return nominal:WriteFile(contents)
 
-smo create_dir(String _path)
+def create_dir(String _path)
     path = _path:str
     @head{#if defined(_WIN32) || defined(_WIN64)
     #include <direct.h>
@@ -351,7 +351,7 @@ smo create_dir(String _path)
         @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
     ----
     
-smo console(@access @mut WriteFile)
+def console(@access @mut WriteFile)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <unistd.h>}

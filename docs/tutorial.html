@@ -167,7 +167,7 @@ with the text below. Open a terminal in the same folder and run
 
 service main()
     print("Hello world!")
-    --
+    end
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -178,7 +178,7 @@ Hello world!
 As a quick preview, <code class="language-smolambda">@include std.core</code> 
 adds basic tools, like <code class="language-smolambda">print</code>. Then  
 <code class="language-smolambda">service main()</code> is where your program starts.
-Finally, the line with <code class="language-smolambda">--</code> marks the end 
+Finally, the line with <code class="language-smolambda">end</code> marks the end 
 of the program.
 </p>
 
@@ -201,7 +201,7 @@ to a variable.
 service main()
     greeting = "Hello world!"
     print(greeting)
-    --
+    end
 </code></pre>
 
 <p>
@@ -243,7 +243,7 @@ service main()
     print(2.0/3.0)  // float division (f64): a decimal result
     minus_one = 0:i64-1:i64
     print(minus_one) // -1
-    --
+    end
 </code></pre>
 
 <p><b>Mutable variables:</b> After setting a variable, its value cannot normally change. To allow changes, declare it as <i>mutable</i> 
@@ -258,7 +258,7 @@ service main()
     print(name)
     name = "Lovelace" // allowed because we marked it mutable before
     print(name)
-    --
+    end
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -274,7 +274,7 @@ This is done with an <code class="language-smolambda">if</code> block.
 The word <code class="language-smolambda">if</code> starts the block, then comes a condition, 
 then the code that should run if the test passes. Prefer indenting the latter for easier reading, 
 as well as starting it in a new line.
-Like before, the block ends at <code class="language-smolambda">--</code>.
+Like before, the block ends at <code class="language-smolambda">end</code>.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -283,8 +283,8 @@ Like before, the block ends at <code class="language-smolambda">--</code>.
 service main()
     if true
         print("this always runs")
-        --
-    -- // could merge both lines into ---- here
+        end
+    end
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 this always runs
@@ -304,7 +304,8 @@ For example, <code class="language-smolambda">2 &lt; 3</code> checks whether two
 service main()
     if 2&lt;3
         print("yes, two is smaller")
-    ----
+        end
+    end
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -333,15 +334,16 @@ Each branch is tried in order until one runs.
 
 service main()
     x = 0.0-2.0
-    sign = if x&gt;0.0 
-          -> "positive"
+    sign = 
+        if x&gt;0.0 
+            return "positive"
         elif x&lt;0.0 
-          -> "negative"
+            return "negative"
         else
-          -> "zero"
+            return "zero"
 
     print(sign)
-    --
+    end
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 negative
@@ -360,14 +362,14 @@ service main()
     x = 5
     if x&gt;0
         print("positive")
-        --
+        end
     elif x&lt;0
         print("negative")
-        --
+        end
     else
         print("zero")
-        --
-    --
+        end
+    end
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 positive
@@ -375,7 +377,7 @@ positive
 
 <p>
 If you prefer, it is okay to keep code compact when it reads naturally, for example by writing one line:  
-<code class="language-smolambda">if x&gt;0 -> print("positive")</code>.
+<code class="language-smolambda">if x&gt;0 return print("positive")</code>.
 </p>
 
 
@@ -383,7 +385,7 @@ If you prefer, it is okay to keep code compact when it reads naturally, for exam
 
 <p>A loop repeats a block while a condition is true. Syntactically, it
 starts with <code class="language-smolambda">while</code> followed by a condition 
-and the block's contents. Those must end at <code class="language-smolambda">--</code>.
+and the block's contents. Those must end at <code class="language-smolambda">end</code>.
 If a variable changes inside the loop, make it mutable during its first assignment.</p>
 
 <pre><code class="language-smolambda">// main.s
@@ -394,7 +396,7 @@ service main()
     while i&lt;5
         print(i)
         i = i+1
-    ----
+    end end
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -424,7 +426,7 @@ service main()
     range(5)
     :while next(@mut u64 i) 
         print(i)
-    ----
+    end end
 </code></pre>
 
 
@@ -435,8 +437,8 @@ Sometimes you want to stop not just the current block, but also its parent block
 up to a certain level. In those cases, 
 put a vertical bar <code class="language-smolambda">|</code> before the return symbol 
 for each level you want to “jump up”. For example,
-<code class="language-smolambda">|--</code> ends the current block and its parent. 
-Similarly, <code class="language-smolambda">|-&gt; value</code> returns a value to the parent.  
+<code class="language-smolambda">|end</code> ends the current block and its parent. 
+Similarly, <code class="language-smolambda">|return value</code> returns a value to the parent.  
 Two bars (<code class="language-smolambda">||</code>) jump two levels/parents upwards, and so on.
 </p>
 
@@ -447,9 +449,9 @@ service main()
     while true
         print(i)
         if i==5 
-            |-- // end loop early
+            |end // end loop early
         i = i+1
-    ----
+     end end
 </code></pre>
 
 <h1 id="arguments">Arguments <a href="#arguments" class="anchor-link">🔗</a></h1>
@@ -471,13 +473,13 @@ For example, <code class="language-smolambda">f64 x</code> denotes an argument t
 
 <pre><code class="language-smolambda">@include std.core
 
-smo affine(f64 x, f64 y, f64 z) 
-    -> (x+y)*z
+def affine(f64 x, f64 y, f64 z) 
+    return (x+y)*z
 
 service main()
     result = affine(1.0, 2.0, 3.0)
     print(result) // 9.0
-    --
+    end
 </code></pre>
 
 <h1 id="mutability">Mutability <a href="#mutability" class="anchor-link">🔗</a></h1>
@@ -492,15 +494,15 @@ Below is an example.
 
 <pre><code class="language-smolambda">@include std.core
 
-smo increment(@mut u64 x)
+def increment(@mut u64 x)
     x = x + 1
-    --
+    end
 
 service main()
     @mut n = 10
     increment(n)
     print(n) // 11
-    --
+    end
 </code></pre>
 
 <p>
@@ -519,18 +521,18 @@ This is useful for choosing a behavior without passing a dummy value.
 
 <pre><code class="language-smolambda">@include std.core
 
-smo zero(f64) 
-    -> 0.0
+def zero(f64) 
+    return 0.0
 
-smo zero(u64) 
-    -> 0
+def zero(u64) 
+    return 0
 
 service main()
     a = zero(f64)
     b = zero(u64)
     print(a) // 0.0
     print(b) // 0
-    --
+    end
 </code></pre>
 
 <h1 id="currying">Currying <a href="#currying" class="anchor-link">🔗</a></h1>
@@ -542,12 +544,12 @@ This reads left-to-right and removes extra parentheses when you chain steps.
 
 <pre><code class="language-smolambda">@include std.core
 
-smo triple(f64 x) 
-    -> x*3.0
+def triple(f64 x) 
+    return x*3.0
 
 service main()
     print(2:f64:triple) // 6.0
-    --
+    end
 </code></pre>
 
 <p>
@@ -557,21 +559,21 @@ The same colon also works with loops provided by the standard library (like <cod
 <h1 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h1>
 
 <p>
-A block can return a value using <code class="language-smolambda">-&gt;</code>, or end with no value using <code class="language-smolambda">--</code>.  
+A block can return a value using <code class="language-smolambda">return</code>, or end with no value using <code class="language-smolambda">--</code>.  
 Returning early is just a return higher up the page; use uplifting if you need to jump out of an extra level.
 </p>
 
 <pre><code class="language-smolambda">@include std.core
 
-smo abs(f64 x)
+def abs(f64 x)
     if x&lt;0.0 
-        |-> 0.0-x
-    -> x
+        |return 0.0-x
+    return x
 
 service main()
     x = 0.0-1.0
     print(abs(x)) // 1.0
-    --
+    end
 </code></pre>
 
 <h1 id="fields">Fields <a href="#fields" class="anchor-link">🔗</a></h1>
@@ -583,13 +585,13 @@ You can return several named values at once and then access them as fields.
 
 <pre><code class="language-smolambda">@include std.core
 
-smo Point(f64 x, f64 y) 
-    -> @args
+def Point(f64 x, f64 y) 
+    return @args
 
-smo moved(Point p, f64 dx, f64 dy)
+def moved(Point p, f64 dx, f64 dy)
     nx = p.x + dx
     ny = p.y + dy
-    -> Point(nx, ny)
+    return Point(nx, ny)
 
 service main()
     @mut p = Point(1.0, 2.0)
@@ -598,7 +600,7 @@ service main()
     p = p:moved(3.0, 4.0)
     print(p.x) // 4
     print(p.y) // 6
-    --
+    end
 </code></pre>
 
 <p>
@@ -615,25 +617,25 @@ of a runtype will not let you view mutable fields.
 
 <pre><code class="language-smolambda">@include std.core
 
-smo Point(f64 _x, f64 _y) 
+def Point(f64 _x, f64 _y) 
     @mut x = _x
     @mut y = _y
-    -> x,y
+    return x,y
 
-smo print(@access Point p)
+def print(@access Point p)
     // p is not mutable but you still need `@access` 
     // to look at p.x, p.y because their original 
     // declaration was mutable
     printin(x)
     printin(",")
     print(y)
-    --
+    end
 
 service main()
     @mut p = Point(1.0, 2.0)
     // print(p.x) // not allowed
     print(p)
-    --
+    end
 </code></pre>
 
 
@@ -659,17 +661,17 @@ Your code waits for computations to conclude by called services only when values
 
 service divide(f64 x, f64 y)
     if y==0.0 
-        -> fail("Division by zero")
-    -> x/y
+        return fail("Division by zero")
+    return x/y
 
 service main()
     r = divide(1.0, 0.0)
     if r.err:bool
         print("Could not compute.")
-        --
+        end
     else
         print(r)
-    ----
+     end end
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -693,11 +695,11 @@ Prism.languages.smolambda = {
   },
   'keyword': [
     {
-      pattern: /\b(?:smo|service|if|else|elif|with|include|do|while|union|to|upto|lento|len|and|or)\b/,
+      pattern: /\b(?:def|service|if|return|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|end)\b/,
       greedy: true
     },
     {
-      pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/,
+      pattern: /(?:\|\|\|->|\|\|->|\|\|end|\|->|\|end|->|end|:|=)/,
       greedy: true
     }
   ],

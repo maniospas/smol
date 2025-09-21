@@ -30,7 +30,7 @@
                "Example: <pre>x = f64:convert(\"1.2\")"
                "\nprint(x)</pre>"
 
-smo read(@access i64)
+def read(@access i64)
     @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @body{
@@ -44,7 +44,7 @@ smo read(@access i64)
         end
     return number
 
-smo read(@access u64)
+def read(@access u64)
     @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @body{
@@ -63,7 +63,7 @@ smo read(@access u64)
         end
     return number
 
-smo read(@access f64)
+def read(@access f64)
     @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @body{
@@ -77,7 +77,7 @@ smo read(@access f64)
         end
     return number
 
-smo convert(@access i64, String _s)
+def convert(@access i64, String _s)
     s = _s:str
     @body{
         i64 number = 0;
@@ -112,7 +112,7 @@ smo convert(@access i64, String _s)
         end
     return number
 
-smo convert(@access u64, String _s)
+def convert(@access u64, String _s)
     s = _s:str
     @body{
         u64 number = 0;
@@ -139,7 +139,7 @@ smo convert(@access u64, String _s)
     return number
 
 
-smo convert(@access f64, String _s)
+def convert(@access f64, String _s)
     s = _s:str
     @body{
         f64 number = 0.0;

@@ -1,14 +1,14 @@
 @include std.core
 @include std.mem
 
-smo Segment(nominal, str value)
+def Segment(nominal, str value)
     return @args // return all inputs
 
-smo Segment(String _value)
+def Segment(String _value)
     value = _value:str // convert from many string types
     return nominal:Segment(value)
 
-smo combine(Segment[] segments)
+def combine(Segment[] segments)
     @mut combined = "":str  // mutable null-terminated string
     on Stack:arena(1024)
         range(segments:len)

@@ -2,7 +2,7 @@
 @include std.mem
 @unsafe
 
-smo vec3(f64 x, f64 y, f64 z) 
+def vec3(f64 x, f64 y, f64 z) 
     return @args
 
 service main()

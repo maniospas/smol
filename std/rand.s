@@ -38,11 +38,11 @@
             "Example:<pre>@mut rnd = splitmix64()\nrange(10)\n:while next(@mut u64 i)\n    print(rnd:splitmix64) // rnd is the state, the result is f64\n    --</pre>"
 
 
-smo __rotl(u64 x, u64 k)
+def __rotl(u64 x, u64 k)
     @body{u64 z = (x << k) | (x >> (64 - k));}
     return z
 
-smo splitmix64(@mut u64 x)
+def splitmix64(@mut u64 x)
     @body {
         u64 z = (x += 0x9E3779B97F4A7C15ULL);
         z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
@@ -51,7 +51,7 @@ smo splitmix64(@mut u64 x)
     }
     return z
 
-smo Rand(u64 seed)
+def Rand(u64 seed)
     @nozero
     @mut modifying_seed = seed
     @mut s0 = splitmix64(modifying_seed)
@@ -64,7 +64,7 @@ smo Rand(u64 seed)
     @finally s3 {}
     return s0,s1,s2,s3
 
-smo splitmix64()
+def splitmix64()
     @head{#include <time.h>}
     @head{#include <stdlib.h>}
     @body {
@@ -75,11 +75,11 @@ smo splitmix64()
     @finally seed {}
     return seed
 
-smo Rand() 
+def Rand() 
     @nozero
     return Rand(splitmix64())
 
-smo next(@access @mut Rand self)
+def next(@access @mut Rand self)
     @body{
         u64 result = self__s0 + self__s3;
         u64 t = self__s1 << 17;

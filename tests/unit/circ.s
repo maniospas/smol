@@ -1,12 +1,12 @@
 @include std.core 
 
-smo point(f64 x, f64 y)
+def point(f64 x, f64 y)
     return @args
 
-smo circle(point center, f64 r)
+def circle(point center, f64 r)
     return @args
 
-smo print(point p)
+def print(point p)
     printin("point (")
     printin(p.x)
     printin(",")
@@ -14,17 +14,17 @@ smo print(point p)
     print(")")
     end
 
-smo print(circle c)
+def print(circle c)
     printin("circle radious ")
     printin(c.r)
     printin(" centered at ")
     print(c.center)
     end
 
-smo add(point a, point b) 
+def add(point a, point b) 
     return point(a.x+b.x, a.y+b.y)
 
-smo add(circle a, circle b) 
+def add(circle a, circle b) 
     return circle(a.center, a.r+b.r)
 
 service main()

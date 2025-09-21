@@ -37,7 +37,7 @@ function analyzeDocument(uri, text) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     // function defs
-    const defMatch = line.match(/^\s*(smo|service|union)\s+([A-Za-z_][A-Za-z0-9_]*)/);
+    const defMatch = line.match(/^\s*(def|service|union)\s+([A-Za-z_][A-Za-z0-9_]*)/);
     if (defMatch) symbols.push({ name: defMatch[2], line: i, kind: "function" });
     // @about
     if (line.trim().startsWith("@about")) {
@@ -254,9 +254,13 @@ connection.onHover((params) => {
     }
   }
 
-  // smo / service keywords themselves
-  if (word === "smo") 
-    contents += "**smo** — defines a new *runtype* that is inlined.";
+  // def / service keywords themselves
+  if (word === "def") 
+    contents += "**def** — defines an inlined function. Its returned value is a named tuple.";
+  else if (word === "return") 
+    contents += "**return** — returns a value from the current code block.";
+  else if (word === "end") 
+    contents += "**end** — ends the current block without returning.";
   else if (word === "service") 
     contents += "**service** — defines a new *runtype* that runs as a co-routine service with safe execution, even on internal failures.";
   else if (word === "union") 

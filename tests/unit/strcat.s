@@ -1,7 +1,7 @@
 @include std.core
 @include std.mem
 
-smo read_name(@mut Arena arn)
+def read_name(@mut Arena arn)
     return "maniospas"
     // print("What's your name?")
     // &name = "":str

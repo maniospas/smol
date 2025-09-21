@@ -105,17 +105,17 @@
 
 
 <!-- <div class="sidebar">
-  ▶ <a href="#quickstart">Quickstart</a><br>
-  ▶ <a href="#flow">Flow</a><br>
-  ▶ <a href="#smo">Runtypes</a><br>
-  ▶ <a href="#service">Services</a><br>
-  ▶ <a href="#buffers">Buffers</a> <br>
-  ▶ <a href="#std">Std & memory</a>
+  <a href="#quickstart">Quickstart</a><br>
+  <a href="#flow">Flow</a><br>
+  <a href="#smo">Runtypes</a><br>
+  <a href="#service">Services</a><br>
+  <a href="#buffers">Buffers</a> <br>
+  <a href="#std">Std & memory</a>
   </ul>
 </div> -->
 <div class="sidebar">
   <div class="sidebar-section">
-    <div class="sidebar-title">▶ <span class="sidebar-name">Quickstart</span></div>
+    <div class="sidebar-title"><span class="sidebar-name">Quickstart</span></div>
     <div class="sidebar-sub">
       <a href="#quickstart">About</a><br>
       <a href="#setup">Setup</a><br>
@@ -125,7 +125,7 @@
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-title">▶ <span class="sidebar-name">Control flow</span></div>
+    <div class="sidebar-title"><span class="sidebar-name">Control flow</span></div>
     <div class="sidebar-sub">
       <a href="#flow">Conditions</a><br>
       <a href="#loops">Loops</a><br>
@@ -135,7 +135,7 @@
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-title">▶ <span class="sidebar-name">Runtypes</span></div>
+    <div class="sidebar-title"><span class="sidebar-name">Runtypes</span></div>
     <div class="sidebar-sub">
       <a href="#smo">Type+function</a><br>
       <a href="#primitives">Primitives</a><br>
@@ -146,7 +146,7 @@
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-title">▶ <span class="sidebar-name">Type system</span></div>
+    <div class="sidebar-title"><span class="sidebar-name">Type system</span></div>
     <div class="sidebar-sub">
       <a href="#typesystem">Overloading</a><br>
       <a href="#callbytype">Call by type</a><br>
@@ -157,7 +157,7 @@
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-title">▶ <span class="sidebar-name">Services</span></div>
+    <div class="sidebar-title"><span class="sidebar-name">Services</span></div>
     <div class="sidebar-sub">
       <a href="#service">Why services?</a><br>
       <a href="#errors">Error handling</a>
@@ -165,7 +165,7 @@
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-title">▶ <span class="sidebar-name">Std</span></div>
+    <div class="sidebar-title"><span class="sidebar-name">Std</span></div>
     <div class="sidebar-sub">
       <a href="#std">Beyond the core</a><br>
       <a href="#memory">Memory</a><br>
@@ -195,7 +195,7 @@ Follow on <a href="https://github.com/maniospas/smol" target="_blank" title="rep
 
 <p>Overall, there are two main constructs: </p>
 <ul>
-<li><code class="language-smolambda">smo</code> - runtypes that declare as both a type and fast inlined implementations.</li>
+<li><code class="language-smolambda">def</code> - functions whose returned values are treated as named tuples (types).</li>
 <li><code class="language-smolambda">service</code> - executed in parallel and handle internal failures gracefully.</li>
 </ul>
 <p></p>Use runtypes for speedy intermediate operations and the latter for error handling over large chunks of business logic.
@@ -226,11 +226,11 @@ The language server offers tooltips, error traces, and jumping to definitions.</
 
 <pre><code class="language-smolambda">@include std.core
 
-smo Point(f64 x, f64 y) 
-    -> @args
+def Point(f64 x, f64 y) 
+    return @args
 
-smo Field(nominal, Point start, Point end) 
-    -> @args
+def Field(nominal, Point start, Point end) 
+    return @args
 
 service main()
     // raw numbers you write are either 
@@ -238,7 +238,7 @@ service main()
     p = Point(3.0,5.0)
     f = nominal:Field(1.0,2.0,p)
     print(f.start.x + f.end.y) // 6
-    --
+    end
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -251,7 +251,7 @@ Here we include some basic operations from the <a href="#std">standard library</
 are going to use, mainly arithmetic operations and printing. 
 Nothing exciting yet. If, for example, you needed to bring only numbers and
 associated operations, 
-you could write <code class="language-smolambda">@include std.core -> Number</code>.
+you could write <code class="language-smolambda">@include std.core return Number</code>.
 </p>
 
 <p>Next are some so-called <i>runtypes</i>, declared with the <code class="language-smolambda">smo</code>
@@ -342,27 +342,27 @@ available in the standard library.
     </tr>
     <tr class="section-header"><td colspan="3"><u>Returns</u></td></tr>
     <tr>
-      <td><code class="language-smolambda">-></code></td>
+      <td><code class="language-smolambda">return</code></td>
       <td>Return value(s)</td>
       <td>Used to return from runtype or service</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">--</code></td>
+      <td><code class="language-smolambda">end</code></td>
       <td>Return with no value</td>
       <td>No return value, is an explicit terminator</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">|--</code></td>
+      <td><code class="language-smolambda">|end</code></td>
       <td>Uplift one level</td>
       <td>Break from a loop or if-block</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">|-></code></td>
+      <td><code class="language-smolambda">|return</code></td>
       <td>Uplift return one level</td>
       <td>Break from nested blocks</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">||-></code></td>
+      <td><code class="language-smolambda">||return</code></td>
       <td>Uplift return two levels</td>
       <td>E.g., escape loops from inside conditions</td>
     </tr>
@@ -507,7 +507,7 @@ available in the standard library.
 <p>
 <i>smoλ</i> offers <code class="language-smolambda">if</code>-statements and 
 <code class="language-smolambda">while</code> loops to respectively execute code blocks conditionally
-and repeatedly. These return values per <code class="language-smolambda">-> value</code>
+and repeatedly. These return values per <code class="language-smolambda">return value</code>
 or return with no values per <code class="language-smolambda">--</code>. Return statements
 designate the end of code blocks. Below is an example, where 
 <code class="language-smolambda">@mut i=0</code> means that the value stored in 
@@ -527,10 +527,12 @@ required because the end of expressions is always unique.
 service main()
     @mut i = 0
     while i&lt;10
-        if 0==i%2 -> print("Even "+i:str)
-        else      -> print("Odd "+i:str)
+        if 0==i%2 
+            return print("Even "+i:str)
+        else
+            return print("Odd "+i:str)
         i = i+1
-    ---- // ends `while` then `main` 
+    end end // ends `while` then `main` 
 </code></pre>
 
 <p>All branches of <code class="language-smolambda">if</code> statements
@@ -549,13 +551,13 @@ service main()
     x = f64:read // more on this syntax later
     sgn = 
         if x>0.0
-            -> 1:i64
+            return 1:i64
         else->if x==0.0
-            -> 0:i64
+            return 0:i64
         else 
-            -> 0:i64-1:i64
+            return 0:i64-1:i64
     print(sgn)
-    --
+    end
 </code></pre>
 
 <p>Equivalently, replace the pattern <code class="language-smolambda">else->if</code> with the <code class="language-smolambda">elif</code>
@@ -567,13 +569,13 @@ service main()
     x = f64:read
     sgn = 
         if x>0.0
-            -> 1:i64
+            return 1:i64
         elif x==0.0 
-            -> 0:i64
+            return 0:i64
         else
-            -> 0:i64-1:i64
+            return 0:i64-1:i64
     print(sgn)
-    --
+    end
 </code></pre>
 
 <p>Finally, <i>smol</i> supports logical operators <code class="language-smolambda">and</code> and
@@ -584,9 +586,9 @@ below.</p>
 
 <pre><code class="language-smolambda">@include std.core
 
-smo test() 
+def test() 
   print("called") 
-  -> true
+  return true
 
 service main()
     print("Normal conditions") // prints
@@ -595,7 +597,7 @@ service main()
     print("The rest are short-circuited away")
     false and test()
     true or test()
-    --
+    end
 </code></pre>
 
 
@@ -620,11 +622,11 @@ service main()
     @mut i = 0
     while i&lt;10
         if 0==i%2
-            -> print("Even "+i:str)
+            return print("Even "+i:str)
         else
-            -> print("Odd "+i:str)
+            return print("Odd "+i:str)
         i = i+1
-    ----
+    end end
 </code></pre>
 
 
@@ -650,7 +652,7 @@ service main()
         while j&lt;10 
             @next j = j+1
             print(i:str+" "+j:str)
-    ------
+    end end end
 </code></pre>
 
 
@@ -662,7 +664,7 @@ As a sneak peek, printing numbers <i>0,1,...,9</i> looks like this:
 <pre><code class="language-smolambda">range(10)
 :while next(@mut u64 i) 
     print(i)
-    --
+    end
 </code></pre>
 </p>
 
@@ -680,9 +682,9 @@ service main()
     if true
         @next i = j
         @next j = i
-        --
+        end
     print(j) // 1
-    --
+    end
 </code></pre>
     
 
@@ -702,7 +704,7 @@ steps back. This operation is called <i>uplifting</i> and its syntax
 is to prepend <code class="language-smolambda">|</code> to returns.
 You can uplift several times to escape from nested control flow.
 For example, <code class="language-smolambda">|--</code> breaks
-from a condition within a loop and <code class="language-smolambda">||-></code>
+from a condition within a loop and <code class="language-smolambda">||return</code>
 can be used to return a value from a condition within a loop. Next is 
 a simple example.
 </p>
@@ -717,8 +719,8 @@ service main()
         if i%7==0 
             |-- // break
         if i%2==0 
-            -> print(i)
-    ---- // ends `while`, then `main`
+            return print(i)
+    end end // ends `while`, then `main`
 </code></pre>
 
 <p>
@@ -739,8 +741,8 @@ service main()
             @next j = j+1
             print(i:str+" "+j:str)
             if 5==i+j 
-                |||-> print("done") 
-    ------
+                |||return print("done") 
+    end end end
 </code></pre>
 
 
@@ -756,9 +758,9 @@ We call the merged concept <i>runtypes</i>.
 As an example, look at a definition from the standard library,
 which also gives a taste of the C++ ABI:</p>
 
-<pre><code class="language-smolambda">smo add(f64 x, f64 y)
+<pre><code class="language-smolambda">def add(f64 x, f64 y)
     @body{f64 z=x+y;}
-    -> z
+    return z
 </code></pre>
 
 <p>This tells us that we are defining an 64-bit floating number runtype with the corresponding arguments.
@@ -809,17 +811,17 @@ runtype with no arguments directly returns a version constructed with two argume
 
 <pre><code class="language-smolambda">@include std.core
 
-smo Point(f64 x, f64 y) 
-    -> @args
+def Point(f64 x, f64 y) 
+    return @args
 
-smo Point() 
+def Point() 
     start = Point(0.0, 0.0)
-    -> start // as a single argument it is directly unpacked
+    return start // as a single argument it is directly unpacked
 
 service main()
     s = Point()
     print(s.x) // not s.start.x
-    --
+    end
 </code></pre>
 
 
@@ -835,13 +837,13 @@ without internal implementation.
 
 <pre><code class="language-smolambda">@include std.core
 
-smo multi_out(u64 x)
+def multi_out(u64 x)
     xinc = add(x,1)
-    -> xinc, x
+    return xinc, x
 
-smo single_out(u64 x)
+def single_out(u64 x)
     x = add(x,1)
-    -> x
+    return x
 
 service main()
     p1 = multi_out(1)
@@ -850,7 +852,7 @@ service main()
     p2 = single_out(1)
     print(p2)          // 2
     print(p2.x)        // CREATES AN ERROR
-    --
+    end
 </code></pre>
 
 
@@ -864,15 +866,15 @@ internal modifications are retained. Below is an example.</p>
 
 <pre><code class="language-smolambda">@include std.core
 
-smo inc(@mut u64 x)
+def inc(@mut u64 x)
     x = add(x,1)
-    --
+    end
 
 service main()
     @mut x = 1
     inc(x) // requires x to be mutable for modification by inc
     print(x) // 2
-    --
+    end
 </code></pre>
 
 <p>Mutable fields can be mutated only if arguments are mutable too.
@@ -884,22 +886,22 @@ DOES hold true for the nominally typed <code>Point pt</code>.</p>
 <pre><code class="language-smolambda">
 @include std.core
 
-smo Point(f64 px, f64 py)
+def Point(f64 px, f64 py)
     @mut x = px
     @mut y = py
-    -> x,y
+    return x,y
 
-smo Point(nominal type, f64 px, f64 py)
+def Point(nominal type, f64 px, f64 py)
     @mut x = px
     @mut y = py
-    -> type, x,y
+    return type, x,y
 
-smo scale(@mut Point p, f64 factor) 
+def scale(@mut Point p, f64 factor) 
     // @mut in the signature is required to allow any modification
     // this is an overloaded method for both Point implementations
     p.x = p.x*factor
     p.y = p.y*factor
-    --
+    end
 
 service main()
     p = Point(1.0,1.0)  
@@ -909,7 +911,7 @@ service main()
 
     tp = nominal:Point(1.0,1.0)
     tp:scale(5.0) // creates an ERROR
-    --
+    end
 </code></pre>
 
 <p>ℹ️ <i>As a rule of thumb, allow maximal extensibility and safety by only adding <code>@mut</code> 
@@ -932,19 +934,19 @@ service map_printer(Map map)
     with 
         map.Keys:is(str) 
         map.Values:is(u64)
-        --
+        end
     //@mut mutmap = map // ERROR - cannot transfer immutable pointers
     //mutmap:put("123", 2) 
     print(map["123"])
-    --
+    end
 
 service main() 
     on Heap:dynamic // automatically pass dynamic memory as first argument
         @mut map = map(100, str, u64) // flatmap with 100 slots
-        --
+        end
     map:put("123", 1)
     map:map_printer
-    --
+    end
 </code></pre>
 
 
@@ -961,7 +963,7 @@ have as little nesting as possible.
 service main()
     1:add(2):mul(3):print
     // equivalent to print(mul(add(1,2), 3))
-    --
+    end
 </code></pre>
 
 <p>In general, runtypes are all first-class citizens of the language in that they cannot be set as variables.
@@ -982,20 +984,20 @@ based on the same principles.
 
 <pre><code class="language-smolambda">@include std.core
 
-smo custom_range(u64 start, u64 end) 
+def custom_range(u64 start, u64 end) 
     @mut pos = start
-    -> pos, end
+    return pos, end
 
-smo next(@mut custom_range r, @mut u64 current) 
+def next(@mut custom_range r, @mut u64 current) 
     current = r.pos 
     r.pos = r.pos + 1
-    -> r.pos &lt;= r.end
+    return r.pos &lt;= r.end
 
 service main()
     custom_range(0,10)
     :while next(@mut u64 i) 
         print(i) 
-    ----
+    end end
 </code></pre>
 
 
@@ -1013,32 +1015,32 @@ Do note that conflicting definitions will create errors.
 
 <pre><code class="language-smolambda">@include std.core 
 
-smo point(f64 x, f64 y)
-    -> @args
+def point(f64 x, f64 y)
+    return @args
 
-smo circle(point center, f64 r)
-    -> @args
+def circle(point center, f64 r)
+    return @args
 
-smo print(point p)
+def print(point p)
     printin("point (") // print without changing line
     printin(p.x)
     printin(",")
     printin(p.y)
     print(")")
-    --
+    end
 
-smo print(circle c)
+def print(circle c)
     printin("circle radious ")
     printin(c.r)
     printin(" centered at ")
     print(c.center)
-    --
+    end
 
-smo add(point a, point b) 
-    -> point(a.x+b.x, a.y+b.y)
+def add(point a, point b) 
+    return point(a.x+b.x, a.y+b.y)
 
-smo add(circle a, circle b) 
-    -> circle(a.center, a.r+b.r)
+def add(circle a, circle b) 
+    return circle(a.center, a.r+b.r)
 
 service main()
     p1 = point(1.0, 2.0)
@@ -1048,7 +1050,7 @@ service main()
     print(add(p1,p2))
     print(add(c1,c2))
     print(0.0, 0.0, 0.0) // understood as a circle
-    --
+    end
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -1070,29 +1072,35 @@ an evoked method is applied. Runtypes without
 parentheses refer to zeroed out input data.
 You can also use a value as reference - that would be ignored.</p>
 
-<pre><code class="language-smolambda">smo not(bool x) @body{bool z=!x;} 
-    -> z
-smo print(f64 message)
+<pre><code class="language-smolambda">def not(bool x) 
+    @body{bool z=!x;} 
+    return z
+
+def print(f64 message)
     @head{#include &lt;stdio.h>}
     @body{printf("%.6f\n", message);}
-    --
+    end
 
-smo read(i64)
+def read(i64)
     @head{#include &lt;stdio.h>}
     @body{i64 number = 0; bool success = scanf("%ld", &number);}
-    if success:not @fail{printf("Invalid integer\n");} --
-    -> number
+    if success:not 
+        @fail{printf("Invalid integer\n");}
+        end
+    return number
 
-smo read(f64)
+def read(f64)
     @head{#include &lt;stdio.h>}
     @body{f64 number = 0; bool success = scanf("%lf", &number);}
-    if success:not @fail{printf("Invalid number\n");} --
-    -> number
+    if success:not 
+        @fail{printf("Invalid number\n");}
+        end
+    return number
 
 service main()
     x = f64:read // x = read(f64)
     print(x)
-    --
+    end
 </code></pre>
 
 
@@ -1114,26 +1122,26 @@ equivalent runtypes.
 
 <pre><code class="language-smolambda">@include std.core
 
-smo Type1(nominal, f64 value) 
-    -> @args
+def Type1(nominal, f64 value) 
+    return @args
     
-smo Type2(nominal, f64 value) 
-    -> @args
+def Type2(nominal, f64 value) 
+    return @args
 
-smo recognize(Type1 p) 
+def recognize(Type1 p) 
     print("this is Type1") 
-    --
+    end
 
-smo recognize(Type2 p) 
+def recognize(Type2 p) 
     print("this is Type2") 
-    --
+    end
 
 service main()
     p1 = nominal:Type1(1.0)
     p2 = nominal:Type2(2.0)
     recognize(p1) 
     recognize(p2) 
-    --
+    end
 </code></pre>
 
 
@@ -1157,7 +1165,7 @@ service main()
     // volatile memory buffer to make string allocations for addition
     on Stack:volatile(1024)
         print("Hi "+name+"!")
-    ----
+    end end
 </code></pre>
 
 <h3 id="unions">Unions <a href="#unions" class="anchor-link">🔗</a></h3>
@@ -1184,15 +1192,15 @@ union Type
     i64 
     f64 
     u64
-    --
+    end
 
-smo Point(@mut Type x, @mut Type y) 
-    -> @args
+def Point(@mut Type x, @mut Type y) 
+    return @args
 
-smo inc(Point &p)
+def inc(Point &p)
     p.x = p.x+Point.Type(1)
     p.y = p.y+Point.Type(1)
-    --
+    end
 
 service main()
     printin("Give a value: ")
@@ -1200,7 +1208,7 @@ service main()
     p = Point(value, value)
     p:inc()
     print(p.x)
-    --
+    end
 </code></pre>
 
 
@@ -1224,7 +1232,7 @@ service main()
     :push("buffer end":str)
     b = boxes[0]
     print(b) 
-    --
+    end
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -1240,17 +1248,17 @@ its standard library
 
 <pre><code class="language-smolambda">@include std.core
 
-smo strbuf(nominal, @mut str[] ref)
-    -> @args
+def strbuf(nominal, @mut str[] ref)
+    return @args
 
-smo strbuf(String value)
-    -> nominal:strbuf(str[]:push(value:str))
+def strbuf(String value)
+    return nominal:strbuf(str[]:push(value:str))
 
-smo put(@mut strbuf buf, String value)
-    -> buf.ref:put(0, value:str)
+def put(@mut strbuf buf, String value)
+    return buf.ref:put(0, value:str)
 
-smo str(@mut strbuf buf)
-    -> buf.ref[0]:str
+def str(@mut strbuf buf)
+    return buf.ref[0]:str
 
 service main()
     @mut boxes = strbuf[]  // must be mutable to grant mutable access
@@ -1259,9 +1267,9 @@ service main()
     @mut b = boxes[0]
     // the line bellow is fancier than b:put("overwritten element")
     on b 
-        -> "overwritten element":put 
+        return "overwritten element":put 
     print(b:str) 
-    --
+    end
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 overwritten element
@@ -1291,33 +1299,33 @@ ergonomic alternative. More on overloading later.</p>
 <pre><code class="language-smolambda">@include std.core
 @include std.vec // more on vectors later
 
-smo point(f64 x, f64 y) 
-    -> @args
+def point(f64 x, f64 y) 
+    return @args
 
 union Elements 
     vec
     point
     f64
     i64
-    --
+    end
 
-smo first(Elements elements)
+def first(Elements elements)
     with 
         res = elements:vec[0]
-        --
+        end
     else
         res = elements:point.x
-        --
+        end
     else 
         res = elements:f64
-    ---> res
+    endreturn res
 
 service main()
     x1 = vec:rand(10)
     print(x1:first)
     print(z:first)
     print(point(1.0,2.0):first)
-    --
+    end
 </code></pre>
 
 
@@ -1338,12 +1346,12 @@ You will often not notice anything different.
 <pre><code class="language-smolambda">@include std.core
 
 service square(f64 x) 
-    -> x*x
+    return x*x
 
 service main()
     y = square(2.0)
     print(y)
-    --
+    end
 </code></pre>
 
 <p>Semantically, services are equivalent to runtypes with error handling and the restriction that they a)
@@ -1375,12 +1383,12 @@ main service.
 
 service square(f64 x) 
     fail("Don't wanna!") // manually fail
-    -> mul(x,x)
+    return mul(x,x)
 
 service main()
     y = square(2.0)
     print(y)
-    --
+    end
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 Don't wanna!
@@ -1398,13 +1406,13 @@ the hotpath.
 
 service square(f64 x) 
     fail("Don't wanna!") // manually fail
-    -> mul(x,x)
+    return mul(x,x)
 
 service main()
     y = square(2.0)
-    if y.err:bool -> print("Something went wrong")
-    else          -> print(y)
-    --
+    if y.err:bool return print("Something went wrong")
+    else          return print(y)
+    end
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 Don't wanna!
@@ -1427,22 +1435,22 @@ service get_age()
     print("What's your age?")
     age = u64:read
     if age&lt;=1
-        -> fail("Too young for this stuff")
+        return fail("Too young for this stuff")
     if age<5
-        -> fail("Still too young")
+        return fail("Still too young")
     if age>=140 
-        -> fail("Too old for this stuff")
-    -> age
+        return fail("Too old for this stuff")
+    return age
 
 service main()
     while true
         age = get_age() 
         if age.err:bool:not 
             |--
-        --
+        end
     on Heap:dynamic
         print("You've seen at least "+str(age-1)+" years gone by.")
-    ----
+    end end
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 What's your age?
@@ -1495,7 +1503,7 @@ service main()
     success = false
     x = f64:read()
     print(x)
-    --
+    end
 </code></pre>
 
 <h3 id="strings">Strings <a href="#strings" class="anchor-link">🔗</a></h3>
@@ -1515,11 +1523,11 @@ service main()
     i = 0
     while i&lt;=10 
         if 0==i%2 
-            -> print("Even "+i:str)
+            return print("Even "+i:str)
         else      
-            -> print("Odd  "+i:str)
+            return print("Odd  "+i:str)
         i = i+1
-    ---- // end while and main with no return
+    end end // end while and main with no return
 </code></pre>
 
 
@@ -1541,7 +1549,7 @@ an example of obtaining substrings with the slicing notation.</p>
 service main()
     s = "I like bananas!"
     print(s[2 to 7])  // prints "like"
-    --
+    end
 </code></pre>
 
 <p>
@@ -1559,14 +1567,14 @@ service add_service(str v1, str v2)
     while i&lt;10
         v2 = v2+"c"
         i = i+1
-    ---&gt; v1+v2
+    end-&gt; v1+v2
 
 service main()
     r1 = "aa":str
     r2 = "bb":str
     r1 = add_service(r1,r2)
     print(r1)
-    --
+    end
 </code></pre>
 
 <h3 id="files">Allocators <a href="#files" class="anchor-link">🔗</a></h3>
@@ -1576,25 +1584,25 @@ service main()
 <pre><code class="language-smolambda">@include std.core
 @include std.mem
 
-smo zero(Memory, u64 n)
+def zero(Memory, u64 n)
     v = nominal:allocate(Memory, n, f64)
     i = 0 
     while i&lt;n
         @next i = i+1
         v:put(i, 0.0)
-    ---&gt; v
+    end-&gt; v
  
-smo dot(allocate x, allocate y)
-    if x.size!=y.size -> fail("Mismatching size")
+def dot(allocate x, allocate y)
+    if x.size!=y.size return fail("Mismatching size")
     sum = x.Primitive:zero
     i = 0
     while i&lt;x.size
         @next i = i+1 
         with 
             sum = sum + x[i]*y[i]
-            --
+            end
         else 
-    -----&gt; sum // all closing statements
+    end end-&gt; sum // all closing statements
 
 service main()
     n = 10000
@@ -1603,7 +1611,7 @@ service main()
     x:put(0, 0.1)
     y:put(0, 0.2)
     print(dot(x,y))
-    --
+    end
 </code></pre>
 
 
@@ -1634,7 +1642,7 @@ service main()
     z = dot(x1,x2)
     print("Elapsed \{time()-tic} sec")
     print(z)
-    --
+    end
 </code></pre>
 
 
@@ -1652,7 +1660,7 @@ service main()
     print("cos \{rads:cos}")
     print("sin \{rads:sin}")
     print("tan \{rads:tan}")
-    --
+    end
 </code></pre>
 <o>
 Furthermore, <code>exp,log,pow,sqrt</code> are also available. Importantly, the logarithm requires
@@ -1673,11 +1681,11 @@ Prism.languages.smolambda = {
   },
   'keyword': [
     {
-      pattern: /\b(?:smo|service|if|else|elif|with|include|on|while|union|to|upto|lento|len|and|or)\b/,
+      pattern: /\b(?:def|service|if|return|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|end)\b/,
       greedy: true
     },
     {
-      pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/,
+      pattern: /(?:\|\|\|return|\|\|return|\|\|--|\|return|\|--|return|--|:|=)/,
       greedy: true
     }
   ],
@@ -1700,18 +1708,6 @@ Prism.languages.smolambda = {
       if (location.hash === a.getAttribute('href')) e.preventDefault()
     })
   )
-</script>
-
-<script>
-document.querySelectorAll('.sidebar-title').forEach(title => {
-  title.addEventListener('click', () => {
-    const sub = title.nextElementSibling;
-    const expanded = sub.style.display === 'block';
-    sub.style.display = expanded ? 'none' : 'block';
-    const arrow = expanded ? '▶' : '▼';
-    title.innerHTML = arrow + ' ' + title.innerHTML.slice(2);
-  });
-});
 </script>
 
 

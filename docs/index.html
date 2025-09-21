@@ -73,28 +73,30 @@
 <pre><code class="language-smolambda">@include std.core
 @include std.mem
 
-smo Segment(nominal, str value)
-    -> @args // return all inputs
+def Segment(nominal, str value)
+    return @args // return all inputs
 
-smo Segment(String _value)
+def Segment(String _value)
     value = _value:str 
-    -> nominal:Segment(value)
+    return nominal:Segment(value)
 
-smo combine(Segment[] segments)
-    @mut s = "":str  // mutable
+def combine(Segment[] segments)
+    @mut s = "":str  // convert "" to mutable str
     on Stack:arena(1024)
         range(segments:len)
         :while next(@mut u64 i)
-            // from null-termiated nstr result to str
+            // convert from null-terminated nstr result to str
             s = str(s+segments[i].value+" ")
-    -- -- -> combined // end block x2, return
+            end
+        end
+    return combined
 
 service main()
     segments = Segment[] 
     :push("I think.":Segment)
     :push("Therefore I am.":Segment)
     print(segments:combine)
-    --
+    end
 </code></pre>
 
     <button id="toggle-example" class="explain-button">
@@ -104,16 +106,15 @@ service main()
 
   <div id="example-block" style="display: none;">
     In the example, freeing the arena is safely delayed until printing. All operations are also zero-cost abstractions
-    over performant implementations at the core of the standard library. Furthermore:
+    over performant implementations at the core of the standard library. Code blocks either end or return. Furthermore:
     <ul>
-      <li><code class="language-smolambda">smo</code> definitions can fail and produce nominal values.</li>
+      <li><code class="language-smolambda">def</code> definitions can fail and produce nominal values.</li>
       <li><code class="language-smolambda">nominal</code> declares a nominal type variation.</li>
-      <li><code class="language-smolambda">service</code> runs safely; if a smo fails, memory is cleaned up.</li>
+      <li><code class="language-smolambda">service</code> runs safely; if a def fails, memory is cleaned up.</li>
       <li><code class="language-smolambda">@mut</code> denotes mutable variables (their values change as the program runs).</li>
       <li><code class="language-smolambda">on</code> is automatically added as first argument - here to store string addition on a fast arena allocator.</li>
       <li><code class="language-smolambda">:</code> curries arguments.</li>
       <li><code class="language-smolambda">[]</code> declares buffers.</li>
-      <li><code class="language-smolambda">--, -></code> mark block ends and returns.</li>
     </ul>
   </div>
 </div>
@@ -124,7 +125,7 @@ Prism.languages.smolambda = {
   'comment': /\/\/.*/,
   'directive': { pattern: /@\w+/, alias: 'important' },
   'keyword': [
-    { pattern: /\b(?:smo|service|if|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|on|&amp;)\b/, greedy: true },
+    { pattern: /\b(?:def|service|if|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|on|end|return)\b/, greedy: true },
     { pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/, greedy: true }
   ],
   'special-amp': { pattern: /&/, alias: 'operator' },

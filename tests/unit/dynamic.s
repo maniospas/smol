@@ -3,18 +3,18 @@
 
 // ----- Circle -----
 
-smo Circle(nominal, f64 radius)
+def Circle(nominal, f64 radius)
     return @args
 
-smo area(Circle self)
+def area(Circle self)
     return pi(self.radius*self.radius)/2.0
 
 // ----- Square -----
 
-smo Square(nominal, f64 side)
+def Square(nominal, f64 side)
     return @args
 
-smo area(Square self)
+def area(Square self)
     return self.side*self.side
 
 // ----- Shape -----
@@ -24,51 +24,51 @@ union Shape
     Square
     --
 
-smo volume(Shape base, f64 height)
+def volume(Shape base, f64 height)
     return base:area*height
 
-smo Shapes(nominal)
+def Shapes(nominal)
     @mut squares = Square[]
     @mut circles = Circle[]
     @mut types = u64[]
     @mut lookups = u64[]
     return @args, squares, circles, types, lookups
 
-smo is(@access Shapes self, u64 pos, Circle)
+def is(@access Shapes self, u64 pos, Circle)
     type = self.types[pos]
     return type == 0
 
-smo is(@access Shapes self, u64 pos, Square)
+def is(@access Shapes self, u64 pos, Square)
     type = self.types[pos]
     return type == 1
 
-smo at(@access Shapes self, u64 pos, Circle)
+def at(@access Shapes self, u64 pos, Circle)
     type = self.types[pos]
     if type != 0
         return fail("Trying to access a non-circle")
     lookup = self.lookups[pos]
     return self.circles[lookup]
 
-smo at(@access Shapes shapes, u64 pos, Square)
+def at(@access Shapes shapes, u64 pos, Square)
     type = shapes.types[pos]
     if type != 1 
         return fail("Trying to access a non-square")
     lookup = shapes.lookups[pos]
     return shapes.squares[lookup]
 
-smo push(@access @mut Shapes shapes, Square square)
+def push(@access @mut Shapes shapes, Square square)
     shapes.lookups:push(shapes.squares:len)
     shapes.types:push(0)
     shapes.squares:push(square)
     return shapes
 
-smo push(@access @mut Shapes shapes, Circle circle)
+def push(@access @mut Shapes shapes, Circle circle)
     shapes.lookups:push(shapes.circles:len)
     shapes.types:push(1)
     shapes.circles:push(circle)
     return shapes
 
-smo len(@access Shapes shapes)
+def len(@access Shapes shapes)
     return shapes.types:len
 
 

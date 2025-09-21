@@ -5,7 +5,7 @@
 @include std.mem
 @include std.time
 
-smo Sphere(
+def Sphere(
         f64 x,
         f64 y, 
         f64 r,
@@ -14,7 +14,7 @@ smo Sphere(
     ) 
     return @args
 
-smo process(@mut Sphere s, f64 dt)
+def process(@mut Sphere s, f64 dt)
     @mut nx = s.x:add(s.dx * dt)
     @mut ny = s.y:add(s.dy * dt)
     @mut ndx = s.dx
@@ -38,11 +38,11 @@ smo process(@mut Sphere s, f64 dt)
     s = Sphere(nx, ny, s.r, ndx, ndy)
     end
 
-smo draw(Sphere sphere, @mut Window window)
+def draw(Sphere sphere, @mut Window window)
     window:circ(sphere.x, sphere.y, sphere.r, Color(200, 50, 50))
     end
     
-smo process(@mut Sphere[] spheres, f64 dt)
+def process(@mut Sphere[] spheres, f64 dt)
     range(spheres:len)
     :while next(@mut u64 i)
         spheres[i]::process(dt)

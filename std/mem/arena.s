@@ -19,7 +19,7 @@
 @unsafe
 @about "Standard library implementation of arena allocation, marked as @noborrow but unsafely returned from constructors. Pointer arithmetics yield offsets within arenas."
 
-smo Arena(nominal type, ContiguousMemory contents)
+def Arena(nominal type, ContiguousMemory contents)
     @noborrow
     length = 0
     size = contents.size
@@ -27,7 +27,7 @@ smo Arena(nominal type, ContiguousMemory contents)
     --
     return type, contents, length, size
 
-smo Volatile(nominal type, ContiguousMemory contents)
+def Volatile(nominal type, ContiguousMemory contents)
     @noborrow  // we need this so that controlled_corrupt can properly analyze corruptions
     length = 0
     cycles = 0
@@ -36,7 +36,7 @@ smo Volatile(nominal type, ContiguousMemory contents)
         end
     return type, contents, length, cycles
 
-smo controlled_corrupt(@access @mut Volatile self)
+def controlled_corrupt(@access @mut Volatile self)
     if self.cycles:bool 
         fail("Volatile corrupt detected that some data have already been corrupted by insufficient space instead.")
         end
@@ -48,10 +48,10 @@ union DerivedMemory
     Volatile
     end
 
-smo len(@access @mut DerivedMemory self) 
+def len(@access @mut DerivedMemory self) 
     return self.contents.size
 
-smo Dynamic(nominal) 
+def Dynamic(nominal) 
     @noborrow
     @body{ptr acquired = __runtime_alloc(sizeof(ptr**));if(acquired)((ptr**)acquired)[0]=0;}
     size = 0
@@ -69,13 +69,13 @@ smo Dynamic(nominal)
     }
     return @args, acquired, size, allocated, __dynamic_entry // TODO: investigate what __dynamic_entry needs to be tracked when calling Heap:dynamic
 
-smo dynamic(@access Heap) 
+def dynamic(@access Heap) 
     return nominal:Dynamic
 
-smo dynamic(@access Stack) 
+def dynamic(@access Stack) 
     return nominal:Stack
     
-smo allocate(@access @mut Dynamic self, u64 size, Primitive)
+def allocate(@access @mut Dynamic self, u64 size, Primitive)
     @head{#include <stdlib.h>}
     primitive = Primitive
     if self.acquired:bool:not 
@@ -101,23 +101,23 @@ smo allocate(@access @mut Dynamic self, u64 size, Primitive)
         return fail("Failed a Dynamic allocation")
     return nominal:ContiguousMemory(Heap, size, Primitive, mem, self.acquired)
 
-smo allocate(@access @mut Dynamic self, u64 size) 
+def allocate(@access @mut Dynamic self, u64 size) 
     return allocate(self, size, char)
 
-smo used(@access @mut Arena self)
+def used(@access @mut Arena self)
     return self.length
 
-smo used(@access @mut Volatile self)
+def used(@access @mut Volatile self)
     return 0
 
-smo allocate(@access @mut Arena self, u64 size)
+def allocate(@access @mut Arena self, u64 size)
     if (self.length+size)>self.contents.size 
         return fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     return nominal:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
 
-smo allocate(@access @mut Arena self, u64 _size, Primitive) 
+def allocate(@access @mut Arena self, u64 _size, Primitive) 
     primitive = Primitive
     @body{u64 size = _size*sizeof(primitive);}
     if (self.length+size)>self.contents.size 
@@ -126,7 +126,7 @@ smo allocate(@access @mut Arena self, u64 _size, Primitive)
     @body{self__length = self__length+size;}
     return nominal:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
-smo allocate(@access @mut Volatile self, u64 size)
+def allocate(@access @mut Volatile self, u64 size)
     if size>self.contents.size 
         return fail("Failed an Volatile allocation")
     @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
@@ -134,7 +134,7 @@ smo allocate(@access @mut Volatile self, u64 size)
     @body{self__length = self__length+size;}
     return nominal:ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
 
-smo allocate(@access @mut Volatile self, u64 _size, Primitive) 
+def allocate(@access @mut Volatile self, u64 _size, Primitive) 
     primitive = Primitive
     @body{u64 size = _size*sizeof(primitive);}
     if size>self.contents.size return fail("Failed a Volatile allocation")
@@ -143,7 +143,7 @@ smo allocate(@access @mut Volatile self, u64 _size, Primitive)
     @body{self__length = self__length+size;}
     return nominal:ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
-smo read(@access @mut Arena self)
+def read(@access @mut Arena self)
     @acquire "std.terminal.read"
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
@@ -186,11 +186,11 @@ union BoundedMemory
     Volatile
     end
 
-smo is(@access @mut Memory self, @mut Memory) 
+def is(@access @mut Memory self, @mut Memory) 
     return self
 
-smo arena(@access @mut Memory self, u64 size) 
+def arena(@access @mut Memory self, u64 size) 
     return nominal:Arena(self:allocate(size))
     
-smo volatile(@access @mut Memory self, u64 size) 
+def volatile(@access @mut Memory self, u64 size) 
     return nominal:Volatile(self:allocate(size))

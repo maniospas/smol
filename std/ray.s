@@ -42,7 +42,7 @@
 @about circ_line "Draws at given position a circle's outline for given f64 radious and thickness"
 @about rect_line "Draws at given position a rectangle's outline for a given size and f64 thickness"
 
-smo Color(u64 r, u64 g, u64 b, u64 a)
+def Color(u64 r, u64 g, u64 b, u64 a)
     if r>255 
         return fail("Color r greater than 255")
     if g>255 
@@ -53,13 +53,13 @@ smo Color(u64 r, u64 g, u64 b, u64 a)
         return fail("Color a greater than 255")
     return @args
 
-smo Position(f64 x, f64 y)
+def Position(f64 x, f64 y)
     return @args
 
-smo Size(f64 w, f64 h)
+def Size(f64 w, f64 h)
     return @args
 
-smo Window(nominal, Size size, cstr title)
+def Window(nominal, Size size, cstr title)
     @nozero // always require an instantiated window
     @noother "std.ray.Window" // exactly one window per program
     @noborrow
@@ -75,26 +75,26 @@ smo Window(nominal, Size size, cstr title)
     @body{ SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title); }
     return @args
 
-smo close(@mut Window window)
+def close(@mut Window window)
     --
 
-smo is_open(@mut Window)
+def is_open(@mut Window)
     @body{ bool ret = WindowShouldClose(); }
     return ret:not
 
-smo begin(@mut Window window)
+def begin(@mut Window window)
     @body{ BeginDrawing(); }
     return window
 
-smo frame(@mut Window window)
+def frame(@mut Window window)
     @body{ EndDrawing(); }
     return window
 
-smo clear(@mut Window window, Color color)
+def clear(@mut Window window, Color color)
     @body{ ClearBackground((Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}); }
     return window
 
-smo text(@mut Window window, CString _txt, Position pos, f64 size, Color color)
+def text(@mut Window window, CString _txt, Position pos, f64 size, Color color)
     txt = _txt:nstr
     @body{
         DrawText(
@@ -107,13 +107,13 @@ smo text(@mut Window window, CString _txt, Position pos, f64 size, Color color)
     }
     return window
 
-smo Color(u64 r, u64 g, u64 b)
+def Color(u64 r, u64 g, u64 b)
     return Color(r, g, b, 255)
 
-smo Texture(nominal, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
+def Texture(nominal, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
     return @args
 
-smo open(Texture, CString _path)
+def open(Texture, CString _path)
     path = _path:nstr
     @head{#define __smolambda_ray_texture(id,width,height,mipmaps,format) {Texture2D ret = LoadTexture((char*)path__contents);id=ret.id;width=ret.width;height=ret.height;mipmaps=ret.mimpas;format=ret.format;}}
     @body{
@@ -127,7 +127,7 @@ smo open(Texture, CString _path)
     @finally mipmaps {UnloadTexture((Texture2D){id, width, height, mipmaps, format});}
     return nominal:Texture(id, width, height, mipmaps, format)
 
-smo draw(@mut Window window, Texture tex, Position pos, Color color)
+def draw(@mut Window window, Texture tex, Position pos, Color color)
     @body{ 
         DrawTexture(
             (Texture2D){tex__id, tex__width, tex__height, tex__mipmaps, tex__format},
@@ -137,7 +137,7 @@ smo draw(@mut Window window, Texture tex, Position pos, Color color)
     }
     return window
 
-smo circ(@mut Window window, Position pos, f64 radius, Color color)
+def circ(@mut Window window, Position pos, f64 radius, Color color)
     @body{
         DrawCircleV(
             (Vector2){(float)pos__x, (float)pos__y}, 
@@ -146,7 +146,7 @@ smo circ(@mut Window window, Position pos, f64 radius, Color color)
     }
     return window
 
-smo rect(@mut Window window, Position pos, Size size, Color color)
+def rect(@mut Window window, Position pos, Size size, Color color)
     @body{
         DrawRectangle(
             pos__x, pos__y,
@@ -156,11 +156,11 @@ smo rect(@mut Window window, Position pos, Size size, Color color)
     }
     return window
 
-smo rect_line(@mut Window window, Position pos, Size size, u64 thickness, Color color)
+def rect_line(@mut Window window, Position pos, Size size, u64 thickness, Color color)
     @body{DrawRectangleLinesEx((Rectangle){(float)pos__x, (float)pos__y, (float)size__w, (float)size__h}, (int)thickness, (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a});}
     return window
 
-smo circ_line(@mut Window window, Position pos, u64 radius, u64 thickness, Color color)
+def circ_line(@mut Window window, Position pos, u64 radius, u64 thickness, Color color)
     @body{
         f64 inner = (radius > thickness) ? (float)(radius - thickness) : 0.0f;
         f64 outer = (float)radius;

@@ -2,21 +2,21 @@
 @include std.mem return Memory, arena
 @include std.file
 
-smo file_stats(
+def file_stats(
         nominal, 
         u64 lines,
         u64 chars
     ) 
     return @args
 
-smo print(file_stats stats)
+def print(file_stats stats)
     printin(stats.lines)
     printin(" lines, ")
     printin(stats.chars)
     print(" bytes")
     end
 
-smo file_reader(
+def file_reader(
         String path,
         @mut Memory memory
     )

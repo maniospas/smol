@@ -38,11 +38,11 @@
 @about next_chunk  "Reads the next chunk of process output into a provided buffer."
 @about next_line   "Reads the next line of process output into a provided buffer."
 
-smo Process(nominal, ptr contents)
+def Process(nominal, ptr contents)
     @noborrow
     return @args
 
-smo open(@access @mut Process, CString _command)
+def open(@access @mut Process, CString _command)
     command = _command:nstr.contents
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -72,7 +72,7 @@ smo open(@access @mut Process, CString _command)
     }
     return nominal:Process(contents)
 
-smo to_end(@access @mut Process p)
+def to_end(@access @mut Process p)
     @head{#include <string.h>}
     @head{#include <sys/wait.h>}
     @body{
@@ -83,7 +83,7 @@ smo to_end(@access @mut Process p)
     }
     --
 
-smo next_chunk(
+def next_chunk(
         @mut DerivedMemory reader, 
         @access @mut Process p,
         @mut nstr value
@@ -101,7 +101,7 @@ smo next_chunk(
     value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret:bool
 
-smo next_line(
+def next_line(
         @mut DerivedMemory reader, 
         @access @mut Process p, 
         @mut nstr value
@@ -115,7 +115,7 @@ smo next_line(
     value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret:bool
 
-smo next_chunk(
+def next_chunk(
         @mut DerivedMemory memory, 
         @access @mut Process p, 
         @mut str value
@@ -124,7 +124,7 @@ smo next_chunk(
     value = retvalue:str
     return ret
 
-smo next_line(
+def next_line(
         @mut DerivedMemory memory, 
         @access @mut Process p, 
         @mut str value
@@ -133,18 +133,18 @@ smo next_line(
     value = retvalue:str
     return ret
 
-smo system(cstr command)
+def system(cstr command)
     @head{#include <stdlib.h>}
     @body{u64 result = system((char*)command);}
     if result!=0 
         return fail("Error: System call failed")
     --
 
-smo system(str command) 
+def system(str command) 
     system(Stack:copy(command).memory:cstr)
     --
 
-smo open(@access @mut Process, str command)
+def open(@access @mut Process, str command)
     mem = Stack:allocate(command.length+1, char)
     @body{
         char first = 0;

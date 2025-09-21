@@ -19,61 +19,61 @@
 @unsafe
 @about "Standard library wrapping of C math operations."
 
-smo cos(f64 x)
+def cos(f64 x)
     @head{#include <math.h>}
     @body{f64 z = cos(x);}
     return z
 
-smo acos(f64 x)
+def acos(f64 x)
     @head{#include <math.h>} 
     @body{f64 z = acos(x);}
     return z
 
-smo sin(f64 x)
+def sin(f64 x)
     @head{#include <math.h>}
     @body{f64 z = sin(x);}
     return z
 
-smo asin(f64 x)
+def asin(f64 x)
     @head{#include <math.h>} 
     @body{f64 z = asin(x);}
     return z
 
-smo exp(f64 x) 
+def exp(f64 x) 
     @head{#include <math.h>} 
     @body{f64 z = exp(x);}
     return z
 
-smo pi(f64 x) 
+def pi(f64 x) 
     @head{#include <math.h>} 
     @body{f64 z = x * M_PI;} 
     return z
 
-smo tan(f64 x)
+def tan(f64 x)
     @head{#include <math.h>}
     @body{f64 z = tan(x);}
     return z
 
-smo atan(f64 x) 
+def atan(f64 x) 
     @head{#include <math.h>} 
     @body{f64 z = atan(x);}
     return z
 
-smo atan2(f64 y, f64 x) 
+def atan2(f64 y, f64 x) 
     @head{#include <math.h>} 
     @body{f64 z = atan2(y, x);} 
     return z
 
-smo is_nan(f64 x) 
+def is_nan(f64 x) 
     @body{bool z=(x!=x);} 
     return z
 
-smo is_inf(f64 x) 
+def is_inf(f64 x) 
     @head{#include <cmath>} 
     @body{bool z=std::isinf(x);}
     return z
 
-smo sqrt(f64 x)
+def sqrt(f64 x)
     if x<0.0 
         @fail{printf("Root requires positive inputs\n");} 
         --
@@ -81,7 +81,7 @@ smo sqrt(f64 x)
     @body{f64 z = sqrt(x);}
     return z
 
-smo pow(f64 base, f64 exponent)
+def pow(f64 base, f64 exponent)
     if base<0.0 
         @fail{printf("Exponentiation requires non-negative base\n");} 
         --
@@ -89,7 +89,7 @@ smo pow(f64 base, f64 exponent)
     @body{f64 z = pow(base, exponent);}
     return z
     
-smo log(f64 x)
+def log(f64 x)
     if x<=0.0 
         @fail{printf("Logarithm needs positive inputs\n");} 
         --

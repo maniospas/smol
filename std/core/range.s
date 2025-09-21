@@ -26,17 +26,17 @@
              "\n    print(i)"
              "\n    --</pre>"
 
-smo range(u64 start, u64 sup, u64 step) 
+def range(u64 start, u64 sup, u64 step) 
     @mut pos = start 
     return @args, pos
 
-smo range(u64 start, u64 sup) 
+def range(u64 start, u64 sup) 
     return range(start,sup,1)
 
-smo range(u64 sup)  
+def range(u64 sup)  
     return range(0,sup,1)
 
-smo next(
+def next(
         @access @mut range self, 
         @mut u64 value
     )

@@ -70,7 +70,7 @@
 
 
   <pre><code class="language-smolambda">// from std/mem.device.s
-smo ContiguousMemory (
+def ContiguousMemory (
         nominal, 
         MemoryDevice, 
         u64 size,
@@ -81,7 +81,7 @@ smo ContiguousMemory (
     -> @args
 
 // from std/mem/arena.s
-smo Arena(nominal type, ContiguousMemory contents)
+def Arena(nominal type, ContiguousMemory contents)
     @noborrow
     length = 0
     size = contents.size
@@ -120,7 +120,7 @@ smo Arena(nominal type, ContiguousMemory contents)
     you can access fields <code  class="language-smolambda">p.x</code> and <code  class="language-smolambda">p.y</code>.
   </p>
 
-  <pre><code class="language-smolambda">smo point2(nominal, f64 _x, f64 _y) 
+  <pre><code class="language-smolambda">def point2(nominal, f64 _x, f64 _y) 
     x = 2*_x 
     y = 2*_y 
     -> x,y // return statement</code></pre>
@@ -142,7 +142,7 @@ smo Arena(nominal type, ContiguousMemory contents)
   </p>
   
   <p>
-    <b>Smo vs services -</b> In general, there are two ways to declare runtypes; as <code class="language-smolambda">smo</code> declarations,
+    <b>def vs services -</b> In general, there are two ways to declare runtypes; as <code class="language-smolambda">smo</code> declarations,
     like above, or as <code class="language-smolambda">service</code>s. The main difference is that the former are inlined,
     whereas services are implemented as co-routines and give the opportunity of error handling when errors occur inside - to be addressed in
     another post.
@@ -156,7 +156,7 @@ smo Arena(nominal type, ContiguousMemory contents)
     runtype is simply stored into underlying variables <code class="language-smolambda">p__x.p__y</code>.
   </p>
   </p>
-    Remember that smo definitions are inlined, so we can have very complex data transfers be zero cost (or faster-than-zero-cost, depending
+    Remember that def definitions are inlined, so we can have very complex data transfers be zero cost (or faster-than-zero-cost, depending
     on how you look at it) by performing variable substitution
     and elimination. Currently, the language transpiles to an unholy subset of C with <code class="language-smolambda">goto</code> as 
     its intermediate representation. Mostly because I am uncomfortable around the LLVM stack's bloat. So these variable
@@ -191,7 +191,7 @@ smo Arena(nominal type, ContiguousMemory contents)
   <div style="position: relative; margin-bottom: 2em;">
 <pre><code class="language-smolambda">// from std/builtins/str.s
 
-smo str (
+def str (
         nominal, // no storage or runtime cost
         ptr contents, 
         u64 length, 
@@ -358,7 +358,7 @@ service main()
 @unsafe
 @about "Standard library implementation of memory management ..."
 
-smo allocate(Heap, u64 size, Primitive)
+def allocate(Heap, u64 size, Primitive)
     // Usually optimized away if, for example
     // one called Heap:allocate(1024, char)
     if size==0 

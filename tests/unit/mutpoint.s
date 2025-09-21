@@ -1,34 +1,34 @@
 @include std.core
 
-smo Point(f64 px, f64 py)
+def Point(f64 px, f64 py)
     @mut x = px
     @mut y = py
     return x,y
 
-smo print(@access Point p)
+def print(@access Point p)
     printin(p.x)
     printin(",")
     print(p.y)
     end
 
-smo TPoint(f64 px, f64 py)
+def TPoint(f64 px, f64 py)
     x = px
     y = py
     return x, y
 
-smo IPoint(nominal, f64 x, f64 y) 
+def IPoint(nominal, f64 x, f64 y) 
     return @args
 
-smo scale(@access @mut Point p, f64 factor) 
+def scale(@access @mut Point p, f64 factor) 
     p.x = p.x*factor
     p.y = p.y*factor
     end
 
-smo zero(@access @mut Point p)
+def zero(@access @mut Point p)
     p = Point(0.0, 0.0)
     end
 
-smo zero(@mut IPoint p)
+def zero(@mut IPoint p)
     p = nominal:IPoint(0.0, 0.0)
     // p.x = 0.0 // creates an ERROR (p is mutable as a whole only)
     end

@@ -1,6 +1,6 @@
 @include std.core
 
-smo data(
+def data(
         u64 id, 
         u64[] values
     ) 

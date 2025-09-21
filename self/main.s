@@ -3,7 +3,7 @@
 @include std.mem
 @include std.map
 
-smo tokenize(@mut Memory memory, @mut ReadFile f)
+def tokenize(@mut Memory memory, @mut ReadFile f)
     program_size = 100000
     map_size = 1000
 

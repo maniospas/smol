@@ -25,7 +25,7 @@
 @about str  "Provides methods for converting numbers to strings that are stored on provided Memory allocators. These are not necessarily null-terminated, so use nstr if that is important."
 @about str  "Provides methods for converting numbers to strings that are stored on provided Memory allocators. The result is a null-terminated nstr."
 
-smo copy(@access @mut Memory allocator, String _s)
+def copy(@access @mut Memory allocator, String _s)
     s = _s:str
     mem = allocator:allocate(s.length+1, char)
     @body{
@@ -35,7 +35,7 @@ smo copy(@access @mut Memory allocator, String _s)
     }
     return nominal:nstr(mem.mem, s.length, first, mem.underlying)
 
-smo add(@access @mut Memory allocator, String _x, IndependentString _y)
+def add(@access @mut Memory allocator, String _x, IndependentString _y)
     x = _x:str
     y = _y:str
     @head{#include <string.h>}
@@ -55,7 +55,7 @@ smo add(@access @mut Memory allocator, String _x, IndependentString _y)
     }
     return nominal:nstr(_contents, total_len, first, mem.underlying)
 
-smo nstr(@access @mut Memory allocator, i64 number)
+def nstr(@access @mut Memory allocator, i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -79,7 +79,7 @@ smo nstr(@access @mut Memory allocator, i64 number)
         --
     return nominal:nstr(contents, length, first, mem.underlying)
 
-smo nstr(@access @mut Memory allocator, u64 number)
+def nstr(@access @mut Memory allocator, u64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -103,7 +103,7 @@ smo nstr(@access @mut Memory allocator, u64 number)
         end
     return nominal:nstr(contents, length, first, mem.underlying)
 
-smo nstr(@access @mut Memory allocator, f64 number)
+def nstr(@access @mut Memory allocator, f64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
@@ -127,11 +127,11 @@ smo nstr(@access @mut Memory allocator, f64 number)
         end
     return nominal:nstr(contents, length, first, mem.underlying)
 
-smo str(@access @mut Memory allocator, u64 number)
+def str(@access @mut Memory allocator, u64 number)
     return nstr(allocator, number):str
 
-smo str(@access @mut Memory allocator, i64 number)
+def str(@access @mut Memory allocator, i64 number)
     return nstr(allocator, number):str
 
-smo str(@access @mut Memory allocator, f64 number)
+def str(@access @mut Memory allocator, f64 number)
     return nstr(allocator, number):str

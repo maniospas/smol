@@ -19,7 +19,7 @@
 // - __runtime_apply_linked
 
 // ----------------------- ABOUT ------------------------------------------
-// This runtime eagerly executes runtype (that is, smo function) calls
+// This runtime eagerly executes runtype (that is, def function) calls
 // using a single thread. You can explicitly set it by compiling
 //     smol main.s --runtime eager
 

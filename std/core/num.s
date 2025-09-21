@@ -43,121 +43,121 @@ union Number
     i64
     end
 
-smo print(@access f64 message)
+def print(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f\n", message);}
     end
     
-smo print(@access i64 message)
+def print(@access i64 message)
     @head{#include <stdio.h>}
     @body{printf("%ld\n", message);}
     end
     
-smo print(@access u64 message)
+def print(@access u64 message)
     @head{#include <stdio.h>}
     @body{printf("%lu\n", message);}
     end
     
-smo print(@access bool message)
+def print(@access bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true\n"):printf("false\n");}
     end
     
-smo print(@access char message)
+def print(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c\n", message);}
     end
     
-smo printin(@access f64 message)
+def printin(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f", message);}
     end
     
-smo printin(@access i64 message)
+def printin(@access i64 message)
     @head{#include <stdio.h>}
     @body{printf("%ld", message);}
     end
     
-smo printin(@access u64 message)
+def printin(@access u64 message)
     @head{#include <stdio.h>}
     @body{printf("%lu", message);}
     end
     
-smo printin(@access bool message)
+def printin(@access bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true"):printf("false");}
     end
     
-smo printin(@access char message)
+def printin(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c", message);}
     end
 
-smo le(@access Number x, Number y)  
+def le(@access Number x, Number y)  
     @body{bool z=x<=y;}   
     return z
 
-smo ge(@access Number x, Number y)  
+def ge(@access Number x, Number y)  
     @body{bool z=x>=y;}
     return z
 
-smo lt(@access Number x, Number y)  
+def lt(@access Number x, Number y)  
     @body{bool z=x<y;}
     return z
 
-smo gt(@access Number x, Number y)
+def gt(@access Number x, Number y)
     @body{bool z=x>y;}
     return z
 
-smo leq(@access Number x, Number y)
+def leq(@access Number x, Number y)
     @body{bool z=x<=y;}
     return z
 
-smo geq(@access Number x, Number y)
+def geq(@access Number x, Number y)
     @body{bool z=x>=y;}
     return z
 
-smo eq(@access Number x, Number y)
+def eq(@access Number x, Number y)
     @body{bool z=(x==y);} 
     return z
 
-smo neq(@access Number x, Number y)
+def neq(@access Number x, Number y)
     @body{bool z=(x!=y);}
     return z
 
-smo eq(@access ptr x, ptr y)
+def eq(@access ptr x, ptr y)
     @body{bool z=(x==y);}
     return z
 
-smo neq(@access ptr x, ptr y)
+def neq(@access ptr x, ptr y)
     @body{bool z=(x!=y);} 
     return z
 
-smo eq(@access bool x, bool y)
+def eq(@access bool x, bool y)
     @body{bool z=(x==y);} 
     return z
 
-smo neq(@access bool x, bool y)
+def neq(@access bool x, bool y)
     @body{bool z=(x!=y);} 
     return z
 
-smo not(@access bool x)
+def not(@access bool x)
     @body{bool z=(!x);}
     return z
 
-smo exists(@access ptr x)
+def exists(@access ptr x)
     @body{bool z=(x);} 
     return z
 
-smo add(@access u64 x, u64 y)
+def add(@access u64 x, u64 y)
     @body{u64 z=x+y;} 
     return z
 
-smo mul(@access u64 x, u64 y)
+def mul(@access u64 x, u64 y)
     @body{u64 z=x*y;}
     return z
 
-smo div(@access u64 x, u64 y)
+def div(@access u64 x, u64 y)
     @head{#include <stdio.h>}
     if y==0 
         @fail{printf("Error: division by zero\n");} 
@@ -166,7 +166,7 @@ smo div(@access u64 x, u64 y)
     @body{u64 z=x/y;}
     return z
 
-smo sub(@access u64 x, u64 y)
+def sub(@access u64 x, u64 y)
     @head{#include <stdio.h>}
     if y>x 
         @fail{printf("Error: unsigned substraction yielded a negative\n");} 
@@ -174,7 +174,7 @@ smo sub(@access u64 x, u64 y)
     @body{u64 z=x-y;}
     return z
 
-smo mod(@access u64 x, u64 y) 
+def mod(@access u64 x, u64 y) 
     @head{#include <stdio.h>}
     if y==0
         @fail{printf("Error: modulo by zero\n");}
@@ -183,11 +183,11 @@ smo mod(@access u64 x, u64 y)
     @body{u64 z=x%y;} 
     return z
 
-smo add(@access i64 x, i64 y) 
+def add(@access i64 x, i64 y) 
     @body{i64 z=x+y;} 
     return z
 
-smo mod(@access i64 x, i64 y)
+def mod(@access i64 x, i64 y)
     @head{#include <stdio.h>}
     if y<=0:i64
         @fail{printf("Error: modulo by non-positive\n");} 
@@ -196,18 +196,18 @@ smo mod(@access i64 x, i64 y)
     @body{i64 z=x%y;}
     return z
 
-smo sub(@access i64 x, i64 y)
+def sub(@access i64 x, i64 y)
     @body{i64 z=x-y;}
     return z
 
-smo negative(@access i64 x)
+def negative(@access i64 x)
     return sub(0:i64, x)
 
-smo mul(@access i64 x, i64 y)
+def mul(@access i64 x, i64 y)
     @body{i64 z=x*y;}
     return z
 
-smo div(@access i64 x, i64 y)
+def div(@access i64 x, i64 y)
     @head{#include <stdio.h>}
     if y==0:i64
         @fail{printf("Error: division by zero\n");} 
@@ -216,21 +216,21 @@ smo div(@access i64 x, i64 y)
     @body{i64 z=x/y;}
     return z
 
-smo add(@access f64 x, f64 y) 
+def add(@access f64 x, f64 y) 
     @body{f64 z=x+y;} 
     return z
 
-smo sub(@access f64 x, f64 y)
+def sub(@access f64 x, f64 y)
     @body{f64 z=x-y;} 
     return z
 
-smo mul(@access f64 x, f64 y)
+def mul(@access f64 x, f64 y)
     @body{f64 z=x*y;} 
     return z
 
-smo negative(@access f64 x) 
+def negative(@access f64 x) 
     return sub(0.0, x)
 
-smo div(@access f64 x, f64 y) 
+def div(@access f64 x, f64 y) 
     @body{f64 z=x/y;} 
     return z

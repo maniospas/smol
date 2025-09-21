@@ -5,12 +5,12 @@ union Type
     f64 
     u64
 
-smo Point(Type _x, Type _y)
+def Point(Type _x, Type _y)
     @mut x = _x
     @mut y = _y
     return x,y
 
-smo inc(@access @mut Point p)
+def inc(@access @mut Point p)
     p.x = p.x+Point.Type(1)
     p.y = p.y+Point.Type(1)
 

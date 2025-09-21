@@ -315,7 +315,10 @@ shared_ptr<Import> tokenize(const string& path) {
             }
 
             else {
-                while(i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) {i++; col++;}
+                while(i < line.size() && !isspace(line[i]) && !is_symbol(line[i])) {
+                    i++; 
+                    col++;
+                }
                 if(start < i) {
                     string substr = line.substr(start, i - start);
                     if (substr=="end") {

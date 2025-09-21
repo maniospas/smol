@@ -2,7 +2,7 @@
 @include std.mem
 @unsafe
 
-smo copy_state(@mut Arena arn) 
+def copy_state(@mut Arena arn) 
     return arn  // this is a workarround to dodge the @noborrow constraint of arenas when @unsafe is enabled
 
 service main()

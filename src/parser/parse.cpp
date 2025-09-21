@@ -18,7 +18,7 @@ void Def::end_block(const shared_ptr<Import>& i, size_t& p) {
         string next = imp->at(p);
         if(next=="if" || next=="else" || next=="while" || next=="with") 
             ++depth;
-        if(next=="smo" || next=="service") 
+        if(next=="def" || next=="service") 
             imp->error(p, "Unexpected end of definition");
         if(next=="-" && p<imp->size()-1) {
             ++p; next = imp->at(p);
@@ -94,7 +94,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         bool is_access_assignment = false;
         bool is_mutable_assignment = false;
         string next = imp->at(p++);
-        // if(next=="smo" || next=="union" || next=="service") {
+        // if(next=="def" || next=="union" || next=="service") {
         //     p -= 2;
         //     break;
         // }
