@@ -80,11 +80,25 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         return;
     Types& types = saved_types;
     unordered_set<Variable> next_assignments;
+    bool single_statement = false;
+    if(p<imp->size() && imp->at(p)=="do") {
+        p++;
+        single_statement = true;
+    }
+    size_t start_p = p;
     while(p<imp->size()) {
+        if(p!=start_p && single_statement) {
+            --p;
+            break;
+        }
         bool is_next_assignment = false;
         bool is_access_assignment = false;
         bool is_mutable_assignment = false;
         string next = imp->at(p++);
+        if(next=="smo" || next=="union" || next=="service") {
+            p -= 2;
+            break;
+        }
         if(next=="@") {
             if(p<imp->size() && imp->at(p)=="next"){
                 is_next_assignment=true;
@@ -198,7 +212,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
     if(with_signature) {
         static const Variable endvar = Variable("__end");
         vars[endvar] = types.vars[LABEL_VAR];
-        implementation +=Code(endvar, COLON_VAR);
+        implementation += Code(endvar, COLON_VAR);
         simplify();
     }
 }

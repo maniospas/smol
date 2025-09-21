@@ -286,7 +286,7 @@ connection.onHover((params) => {
   else if (word === "ptr") 
     contents += "**ptr** — a pointer to a memory address. Manual pointer handling is inherently unsafe and usually requires the file to be set as <code>@unsafe</code>.";
   else if (word === "char") 
-    contents += "**char** — a single byte character. This is the only primitive that is stored in 8 instead of 64 bits. When moved to buffers, however, it still aligned to 64 bits.";
+    contents += "**char** — a single byte character. This is the only primitive that is stored in 8 instead of 64 bits. When moved to buffers, however, it is still aligned to 64 bits.";
   
   // Directives (use regex to capture @identifier under cursor)
   {

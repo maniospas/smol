@@ -24,7 +24,6 @@
     body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin: 0;background-color: #f9f9f9;color: #333;line-height: 1.7;}
     .navbar {background-color: #333;padding: 2px;position: sticky;top: 0;z-index: 1000;display: flex;flex-wrap: wrap;justify-content: center;}
     .navbar a {color: white;text-decoration: none;padding: 5px 10px;font-weight: bold;}
-    .navbar a:hover {background-color: #555;}
     .container {max-width: 800px;margin: 20px auto;padding: 0 20px;}
     h1, h2, h3 {color: #222;}
     table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
@@ -426,23 +425,8 @@ smo allocate(Heap, u64 size, Primitive)
 </div>
 
 <style>
-  .navbar-link {
-    color: #177042;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 1em;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 18px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-  }
-  .navbar-link:hover {
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-    transform: translateY(-1px);
-    background: #eefdf7;
-  }
+  .navbar-link{color: #177042;text-decoration: none;font-weight: bold;font-size: 1em;display: flex;align-items: center;gap: 6px;padding: 4px 8px;border-radius: 20px;transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;}
+  .navbar-link:hover {box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);background: #e9eed8;border: 1px solid #444}
   .navbar-link img {
     transition: transform 0.2s ease;
   }

@@ -34,7 +34,7 @@
                    "\n    run(\"invalid command\").err:assert_ok // synchronize"
                    "\n    --"
                    "</pre>"
-@about to_end      "Reads all remaining output from the process without storng it."
+@about to_end      "Reads all remaining output from the process without storing it."
 @about next_chunk  "Reads the next chunk of process output into a provided buffer."
 @about next_line   "Reads the next line of process output into a provided buffer."
 

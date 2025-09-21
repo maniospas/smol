@@ -174,6 +174,13 @@ shared_ptr<Import> tokenize(const string& path) {
                     tokens.emplace_back(current_str_token, line_num, start_col, main_file);
                 }
             }
+            else if (!in_brackets &&line.compare(i, 7, "return ")==0) {
+                tokens.emplace_back("-", line_num, col, main_file);
+                tokens.emplace_back(">", line_num, col + 1, main_file);
+                i += 7;
+                col += 7;
+                continue;
+            }
             else if(!in_brackets && line[i]=='+') {
                 tokens.emplace_back(":", line_num, col, main_file);
                 tokens.emplace_back("add", line_num, col, main_file);

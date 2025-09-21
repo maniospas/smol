@@ -1,6 +1,7 @@
-@include std.core -> String, fail // as an example, load only string ops but nothing about numbers
+@include std.core
 @include std.mem  -> Memory
 @include std.os   -> Process
+@include std.time -> time
 
 service run(String command)
     @mut process = Process:open(command)
@@ -11,21 +12,21 @@ service run(String command)
     // Releasng checks for failure of incomplete
     // status or non-zero exit code.
     @release process
-    --
+    return None
 
 service std_test(String name)
-    on Heap:dynamic // memory surface for string concatenations
-        redirect = " 2>&1"
-        command = "./smol tests/unit/"+name+".s --runtime eager"+redirect
-        --
-    on Heap:dynamic // new memory surface because the previous one was mutated by feeding into service call
-        if run(command).err:bool
-            -> print("[ \033[31mERROR\033[0m ] "+name+".s")
-        else 
-            -> print("[ \033[32mOK\033[0m ] "+name+".s")
-    ----
+    redirect = " 2>&1"
+    command = on Heap:dynamic return "./smol tests/unit/"+name+".s --runtime eager"+redirect
+    // new memory surface because the previous one was made immutable 
+    // by feeding into a service call
+    on Heap:dynamic
+        do if run(command).err:bool
+            do print("[ \033[31mERROR\033[0m ] "+name+".s")
+        else
+            do print("[ \033[32mOK\033[0m ] "+name+".s")
+    return None
 
-service main()
+service all()
     // services are asynchronous co-routines
     std_test("buffers")
     std_test("bbuffer")
@@ -49,4 +50,12 @@ service main()
     std_test("virtfile")
     std_test("accessvar")
     //std_test("release") // THIS IS AN ERROR
-    --
+    return None
+
+service main()
+    tic = time()
+    all().err // force synchronize by waiting to see if ther's an error code
+    printin("Completed in ")
+    printin(time()-tic)
+    print(" sec")
+    return None

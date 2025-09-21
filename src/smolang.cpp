@@ -658,6 +658,11 @@ int main(int argc, char* argv[]) {
             std::stringstream out("");
             out << 
                 "#define SMOLAMBDA_SERVICES "<<(selected_task==Task::Library?1:count_services)<<"\n" // libraries do not run on their own scheduler
+                "#ifdef __cplusplus\n"
+                "#define __externc extern \"C\"\n"
+                "#else\n"
+                "#define __externc\n"
+                "#endif\n"
                 //"#undef _FORTIFY_SOURCE"
                 "#include <string.h>\n"
                 "#include \""+runtime+"\"\n"
@@ -713,7 +718,7 @@ int main(int argc, char* argv[]) {
                     for(const auto& service : it.second->options)
                         if(!ranges::contains(added_services, it.second) && !service->lazy_compile) {
                             out << service->raw_signature_state()<<"\n";
-                            out << "extern \"C\" void "+service->raw_signature()+";\n";
+                            out << "__externc void "+service->raw_signature()+";\n";
                             added_services.insert(service);
                         }
             Type main_service;
