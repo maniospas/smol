@@ -25,7 +25,7 @@
 
     /* Tighter navbar */
     .navbar {
-      background: #fdfaf9;
+      background: #fffbf0;
       box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
       padding: 2px 8px;
       position: sticky;
@@ -147,19 +147,19 @@
 
 <p>
 Let's take our first steps into programming with <i>smoλ</i> 
-(pronounced like "small" but with "o" instead of "a"). The language is a bit 
-atypical in that it simplifies a lot of traditional programming concepts while keeping the ability to 
+(pronounced like "small" but with "o" instead of "a"). The language 
+simplifies a lot of traditional programming concepts while keeping the ability to 
 write very fast yet safe code. Some level of control is sacrificed in the process, but this means 
-that you do not need to worry too much about technical details. 
+that you do not need to worry too much about details either. 
 </p>
 <p>
-Our first program shows how to run a program and print a message.
+Our first program shows how to print a message.
 Download the <code class="language-smolambda">smol</code> executable 
 from the <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>.
 Place it alongside the <code>std</code> directory and add both the containing folder 
 and a C/C++ compiler (e.g., GCC) to your system PATH. Finally, create a file named <i>main.s</i> 
 with the text below. Open a terminal in the same folder and run 
-<code class="language-smolambda">smol main.s</code>.
+<code>smol main.s</code>.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -176,10 +176,9 @@ Hello world!
 
 <p>
 As a quick preview, <code class="language-smolambda">@include std.core</code> 
-adds basic tools, like <code class="language-smolambda">print</code>. Then  
-<code class="language-smolambda">service main()</code> is where your program starts.
-Finally, the line with <code class="language-smolambda">end</code> marks the end 
-of the program.
+adds basic functionality, like <code class="language-smolambda">print</code>. Then  
+<code class="language-smolambda">service main()</code> is your actual program.
+Finally, the line with <code class="language-smolambda">end</code> marks its completion.
 </p>
 
 <h1 id="variables">Variables <a href="#variables" class="anchor-link">🔗</a></h1>
@@ -191,8 +190,12 @@ In programming, this process is called <i>assignment</i>.
 Names cannot start with numbers or contain
 spaces or special symbols other than the underscore <code class="language-smolambda">_</code>.
 They can also not be existing variables or other operations. 
-Having two consecutive underscores is also not allowed. 
-Below is an example where we set a constant text known during program creation (<code class="language-smolambda">cstr</code>) 
+</p>
+<p>In <i>smol</i>, having two consecutive underscores in a variable is also not allowed, because the language
+uses the combination for some internal workings. Some valid variable names are <code>x</code>, <code>employee</code>,
+<code>my_property</code>, <code>_temp_computation</code>, <code>MyDataStructure</code>, <code>var123</code>.
+Below is an example where we set a constant 
+text known during program creation (<code class="language-smolambda">cstr</code>) 
 to a variable.
 </p>
 
@@ -213,8 +216,8 @@ Numbers are values too. There are three kinds you will use often:
   <li><code class="language-smolambda">f64</code> — numbers with a decimal point. The default when writing <code class="language-smolambda">2.0</code> or <code class="language-smolambda">3.14</code>.</li>
 </ul>
 <p>These are known as unsigned integers, signed integers, and float numbers, respectively. 
-The above names add <i>64</i> next to a mnemonic symbol to reassure
-experienced programmers that we will use 64 bits to represent the numbers under-the-hood. 
+The above names reassure
+experienced programmers that they indeed use 64 bits to represent the numbers under-the-hood. 
 That is, unsigned integers can represent numbers <code class="language-smolambda">0 upto 2^65-1</code>
 but signed ones can represent numbers <code class="language-smolambda">-2^64 upto 2^64-1</code>.
 Floats follow the IEEE 754 standard, which is typically accurate to 15-17 significant digits.
@@ -223,10 +226,10 @@ Floats follow the IEEE 754 standard, which is typically accurate to 15-17 signif
 For safety, you cannot mix operations between different types of numbers. For example, you cannot subtract 
 a float from <code class="language-smolambda">0</code> but only from <code class="language-smolambda">0.0</code>.
 However, you can convert between number formats with <code class="language-smolambda">value:type</code>.
-You would be surprised how many bugs are prevented by requiring explicit data conversions.
+You would be surprised how many bugs are prevented by requiring only compatible numbers.
 </p>
 <p>
-See below for examples. Integer division by zero creates a runtime failure that you can intercept and handle at the level
+Below are some examples of numeric operations. Integer division by zero creates a runtime failure that you can intercept and handle at the level
 of services. For floats, the IEEE 754 standard allows invalid operations like division by zero and lets them yield positive infinity, 
 negative infinity, or NaN (not a number) values. You can check for those properties by correspondingly calling one of 
 <code class="language-smolambda">is_inf</code> or <code class="language-smolambda">is_nan</code> 
@@ -248,7 +251,8 @@ service main()
 
 <p><b>Mutable variables:</b> After setting a variable, its value cannot normally change. To allow changes, declare it as <i>mutable</i> 
 by placing <code class="language-smolambda">@mut</code> before its first declaration/assignment. 
-Variables are immutable -that is, not mutable- by default to avoid many logic bugs. Look out for mutable ones.</p>
+Variables are immutable -that is, not mutable- by default to avoid many logic bugs. Always keep an eyes
+for things that might have changed in the interim if something is mutable.</p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.core
@@ -274,7 +278,8 @@ This is done with an <code class="language-smolambda">if</code> block.
 The word <code class="language-smolambda">if</code> starts the block, then comes a condition, 
 then the code that should run if the test passes. Prefer indenting the latter for easier reading, 
 as well as starting it in a new line.
-Like before, the block ends at <code class="language-smolambda">end</code>.
+Like with the <code class="language-smolambda">main</code> service so far, 
+the block ends at <code class="language-smolambda">end</code>.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -291,9 +296,10 @@ this always runs
 </pre>
 
 <p>
-Here the test is just the value <code class="language-smolambda">true</code>, so the message will always print.  
-If you changed the condition to <code class="language-smolambda">false</code>, the inside will be skipped. These are 
-known as boolean values, or <code class="language-smolambda">bool</code> for short.
+Here the test is just the value <code class="language-smolambda">true</code>, so the message will always be printed.  
+If you changed the condition to <code class="language-smolambda">false</code>, the inside would be skipped. These two values
+(<code class="language-smolambda">true</code> and <code class="language-smolambda">false</code>) are 
+known as boolean ones, or <code class="language-smolambda">bool</code> for short. 
 More often, the test contains numerical or other comparisons that evaluate to a boolea value. 
 For example, <code class="language-smolambda">2 &lt; 3</code> checks whether two is less than three.
 </p>
@@ -325,9 +331,9 @@ There are several comparison operators you can use - some of these are defined f
 </ul>
 
 <p>
-We can also add <code class="language-smolambda">elif</code> (else if) 
-and <code class="language-smolambda">else</code> branches to cover other cases.  
-Each branch is tried in order until one runs.
+We can also use <code class="language-smolambda">elif</code> (else if) 
+and <code class="language-smolambda">else</code> branches to cover alternatves.  
+Each branch is tried in order until one runs, as in the example below.
 </p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -375,18 +381,14 @@ service main()
 positive
 </pre>
 
-<p>
-If you prefer, it is okay to keep code compact when it reads naturally, for example by writing one line:  
-<code class="language-smolambda">if x&gt;0 return print("positive")</code>.
-</p>
-
-
 <h1 id="loops">Loops <a href="#loops" class="anchor-link">🔗</a></h1>
 
 <p>A loop repeats a block while a condition is true. Syntactically, it
 starts with <code class="language-smolambda">while</code> followed by a condition 
-and the block's contents. Those must end at <code class="language-smolambda">end</code>.
-If a variable changes inside the loop, make it mutable during its first assignment.</p>
+and the block's contents. Similarly to conditions, 
+the block ends at <code class="language-smolambda">end</code>.
+If a variable changes inside the loop, is needs to be mutable during its first assignment.
+Otherwise, the language would complain.</p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.core
@@ -408,22 +410,24 @@ service main()
 </pre>
 
 
-<p>The next snippet shows a pattern for looping through a range of unsigned integers. This is 
-less prone to accidental bugs is a pattern that will be fully explained later.
-This pattern is known as an <i>iterator</i> because it builds on some data that can 
-be traversed and assigns to a variable while traversing them. Here the data is a
-a <code class="language-smolambda">range(5)</code> indicating values <code class="language-smolambda">0 upto 4</code> and
-traversed values are assigned to <code class="language-smolambda">i</code>.
-Iterators are convenient in that you do not need to manually handle the increment, which
-you might forget about or could be complicated. For example, reading from
-files is also implemented as an iterator.
+<p>The next snippet shows a pattern for looping through a <i>range</i> of unsigned integers <code class="language-smolambda">0 upto 4</code>.
+You couls skip the <code>0,</code> argument for further simplicity. More details will be fully presented later, but it 
+would be remiss to not mention this pattern here, as it prevents accidental bugs. Broadly, the <code>next</code> function
+progresses the range while tracking values by assigning them to mutable varable <code class="language-smolambda">i</code>. 
+The latter is updated in every loop.
+</p>
+<p>
+Notice the <code class="language-smolambda">:</code> before the <code class="language-smolambda">while</code>, which is how
+range is transferred to <code>next</code>. With this pattern, you do not need to manually handle the increment, which
+you might forget about or could be complicated. Similar patterns let you, for example, automate the process of reading
+from fles.
 </p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.core
 
 service main()
-    range(5)
+    range(0, 5)
     :while next(@mut u64 i) 
         print(i)
     end end
@@ -435,7 +439,7 @@ service main()
 <p>
 Sometimes you want to stop not just the current block, but also its parent blocks
 up to a certain level. In those cases, 
-put a vertical bar <code class="language-smolambda">|</code> before the return symbol 
+put a vertical bar <code class="language-smolambda">|</code> before the end symbol 
 for each level you want to “jump up”. For example,
 <code class="language-smolambda">|end</code> ends the current block and its parent. 
 Similarly, <code class="language-smolambda">|return value</code> returns a value to the parent.  
@@ -461,13 +465,16 @@ You can name a block of code and call it with inputs. These are called arguments
 There are two kinds of named blocks:
 </p>
 <ul>
-  <li><code class="language-smolambda">smo</code> — a lightweight function. It is called a <i>runtype</i>.</li>
-  <li><code class="language-smolambda">service</code> — a safer unit that handles errors and resources for you.</li>
+  <li><code class="language-smolambda">def</code> — a lightweight function that returns one or more values. It delegates error and resource handling to whichever services call it.</li>
+  <li><code class="language-smolambda">service</code> — a safer function that safely handles errors and resources, including resource freeing on failure.</li>
 </ul>
 
-<p>For most simple programs, you will mostly declare runtypes. Services are more complex in that they run
-independently to each other. Adding arguments to a service is as simple as adding a list of comma-separated
-variable types and names. Types are needed so that the service can know what inputs to expect. 
+<p>For most simple programs, you will mostly declare functions with <code class="language-smolambda">def</code>
+and let them freely fail. <i>Smoλ</i>'s philosophy is to not try to hopelessly recover from every failure state, 
+but exit gracefully and try again. Services are more complex in that they run
+independently to each other.</p>
+<p>Regardless of the type of function, you can declare necessary inputs -called <i>arguments</i>- 
+as comma-separated variable types and names. Types are needed so that the service can know what inputs to expect. 
 For example, <code class="language-smolambda">f64 x</code> denotes an argument that is a float named <code>x</code>.
 </p>
 
@@ -487,7 +494,7 @@ service main()
 <p>
 Inputs are passed "by value" (without affecting the call site) unless you explicitly allow changes.  
 Place <code class="language-smolambda">@mut</code> before argument names to declare that 
-the variable passed as an argument may be modified inside the runtype or service - and hence
+the variable passed as an argument may be modified inside the function - and hence
 must already be mutable. This also makes the argument variable internally mutable. 
 Below is an example.
 </p>
@@ -559,8 +566,8 @@ The same colon also works with loops provided by the standard library (like <cod
 <h1 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h1>
 
 <p>
-A block can return a value using <code class="language-smolambda">return</code>, or end with no value using <code class="language-smolambda">--</code>.  
-Returning early is just a return higher up the page; use uplifting if you need to jump out of an extra level.
+A block can return a value using <code class="language-smolambda">return</code>, or end with no value using <code class="language-smolambda">end</code>.  
+Use uplifting if you need to jump out multiple levels when returning.
 </p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -580,7 +587,7 @@ service main()
 
 <p>
 You can return several named values at once and then access them as fields.  
-<code class="language-smolambda">@args</code> is a shorthand that returns all inputs by name.
+<code class="language-smolambda">@args</code> is a shorthand that returns all inputs.
 </p>
 
 <pre><code class="language-smolambda">@include std.core
