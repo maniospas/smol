@@ -21,35 +21,36 @@
 #include "utils/common.h"
 
 // Utility for suffix parsing
-size_t parse_integer_suffix(const std::string& line, size_t i);
+size_t parse_integer_suffix(const string& line, size_t i);
+using namespace std;
 
 class Token;  // forward
 
 class Import {
 public:
-    std::string path;
+    string path;
     size_t pair;
     bool allow_unsafe;
-    std::string about;
-    std::unordered_map<std::string, std::string> docs;
-    Import(const std::string& p);
-    std::vector<Token> tokens;
-    std::string& at(size_t pos);
-    void error(size_t pos, const std::string& message);
+    string about;
+    unordered_map<string, string> docs;
+    Import(const string& p);
+    vector<Token> tokens;
+    string& at(size_t pos);
+    void error(size_t pos, const string& message);
     size_t size();
 };
 
 class Token {
 public:
-    std::string name;
+    string name;
     size_t line;
     size_t character;
-    std::shared_ptr<Import> imp;
+    shared_ptr<Import> imp;
     Token();
-    Token(const std::string& n, size_t l, size_t c, const std::shared_ptr<Import>& i);
-    std::string show() const;
+    Token(const string& n, size_t l, size_t c, const shared_ptr<Import>& i);
+    string show() const;
 };
 
-std::shared_ptr<Import> tokenize(const std::string& path);
+shared_ptr<Import> tokenize(const string& path);
 
 #endif // TOKENIZE_H

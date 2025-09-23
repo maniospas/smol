@@ -122,18 +122,10 @@
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-title"><span class="sidebar-name">Calls</span></div>
+    <div class="sidebar-title"><span class="sidebar-name">Functions</span></div>
     <div class="sidebar-sub">
       <a href="#arguments">Arguments</a><br>
-      <a href="#mutability">Mutability</a><br>
-      <a href="#typeargs">Type arguments</a><br>
-      <a href="#currying">Currying</a>
-    </div>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-title"><span class="sidebar-name">Returns</span></div>
-    <div class="sidebar-sub">
+      <a href="#currying">Currying</a><br>
       <a href="#returns">Returns</a><br>
       <a href="#fields">Fields</a><br>
       <a href="#errors">Error handling</a>
@@ -191,7 +183,7 @@ Names cannot start with numbers or contain
 spaces or special symbols other than the underscore <code class="language-smolambda">_</code>.
 They can also not be existing variables or other operations. 
 </p>
-<p>In <i>smol</i>, having two consecutive underscores in a variable is also not allowed, because the language
+<p>In <i>smoλ</i>, two consecutive underscores are not allowed either, because the language
 uses the combination for some internal workings. Some valid variable names are <code>x</code>, <code>employee</code>,
 <code>my_property</code>, <code>_temp_computation</code>, <code>MyDataStructure</code>, <code>var123</code>.
 Below is an example where we set a constant 
@@ -276,11 +268,9 @@ Lovelace
 Sometimes we only want certain lines to run if a tested condition is true.  
 This is done with an <code class="language-smolambda">if</code> block.  
 The word <code class="language-smolambda">if</code> starts the block, then comes a condition, 
-then the code that should run if the test passes. Prefer indenting the latter for easier reading, 
-as well as starting it in a new line.
+then the code that should run if the test passes. 
 Like with the <code class="language-smolambda">main</code> service so far, 
-the block ends at <code class="language-smolambda">end</code>.
-</p>
+the block ends at <code class="language-smolambda">end</code>. </p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.core
@@ -288,15 +278,25 @@ the block ends at <code class="language-smolambda">end</code>.
 service main()
     if true
         print("this always runs")
-        end
-    end
+    end end
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 this always runs
 </pre>
 
+
 <p>
-Here the test is just the value <code class="language-smolambda">true</code>, so the message will always be printed.  
+<b>Style guide:</b> Prefer indenting the latter for easier reading, 
+as well as starting it in a new line. Proper identation is a good coding practce for any
+language, so try to stick to it. Do not be afraid
+at merging multiple of end statements into one line; this helps keep your code concise.
+Just make sure that you align those at their outermost level. For example, above we
+placed <code class="language-smolambda">end end</code> at the identation showing the
+service's end.
+</p>
+
+<p><b>Booleans:</b>
+Above, the tsted condition is just the value <code class="language-smolambda">true</code>, so the message will always be printed.  
 If you changed the condition to <code class="language-smolambda">false</code>, the inside would be skipped. These two values
 (<code class="language-smolambda">true</code> and <code class="language-smolambda">false</code>) are 
 known as boolean ones, or <code class="language-smolambda">bool</code> for short. 
@@ -333,33 +333,7 @@ There are several comparison operators you can use - some of these are defined f
 <p>
 We can also use <code class="language-smolambda">elif</code> (else if) 
 and <code class="language-smolambda">else</code> branches to cover alternatves.  
-Each branch is tried in order until one runs, as in the example below.
-</p>
-
-<pre><code class="language-smolambda">@include std.core
-
-service main()
-    x = 0.0-2.0
-    sign = 
-        if x&gt;0.0 
-            return "positive"
-        elif x&lt;0.0 
-            return "negative"
-        else
-            return "zero"
-
-    print(sign)
-    end
-</code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
-negative
-</pre>
-
-<p>
-Notice that, above, each branch returns a string. All branches must return either the same type, 
-or nothing by ending at <code class="language-smolambda">--</code>.  
-For example, you could perform some actions inside each branch and return nothing, like below.
-This is actually the most common case.
+Each branch is tried in order, until one runs. The rest are skipped. Here is an example:
 </p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -380,6 +354,37 @@ service main()
 <pre style="background-color: #222; color: white;">> smol main.s
 positive
 </pre>
+
+<p><b>Conditional values:</b> Sometimes, you may want to conditionally assign a value to
+a variable. One option that reuses what we have learned so far is to have an assignment within 
+each branch. However, this runs
+the risk that, as you modify your code, there can be a branch that fails
+to compute a value. To avoid this issue, you can instead return
+a value from each branch per <code class="language-smolambda">return value</code>. 
+Whichever branch runs determines the outcome of the conditional statement
+and can be assigned to a variable. Below is an example, where each branch returns 
+a different string. All branches must return either the exact same type of values, 
+or nothing by ending at <code class="language-smolambda">end</code>.  </p>
+
+<pre><code class="language-smolambda">@include std.core
+
+service main()
+    x = 0.0-2.0
+    sign = 
+        if x&gt;0.0 
+            return "positive"
+        elif x&lt;0.0 
+            return "negative"
+        else
+            return "zero"
+
+    print(sign)
+    end
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+negative
+</pre>
+
 
 <h1 id="loops">Loops <a href="#loops" class="anchor-link">🔗</a></h1>
 
@@ -411,7 +416,7 @@ service main()
 
 
 <p>The next snippet shows a pattern for looping through a <i>range</i> of unsigned integers <code class="language-smolambda">0 upto 4</code>.
-You couls skip the <code>0,</code> argument for further simplicity. More details will be fully presented later, but it 
+You could skip the <code>0,</code> argument for further simplicity. More details will be fully presented later, but it 
 would be remiss to not mention this pattern here, as it prevents accidental bugs. Broadly, the <code>next</code> function
 progresses the range while tracking values by assigning them to mutable varable <code class="language-smolambda">i</code>. 
 The latter is updated in every loop.
@@ -471,7 +476,8 @@ There are two kinds of named blocks:
 
 <p>For most simple programs, you will mostly declare functions with <code class="language-smolambda">def</code>
 and let them freely fail. <i>Smoλ</i>'s philosophy is to not try to hopelessly recover from every failure state, 
-but exit gracefully and try again. Services are more complex in that they run
+but exit gracefully a bunch of dependent computations and try again. This is to strike a balance between having error handling
+code poluting your codebase and being able to recover from failure. Services are more complex in that they run
 independently to each other.</p>
 <p>Regardless of the type of function, you can declare necessary inputs -called <i>arguments</i>- 
 as comma-separated variable types and names. Types are needed so that the service can know what inputs to expect. 
@@ -489,13 +495,13 @@ service main()
     end
 </code></pre>
 
-<h1 id="mutability">Mutability <a href="#mutability" class="anchor-link">🔗</a></h1>
-
-<p>
+<p><b>Mutability:</b>
 Inputs are passed "by value" (without affecting the call site) unless you explicitly allow changes.  
 Place <code class="language-smolambda">@mut</code> before argument names to declare that 
 the variable passed as an argument may be modified inside the function - and hence
 must already be mutable. This also makes the argument variable internally mutable. 
+Importantly, <b>services do not accept mutable arguments</b>. The pattern there is to have one service
+control the creation process of data, and share that with other services.
 Below is an example.
 </p>
 
@@ -515,15 +521,15 @@ service main()
 <p>
 Similarly to mutable variables declared within blocks of code, 
 mutable arguments make prospective changes happen easy to spot. 
-Conversely, if you do not see <code class="language-smolambda">&</code>, 
+Conversely, if you do not see <code class="language-smolambda">@mut</code>, 
 nothing changes.
 </p>
 
-<h1 id="typeargs">Type arguments <a href="#typeargs" class="anchor-link">🔗</a></h1>
-
 <p>
-You can use types as arguments to help disambiguate between similarly-named runtypes.
-This is useful for choosing a behavior without passing a dummy value.
+<b>Function arguments:</b> 
+You can use functions as arguments to help disambiguate between similarly-named alternatives.
+In that case, simply skip the the variable name. This is useful for choosing a behavior 
+without passing a dummy value.
 </p>
 
 <pre><code class="language-smolambda">@include std.core

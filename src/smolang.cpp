@@ -108,20 +108,20 @@ bool codegen(map<string, Types>& files, string file, const Memory& builtins, Tas
             }
             else if (imp->at(p) == "@" && imp->at(p + 1) == "about") {
                 p += 2;
-                string next = imp->at(p);
+                auto next = imp->at(p);
                 if(next[0]=='"') imp->about = next;
                 else {
                     p++;
-                    string desc = imp->at(p);
+                    auto desc = imp->at(p);
                     if(desc[0]!='"') imp->error(p-2, "Wrong `@about` syntax\nEither `@about \"description\"` or @about name \"description\" are expected");
                     imp->docs[next] = desc;
                 }
             }
             else if (imp->at(p) == "@" && imp->at(p + 1) == "install") {
                 p += 2;
-                string found = "";
-                string path = imp->at(p);
-                string test_path = path;
+                auto found = string{""};
+                auto path = imp->at(p);
+                auto test_path = path;
                 while(p<imp->size()-1 && imp->at(p+1)==".") {
                     p += 2;
                     path += "/"+imp->at(p);
@@ -662,7 +662,7 @@ int main(int argc, char* argv[]) {
                 ERROR("Aborted due to the above errors\n");
 
             //define services
-            size_t count_services = 0;
+            auto count_services = size_t{0};
             unordered_set<string> preample;
             for(const auto& it : included[file].vars) 
                 if(it.second->is_service) 
@@ -675,7 +675,7 @@ int main(int argc, char* argv[]) {
                     }
                     
             // globals
-            std::stringstream out("");
+            auto out = std::stringstream{""};
             out << 
                 "#define SMOLAMBDA_SERVICES "<<(selected_task==Task::Library?1:count_services)<<"\n" // libraries do not run on their own scheduler
                 "#ifdef __cplusplus\n"

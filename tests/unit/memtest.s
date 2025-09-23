@@ -7,7 +7,7 @@ def test(@mut File file)
         file
         :while next_chunk(@mut str chunk) 
             printin(chunk)
-        end
+        end end
     print("")
     end
 

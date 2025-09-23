@@ -17,13 +17,12 @@ Declare zero-cost safe abstractions for structural and nominal data. Transpile t
 
 Here's what smoλ programs look like.
 <ul>
-<li><code class="language-smolambda">smo</code> are inlined and could fail. Results are treated as both tuples and types.
-</li><li><code class="language-smolambda">service</code> denotes functions that, on internal failure (e.g., of called def or other services), safely deallocate resources. Result errors can be checked or -if not- cascade into more failures.
+<li><code class="language-smolambda">def</code> functions are inlined and could fail. Results are treated as both tuples and types.
+</li><li><code class="language-smolambda">service</code> functions safely deallocate resources on internal failure (e.g., of called def or other services). Result errors can be checked or -if not- cascade into more failures.
 </li><li><code class="language-smolambda">nom</code> needed for calls whose results is attached to a specific name for safety (nominal type).
 </li><li><code class="language-smolambda">:</code> passes the left-hand-side as the first argument ("currying"). <code class="language-smolambda">()</code> is ommitted. Currying into a loop passes the value into first call in the condition; in this case <code class="language-smolambda">next(chunks&, str&)</code> is called to progress the iteration.
 </li>
-<li><code class="language-smolambda">&</code> if prepended to the first variable assignment indicates mutable variables that can be overwriten.</li>
-<li><code class="language-smolambda">--,-></code> are code block ends and returns respectively.</li>
+<li><code class="language-smolambda">@mut</code>, if prepended to the first declation of a variable, indicates values that can may change.</li>
 </ul>
 
 ```rust
@@ -36,19 +35,19 @@ def Stats(
         u64 lines, 
         u64 chars
     )
-    -> @args // return all inputs
+    return @args // return all inputs
 
 def print(file_stats stats)
     printin(stats.lines)
     printin(" lines, ")
     printin(stats.chars)
     print(" bytes")
-    --
+    end
 
 def file_reader(String path, @mut Memory memory)
-    &stat_lines = 0
-    &stat_chars = 0
-    &file = ReadFile:open(path) // the ReadFile type as the first argument to open
+    @mut stat_lines = 0
+    @mut stat_chars = 0
+    @mut file = ReadFile:open(path) // the ReadFile type as the first argument to open
     endl = "\n":str.first
     on memory:arena(1024)
         file
@@ -57,13 +56,14 @@ def file_reader(String path, @mut Memory memory)
             print(line)
             stat_lines = stat_lines + 1
             stat_chars = stat_chars + line:len
-    -- -- -> nominal:Stats(stat_lines, stat_chars)
+        end end
+    return nominal:Stats(stat_lines, stat_chars)
 
 service main()
-    &memory = Stack.arena(1048576) // 1MB
+    @mut memory = Stack.arena(1048576) // 1MB
     stats = file_reader("README.md", memory)
     print(stats)
-    --
+    end
 ```
 
 
