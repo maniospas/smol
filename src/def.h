@@ -257,7 +257,7 @@ public:
     // property managers for finals, errors, mutability, service calls, etc
     void add_preample(const std::string& pre);
     void add_linker(const std::string& pre);
-    void assert_options_validity(const std::shared_ptr<Import>& imp, size_t& p);
+    void assert_options_validity(const shared_ptr<Import>& imp, size_t& p);
     void coallesce_finals(const Variable& original);
     void notify_release(const Variable& original);
     void notify_service_arg(const Variable& original);
