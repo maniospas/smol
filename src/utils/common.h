@@ -29,7 +29,7 @@ inline void ERROR(const string& message) {
     string first_line = (newline_pos == string::npos) ? message : message.substr(0, newline_pos);
     string rest = (newline_pos == string::npos) ? "" : message.substr(newline_pos + 1);
     string formatted_message = "\033[33m" + first_line + "\033[0m";
-    if (!rest.empty()) 
+    if(!rest.empty()) 
         formatted_message += "\n" + rest;
     throw runtime_error(formatted_message);
 }

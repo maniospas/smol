@@ -61,10 +61,10 @@ int main(int argc, char* argv[]) {
         all_types.push_back(it.second);
 
 
-    for (int i = 1; i < argc; ++i) {
+    for(int i = 1; i < argc; ++i) {
         string arg = argv[i];
-        if (arg == "--log") log_type_resolution = true;
-        else if (arg == "--runtime") {
+        if(arg == "--log") log_type_resolution = true;
+        else if(arg == "--runtime") {
             if(i + 1 >= argc) {
                 cerr << "Error: --runtime requires an argument. Provide an unknown name, like 'none', to see available runtimes" << endl;
                 return 1;
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
             if(runtime.size()<2 || runtime.substr(runtime.size()-2)!=".h") 
                 runtime = "std/runtime/"+runtime+".h";
         }
-        else if (arg == "--task") {
+        else if(arg == "--task") {
             if(i + 1 >= argc) {
                 cerr << "\033[30;41m ERROR \033[0m --task requires an argument (compile, verify, run, lsp)" << endl;
                 return 1;
@@ -86,17 +86,17 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
         } 
-        else if (arg == "--stackargs") {
+        else if(arg == "--stackargs") {
             Def::calls_on_heap = false;
         }
-        else if (arg == "--safe") {
+        else if(arg == "--safe") {
             if(i + 1 >= argc) {
                 cerr << "\033[30;41m ERROR \033[0m --safe requires a string" << endl;
                 return 1;
             }
             installation_permissions.emplace_back(argv[++i]);
         } 
-        else if (arg == "--back") {
+        else if(arg == "--back") {
             if(i + 1 >= argc) {
                 cerr << "\033[30;41m ERROR \033[0m --back requires an argument (e.g., gcc, tcc, g++)" << endl;
                 return 1;
@@ -134,16 +134,16 @@ int main(int argc, char* argv[]) {
         try {
             errors = codegen(included, file, builtins, selected_task, task_report);
             size_t number = 1;
-            if (Def::export_docs) {
+            if(Def::export_docs) {
                 std::string docs = "";
                 std::string toc = "<h1 id=\"toc\">Contents</h1>\n";
-                for (auto& include : included) {
+                for(auto& include : included) {
                     string display_name = include.first;
-                    if (display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  
+                    if(display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  
                         display_name = display_name.substr(0, display_name.size() - 2);
                     display_name = std::regex_replace(display_name, std::regex("[\\\\/]"), ".");
                     string unsafe_html = "";
-                    if (include.second.imp->allow_unsafe) 
+                    if(include.second.imp->allow_unsafe) 
                         unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
                     string file_anchor = "file_" + display_name;
                     toc += "<br><b><a href=\"#" + file_anchor + "\">" + display_name + "</a></b><div style=\"color:gray\">";
@@ -161,15 +161,15 @@ int main(int argc, char* argv[]) {
                             "Given this trust, consider other non-unsafe files using it as safe.</i></p>";
                     string overload_docs("");
                     std::vector<pair<Variable, Type>> keys;
-                    for (const auto& type : include.second.vars) keys.push_back(pair<Variable,Type>(type.first, type.second));
+                    for(const auto& type : include.second.vars) keys.push_back(pair<Variable,Type>(type.first, type.second));
                     std::sort(keys.begin(), keys.end(), [](pair<Variable, Type>& lhs, pair<Variable, Type>& rhs) {
                         return lhs.second->pos < rhs.second->pos;
                     });
                     bool has_prev = false;
-                    for (const auto& type : keys) {
+                    for(const auto& type : keys) {
                         string type_docs("");
-                        for (const auto& subtype : type.second->options)
-                            if (/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second.imp.get()==subtype->imp.get()) {
+                        for(const auto& subtype : type.second->options)
+                            if(/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second.imp.get()==subtype->imp.get()) {
                                 try {
                                     string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;→&nbsp;";
                                     if(subtype->alias_for.exists() && subtype->vars[subtype->alias_for]->name==subtype->name) 
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
                                     type_docs += sig;
                                 } catch (const runtime_error&) {}
                             }
-                        if (type_docs.size()) {
+                        if(type_docs.size()) {
                             string desc = include.second.imp->docs[type.second->name.to_string()];
                             desc = unescape_string(desc);
                             if(desc.size()>=2) {
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
                             toc += "<a style=\"color:gray\" href=\"#" + type_anchor + "\">" + type.first.to_string() + "</a>";
                             has_prev = true;
                             
-                            if (type.second->options.size() != 1) 
+                            if(type.second->options.size() != 1) 
                                 overload_docs += "<h2 id=\"" + type_anchor + "\">" 
                                     + type.first.to_string() +"<a href=\"#toc\">&nbsp;🔝</a></h2>\n" 
                                     + desc + type_docs;
@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
                     for(const auto& service : it.second->options) {
                         for(const string& pre : service->preample) 
                             preample.insert(pre);
-                        for (const string& pre : service->linker) 
+                        for(const string& pre : service->linker) 
                             linker += " " + pre;
                         count_services++;
                     }
@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
                 "#define __BUFFER__ERROR 2\n"
                 "#define __UNHANDLED__ERROR 3\n"
                 "#define __TRANSIENT(message)\n" // empty
-                "#define __builtin_assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)\n"
+                "#define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)\n"
                 "#ifdef __cplusplus\n"
                 "#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L\n"
                 "#include <stdbool.h>\n"
@@ -469,7 +469,7 @@ int main(int argc, char* argv[]) {
                     return run_status;
                 //cout << (EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str() << "\n";
                 run_status = system((EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str());
-                if (run_status) 
+                if(run_status) 
                     return run_status;
             } 
             else if(selected_task == Task::Library) {
@@ -484,18 +484,18 @@ int main(int argc, char* argv[]) {
                 py_out << "    raise RuntimeError('Library not loaded.')\n\n";
 
                 // Emit service wrappers + struct definitions
-                for (const auto& service : added_services) {
+                for(const auto& service : added_services) {
                     string clsname = service->raw_signature_state_name();
                     string symbol  = service->name.to_string()+"__"+to_string(service->identifier);
                     py_out << "class " << clsname << "State(ctypes.Structure):\n";
                     py_out << "    _fields_ = [\n";
                     py_out << "        ('err', ctypes.c_int),\n";
-                    for (size_t i = 1; i < service->packs.size(); ++i) 
+                    for(size_t i = 1; i < service->packs.size(); ++i) 
                         py_out << "        ('" << service->packs[i]+RET_VAR << "', ctypes.POINTER(" << to_ctypes(service->vars[service->packs[i]]) << ")),\n";
-                    for (const auto& arg : service->args) {
+                    for(const auto& arg : service->args) {
                         string aname = arg.name.to_string();
                         string tname = arg.type->name.to_string();
-                        if (arg.mut) 
+                        if(arg.mut) 
                             py_out << "        ('" << aname << "', ctypes.POINTER(" << to_ctypes(arg.type) << ")),\n";
                         else
                             py_out << "        ('" << aname << "', " << to_ctypes(arg.type) << "),\n";
@@ -507,16 +507,16 @@ int main(int argc, char* argv[]) {
                     py_out << "        self._fn.restype = None\n";
                     py_out << "        self._fn.argtypes = [ctypes.POINTER(" << service->raw_signature_state_name() << "State)]\n\n";
                     py_out << "    def __call__(self";
-                    for (size_t i = 0; i < service->args.size(); i++) {
+                    for(size_t i = 0; i < service->args.size(); i++) {
                         py_out << ", " << service->args[i].name;
                     }
                     py_out << "):\n";
                     py_out << "        state = " << service->raw_signature_state_name() << "State()\n";
-                    for (size_t i = 1; i < service->packs.size(); i++) {
+                    for(size_t i = 1; i < service->packs.size(); i++) {
                         py_out << "        " << service->packs[i]+RET_VAR << " = " << to_ctypes(service->vars[service->packs[i]])  << "(0)\n";
                         py_out << "        state." << service->packs[i]+RET_VAR << " = ctypes.pointer(" << service->packs[i]+RET_VAR << ")\n";
                     }
-                    for (size_t i = 0; i < service->args.size(); i++) {
+                    for(size_t i = 0; i < service->args.size(); i++) {
                         const auto& arg = service->args[i];
                         string aname = arg.name.to_string();
                         string tname = arg.type->name.to_string();
@@ -540,15 +540,15 @@ int main(int argc, char* argv[]) {
                     py_out << "        if state.err:\n";
                     py_out << "             raise Exception('Failed service execution')\n";
                     py_out << "        return (";
-                    for (size_t i = 1; i < service->packs.size(); i++) {
-                        if (i > 1) py_out << ", ";
+                    for(size_t i = 1; i < service->packs.size(); i++) {
+                        if(i > 1) py_out << ", ";
                         py_out << "state." << service->packs[i]+RET_VAR<< ".contents.value";
                     }
                     py_out << ")\n\n";
                 }
 
                 // Emit top-level instances
-                for (const auto& service : added_services) {
+                for(const auto& service : added_services) {
                     py_out << service->name << " = " << service->raw_signature_state_name() << "()\n";
                 }
 
@@ -562,7 +562,7 @@ int main(int argc, char* argv[]) {
                 // Save to .c file
                 string c_filename = file.substr(0, file.size()-2) + ".c";
                 ofstream c_out(c_filename);
-                if (!c_out) {
+                if(!c_out) {
                     std::cerr << "Failed to open " << c_filename << " for writing\n";
                     return 1;
                 }
@@ -585,7 +585,7 @@ int main(int argc, char* argv[]) {
         
         included.clear();
     }
-    if(selected_task==Task::Verify && !Def::markdown_errors) 
+    if(selected_task==Task::Verify && !Def::lsp) 
         for(const auto& def : all_types) 
             if(def 
                 && def->imp 

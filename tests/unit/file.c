@@ -20,7 +20,7 @@
 #define __BUFFER__ERROR 2
 #define __UNHANDLED__ERROR 3
 #define __TRANSIENT(message)
-#define __builtin_assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
+#define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)
 #ifdef __cplusplus
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
@@ -202,7 +202,7 @@ __TDB = "\n" ;
  goto __gDB____end ;
  __gDB____end :
  __hDB__loop :
- __iDB____xBB__ret = __gDB__contents ?( ptr ) fgets (( char *) __aDB____jW____RI__mem , __ZDB ,( FILE *) __gDB__contents ): __gDB__contents ; __iDB____xBB__bytes_read = __iDB____xBB__ret ? strlen (( char *) __iDB____xBB__ret ):0; __iDB____xBB__first =(( char *) __aDB____jW____RI__mem )[0]; if ( __iDB____xBB__bytes_read &&(( char *) __aDB____jW____RI__mem )[ __iDB____xBB__bytes_read -1]== 10 ) { __iDB____xBB__bytes_read --; if ( __iDB____xBB__bytes_read &&(( char *) __aDB____jW____RI__mem )[ __iDB____xBB__bytes_read -1]== 13 ) __iDB____xBB__bytes_read --;(( char *) __aDB____jW____RI__mem )[ __iDB____xBB__bytes_read ]=0; } __aDB____kW____SP = __aDB____kW____SP + __iDB____xBB__bytes_read ; 
+ __iDB____xBB__ret = __gDB__contents ?( ptr ) fgets (( char *) __aDB____jW____RI__mem , __ZDB ,( FILE *) __gDB__contents ): __gDB__contents ; __iDB____xBB__bytes_read = __iDB____xBB__ret ? strlen (( char *) __iDB____xBB__ret ):0; __iDB____xBB__first =(( char *) __aDB____jW____RI__mem )[0]; if( __iDB____xBB__bytes_read &&(( char *) __aDB____jW____RI__mem )[ __iDB____xBB__bytes_read -1]== 10 ) { __iDB____xBB__bytes_read --; if( __iDB____xBB__bytes_read &&(( char *) __aDB____jW____RI__mem )[ __iDB____xBB__bytes_read -1]== 13 ) __iDB____xBB__bytes_read --;(( char *) __aDB____jW____RI__mem )[ __iDB____xBB__bytes_read ]=0; } __aDB____kW____SP = __aDB____kW____SP + __iDB____xBB__bytes_read ; 
  __iDB____xBB____1AB__contents = __iDB____xBB__ret ;
  goto __iDB____xBB____1AB____end ;
  __iDB____xBB____1AB____end :

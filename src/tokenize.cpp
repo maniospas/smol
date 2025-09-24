@@ -20,12 +20,12 @@ size_t parse_integer_suffix(const std::string& line, size_t i) {
     bool found_u = false;
     int l_count = 0;
 
-    for (int n = 0; n < 3 && i < line.size(); ++n) {
+    for(int n = 0; n < 3 && i < line.size(); ++n) {
         char c = line[i];
-        if ((c == 'u' || c == 'U') && !found_u) {
+        if((c == 'u' || c == 'U') && !found_u) {
             found_u = true;
             ++i;
-        } else if ((c == 'l' || c == 'L') && l_count < 2) {
+        } else if((c == 'l' || c == 'L') && l_count < 2) {
             l_count++;
             ++i;
         } else {
@@ -40,17 +40,17 @@ Import::Import(const std::string& p)
     : path(p), pair(0), allow_unsafe(false) {}
 
 std::string& Import::at(size_t pos) {
-    if (pos < 0) 
+    if(pos < 0) 
         ERROR("Tried to read before the beginning of file: " + path);
-    if (pos >= tokens.size()) 
+    if(pos >= tokens.size()) 
         ERROR("Premature end of file: " + path + "\n" + tokens[pos - 1].show());
     return tokens[pos].name;
 }
 
 void Import::error(size_t pos, const std::string& message) {
-    if (pos < 0) 
+    if(pos < 0) 
         ERROR("Tried to read before the beginning of file: " + path);
-    if (pos >= tokens.size()) 
+    if(pos >= tokens.size()) 
         ERROR("Premature end of file: " + path + "\n" + tokens[pos - 1].show());
     ERROR(message + "\n" + tokens[pos].show());
 }
@@ -66,31 +66,31 @@ Token::Token(const std::string& n, size_t l, size_t c, const std::shared_ptr<Imp
     : name(n), line(l), character(c), imp(i) {}
 
 std::string Token::show() const {
-    if (!imp || imp->path.empty()) 
+    if(!imp || imp->path.empty()) 
         return "[no file]";
 
     std::ifstream file(imp->path);
-    if (!file) 
+    if(!file) 
         return imp->path;
 
     std::string current;
     size_t current_line = 1;
-    while (getline(file, current)) {
-        if (current_line == line) break;
+    while(getline(file, current)) {
+        if(current_line == line) break;
         current_line++;
     }
-    if (current_line != line)
+    if(current_line != line)
         return imp->path;
 
     std::string expanded_line;
-    for (char c : current) {
-        if (c == '\t') expanded_line += "    ";
+    for(char c : current) {
+        if(c == '\t') expanded_line += "    ";
         else expanded_line += c;
     }
 
     size_t display_col = 0;
-    for (size_t i = 0, col = 1; i < current.size() && col < character; ++i) {
-        if (current[i] == '\t') {
+    for(size_t i = 0, col = 1; i < current.size() && col < character; ++i) {
+        if(current[i] == '\t') {
             display_col += 4;
             col++;
             continue;
@@ -128,28 +128,28 @@ shared_ptr<Import> tokenize(const string& path) {
         size_t i = 0;
         size_t col = 1;
         while(i < line.size()) {
-            while (i < line.size() && isspace(line[i])) {if (line[i] == '\t') col += 4; else col++;i++;}
+            while(i < line.size() && isspace(line[i])) {if(line[i] == '\t') col += 4; else col++;i++;}
             if(i >= line.size()) break;
             if(line[i] == '/' && i + 1 < line.size() && line[i + 1] == '/') break;
             size_t start = i;
             size_t start_col = col;
             string prefix("");
-            if (line[i] == '"') {
+            if(line[i] == '"') {
                 i++;
                 col++;
                 // Parse string literal, allowing escaped quotes
-                while (i < line.size()) {
-                    if (line[i] == '"') {
+                while(i < line.size()) {
+                    if(line[i] == '"') {
                         // Count number of backslashes before this quote
                         size_t backslashes = 0;
                         size_t j = i;
-                        while (j > start && line[j-1] == '\\') { backslashes++; j--; }
-                        if (backslashes % 2 == 0) {
+                        while(j > start && line[j-1] == '\\') { backslashes++; j--; }
+                        if(backslashes % 2 == 0) {
                             // even: not escaped, string ends
                             break;
                         }
                     }
-                    if (line[i] == '\t') col += 4;
+                    if(line[i] == '\t') col += 4;
                     else col++;
                     i++;
                 }
@@ -158,7 +158,7 @@ shared_ptr<Import> tokenize(const string& path) {
                 col++;
                 string current_str_token = (prefix + line.substr(start, i - start));
                 // Merge with previous string token if possible
-                if (!tokens.empty() && 
+                if(!tokens.empty() && 
                     !tokens.back().name.empty() && 
                     tokens.back().name.front() == '"' && 
                     tokens.back().name.back() == '"' &&
@@ -259,16 +259,16 @@ shared_ptr<Import> tokenize(const string& path) {
                 i++; col++;
                 continue;
             }
-            else if (isdigit(line[i]) || (line[i] == '.' && i + 1 < line.size() && isdigit(line[i + 1]))) {
+            else if(isdigit(line[i]) || (line[i] == '.' && i + 1 < line.size() && isdigit(line[i + 1]))) {
                 size_t number_start = i;
                 size_t number_col = col;
                 // Handle hex, octal, binary literals
-                if (line[i] == '0' && i + 1 < line.size()) {
-                    if (line[i + 1] == 'x' || line[i + 1] == 'X') {
+                if(line[i] == '0' && i + 1 < line.size()) {
+                    if(line[i + 1] == 'x' || line[i + 1] == 'X') {
                         i += 2; col += 2;
                         size_t hex_start = i;
-                        while (i < line.size() && isxdigit(line[i])) { i++; col++; }
-                        if (hex_start == i)
+                        while(i < line.size() && isxdigit(line[i])) { i++; col++; }
+                        if(hex_start == i)
                             ERROR("Invalid hexadecimal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
                         // <<<<<< ADD THIS >>>>>
                         size_t suffix_end = parse_integer_suffix(line, i);
@@ -276,22 +276,22 @@ shared_ptr<Import> tokenize(const string& path) {
                         i = suffix_end;
                         tokens.emplace_back(line.substr(number_start, i - number_start), line_num, number_col, main_file);
                         continue;
-                    } else if (line[i + 1] == 'b' || line[i + 1] == 'B') {
+                    } else if(line[i + 1] == 'b' || line[i + 1] == 'B') {
                         i += 2; col += 2;
                         size_t bin_start = i;
-                        while (i < line.size() && (line[i] == '0' || line[i] == '1')) { i++; col++; }
-                        if (bin_start == i)
+                        while(i < line.size() && (line[i] == '0' || line[i] == '1')) { i++; col++; }
+                        if(bin_start == i)
                             ERROR("Invalid binary number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
                         size_t suffix_end = parse_integer_suffix(line, i);
                         col += (suffix_end - i);
                         i = suffix_end;
                         tokens.emplace_back(line.substr(number_start, i - number_start), line_num, number_col, main_file);
                         continue;
-                    } else if (line[i + 1] == 'o' || line[i + 1] == 'O') {
+                    } else if(line[i + 1] == 'o' || line[i + 1] == 'O') {
                         i += 2; col += 2;
                         size_t oct_start = i;
-                        while (i < line.size() && (line[i] >= '0' && line[i] <= '7')) { i++; col++; }
-                        if (oct_start == i)
+                        while(i < line.size() && (line[i] >= '0' && line[i] <= '7')) { i++; col++; }
+                        if(oct_start == i)
                             ERROR("Invalid octal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
                         size_t suffix_end = parse_integer_suffix(line, i);
                         col += (suffix_end - i);
@@ -321,11 +321,11 @@ shared_ptr<Import> tokenize(const string& path) {
                 }
                 if(start < i) {
                     string substr = line.substr(start, i - start);
-                    if (substr=="end") {
+                    if(substr=="end") {
                         tokens.emplace_back("-", line_num, col, main_file);
                         tokens.emplace_back("-", line_num, col + 1, main_file);
                     }
-                    else if (substr=="return") {
+                    else if(substr=="return") {
                         tokens.emplace_back("-", line_num, col, main_file);
                         tokens.emplace_back(">", line_num, col + 1, main_file);
                     }

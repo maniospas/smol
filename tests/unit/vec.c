@@ -25,7 +25,7 @@
 #define __BUFFER__ERROR 2
 #define __UNHANDLED__ERROR 3
 #define __TRANSIENT(message)
-#define __builtin_assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
+#define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)
 #ifdef __cplusplus
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
@@ -400,7 +400,7 @@ __WIB = 1024 ;
  __fIB____IFB____RT = 0 ;
  __fIB____IFB____TT__bytesize = sizeof ( __fIB____IFB____TT____WF )* __fIB____IFB__size ; 
  __fIB____IFB____TT____end :
- for ( __fIB__i =0; __fIB__i < __fIB__size ;++ __fIB__i )(( f64 *) __fIB____IFB___contents )[ __fIB__i ]=(( f64 *) __bIB____DIB__contents )[ __fIB__i ]*(( f64 *) __eIB____DIB__contents )[ __fIB__i ]; 
+ for( __fIB__i =0; __fIB__i < __fIB__size ;++ __fIB__i )(( f64 *) __fIB____IFB___contents )[ __fIB__i ]=(( f64 *) __bIB____DIB__contents )[ __fIB__i ]*(( f64 *) __eIB____DIB__contents )[ __fIB__i ]; 
  __fIB____LFB__contents = __fIB____IFB___contents ;
  memory__type = __fIB____IFB__self__type ;
  memory__contents____DF = __fIB____IFB__self__contents____DF ;

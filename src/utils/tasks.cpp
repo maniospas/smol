@@ -10,7 +10,7 @@ Task parse_task(const string& arg) {
         return Task::Verify;
     }
     if(arg == "lsp") {
-        Def::markdown_errors=true; 
+        Def::lsp=true; 
         return Task::Verify;
     }
     if(arg == "run") 

@@ -21,7 +21,7 @@ string Def::recommend_runtype(const Types& types, const Variable& candidate) {
         string it_first = it.first.to_string();
         if(it_first.size()>=2 && it_first[0]=='_' && it_first[1]=='_')
             continue;
-        if (it_first.find("____") != std::string::npos)
+        if(it_first.find("____") != std::string::npos)
             continue;
         int distance = 4*sellersMinimumEditDistance(candidate.to_string(), it_first)
                            +sellersMinimumEditDistance(it_first, candidate.to_string());
@@ -43,7 +43,7 @@ string Def::recommend_variable(const Types& types, const Variable& candidate) {
             string it_first = it.first.to_string();
             if(it_first.size()>=2 && it_first[0]=='_' && it_first[1]=='_')
                 continue;
-            if (it_first.find("____") != std::string::npos)
+            if(it_first.find("____") != std::string::npos)
                 continue;
             int distance = 4*sellersMinimumEditDistance(candidate.to_string(), it_first)
                            +sellersMinimumEditDistance(it_first, candidate.to_string()); // it_first can have extra trailing characters at small cost (our current writing may just be incomplete)

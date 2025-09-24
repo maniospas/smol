@@ -64,11 +64,11 @@ static inline __SmolambdaLinkedMemory* __runtime_prepend_linked(__SmolambdaLinke
 }
 
 static inline void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *), int is_destructor) {
-    while (memory) {
-        if (memory->contents)
+    while(memory) {
+        if(memory->contents)
             func(memory->contents);
         __SmolambdaLinkedMemory* next = memory->next;
-        if (is_destructor)
+        if(is_destructor)
             __runtime_free(memory);
         memory = next;
     }
@@ -129,7 +129,7 @@ static inline void __smolambda_init_task_queue(TaskQueue *queue) {
 /* ---------------- ADD TASK (returns void*) ---------------- */
 static inline void* __smolambda_add_task(void (*func)(void *), void *arg) {
     Task *task = (Task*)__runtime_alloc(sizeof(Task));
-    if (!task) return NULL;
+    if(!task) return NULL;
     task->func = func;
     task->arg = arg;
     task->next = NULL;
@@ -162,19 +162,19 @@ static inline void* __smolambda_add_task(void (*func)(void *), void *arg) {
 static inline Task* __smolambda_try_get_task() {
     Task *task = NULL;
 #ifdef _WIN32
-    if (!TryEnterCriticalSection(&task_queue.mutex)) {
+    if(!TryEnterCriticalSection(&task_queue.mutex)) {
         return NULL; /* someone else has the lock */
     }
-    if (task_queue.head) {
+    if(task_queue.head) {
         task = task_queue.head;
         task_queue.head = task->next;
     }
     LeaveCriticalSection(&task_queue.mutex);
 #else
-    if (pthread_mutex_trylock(&task_queue.mutex) != 0) {
+    if(pthread_mutex_trylock(&task_queue.mutex) != 0) {
         return NULL; /* lock busy */
     }
-    if (task_queue.head) {
+    if(task_queue.head) {
         task = task_queue.head;
         task_queue.head = task->next;
     }
@@ -187,9 +187,9 @@ static inline Task* __smolambda_try_get_task() {
 /* ---------------- WAIT FOR TASK COMPLETION ---------------- */
 static inline void __smolambda_task_wait(void *task_ptr) {
     Task *target = (Task*)task_ptr;
-    if (!target) return;
+    if(!target) return;
 
-    for (;;) {
+    for(;;) {
         /* Fast path: check completion */
 #ifdef _WIN32
         EnterCriticalSection(&target->wait_mutex);
@@ -200,11 +200,11 @@ static inline void __smolambda_task_wait(void *task_ptr) {
         int done = target->completed;
         pthread_mutex_unlock(&target->wait_mutex);
 #endif
-        if (done) break;
+        if(done) break;
 
         /* Help: run one available task */
         Task *task = __smolambda_try_get_task();
-        if (task) {
+        if(task) {
             task->func(task->arg);
 
             /* Signal completion of the task we just ran */
@@ -226,14 +226,14 @@ static inline void __smolambda_task_wait(void *task_ptr) {
         /* Nothing to help with; do a short timed wait on the target to avoid spinning */
 #ifdef _WIN32
         EnterCriticalSection(&target->wait_mutex);
-        if (!target->completed) {
+        if(!target->completed) {
             /* ~1000 ms; adjust as desired */
             SleepConditionVariableCS(&target->wait_cond, &target->wait_mutex, 1000);
         }
         LeaveCriticalSection(&target->wait_mutex);
 #else
         pthread_mutex_lock(&target->wait_mutex);
-        if (!target->completed) {
+        if(!target->completed) {
             struct timespec ts;
             clock_gettime(CLOCK_REALTIME, &ts);
             ts.tv_sec += 1;
@@ -246,10 +246,10 @@ static inline void __smolambda_task_wait(void *task_ptr) {
 
 /* ---------------- TASK SLEEP ---------------- */
 static inline void __smolambda_task_sleep(double secs) {
-    if (secs < 0.0) return;
-    if (secs == 0.0) {
+    if(secs < 0.0) return;
+    if(secs == 0.0) {
         Task *task = __smolambda_try_get_task();
-        if (task) {
+        if(task) {
             task->func(task->arg);
 #ifdef _WIN32
             EnterCriticalSection(&task->wait_mutex);
@@ -278,7 +278,7 @@ static inline void __smolambda_task_sleep(double secs) {
     double deadline = start.tv_sec + start.tv_nsec / 1e9 + secs;
 #endif
 
-    for (;;) {
+    for(;;) {
         /* Check if deadline passed */
 #ifdef _WIN32
         QueryPerformanceCounter(&now);
@@ -287,11 +287,11 @@ static inline void __smolambda_task_sleep(double secs) {
         clock_gettime(CLOCK_MONOTONIC, &now);
         double current = now.tv_sec + now.tv_nsec / 1e9;
 #endif
-        if (current >= deadline) break;
+        if(current >= deadline) break;
 
         /* Run a pending task if any */
         Task *task = __smolambda_try_get_task();
-        if (task) {
+        if(task) {
             task->func(task->arg);
 #ifdef _WIN32
             EnterCriticalSection(&task->wait_mutex);
@@ -323,7 +323,7 @@ static inline void __smolambda_task_sleep(double secs) {
 /* ---------------- DESTROY TASK ---------------- */
 static inline void __smolambda_task_destroy(void *task_ptr) {
     Task *task = (Task*)task_ptr;
-    if (!task) return;
+    if(!task) return;
 #ifdef _WIN32
     DeleteCriticalSection(&task->wait_mutex);
 #else
@@ -338,27 +338,27 @@ Task* __smolambda_get_task() {
     Task *task = NULL;
 #ifdef _WIN32
     EnterCriticalSection(&task_queue.mutex);
-    while (!task_queue.head && !task_queue.stop) {
+    while(!task_queue.head && !task_queue.stop) {
         SleepConditionVariableCS(&task_queue.cond, &task_queue.mutex, INFINITE);
     }
-    if (task_queue.stop) {
+    if(task_queue.stop) {
         LeaveCriticalSection(&task_queue.mutex);
         return NULL;
     }
     task = task_queue.head;
-    if (task) task_queue.head = task->next;
+    if(task) task_queue.head = task->next;
     LeaveCriticalSection(&task_queue.mutex);
 #else
     pthread_mutex_lock(&task_queue.mutex);
-    while (!task_queue.head && !task_queue.stop) {
+    while(!task_queue.head && !task_queue.stop) {
         pthread_cond_wait(&task_queue.cond, &task_queue.mutex);
     }
-    if (task_queue.stop) {
+    if(task_queue.stop) {
         pthread_mutex_unlock(&task_queue.mutex);
         return NULL;
     }
     task = task_queue.head;
-    if (task) task_queue.head = task->next;
+    if(task) task_queue.head = task->next;
     pthread_mutex_unlock(&task_queue.mutex);
 #endif
     return task;
@@ -387,9 +387,9 @@ static inline void* __smolambda_worker_thread(void *arg)
 #endif
 {
     (void)arg;
-    for (;;) {
+    for(;;) {
         Task *task = __smolambda_get_task();
-        if (!task) break;
+        if(!task) break;
         task->func(task->arg);
 
         /* Signal completion */
@@ -433,17 +433,17 @@ static inline int __smolambda_initialize_service_tasks(void (*initial_func)(void
     /* Create worker threads */
 #ifdef _WIN32
     HANDLE *threads = (HANDLE*)__runtime_alloc(sizeof(HANDLE) * num_threads);
-    for (int i = 0; i < num_threads; i++)
+    for(int i = 0; i < num_threads; i++)
         threads[i] = CreateThread(NULL, 0, worker_thread, NULL, 0, NULL);
 #else
     pthread_t *threads = (pthread_t*)__runtime_alloc(sizeof(pthread_t) * num_threads);
-    for (int i = 0; i < num_threads; i++)
+    for(int i = 0; i < num_threads; i++)
         pthread_create(&threads[i], NULL, __smolambda_worker_thread, NULL);
 #endif
 
     /* Add initial task and wait for it */
     void *t = NULL;
-    if (initial_func) {
+    if(initial_func) {
         t = __smolambda_add_task(initial_func, initial_arg);
         __smolambda_task_wait(t);
         __smolambda_task_destroy(t);
@@ -452,14 +452,14 @@ static inline int __smolambda_initialize_service_tasks(void (*initial_func)(void
     /* Stop and join */
     __smolambda_stop_all_threads();
 #ifdef _WIN32
-    for (int i = 0; i < num_threads; i++) {
+    for(int i = 0; i < num_threads; i++) {
         WaitForSingleObject(threads[i], INFINITE);
         CloseHandle(threads[i]);
     }
     __runtime_free(threads);
     DeleteCriticalSection(&task_queue.mutex);
 #else
-    for (int i = 0; i < num_threads; i++) pthread_join(threads[i], NULL);
+    for(int i = 0; i < num_threads; i++) pthread_join(threads[i], NULL);
     __runtime_free(threads);
     pthread_mutex_destroy(&task_queue.mutex);
     pthread_cond_destroy(&task_queue.cond);

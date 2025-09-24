@@ -20,7 +20,7 @@
 #define __BUFFER__ERROR 2
 #define __UNHANDLED__ERROR 3
 #define __TRANSIENT(message)
-#define __builtin_assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
+#define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)
 #ifdef __cplusplus
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #include <stdbool.h>

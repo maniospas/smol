@@ -64,7 +64,7 @@ def nstr(@access @mut Memory allocator, i64 number)
     @body{
         if(readbuf) {
             u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*21, "%ld", number);
-            if (length < 32) {
+            if(length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
                     memcpy(contents, (char*)readbuf, length);
@@ -88,7 +88,7 @@ def nstr(@access @mut Memory allocator, u64 number)
     @body{
         if(readbuf) {
             u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*21, "%lu", number);
-            if (length < 32) {
+            if(length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
                     memcpy(contents, (char*)readbuf, length);

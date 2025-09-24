@@ -33,7 +33,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
             packs.push_back(ERR_VAR);
             vars[ERR_VAR] = types.vars[ERRCODE_VAR];
         }
-        for (const auto& arg : args) {
+        for(const auto& arg : args) {
             Variable next = arg.name;
             if(vars[next]->nozero)
                 nozero = true;

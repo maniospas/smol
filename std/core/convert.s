@@ -83,27 +83,27 @@ def convert(@access i64, String _s)
         i64 number = 0;
         bool success = true;
         bool negative = false;
-        if (s__length == 0) success = false;
+        if(s__length == 0) success = false;
         else {
             u64 i = 0;
             char *chars = (char*)s__contents;
-            if (chars[0] == '-') {
+            if(chars[0] == '-') {
                 negative = true;
                 i++;
-                if (i == s__length) success = false;
-            } else if (chars[0] == '+') {
+                if(i == s__length) success = false;
+            } else if(chars[0] == '+') {
                 i++;
-                if (i == s__length) success = false;
+                if(i == s__length) success = false;
             }
-            for (; i < s__length && success; i++) {
+            for(; i < s__length && success; i++) {
                 char c = chars[i];
-                if (c >= '0' && c <= '9') {
+                if(c >= '0' && c <= '9') {
                     number = number * 10 + (c - '0');
                 } else {
                     success = false;
                 }
             }
-            if (negative) 
+            if(negative) 
                 number = -number;
         }
     }
@@ -118,13 +118,13 @@ def convert(@access u64, String _s)
         u64 number = 0;
         bool success = true;
 
-        if (s__length == 0) 
+        if(s__length == 0) 
             success = false;
         else {
             char *chars = (char*)s__contents;
-            for (u64 i = 0; i < s__length && success; i++) {
+            for(u64 i = 0; i < s__length && success; i++) {
                 char c = chars[i];
-                if (c >= '0' && c <= '9') {
+                if(c >= '0' && c <= '9') {
                     number = number * 10 + (c - '0');
                 } 
                 else {
@@ -151,29 +151,29 @@ def convert(@access f64, String _s)
         else {
             char *chars = (char*)s__contents;
             u64 i = 0;
-            if (chars[0] == '-') {
+            if(chars[0] == '-') {
                 negative = true;
                 i++;
                 if(i == s__length) success = false;
-            } else if (chars[0] == '+') {
+            } else if(chars[0] == '+') {
                 i++;
                 if(i == s__length) success = false;
             }
-            for (; i < s__length && success; i++) {
+            for(; i < s__length && success; i++) {
                 char c = chars[i];
                 if(c >= '0' && c <= '9') {number = number * 10.0 + (c - '0');} 
                 else if(c == '.') {i++;break;} 
                 else {success = false;}
             }
-            if (success && i < s__length) {
+            if(success && i < s__length) {
                 f64 frac = 0.0;
                 f64 base = 0.1;
-                for (; i < s__length && success; i++) {
+                for(; i < s__length && success; i++) {
                     char c = chars[i];
-                    if (c >= '0' && c <= '9') {
+                    if(c >= '0' && c <= '9') {
                         frac += (c - '0') * base;
                         base *= 0.1;
-                    } else if (c == 'e' || c == 'E') {
+                    } else if(c == 'e' || c == 'E') {
                         i++;
                         break;
                     } else { success = false; }
@@ -186,7 +186,7 @@ def convert(@access f64, String _s)
                 else if(chars[i] == '+') {i++;}
                 if(i == s__length) success = false;
                 i64 expVal = 0;
-                for (; i < s__length && success; i++) {
+                for(; i < s__length && success; i++) {
                     char c = chars[i];
                     if(c >= '0' && c <= '9') {expVal = expVal * 10 + (c - '0');} 
                     else { success = false; }

@@ -20,7 +20,7 @@
 #define __BUFFER__ERROR 2
 #define __UNHANDLED__ERROR 3
 #define __TRANSIENT(message)
-#define __builtin_assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
+#define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)
 #ifdef __cplusplus
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
@@ -117,10 +117,10 @@ __dAB__contents = 0 ;
  __builtin_unreachable();
  __fAB____B9__fi :
  process__contents = __fAB__contents ;
- if ( process__contents ) { char buf [ 1024 ]; while ( fread ( buf ,1, sizeof ( buf ),( FILE *) process__contents )) { } } 
+ if( process__contents ) { char buf [ 1024 ]; while( fread ( buf ,1, sizeof ( buf ),( FILE *) process__contents )) { } } 
  __gAB____end :
  process____78 = __gAB__p____78 ;
- __fAB__status =0; if ( process__contents ) __fAB__status = pclose (( FILE *) process__contents ); process__contents =0; if ( __fAB__status ) { if ( __fAB__status !=-1&& WIFEXITED ( __fAB__status )) __fAB__status = WEXITSTATUS ( __fAB__status ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __fAB__status ); __result__errocode = __USER__ERROR ; goto __failsafe ; } 
+ __fAB__status =0; if( process__contents ) __fAB__status = pclose (( FILE *) process__contents ); process__contents =0; if( __fAB__status ) { if( __fAB__status !=-1&& WIFEXITED ( __fAB__status )) __fAB__status = WEXITSTATUS ( __fAB__status ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __fAB__status ); __result__errocode = __USER__ERROR ; goto __failsafe ; } 
  __end :
 goto __return;
 
@@ -680,7 +680,7 @@ u64 __yBB____Ek__z=0;
 
 // IMPLEMENTATION
 __qBB = " 2>&1" ;
- __tBB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if ( __tBB____ZQ__acquired )(( ptr **) __tBB____ZQ__acquired )[0]=0; 
+ __tBB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if( __tBB____ZQ__acquired )(( ptr **) __tBB____ZQ__acquired )[0]=0; 
  __tBB____ZQ____UQ = 0 ;
  __tBB____ZQ____VQ = 0 ;
  __tBB__acquired = __tBB____ZQ__acquired ;
@@ -706,7 +706,7 @@ __qBB = " 2>&1" ;
  goto __xBB____Fb____lQ____oD ;
  __builtin_unreachable();
  __xBB____Fb____hQ__fi :
- __xBB____Fb__next_size = __tBB__size +1; __xBB____Fb__success = true ; __xBB____Fb__self__allocated__prev = __tBB__allocated ; if ( __xBB____Fb__next_size >= __tBB__allocated ) { __tBB__allocated = __tBB__allocated + __tBB__allocated /2+1; __xBB____Fb__next_acquired =( ptr )((( ptr **) __tBB__acquired )[0]? __runtime_realloc ((( ptr **) __tBB__acquired )[0], __tBB__allocated * sizeof ( ptr ), __xBB____Fb__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __tBB__allocated * sizeof ( ptr ))); if ( __xBB____Fb__success = __xBB____Fb__next_acquired )(( ptr **) __tBB__acquired )[0]=( ptr *) __xBB____Fb__next_acquired ; } if ( __xBB____Fb__success ) { __xBB____Fb__mem =( ptr ) __runtime_alloc ( __xBB____Cb__z * sizeof ( __xBB____Fb____gQ )); if ( __xBB____Fb__success = __xBB____Fb__mem ) {(( ptr **) __tBB__acquired )[0][ __tBB__size ]= __xBB____Fb__mem ; __tBB__size = __xBB____Fb__next_size ; } } 
+ __xBB____Fb__next_size = __tBB__size +1; __xBB____Fb__success = true ; __xBB____Fb__self__allocated__prev = __tBB__allocated ; if( __xBB____Fb__next_size >= __tBB__allocated ) { __tBB__allocated = __tBB__allocated + __tBB__allocated /2+1; __xBB____Fb__next_acquired =( ptr )((( ptr **) __tBB__acquired )[0]? __runtime_realloc ((( ptr **) __tBB__acquired )[0], __tBB__allocated * sizeof ( ptr ), __xBB____Fb__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __tBB__allocated * sizeof ( ptr ))); if( __xBB____Fb__success = __xBB____Fb__next_acquired )(( ptr **) __tBB__acquired )[0]=( ptr *) __xBB____Fb__next_acquired ; } if( __xBB____Fb__success ) { __xBB____Fb__mem =( ptr ) __runtime_alloc ( __xBB____Cb__z * sizeof ( __xBB____Fb____gQ )); if( __xBB____Fb__success = __xBB____Fb__mem ) {(( ptr **) __tBB__acquired )[0][ __tBB__size ]= __xBB____Fb__mem ; __tBB__size = __xBB____Fb__next_size ; } } 
  __xBB____Fb____nQ__x = __xBB____Fb__success ;
  __xBB____Fb____nQ__z =(! __xBB____Fb____nQ__x ); 
  __xBB____Fb____nQ____end :
@@ -738,7 +738,7 @@ __qBB = " 2>&1" ;
  goto __yBB____Hk____lQ____oD ;
  __builtin_unreachable();
  __yBB____Hk____hQ__fi :
- __yBB____Hk__next_size = __tBB__size +1; __yBB____Hk__success = true ; __yBB____Hk__self__allocated__prev = __tBB__allocated ; if ( __yBB____Hk__next_size >= __tBB__allocated ) { __tBB__allocated = __tBB__allocated + __tBB__allocated /2+1; __yBB____Hk__next_acquired =( ptr )((( ptr **) __tBB__acquired )[0]? __runtime_realloc ((( ptr **) __tBB__acquired )[0], __tBB__allocated * sizeof ( ptr ), __yBB____Hk__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __tBB__allocated * sizeof ( ptr ))); if ( __yBB____Hk__success = __yBB____Hk__next_acquired )(( ptr **) __tBB__acquired )[0]=( ptr *) __yBB____Hk__next_acquired ; } if ( __yBB____Hk__success ) { __yBB____Hk__mem =( ptr ) __runtime_alloc ( __yBB____Ek__z * sizeof ( __yBB____Hk____gQ )); if ( __yBB____Hk__success = __yBB____Hk__mem ) {(( ptr **) __tBB__acquired )[0][ __tBB__size ]= __yBB____Hk__mem ; __tBB__size = __yBB____Hk__next_size ; } } 
+ __yBB____Hk__next_size = __tBB__size +1; __yBB____Hk__success = true ; __yBB____Hk__self__allocated__prev = __tBB__allocated ; if( __yBB____Hk__next_size >= __tBB__allocated ) { __tBB__allocated = __tBB__allocated + __tBB__allocated /2+1; __yBB____Hk__next_acquired =( ptr )((( ptr **) __tBB__acquired )[0]? __runtime_realloc ((( ptr **) __tBB__acquired )[0], __tBB__allocated * sizeof ( ptr ), __yBB____Hk__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __tBB__allocated * sizeof ( ptr ))); if( __yBB____Hk__success = __yBB____Hk__next_acquired )(( ptr **) __tBB__acquired )[0]=( ptr *) __yBB____Hk__next_acquired ; } if( __yBB____Hk__success ) { __yBB____Hk__mem =( ptr ) __runtime_alloc ( __yBB____Ek__z * sizeof ( __yBB____Hk____gQ )); if( __yBB____Hk__success = __yBB____Hk__mem ) {(( ptr **) __tBB__acquired )[0][ __tBB__size ]= __yBB____Hk__mem ; __tBB__size = __yBB____Hk__next_size ; } } 
  __yBB____Hk____nQ__x = __yBB____Hk__success ;
  __yBB____Hk____nQ__z =(! __yBB____Hk____nQ__x ); 
  __yBB____Hk____nQ____end :
@@ -772,7 +772,7 @@ __qBB = " 2>&1" ;
  goto __zBB____1h____lQ____oD ;
  __builtin_unreachable();
  __zBB____1h____hQ__fi :
- __zBB____1h__next_size = __tBB__size +1; __zBB____1h__success = true ; __zBB____1h__self__allocated__prev = __tBB__allocated ; if ( __zBB____1h__next_size >= __tBB__allocated ) { __tBB__allocated = __tBB__allocated + __tBB__allocated /2+1; __zBB____1h__next_acquired =( ptr )((( ptr **) __tBB__acquired )[0]? __runtime_realloc ((( ptr **) __tBB__acquired )[0], __tBB__allocated * sizeof ( ptr ), __zBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __tBB__allocated * sizeof ( ptr ))); if ( __zBB____1h__success = __zBB____1h__next_acquired )(( ptr **) __tBB__acquired )[0]=( ptr *) __zBB____1h__next_acquired ; } if ( __zBB____1h__success ) { __zBB____1h__mem =( ptr ) __runtime_alloc ( __zBB____yh__z * sizeof ( __zBB____1h____gQ )); if ( __zBB____1h__success = __zBB____1h__mem ) {(( ptr **) __tBB__acquired )[0][ __tBB__size ]= __zBB____1h__mem ; __tBB__size = __zBB____1h__next_size ; } } 
+ __zBB____1h__next_size = __tBB__size +1; __zBB____1h__success = true ; __zBB____1h__self__allocated__prev = __tBB__allocated ; if( __zBB____1h__next_size >= __tBB__allocated ) { __tBB__allocated = __tBB__allocated + __tBB__allocated /2+1; __zBB____1h__next_acquired =( ptr )((( ptr **) __tBB__acquired )[0]? __runtime_realloc ((( ptr **) __tBB__acquired )[0], __tBB__allocated * sizeof ( ptr ), __zBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __tBB__allocated * sizeof ( ptr ))); if( __zBB____1h__success = __zBB____1h__next_acquired )(( ptr **) __tBB__acquired )[0]=( ptr *) __zBB____1h__next_acquired ; } if( __zBB____1h__success ) { __zBB____1h__mem =( ptr ) __runtime_alloc ( __zBB____yh__z * sizeof ( __zBB____1h____gQ )); if( __zBB____1h__success = __zBB____1h__mem ) {(( ptr **) __tBB__acquired )[0][ __tBB__size ]= __zBB____1h__mem ; __tBB__size = __zBB____1h__next_size ; } } 
  __zBB____1h____nQ__x = __zBB____1h__success ;
  __zBB____1h____nQ__z =(! __zBB____1h____nQ__x ); 
  __zBB____1h____nQ____end :
@@ -791,7 +791,7 @@ __qBB = " 2>&1" ;
  __tBB__size = __tBB__size ;
  __tBB__allocated = __tBB__allocated ;
  __tBB____dynamic_entry = __tBB____dynamic_entry ;
- __2BB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if ( __2BB____ZQ__acquired )(( ptr **) __2BB____ZQ__acquired )[0]=0; 
+ __2BB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if( __2BB____ZQ__acquired )(( ptr **) __2BB____ZQ__acquired )[0]=0; 
  __2BB____ZQ____UQ = 0 ;
  __2BB____ZQ____VQ = 0 ;
  __2BB__acquired = __2BB____ZQ__acquired ;
@@ -830,7 +830,7 @@ __qBB = " 2>&1" ;
  goto __ACB____Vd____lQ____oD ;
  __builtin_unreachable();
  __ACB____Vd____hQ__fi :
- __ACB____Vd__next_size = __2BB__size +1; __ACB____Vd__success = true ; __ACB____Vd__self__allocated__prev = __2BB__allocated ; if ( __ACB____Vd__next_size >= __2BB__allocated ) { __2BB__allocated = __2BB__allocated + __2BB__allocated /2+1; __ACB____Vd__next_acquired =( ptr )((( ptr **) __2BB__acquired )[0]? __runtime_realloc ((( ptr **) __2BB__acquired )[0], __2BB__allocated * sizeof ( ptr ), __ACB____Vd__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __2BB__allocated * sizeof ( ptr ))); if ( __ACB____Vd__success = __ACB____Vd__next_acquired )(( ptr **) __2BB__acquired )[0]=( ptr *) __ACB____Vd__next_acquired ; } if ( __ACB____Vd__success ) { __ACB____Vd__mem =( ptr ) __runtime_alloc ( __ACB____Sd__z * sizeof ( __ACB____Vd____gQ )); if ( __ACB____Vd__success = __ACB____Vd__mem ) {(( ptr **) __2BB__acquired )[0][ __2BB__size ]= __ACB____Vd__mem ; __2BB__size = __ACB____Vd__next_size ; } } 
+ __ACB____Vd__next_size = __2BB__size +1; __ACB____Vd__success = true ; __ACB____Vd__self__allocated__prev = __2BB__allocated ; if( __ACB____Vd__next_size >= __2BB__allocated ) { __2BB__allocated = __2BB__allocated + __2BB__allocated /2+1; __ACB____Vd__next_acquired =( ptr )((( ptr **) __2BB__acquired )[0]? __runtime_realloc ((( ptr **) __2BB__acquired )[0], __2BB__allocated * sizeof ( ptr ), __ACB____Vd__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __2BB__allocated * sizeof ( ptr ))); if( __ACB____Vd__success = __ACB____Vd__next_acquired )(( ptr **) __2BB__acquired )[0]=( ptr *) __ACB____Vd__next_acquired ; } if( __ACB____Vd__success ) { __ACB____Vd__mem =( ptr ) __runtime_alloc ( __ACB____Sd__z * sizeof ( __ACB____Vd____gQ )); if( __ACB____Vd__success = __ACB____Vd__mem ) {(( ptr **) __2BB__acquired )[0][ __2BB__size ]= __ACB____Vd__mem ; __2BB__size = __ACB____Vd__next_size ; } } 
  __ACB____Vd____nQ__x = __ACB____Vd__success ;
  __ACB____Vd____nQ__z =(! __ACB____Vd____nQ__x ); 
  __ACB____Vd____nQ____end :
@@ -864,7 +864,7 @@ __qBB = " 2>&1" ;
  goto __BCB____1h____lQ____oD ;
  __builtin_unreachable();
  __BCB____1h____hQ__fi :
- __BCB____1h__next_size = __2BB__size +1; __BCB____1h__success = true ; __BCB____1h__self__allocated__prev = __2BB__allocated ; if ( __BCB____1h__next_size >= __2BB__allocated ) { __2BB__allocated = __2BB__allocated + __2BB__allocated /2+1; __BCB____1h__next_acquired =( ptr )((( ptr **) __2BB__acquired )[0]? __runtime_realloc ((( ptr **) __2BB__acquired )[0], __2BB__allocated * sizeof ( ptr ), __BCB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __2BB__allocated * sizeof ( ptr ))); if ( __BCB____1h__success = __BCB____1h__next_acquired )(( ptr **) __2BB__acquired )[0]=( ptr *) __BCB____1h__next_acquired ; } if ( __BCB____1h__success ) { __BCB____1h__mem =( ptr ) __runtime_alloc ( __BCB____yh__z * sizeof ( __BCB____1h____gQ )); if ( __BCB____1h__success = __BCB____1h__mem ) {(( ptr **) __2BB__acquired )[0][ __2BB__size ]= __BCB____1h__mem ; __2BB__size = __BCB____1h__next_size ; } } 
+ __BCB____1h__next_size = __2BB__size +1; __BCB____1h__success = true ; __BCB____1h__self__allocated__prev = __2BB__allocated ; if( __BCB____1h__next_size >= __2BB__allocated ) { __2BB__allocated = __2BB__allocated + __2BB__allocated /2+1; __BCB____1h__next_acquired =( ptr )((( ptr **) __2BB__acquired )[0]? __runtime_realloc ((( ptr **) __2BB__acquired )[0], __2BB__allocated * sizeof ( ptr ), __BCB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __2BB__allocated * sizeof ( ptr ))); if( __BCB____1h__success = __BCB____1h__next_acquired )(( ptr **) __2BB__acquired )[0]=( ptr *) __BCB____1h__next_acquired ; } if( __BCB____1h__success ) { __BCB____1h__mem =( ptr ) __runtime_alloc ( __BCB____yh__z * sizeof ( __BCB____1h____gQ )); if( __BCB____1h__success = __BCB____1h__mem ) {(( ptr **) __2BB__acquired )[0][ __2BB__size ]= __BCB____1h__mem ; __2BB__size = __BCB____1h__next_size ; } } 
  __BCB____1h____nQ__x = __BCB____1h__success ;
  __BCB____1h____nQ__z =(! __BCB____1h____nQ__x ); 
  __BCB____1h____nQ____end :
@@ -904,7 +904,7 @@ __qBB = " 2>&1" ;
  goto __FCB____Vd____lQ____oD ;
  __builtin_unreachable();
  __FCB____Vd____hQ__fi :
- __FCB____Vd__next_size = __2BB__size +1; __FCB____Vd__success = true ; __FCB____Vd__self__allocated__prev = __2BB__allocated ; if ( __FCB____Vd__next_size >= __2BB__allocated ) { __2BB__allocated = __2BB__allocated + __2BB__allocated /2+1; __FCB____Vd__next_acquired =( ptr )((( ptr **) __2BB__acquired )[0]? __runtime_realloc ((( ptr **) __2BB__acquired )[0], __2BB__allocated * sizeof ( ptr ), __FCB____Vd__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __2BB__allocated * sizeof ( ptr ))); if ( __FCB____Vd__success = __FCB____Vd__next_acquired )(( ptr **) __2BB__acquired )[0]=( ptr *) __FCB____Vd__next_acquired ; } if ( __FCB____Vd__success ) { __FCB____Vd__mem =( ptr ) __runtime_alloc ( __FCB____Sd__z * sizeof ( __FCB____Vd____gQ )); if ( __FCB____Vd__success = __FCB____Vd__mem ) {(( ptr **) __2BB__acquired )[0][ __2BB__size ]= __FCB____Vd__mem ; __2BB__size = __FCB____Vd__next_size ; } } 
+ __FCB____Vd__next_size = __2BB__size +1; __FCB____Vd__success = true ; __FCB____Vd__self__allocated__prev = __2BB__allocated ; if( __FCB____Vd__next_size >= __2BB__allocated ) { __2BB__allocated = __2BB__allocated + __2BB__allocated /2+1; __FCB____Vd__next_acquired =( ptr )((( ptr **) __2BB__acquired )[0]? __runtime_realloc ((( ptr **) __2BB__acquired )[0], __2BB__allocated * sizeof ( ptr ), __FCB____Vd__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __2BB__allocated * sizeof ( ptr ))); if( __FCB____Vd__success = __FCB____Vd__next_acquired )(( ptr **) __2BB__acquired )[0]=( ptr *) __FCB____Vd__next_acquired ; } if( __FCB____Vd__success ) { __FCB____Vd__mem =( ptr ) __runtime_alloc ( __FCB____Sd__z * sizeof ( __FCB____Vd____gQ )); if( __FCB____Vd__success = __FCB____Vd__mem ) {(( ptr **) __2BB__acquired )[0][ __2BB__size ]= __FCB____Vd__mem ; __2BB__size = __FCB____Vd__next_size ; } } 
  __FCB____Vd____nQ__x = __FCB____Vd__success ;
  __FCB____Vd____nQ__z =(! __FCB____Vd____nQ__x ); 
  __FCB____Vd____nQ____end :
@@ -938,7 +938,7 @@ __qBB = " 2>&1" ;
  goto __GCB____1h____lQ____oD ;
  __builtin_unreachable();
  __GCB____1h____hQ__fi :
- __GCB____1h__next_size = __2BB__size +1; __GCB____1h__success = true ; __GCB____1h__self__allocated__prev = __2BB__allocated ; if ( __GCB____1h__next_size >= __2BB__allocated ) { __2BB__allocated = __2BB__allocated + __2BB__allocated /2+1; __GCB____1h__next_acquired =( ptr )((( ptr **) __2BB__acquired )[0]? __runtime_realloc ((( ptr **) __2BB__acquired )[0], __2BB__allocated * sizeof ( ptr ), __GCB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __2BB__allocated * sizeof ( ptr ))); if ( __GCB____1h__success = __GCB____1h__next_acquired )(( ptr **) __2BB__acquired )[0]=( ptr *) __GCB____1h__next_acquired ; } if ( __GCB____1h__success ) { __GCB____1h__mem =( ptr ) __runtime_alloc ( __GCB____yh__z * sizeof ( __GCB____1h____gQ )); if ( __GCB____1h__success = __GCB____1h__mem ) {(( ptr **) __2BB__acquired )[0][ __2BB__size ]= __GCB____1h__mem ; __2BB__size = __GCB____1h__next_size ; } } 
+ __GCB____1h__next_size = __2BB__size +1; __GCB____1h__success = true ; __GCB____1h__self__allocated__prev = __2BB__allocated ; if( __GCB____1h__next_size >= __2BB__allocated ) { __2BB__allocated = __2BB__allocated + __2BB__allocated /2+1; __GCB____1h__next_acquired =( ptr )((( ptr **) __2BB__acquired )[0]? __runtime_realloc ((( ptr **) __2BB__acquired )[0], __2BB__allocated * sizeof ( ptr ), __GCB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __2BB__allocated * sizeof ( ptr ))); if( __GCB____1h__success = __GCB____1h__next_acquired )(( ptr **) __2BB__acquired )[0]=( ptr *) __GCB____1h__next_acquired ; } if( __GCB____1h__success ) { __GCB____1h__mem =( ptr ) __runtime_alloc ( __GCB____yh__z * sizeof ( __GCB____1h____gQ )); if( __GCB____1h__success = __GCB____1h__mem ) {(( ptr **) __2BB__acquired )[0][ __2BB__size ]= __GCB____1h__mem ; __2BB__size = __GCB____1h__next_size ; } } 
  __GCB____1h____nQ__x = __GCB____1h__success ;
  __GCB____1h____nQ__z =(! __GCB____1h____nQ__x ); 
  __GCB____1h____nQ____end :
@@ -1039,10 +1039,10 @@ __smolambda_all_tasks = 0;
 __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
-if ( __2BB__acquired ) { for ( __2BB____dynamic_entry =0; __2BB____dynamic_entry < __2BB__size ;++ __2BB____dynamic_entry ) { __runtime_free ((( ptr **) __2BB__acquired )[0][ __2BB____dynamic_entry ]); } __runtime_free ( __2BB__acquired ); __2BB__acquired =0; __2BB__size =0; __2BB__allocated =0; } 
- if ( __2BB__acquired ) { for ( __2BB____ZQ____dynamic_entry =0; __2BB____ZQ____dynamic_entry < __2BB____ZQ____UQ ;++ __2BB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __2BB__acquired )[0][ __2BB____ZQ____dynamic_entry ]); } __runtime_free ( __2BB__acquired ); __2BB__acquired =0; __2BB____ZQ____UQ =0; __2BB____ZQ____VQ =0; } 
-if ( __tBB__acquired ) { for ( __tBB____dynamic_entry =0; __tBB____dynamic_entry < __tBB__size ;++ __tBB____dynamic_entry ) { __runtime_free ((( ptr **) __tBB__acquired )[0][ __tBB____dynamic_entry ]); } __runtime_free ( __tBB__acquired ); __tBB__acquired =0; __tBB__size =0; __tBB__allocated =0; } 
- if ( __tBB__acquired ) { for ( __tBB____ZQ____dynamic_entry =0; __tBB____ZQ____dynamic_entry < __tBB____ZQ____UQ ;++ __tBB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __tBB__acquired )[0][ __tBB____ZQ____dynamic_entry ]); } __runtime_free ( __tBB__acquired ); __tBB__acquired =0; __tBB____ZQ____UQ =0; __tBB____ZQ____VQ =0; } 
+if( __2BB__acquired ) { for( __2BB____dynamic_entry =0; __2BB____dynamic_entry < __2BB__size ;++ __2BB____dynamic_entry ) { __runtime_free ((( ptr **) __2BB__acquired )[0][ __2BB____dynamic_entry ]); } __runtime_free ( __2BB__acquired ); __2BB__acquired =0; __2BB__size =0; __2BB__allocated =0; } 
+ if( __2BB__acquired ) { for( __2BB____ZQ____dynamic_entry =0; __2BB____ZQ____dynamic_entry < __2BB____ZQ____UQ ;++ __2BB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __2BB__acquired )[0][ __2BB____ZQ____dynamic_entry ]); } __runtime_free ( __2BB__acquired ); __2BB__acquired =0; __2BB____ZQ____UQ =0; __2BB____ZQ____VQ =0; } 
+if( __tBB__acquired ) { for( __tBB____dynamic_entry =0; __tBB____dynamic_entry < __tBB__size ;++ __tBB____dynamic_entry ) { __runtime_free ((( ptr **) __tBB__acquired )[0][ __tBB____dynamic_entry ]); } __runtime_free ( __tBB__acquired ); __tBB__acquired =0; __tBB__size =0; __tBB__allocated =0; } 
+ if( __tBB__acquired ) { for( __tBB____ZQ____dynamic_entry =0; __tBB____ZQ____dynamic_entry < __tBB____ZQ____UQ ;++ __tBB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __tBB__acquired )[0][ __tBB____ZQ____dynamic_entry ]); } __runtime_free ( __tBB__acquired ); __tBB__acquired =0; __tBB____ZQ____UQ =0; __tBB____ZQ____VQ =0; } 
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
 __state->err =  __result__errocode;
 }
@@ -1299,7 +1299,7 @@ ptr __VBB____9i__next_acquired=0;
 
 // IMPLEMENTATION
 __NBB = " 2>&1" ;
- __QBB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if ( __QBB____ZQ__acquired )(( ptr **) __QBB____ZQ__acquired )[0]=0; 
+ __QBB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if( __QBB____ZQ__acquired )(( ptr **) __QBB____ZQ__acquired )[0]=0; 
  __QBB____ZQ____UQ = 0 ;
  __QBB____ZQ____VQ = 0 ;
  __QBB__acquired = __QBB____ZQ__acquired ;
@@ -1325,7 +1325,7 @@ __NBB = " 2>&1" ;
  goto __UBB____Fb____lQ____oD ;
  __builtin_unreachable();
  __UBB____Fb____hQ__fi :
- __UBB____Fb__next_size = __QBB__size +1; __UBB____Fb__success = true ; __UBB____Fb__self__allocated__prev = __QBB__allocated ; if ( __UBB____Fb__next_size >= __QBB__allocated ) { __QBB__allocated = __QBB__allocated + __QBB__allocated /2+1; __UBB____Fb__next_acquired =( ptr )((( ptr **) __QBB__acquired )[0]? __runtime_realloc ((( ptr **) __QBB__acquired )[0], __QBB__allocated * sizeof ( ptr ), __UBB____Fb__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __QBB__allocated * sizeof ( ptr ))); if ( __UBB____Fb__success = __UBB____Fb__next_acquired )(( ptr **) __QBB__acquired )[0]=( ptr *) __UBB____Fb__next_acquired ; } if ( __UBB____Fb__success ) { __UBB____Fb__mem =( ptr ) __runtime_alloc ( __UBB____Cb__z * sizeof ( __UBB____Fb____gQ )); if ( __UBB____Fb__success = __UBB____Fb__mem ) {(( ptr **) __QBB__acquired )[0][ __QBB__size ]= __UBB____Fb__mem ; __QBB__size = __UBB____Fb__next_size ; } } 
+ __UBB____Fb__next_size = __QBB__size +1; __UBB____Fb__success = true ; __UBB____Fb__self__allocated__prev = __QBB__allocated ; if( __UBB____Fb__next_size >= __QBB__allocated ) { __QBB__allocated = __QBB__allocated + __QBB__allocated /2+1; __UBB____Fb__next_acquired =( ptr )((( ptr **) __QBB__acquired )[0]? __runtime_realloc ((( ptr **) __QBB__acquired )[0], __QBB__allocated * sizeof ( ptr ), __UBB____Fb__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __QBB__allocated * sizeof ( ptr ))); if( __UBB____Fb__success = __UBB____Fb__next_acquired )(( ptr **) __QBB__acquired )[0]=( ptr *) __UBB____Fb__next_acquired ; } if( __UBB____Fb__success ) { __UBB____Fb__mem =( ptr ) __runtime_alloc ( __UBB____Cb__z * sizeof ( __UBB____Fb____gQ )); if( __UBB____Fb__success = __UBB____Fb__mem ) {(( ptr **) __QBB__acquired )[0][ __QBB__size ]= __UBB____Fb__mem ; __QBB__size = __UBB____Fb__next_size ; } } 
  __UBB____Fb____nQ__x = __UBB____Fb__success ;
  __UBB____Fb____nQ__z =(! __UBB____Fb____nQ__x ); 
  __UBB____Fb____nQ____end :
@@ -1357,7 +1357,7 @@ __NBB = " 2>&1" ;
  goto __VBB____9i____lQ____oD ;
  __builtin_unreachable();
  __VBB____9i____hQ__fi :
- __VBB____9i__next_size = __QBB__size +1; __VBB____9i__success = true ; __VBB____9i__self__allocated__prev = __QBB__allocated ; if ( __VBB____9i__next_size >= __QBB__allocated ) { __QBB__allocated = __QBB__allocated + __QBB__allocated /2+1; __VBB____9i__next_acquired =( ptr )((( ptr **) __QBB__acquired )[0]? __runtime_realloc ((( ptr **) __QBB__acquired )[0], __QBB__allocated * sizeof ( ptr ), __VBB____9i__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __QBB__allocated * sizeof ( ptr ))); if ( __VBB____9i__success = __VBB____9i__next_acquired )(( ptr **) __QBB__acquired )[0]=( ptr *) __VBB____9i__next_acquired ; } if ( __VBB____9i__success ) { __VBB____9i__mem =( ptr ) __runtime_alloc ( __VBB____6i__z * sizeof ( __VBB____9i____gQ )); if ( __VBB____9i__success = __VBB____9i__mem ) {(( ptr **) __QBB__acquired )[0][ __QBB__size ]= __VBB____9i__mem ; __QBB__size = __VBB____9i__next_size ; } } 
+ __VBB____9i__next_size = __QBB__size +1; __VBB____9i__success = true ; __VBB____9i__self__allocated__prev = __QBB__allocated ; if( __VBB____9i__next_size >= __QBB__allocated ) { __QBB__allocated = __QBB__allocated + __QBB__allocated /2+1; __VBB____9i__next_acquired =( ptr )((( ptr **) __QBB__acquired )[0]? __runtime_realloc ((( ptr **) __QBB__acquired )[0], __QBB__allocated * sizeof ( ptr ), __VBB____9i__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __QBB__allocated * sizeof ( ptr ))); if( __VBB____9i__success = __VBB____9i__next_acquired )(( ptr **) __QBB__acquired )[0]=( ptr *) __VBB____9i__next_acquired ; } if( __VBB____9i__success ) { __VBB____9i__mem =( ptr ) __runtime_alloc ( __VBB____6i__z * sizeof ( __VBB____9i____gQ )); if( __VBB____9i__success = __VBB____9i__mem ) {(( ptr **) __QBB__acquired )[0][ __QBB__size ]= __VBB____9i__mem ; __QBB__size = __VBB____9i__next_size ; } } 
  __VBB____9i____nQ__x = __VBB____9i__success ;
  __VBB____9i____nQ__z =(! __VBB____9i____nQ__x ); 
  __VBB____9i____nQ____end :
@@ -1391,7 +1391,7 @@ __NBB = " 2>&1" ;
  goto __WBB____1h____lQ____oD ;
  __builtin_unreachable();
  __WBB____1h____hQ__fi :
- __WBB____1h__next_size = __QBB__size +1; __WBB____1h__success = true ; __WBB____1h__self__allocated__prev = __QBB__allocated ; if ( __WBB____1h__next_size >= __QBB__allocated ) { __QBB__allocated = __QBB__allocated + __QBB__allocated /2+1; __WBB____1h__next_acquired =( ptr )((( ptr **) __QBB__acquired )[0]? __runtime_realloc ((( ptr **) __QBB__acquired )[0], __QBB__allocated * sizeof ( ptr ), __WBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __QBB__allocated * sizeof ( ptr ))); if ( __WBB____1h__success = __WBB____1h__next_acquired )(( ptr **) __QBB__acquired )[0]=( ptr *) __WBB____1h__next_acquired ; } if ( __WBB____1h__success ) { __WBB____1h__mem =( ptr ) __runtime_alloc ( __WBB____yh__z * sizeof ( __WBB____1h____gQ )); if ( __WBB____1h__success = __WBB____1h__mem ) {(( ptr **) __QBB__acquired )[0][ __QBB__size ]= __WBB____1h__mem ; __QBB__size = __WBB____1h__next_size ; } } 
+ __WBB____1h__next_size = __QBB__size +1; __WBB____1h__success = true ; __WBB____1h__self__allocated__prev = __QBB__allocated ; if( __WBB____1h__next_size >= __QBB__allocated ) { __QBB__allocated = __QBB__allocated + __QBB__allocated /2+1; __WBB____1h__next_acquired =( ptr )((( ptr **) __QBB__acquired )[0]? __runtime_realloc ((( ptr **) __QBB__acquired )[0], __QBB__allocated * sizeof ( ptr ), __WBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __QBB__allocated * sizeof ( ptr ))); if( __WBB____1h__success = __WBB____1h__next_acquired )(( ptr **) __QBB__acquired )[0]=( ptr *) __WBB____1h__next_acquired ; } if( __WBB____1h__success ) { __WBB____1h__mem =( ptr ) __runtime_alloc ( __WBB____yh__z * sizeof ( __WBB____1h____gQ )); if( __WBB____1h__success = __WBB____1h__mem ) {(( ptr **) __QBB__acquired )[0][ __QBB__size ]= __WBB____1h__mem ; __QBB__size = __WBB____1h__next_size ; } } 
  __WBB____1h____nQ__x = __WBB____1h__success ;
  __WBB____1h____nQ__z =(! __WBB____1h____nQ__x ); 
  __WBB____1h____nQ____end :
@@ -1410,7 +1410,7 @@ __NBB = " 2>&1" ;
  __QBB__size = __QBB__size ;
  __QBB__allocated = __QBB__allocated ;
  __QBB____dynamic_entry = __QBB____dynamic_entry ;
- __ZBB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if ( __ZBB____ZQ__acquired )(( ptr **) __ZBB____ZQ__acquired )[0]=0; 
+ __ZBB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if( __ZBB____ZQ__acquired )(( ptr **) __ZBB____ZQ__acquired )[0]=0; 
  __ZBB____ZQ____UQ = 0 ;
  __ZBB____ZQ____VQ = 0 ;
  __ZBB__acquired = __ZBB____ZQ__acquired ;
@@ -1449,7 +1449,7 @@ __NBB = " 2>&1" ;
  goto __hBB____Nc____lQ____oD ;
  __builtin_unreachable();
  __hBB____Nc____hQ__fi :
- __hBB____Nc__next_size = __ZBB__size +1; __hBB____Nc__success = true ; __hBB____Nc__self__allocated__prev = __ZBB__allocated ; if ( __hBB____Nc__next_size >= __ZBB__allocated ) { __ZBB__allocated = __ZBB__allocated + __ZBB__allocated /2+1; __hBB____Nc__next_acquired =( ptr )((( ptr **) __ZBB__acquired )[0]? __runtime_realloc ((( ptr **) __ZBB__acquired )[0], __ZBB__allocated * sizeof ( ptr ), __hBB____Nc__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __ZBB__allocated * sizeof ( ptr ))); if ( __hBB____Nc__success = __hBB____Nc__next_acquired )(( ptr **) __ZBB__acquired )[0]=( ptr *) __hBB____Nc__next_acquired ; } if ( __hBB____Nc__success ) { __hBB____Nc__mem =( ptr ) __runtime_alloc ( __hBB____Kc__z * sizeof ( __hBB____Nc____gQ )); if ( __hBB____Nc__success = __hBB____Nc__mem ) {(( ptr **) __ZBB__acquired )[0][ __ZBB__size ]= __hBB____Nc__mem ; __ZBB__size = __hBB____Nc__next_size ; } } 
+ __hBB____Nc__next_size = __ZBB__size +1; __hBB____Nc__success = true ; __hBB____Nc__self__allocated__prev = __ZBB__allocated ; if( __hBB____Nc__next_size >= __ZBB__allocated ) { __ZBB__allocated = __ZBB__allocated + __ZBB__allocated /2+1; __hBB____Nc__next_acquired =( ptr )((( ptr **) __ZBB__acquired )[0]? __runtime_realloc ((( ptr **) __ZBB__acquired )[0], __ZBB__allocated * sizeof ( ptr ), __hBB____Nc__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __ZBB__allocated * sizeof ( ptr ))); if( __hBB____Nc__success = __hBB____Nc__next_acquired )(( ptr **) __ZBB__acquired )[0]=( ptr *) __hBB____Nc__next_acquired ; } if( __hBB____Nc__success ) { __hBB____Nc__mem =( ptr ) __runtime_alloc ( __hBB____Kc__z * sizeof ( __hBB____Nc____gQ )); if( __hBB____Nc__success = __hBB____Nc__mem ) {(( ptr **) __ZBB__acquired )[0][ __ZBB__size ]= __hBB____Nc__mem ; __ZBB__size = __hBB____Nc__next_size ; } } 
  __hBB____Nc____nQ__x = __hBB____Nc__success ;
  __hBB____Nc____nQ__z =(! __hBB____Nc____nQ__x ); 
  __hBB____Nc____nQ____end :
@@ -1483,7 +1483,7 @@ __NBB = " 2>&1" ;
  goto __iBB____1h____lQ____oD ;
  __builtin_unreachable();
  __iBB____1h____hQ__fi :
- __iBB____1h__next_size = __ZBB__size +1; __iBB____1h__success = true ; __iBB____1h__self__allocated__prev = __ZBB__allocated ; if ( __iBB____1h__next_size >= __ZBB__allocated ) { __ZBB__allocated = __ZBB__allocated + __ZBB__allocated /2+1; __iBB____1h__next_acquired =( ptr )((( ptr **) __ZBB__acquired )[0]? __runtime_realloc ((( ptr **) __ZBB__acquired )[0], __ZBB__allocated * sizeof ( ptr ), __iBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __ZBB__allocated * sizeof ( ptr ))); if ( __iBB____1h__success = __iBB____1h__next_acquired )(( ptr **) __ZBB__acquired )[0]=( ptr *) __iBB____1h__next_acquired ; } if ( __iBB____1h__success ) { __iBB____1h__mem =( ptr ) __runtime_alloc ( __iBB____yh__z * sizeof ( __iBB____1h____gQ )); if ( __iBB____1h__success = __iBB____1h__mem ) {(( ptr **) __ZBB__acquired )[0][ __ZBB__size ]= __iBB____1h__mem ; __ZBB__size = __iBB____1h__next_size ; } } 
+ __iBB____1h__next_size = __ZBB__size +1; __iBB____1h__success = true ; __iBB____1h__self__allocated__prev = __ZBB__allocated ; if( __iBB____1h__next_size >= __ZBB__allocated ) { __ZBB__allocated = __ZBB__allocated + __ZBB__allocated /2+1; __iBB____1h__next_acquired =( ptr )((( ptr **) __ZBB__acquired )[0]? __runtime_realloc ((( ptr **) __ZBB__acquired )[0], __ZBB__allocated * sizeof ( ptr ), __iBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __ZBB__allocated * sizeof ( ptr ))); if( __iBB____1h__success = __iBB____1h__next_acquired )(( ptr **) __ZBB__acquired )[0]=( ptr *) __iBB____1h__next_acquired ; } if( __iBB____1h__success ) { __iBB____1h__mem =( ptr ) __runtime_alloc ( __iBB____yh__z * sizeof ( __iBB____1h____gQ )); if( __iBB____1h__success = __iBB____1h__mem ) {(( ptr **) __ZBB__acquired )[0][ __ZBB__size ]= __iBB____1h__mem ; __ZBB__size = __iBB____1h__next_size ; } } 
  __iBB____1h____nQ__x = __iBB____1h__success ;
  __iBB____1h____nQ__z =(! __iBB____1h____nQ__x ); 
  __iBB____1h____nQ____end :
@@ -1523,7 +1523,7 @@ __NBB = " 2>&1" ;
  goto __mBB____Nc____lQ____oD ;
  __builtin_unreachable();
  __mBB____Nc____hQ__fi :
- __mBB____Nc__next_size = __ZBB__size +1; __mBB____Nc__success = true ; __mBB____Nc__self__allocated__prev = __ZBB__allocated ; if ( __mBB____Nc__next_size >= __ZBB__allocated ) { __ZBB__allocated = __ZBB__allocated + __ZBB__allocated /2+1; __mBB____Nc__next_acquired =( ptr )((( ptr **) __ZBB__acquired )[0]? __runtime_realloc ((( ptr **) __ZBB__acquired )[0], __ZBB__allocated * sizeof ( ptr ), __mBB____Nc__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __ZBB__allocated * sizeof ( ptr ))); if ( __mBB____Nc__success = __mBB____Nc__next_acquired )(( ptr **) __ZBB__acquired )[0]=( ptr *) __mBB____Nc__next_acquired ; } if ( __mBB____Nc__success ) { __mBB____Nc__mem =( ptr ) __runtime_alloc ( __mBB____Kc__z * sizeof ( __mBB____Nc____gQ )); if ( __mBB____Nc__success = __mBB____Nc__mem ) {(( ptr **) __ZBB__acquired )[0][ __ZBB__size ]= __mBB____Nc__mem ; __ZBB__size = __mBB____Nc__next_size ; } } 
+ __mBB____Nc__next_size = __ZBB__size +1; __mBB____Nc__success = true ; __mBB____Nc__self__allocated__prev = __ZBB__allocated ; if( __mBB____Nc__next_size >= __ZBB__allocated ) { __ZBB__allocated = __ZBB__allocated + __ZBB__allocated /2+1; __mBB____Nc__next_acquired =( ptr )((( ptr **) __ZBB__acquired )[0]? __runtime_realloc ((( ptr **) __ZBB__acquired )[0], __ZBB__allocated * sizeof ( ptr ), __mBB____Nc__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __ZBB__allocated * sizeof ( ptr ))); if( __mBB____Nc__success = __mBB____Nc__next_acquired )(( ptr **) __ZBB__acquired )[0]=( ptr *) __mBB____Nc__next_acquired ; } if( __mBB____Nc__success ) { __mBB____Nc__mem =( ptr ) __runtime_alloc ( __mBB____Kc__z * sizeof ( __mBB____Nc____gQ )); if( __mBB____Nc__success = __mBB____Nc__mem ) {(( ptr **) __ZBB__acquired )[0][ __ZBB__size ]= __mBB____Nc__mem ; __ZBB__size = __mBB____Nc__next_size ; } } 
  __mBB____Nc____nQ__x = __mBB____Nc__success ;
  __mBB____Nc____nQ__z =(! __mBB____Nc____nQ__x ); 
  __mBB____Nc____nQ____end :
@@ -1557,7 +1557,7 @@ __NBB = " 2>&1" ;
  goto __nBB____1h____lQ____oD ;
  __builtin_unreachable();
  __nBB____1h____hQ__fi :
- __nBB____1h__next_size = __ZBB__size +1; __nBB____1h__success = true ; __nBB____1h__self__allocated__prev = __ZBB__allocated ; if ( __nBB____1h__next_size >= __ZBB__allocated ) { __ZBB__allocated = __ZBB__allocated + __ZBB__allocated /2+1; __nBB____1h__next_acquired =( ptr )((( ptr **) __ZBB__acquired )[0]? __runtime_realloc ((( ptr **) __ZBB__acquired )[0], __ZBB__allocated * sizeof ( ptr ), __nBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __ZBB__allocated * sizeof ( ptr ))); if ( __nBB____1h__success = __nBB____1h__next_acquired )(( ptr **) __ZBB__acquired )[0]=( ptr *) __nBB____1h__next_acquired ; } if ( __nBB____1h__success ) { __nBB____1h__mem =( ptr ) __runtime_alloc ( __nBB____yh__z * sizeof ( __nBB____1h____gQ )); if ( __nBB____1h__success = __nBB____1h__mem ) {(( ptr **) __ZBB__acquired )[0][ __ZBB__size ]= __nBB____1h__mem ; __ZBB__size = __nBB____1h__next_size ; } } 
+ __nBB____1h__next_size = __ZBB__size +1; __nBB____1h__success = true ; __nBB____1h__self__allocated__prev = __ZBB__allocated ; if( __nBB____1h__next_size >= __ZBB__allocated ) { __ZBB__allocated = __ZBB__allocated + __ZBB__allocated /2+1; __nBB____1h__next_acquired =( ptr )((( ptr **) __ZBB__acquired )[0]? __runtime_realloc ((( ptr **) __ZBB__acquired )[0], __ZBB__allocated * sizeof ( ptr ), __nBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __ZBB__allocated * sizeof ( ptr ))); if( __nBB____1h__success = __nBB____1h__next_acquired )(( ptr **) __ZBB__acquired )[0]=( ptr *) __nBB____1h__next_acquired ; } if( __nBB____1h__success ) { __nBB____1h__mem =( ptr ) __runtime_alloc ( __nBB____yh__z * sizeof ( __nBB____1h____gQ )); if( __nBB____1h__success = __nBB____1h__mem ) {(( ptr **) __ZBB__acquired )[0][ __ZBB__size ]= __nBB____1h__mem ; __ZBB__size = __nBB____1h__next_size ; } } 
  __nBB____1h____nQ__x = __nBB____1h__success ;
  __nBB____1h____nQ__z =(! __nBB____1h____nQ__x ); 
  __nBB____1h____nQ____end :
@@ -1658,10 +1658,10 @@ __smolambda_all_tasks = 0;
 __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
-if ( __ZBB__acquired ) { for ( __ZBB____dynamic_entry =0; __ZBB____dynamic_entry < __ZBB__size ;++ __ZBB____dynamic_entry ) { __runtime_free ((( ptr **) __ZBB__acquired )[0][ __ZBB____dynamic_entry ]); } __runtime_free ( __ZBB__acquired ); __ZBB__acquired =0; __ZBB__size =0; __ZBB__allocated =0; } 
- if ( __ZBB__acquired ) { for ( __ZBB____ZQ____dynamic_entry =0; __ZBB____ZQ____dynamic_entry < __ZBB____ZQ____UQ ;++ __ZBB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __ZBB__acquired )[0][ __ZBB____ZQ____dynamic_entry ]); } __runtime_free ( __ZBB__acquired ); __ZBB__acquired =0; __ZBB____ZQ____UQ =0; __ZBB____ZQ____VQ =0; } 
-if ( __QBB__acquired ) { for ( __QBB____dynamic_entry =0; __QBB____dynamic_entry < __QBB__size ;++ __QBB____dynamic_entry ) { __runtime_free ((( ptr **) __QBB__acquired )[0][ __QBB____dynamic_entry ]); } __runtime_free ( __QBB__acquired ); __QBB__acquired =0; __QBB__size =0; __QBB__allocated =0; } 
- if ( __QBB__acquired ) { for ( __QBB____ZQ____dynamic_entry =0; __QBB____ZQ____dynamic_entry < __QBB____ZQ____UQ ;++ __QBB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __QBB__acquired )[0][ __QBB____ZQ____dynamic_entry ]); } __runtime_free ( __QBB__acquired ); __QBB__acquired =0; __QBB____ZQ____UQ =0; __QBB____ZQ____VQ =0; } 
+if( __ZBB__acquired ) { for( __ZBB____dynamic_entry =0; __ZBB____dynamic_entry < __ZBB__size ;++ __ZBB____dynamic_entry ) { __runtime_free ((( ptr **) __ZBB__acquired )[0][ __ZBB____dynamic_entry ]); } __runtime_free ( __ZBB__acquired ); __ZBB__acquired =0; __ZBB__size =0; __ZBB__allocated =0; } 
+ if( __ZBB__acquired ) { for( __ZBB____ZQ____dynamic_entry =0; __ZBB____ZQ____dynamic_entry < __ZBB____ZQ____UQ ;++ __ZBB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __ZBB__acquired )[0][ __ZBB____ZQ____dynamic_entry ]); } __runtime_free ( __ZBB__acquired ); __ZBB__acquired =0; __ZBB____ZQ____UQ =0; __ZBB____ZQ____VQ =0; } 
+if( __QBB__acquired ) { for( __QBB____dynamic_entry =0; __QBB____dynamic_entry < __QBB__size ;++ __QBB____dynamic_entry ) { __runtime_free ((( ptr **) __QBB__acquired )[0][ __QBB____dynamic_entry ]); } __runtime_free ( __QBB__acquired ); __QBB__acquired =0; __QBB__size =0; __QBB__allocated =0; } 
+ if( __QBB__acquired ) { for( __QBB____ZQ____dynamic_entry =0; __QBB____ZQ____dynamic_entry < __QBB____ZQ____UQ ;++ __QBB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __QBB__acquired )[0][ __QBB____ZQ____dynamic_entry ]); } __runtime_free ( __QBB__acquired ); __QBB__acquired =0; __QBB____ZQ____UQ =0; __QBB____ZQ____VQ =0; } 
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
 __state->err =  __result__errocode;
 }
@@ -1703,10 +1703,10 @@ __pAB__contents = 0 ;
  __builtin_unreachable();
  __rAB____K9__fi :
  process__contents = __rAB__contents ;
- if ( process__contents ) { char buf [ 1024 ]; while ( fread ( buf ,1, sizeof ( buf ),( FILE *) process__contents )) { } } 
+ if( process__contents ) { char buf [ 1024 ]; while( fread ( buf ,1, sizeof ( buf ),( FILE *) process__contents )) { } } 
  __sAB____end :
  process____78 = __sAB__p____78 ;
- __rAB__status =0; if ( process__contents ) __rAB__status = pclose (( FILE *) process__contents ); process__contents =0; if ( __rAB__status ) { if ( __rAB__status !=-1&& WIFEXITED ( __rAB__status )) __rAB__status = WEXITSTATUS ( __rAB__status ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __rAB__status ); __result__errocode = __USER__ERROR ; goto __failsafe ; } 
+ __rAB__status =0; if( process__contents ) __rAB__status = pclose (( FILE *) process__contents ); process__contents =0; if( __rAB__status ) { if( __rAB__status !=-1&& WIFEXITED ( __rAB__status )) __rAB__status = WEXITSTATUS ( __rAB__status ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __rAB__status ); __result__errocode = __USER__ERROR ; goto __failsafe ; } 
  __end :
 goto __return;
 
@@ -1837,7 +1837,7 @@ __jAB__contents = 0 ;
  __lAB____UAB____zF = 0 ;
  __lAB____UAB____1F__bytesize = sizeof ( __lAB____UAB____1F____8E )* __lAB____RAB__z ; 
  __lAB____UAB____1F____end :
- __lAB__first =0; if ( __lAB____UAB__mem ) { memcpy (( char *) __lAB____UAB__mem , command__contents , command__length );(( char *) __lAB____UAB__mem )[ command__length ]=0; } __lAB__mem =( const char *) __lAB____UAB__mem ; 
+ __lAB__first =0; if( __lAB____UAB__mem ) { memcpy (( char *) __lAB____UAB__mem , command__contents , command__length );(( char *) __lAB____UAB__mem )[ command__length ]=0; } __lAB__mem =( const char *) __lAB____UAB__mem ; 
  __lAB____WAB__contents = 0 ;
  __lAB____YAB____A9__length = strlen ( __lAB__mem ); __lAB____YAB____A9__contents =( ptr ) __lAB__mem ; __lAB____YAB____A9__first = __lAB__mem [0]; __lAB____YAB____A9__noptr =( ptr ) __lAB____YAB____A9__noptr ; 
  __lAB____YAB____A9____p__contents = __lAB____YAB____A9__contents ;
@@ -1853,10 +1853,10 @@ __jAB__contents = 0 ;
  __lAB____YAB____B9__fi :
  __TRANSIENT( __lAB____UAB__mem )
  process____YAB__contents = __lAB____YAB__contents ;
- if ( process____YAB__contents ) { char buf [ 1024 ]; while ( fread ( buf ,1, sizeof ( buf ),( FILE *) process____YAB__contents )) { } } 
+ if( process____YAB__contents ) { char buf [ 1024 ]; while( fread ( buf ,1, sizeof ( buf ),( FILE *) process____YAB__contents )) { } } 
  __mAB____end :
  process____YAB____78 = __mAB__p____78 ;
- __lAB____YAB__status =0; if ( process____YAB__contents ) __lAB____YAB__status = pclose (( FILE *) process____YAB__contents ); process____YAB__contents =0; if ( __lAB____YAB__status ) { if ( __lAB____YAB__status !=-1&& WIFEXITED ( __lAB____YAB__status )) __lAB____YAB__status = WEXITSTATUS ( __lAB____YAB__status ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __lAB____YAB__status ); __result__errocode = __USER__ERROR ; goto __failsafe ; } 
+ __lAB____YAB__status =0; if( process____YAB__contents ) __lAB____YAB__status = pclose (( FILE *) process____YAB__contents ); process____YAB__contents =0; if( __lAB____YAB__status ) { if( __lAB____YAB__status !=-1&& WIFEXITED ( __lAB____YAB__status )) __lAB____YAB__status = WEXITSTATUS ( __lAB____YAB__status ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __lAB____YAB__status ); __result__errocode = __USER__ERROR ; goto __failsafe ; } 
  __end :
 goto __return;
 
@@ -2151,7 +2151,7 @@ bool __2AB____1h__success=0;
 
 // IMPLEMENTATION
 __uAB = " 2>&1" ;
- __xAB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if ( __xAB____ZQ__acquired )(( ptr **) __xAB____ZQ__acquired )[0]=0; 
+ __xAB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if( __xAB____ZQ__acquired )(( ptr **) __xAB____ZQ__acquired )[0]=0; 
  __xAB____ZQ____UQ = 0 ;
  __xAB____ZQ____VQ = 0 ;
  __xAB__acquired = __xAB____ZQ__acquired ;
@@ -2177,7 +2177,7 @@ __uAB = " 2>&1" ;
  goto __1AB____Fb____lQ____oD ;
  __builtin_unreachable();
  __1AB____Fb____hQ__fi :
- __1AB____Fb__next_size = __xAB__size +1; __1AB____Fb__success = true ; __1AB____Fb__self__allocated__prev = __xAB__allocated ; if ( __1AB____Fb__next_size >= __xAB__allocated ) { __xAB__allocated = __xAB__allocated + __xAB__allocated /2+1; __1AB____Fb__next_acquired =( ptr )((( ptr **) __xAB__acquired )[0]? __runtime_realloc ((( ptr **) __xAB__acquired )[0], __xAB__allocated * sizeof ( ptr ), __1AB____Fb__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __xAB__allocated * sizeof ( ptr ))); if ( __1AB____Fb__success = __1AB____Fb__next_acquired )(( ptr **) __xAB__acquired )[0]=( ptr *) __1AB____Fb__next_acquired ; } if ( __1AB____Fb__success ) { __1AB____Fb__mem =( ptr ) __runtime_alloc ( __1AB____Cb__z * sizeof ( __1AB____Fb____gQ )); if ( __1AB____Fb__success = __1AB____Fb__mem ) {(( ptr **) __xAB__acquired )[0][ __xAB__size ]= __1AB____Fb__mem ; __xAB__size = __1AB____Fb__next_size ; } } 
+ __1AB____Fb__next_size = __xAB__size +1; __1AB____Fb__success = true ; __1AB____Fb__self__allocated__prev = __xAB__allocated ; if( __1AB____Fb__next_size >= __xAB__allocated ) { __xAB__allocated = __xAB__allocated + __xAB__allocated /2+1; __1AB____Fb__next_acquired =( ptr )((( ptr **) __xAB__acquired )[0]? __runtime_realloc ((( ptr **) __xAB__acquired )[0], __xAB__allocated * sizeof ( ptr ), __1AB____Fb__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __xAB__allocated * sizeof ( ptr ))); if( __1AB____Fb__success = __1AB____Fb__next_acquired )(( ptr **) __xAB__acquired )[0]=( ptr *) __1AB____Fb__next_acquired ; } if( __1AB____Fb__success ) { __1AB____Fb__mem =( ptr ) __runtime_alloc ( __1AB____Cb__z * sizeof ( __1AB____Fb____gQ )); if( __1AB____Fb__success = __1AB____Fb__mem ) {(( ptr **) __xAB__acquired )[0][ __xAB__size ]= __1AB____Fb__mem ; __xAB__size = __1AB____Fb__next_size ; } } 
  __1AB____Fb____nQ__x = __1AB____Fb__success ;
  __1AB____Fb____nQ__z =(! __1AB____Fb____nQ__x ); 
  __1AB____Fb____nQ____end :
@@ -2211,7 +2211,7 @@ __uAB = " 2>&1" ;
  goto __2AB____1h____lQ____oD ;
  __builtin_unreachable();
  __2AB____1h____hQ__fi :
- __2AB____1h__next_size = __xAB__size +1; __2AB____1h__success = true ; __2AB____1h__self__allocated__prev = __xAB__allocated ; if ( __2AB____1h__next_size >= __xAB__allocated ) { __xAB__allocated = __xAB__allocated + __xAB__allocated /2+1; __2AB____1h__next_acquired =( ptr )((( ptr **) __xAB__acquired )[0]? __runtime_realloc ((( ptr **) __xAB__acquired )[0], __xAB__allocated * sizeof ( ptr ), __2AB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __xAB__allocated * sizeof ( ptr ))); if ( __2AB____1h__success = __2AB____1h__next_acquired )(( ptr **) __xAB__acquired )[0]=( ptr *) __2AB____1h__next_acquired ; } if ( __2AB____1h__success ) { __2AB____1h__mem =( ptr ) __runtime_alloc ( __2AB____yh__z * sizeof ( __2AB____1h____gQ )); if ( __2AB____1h__success = __2AB____1h__mem ) {(( ptr **) __xAB__acquired )[0][ __xAB__size ]= __2AB____1h__mem ; __xAB__size = __2AB____1h__next_size ; } } 
+ __2AB____1h__next_size = __xAB__size +1; __2AB____1h__success = true ; __2AB____1h__self__allocated__prev = __xAB__allocated ; if( __2AB____1h__next_size >= __xAB__allocated ) { __xAB__allocated = __xAB__allocated + __xAB__allocated /2+1; __2AB____1h__next_acquired =( ptr )((( ptr **) __xAB__acquired )[0]? __runtime_realloc ((( ptr **) __xAB__acquired )[0], __xAB__allocated * sizeof ( ptr ), __2AB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __xAB__allocated * sizeof ( ptr ))); if( __2AB____1h__success = __2AB____1h__next_acquired )(( ptr **) __xAB__acquired )[0]=( ptr *) __2AB____1h__next_acquired ; } if( __2AB____1h__success ) { __2AB____1h__mem =( ptr ) __runtime_alloc ( __2AB____yh__z * sizeof ( __2AB____1h____gQ )); if( __2AB____1h__success = __2AB____1h__mem ) {(( ptr **) __xAB__acquired )[0][ __xAB__size ]= __2AB____1h__mem ; __xAB__size = __2AB____1h__next_size ; } } 
  __2AB____1h____nQ__x = __2AB____1h__success ;
  __2AB____1h____nQ__z =(! __2AB____1h____nQ__x ); 
  __2AB____1h____nQ____end :
@@ -2245,7 +2245,7 @@ __uAB = " 2>&1" ;
  goto __3AB____1h____lQ____oD ;
  __builtin_unreachable();
  __3AB____1h____hQ__fi :
- __3AB____1h__next_size = __xAB__size +1; __3AB____1h__success = true ; __3AB____1h__self__allocated__prev = __xAB__allocated ; if ( __3AB____1h__next_size >= __xAB__allocated ) { __xAB__allocated = __xAB__allocated + __xAB__allocated /2+1; __3AB____1h__next_acquired =( ptr )((( ptr **) __xAB__acquired )[0]? __runtime_realloc ((( ptr **) __xAB__acquired )[0], __xAB__allocated * sizeof ( ptr ), __3AB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __xAB__allocated * sizeof ( ptr ))); if ( __3AB____1h__success = __3AB____1h__next_acquired )(( ptr **) __xAB__acquired )[0]=( ptr *) __3AB____1h__next_acquired ; } if ( __3AB____1h__success ) { __3AB____1h__mem =( ptr ) __runtime_alloc ( __3AB____yh__z * sizeof ( __3AB____1h____gQ )); if ( __3AB____1h__success = __3AB____1h__mem ) {(( ptr **) __xAB__acquired )[0][ __xAB__size ]= __3AB____1h__mem ; __xAB__size = __3AB____1h__next_size ; } } 
+ __3AB____1h__next_size = __xAB__size +1; __3AB____1h__success = true ; __3AB____1h__self__allocated__prev = __xAB__allocated ; if( __3AB____1h__next_size >= __xAB__allocated ) { __xAB__allocated = __xAB__allocated + __xAB__allocated /2+1; __3AB____1h__next_acquired =( ptr )((( ptr **) __xAB__acquired )[0]? __runtime_realloc ((( ptr **) __xAB__acquired )[0], __xAB__allocated * sizeof ( ptr ), __3AB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __xAB__allocated * sizeof ( ptr ))); if( __3AB____1h__success = __3AB____1h__next_acquired )(( ptr **) __xAB__acquired )[0]=( ptr *) __3AB____1h__next_acquired ; } if( __3AB____1h__success ) { __3AB____1h__mem =( ptr ) __runtime_alloc ( __3AB____yh__z * sizeof ( __3AB____1h____gQ )); if( __3AB____1h__success = __3AB____1h__mem ) {(( ptr **) __xAB__acquired )[0][ __xAB__size ]= __3AB____1h__mem ; __xAB__size = __3AB____1h__next_size ; } } 
  __3AB____1h____nQ__x = __3AB____1h__success ;
  __3AB____1h____nQ__z =(! __3AB____1h____nQ__x ); 
  __3AB____1h____nQ____end :
@@ -2264,7 +2264,7 @@ __uAB = " 2>&1" ;
  __xAB__size = __xAB__size ;
  __xAB__allocated = __xAB__allocated ;
  __xAB____dynamic_entry = __xAB____dynamic_entry ;
- __6AB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if ( __6AB____ZQ__acquired )(( ptr **) __6AB____ZQ__acquired )[0]=0; 
+ __6AB____ZQ__acquired = __runtime_alloc ( sizeof ( ptr **)); if( __6AB____ZQ__acquired )(( ptr **) __6AB____ZQ__acquired )[0]=0; 
  __6AB____ZQ____UQ = 0 ;
  __6AB____ZQ____VQ = 0 ;
  __6AB__acquired = __6AB____ZQ__acquired ;
@@ -2305,7 +2305,7 @@ __uAB = " 2>&1" ;
  goto __EBB____Fb____lQ____oD ;
  __builtin_unreachable();
  __EBB____Fb____hQ__fi :
- __EBB____Fb__next_size = __6AB__size +1; __EBB____Fb__success = true ; __EBB____Fb__self__allocated__prev = __6AB__allocated ; if ( __EBB____Fb__next_size >= __6AB__allocated ) { __6AB__allocated = __6AB__allocated + __6AB__allocated /2+1; __EBB____Fb__next_acquired =( ptr )((( ptr **) __6AB__acquired )[0]? __runtime_realloc ((( ptr **) __6AB__acquired )[0], __6AB__allocated * sizeof ( ptr ), __EBB____Fb__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __6AB__allocated * sizeof ( ptr ))); if ( __EBB____Fb__success = __EBB____Fb__next_acquired )(( ptr **) __6AB__acquired )[0]=( ptr *) __EBB____Fb__next_acquired ; } if ( __EBB____Fb__success ) { __EBB____Fb__mem =( ptr ) __runtime_alloc ( __EBB____Cb__z * sizeof ( __EBB____Fb____gQ )); if ( __EBB____Fb__success = __EBB____Fb__mem ) {(( ptr **) __6AB__acquired )[0][ __6AB__size ]= __EBB____Fb__mem ; __6AB__size = __EBB____Fb__next_size ; } } 
+ __EBB____Fb__next_size = __6AB__size +1; __EBB____Fb__success = true ; __EBB____Fb__self__allocated__prev = __6AB__allocated ; if( __EBB____Fb__next_size >= __6AB__allocated ) { __6AB__allocated = __6AB__allocated + __6AB__allocated /2+1; __EBB____Fb__next_acquired =( ptr )((( ptr **) __6AB__acquired )[0]? __runtime_realloc ((( ptr **) __6AB__acquired )[0], __6AB__allocated * sizeof ( ptr ), __EBB____Fb__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __6AB__allocated * sizeof ( ptr ))); if( __EBB____Fb__success = __EBB____Fb__next_acquired )(( ptr **) __6AB__acquired )[0]=( ptr *) __EBB____Fb__next_acquired ; } if( __EBB____Fb__success ) { __EBB____Fb__mem =( ptr ) __runtime_alloc ( __EBB____Cb__z * sizeof ( __EBB____Fb____gQ )); if( __EBB____Fb__success = __EBB____Fb__mem ) {(( ptr **) __6AB__acquired )[0][ __6AB__size ]= __EBB____Fb__mem ; __6AB__size = __EBB____Fb__next_size ; } } 
  __EBB____Fb____nQ__x = __EBB____Fb__success ;
  __EBB____Fb____nQ__z =(! __EBB____Fb____nQ__x ); 
  __EBB____Fb____nQ____end :
@@ -2339,7 +2339,7 @@ __uAB = " 2>&1" ;
  goto __FBB____1h____lQ____oD ;
  __builtin_unreachable();
  __FBB____1h____hQ__fi :
- __FBB____1h__next_size = __6AB__size +1; __FBB____1h__success = true ; __FBB____1h__self__allocated__prev = __6AB__allocated ; if ( __FBB____1h__next_size >= __6AB__allocated ) { __6AB__allocated = __6AB__allocated + __6AB__allocated /2+1; __FBB____1h__next_acquired =( ptr )((( ptr **) __6AB__acquired )[0]? __runtime_realloc ((( ptr **) __6AB__acquired )[0], __6AB__allocated * sizeof ( ptr ), __FBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __6AB__allocated * sizeof ( ptr ))); if ( __FBB____1h__success = __FBB____1h__next_acquired )(( ptr **) __6AB__acquired )[0]=( ptr *) __FBB____1h__next_acquired ; } if ( __FBB____1h__success ) { __FBB____1h__mem =( ptr ) __runtime_alloc ( __FBB____yh__z * sizeof ( __FBB____1h____gQ )); if ( __FBB____1h__success = __FBB____1h__mem ) {(( ptr **) __6AB__acquired )[0][ __6AB__size ]= __FBB____1h__mem ; __6AB__size = __FBB____1h__next_size ; } } 
+ __FBB____1h__next_size = __6AB__size +1; __FBB____1h__success = true ; __FBB____1h__self__allocated__prev = __6AB__allocated ; if( __FBB____1h__next_size >= __6AB__allocated ) { __6AB__allocated = __6AB__allocated + __6AB__allocated /2+1; __FBB____1h__next_acquired =( ptr )((( ptr **) __6AB__acquired )[0]? __runtime_realloc ((( ptr **) __6AB__acquired )[0], __6AB__allocated * sizeof ( ptr ), __FBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __6AB__allocated * sizeof ( ptr ))); if( __FBB____1h__success = __FBB____1h__next_acquired )(( ptr **) __6AB__acquired )[0]=( ptr *) __FBB____1h__next_acquired ; } if( __FBB____1h__success ) { __FBB____1h__mem =( ptr ) __runtime_alloc ( __FBB____yh__z * sizeof ( __FBB____1h____gQ )); if( __FBB____1h__success = __FBB____1h__mem ) {(( ptr **) __6AB__acquired )[0][ __6AB__size ]= __FBB____1h__mem ; __6AB__size = __FBB____1h__next_size ; } } 
  __FBB____1h____nQ__x = __FBB____1h__success ;
  __FBB____1h____nQ__z =(! __FBB____1h____nQ__x ); 
  __FBB____1h____nQ____end :
@@ -2381,7 +2381,7 @@ __uAB = " 2>&1" ;
  goto __JBB____Fb____lQ____oD ;
  __builtin_unreachable();
  __JBB____Fb____hQ__fi :
- __JBB____Fb__next_size = __6AB__size +1; __JBB____Fb__success = true ; __JBB____Fb__self__allocated__prev = __6AB__allocated ; if ( __JBB____Fb__next_size >= __6AB__allocated ) { __6AB__allocated = __6AB__allocated + __6AB__allocated /2+1; __JBB____Fb__next_acquired =( ptr )((( ptr **) __6AB__acquired )[0]? __runtime_realloc ((( ptr **) __6AB__acquired )[0], __6AB__allocated * sizeof ( ptr ), __JBB____Fb__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __6AB__allocated * sizeof ( ptr ))); if ( __JBB____Fb__success = __JBB____Fb__next_acquired )(( ptr **) __6AB__acquired )[0]=( ptr *) __JBB____Fb__next_acquired ; } if ( __JBB____Fb__success ) { __JBB____Fb__mem =( ptr ) __runtime_alloc ( __JBB____Cb__z * sizeof ( __JBB____Fb____gQ )); if ( __JBB____Fb__success = __JBB____Fb__mem ) {(( ptr **) __6AB__acquired )[0][ __6AB__size ]= __JBB____Fb__mem ; __6AB__size = __JBB____Fb__next_size ; } } 
+ __JBB____Fb__next_size = __6AB__size +1; __JBB____Fb__success = true ; __JBB____Fb__self__allocated__prev = __6AB__allocated ; if( __JBB____Fb__next_size >= __6AB__allocated ) { __6AB__allocated = __6AB__allocated + __6AB__allocated /2+1; __JBB____Fb__next_acquired =( ptr )((( ptr **) __6AB__acquired )[0]? __runtime_realloc ((( ptr **) __6AB__acquired )[0], __6AB__allocated * sizeof ( ptr ), __JBB____Fb__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __6AB__allocated * sizeof ( ptr ))); if( __JBB____Fb__success = __JBB____Fb__next_acquired )(( ptr **) __6AB__acquired )[0]=( ptr *) __JBB____Fb__next_acquired ; } if( __JBB____Fb__success ) { __JBB____Fb__mem =( ptr ) __runtime_alloc ( __JBB____Cb__z * sizeof ( __JBB____Fb____gQ )); if( __JBB____Fb__success = __JBB____Fb__mem ) {(( ptr **) __6AB__acquired )[0][ __6AB__size ]= __JBB____Fb__mem ; __6AB__size = __JBB____Fb__next_size ; } } 
  __JBB____Fb____nQ__x = __JBB____Fb__success ;
  __JBB____Fb____nQ__z =(! __JBB____Fb____nQ__x ); 
  __JBB____Fb____nQ____end :
@@ -2415,7 +2415,7 @@ __uAB = " 2>&1" ;
  goto __KBB____1h____lQ____oD ;
  __builtin_unreachable();
  __KBB____1h____hQ__fi :
- __KBB____1h__next_size = __6AB__size +1; __KBB____1h__success = true ; __KBB____1h__self__allocated__prev = __6AB__allocated ; if ( __KBB____1h__next_size >= __6AB__allocated ) { __6AB__allocated = __6AB__allocated + __6AB__allocated /2+1; __KBB____1h__next_acquired =( ptr )((( ptr **) __6AB__acquired )[0]? __runtime_realloc ((( ptr **) __6AB__acquired )[0], __6AB__allocated * sizeof ( ptr ), __KBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __6AB__allocated * sizeof ( ptr ))); if ( __KBB____1h__success = __KBB____1h__next_acquired )(( ptr **) __6AB__acquired )[0]=( ptr *) __KBB____1h__next_acquired ; } if ( __KBB____1h__success ) { __KBB____1h__mem =( ptr ) __runtime_alloc ( __KBB____yh__z * sizeof ( __KBB____1h____gQ )); if ( __KBB____1h__success = __KBB____1h__mem ) {(( ptr **) __6AB__acquired )[0][ __6AB__size ]= __KBB____1h__mem ; __6AB__size = __KBB____1h__next_size ; } } 
+ __KBB____1h__next_size = __6AB__size +1; __KBB____1h__success = true ; __KBB____1h__self__allocated__prev = __6AB__allocated ; if( __KBB____1h__next_size >= __6AB__allocated ) { __6AB__allocated = __6AB__allocated + __6AB__allocated /2+1; __KBB____1h__next_acquired =( ptr )((( ptr **) __6AB__acquired )[0]? __runtime_realloc ((( ptr **) __6AB__acquired )[0], __6AB__allocated * sizeof ( ptr ), __KBB____1h__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __6AB__allocated * sizeof ( ptr ))); if( __KBB____1h__success = __KBB____1h__next_acquired )(( ptr **) __6AB__acquired )[0]=( ptr *) __KBB____1h__next_acquired ; } if( __KBB____1h__success ) { __KBB____1h__mem =( ptr ) __runtime_alloc ( __KBB____yh__z * sizeof ( __KBB____1h____gQ )); if( __KBB____1h__success = __KBB____1h__mem ) {(( ptr **) __6AB__acquired )[0][ __6AB__size ]= __KBB____1h__mem ; __6AB__size = __KBB____1h__next_size ; } } 
  __KBB____1h____nQ__x = __KBB____1h__success ;
  __KBB____1h____nQ__z =(! __KBB____1h____nQ__x ); 
  __KBB____1h____nQ____end :
@@ -2516,10 +2516,10 @@ __smolambda_all_tasks = 0;
 __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
-if ( __6AB__acquired ) { for ( __6AB____dynamic_entry =0; __6AB____dynamic_entry < __6AB__size ;++ __6AB____dynamic_entry ) { __runtime_free ((( ptr **) __6AB__acquired )[0][ __6AB____dynamic_entry ]); } __runtime_free ( __6AB__acquired ); __6AB__acquired =0; __6AB__size =0; __6AB__allocated =0; } 
- if ( __6AB__acquired ) { for ( __6AB____ZQ____dynamic_entry =0; __6AB____ZQ____dynamic_entry < __6AB____ZQ____UQ ;++ __6AB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __6AB__acquired )[0][ __6AB____ZQ____dynamic_entry ]); } __runtime_free ( __6AB__acquired ); __6AB__acquired =0; __6AB____ZQ____UQ =0; __6AB____ZQ____VQ =0; } 
-if ( __xAB__acquired ) { for ( __xAB____dynamic_entry =0; __xAB____dynamic_entry < __xAB__size ;++ __xAB____dynamic_entry ) { __runtime_free ((( ptr **) __xAB__acquired )[0][ __xAB____dynamic_entry ]); } __runtime_free ( __xAB__acquired ); __xAB__acquired =0; __xAB__size =0; __xAB__allocated =0; } 
- if ( __xAB__acquired ) { for ( __xAB____ZQ____dynamic_entry =0; __xAB____ZQ____dynamic_entry < __xAB____ZQ____UQ ;++ __xAB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __xAB__acquired )[0][ __xAB____ZQ____dynamic_entry ]); } __runtime_free ( __xAB__acquired ); __xAB__acquired =0; __xAB____ZQ____UQ =0; __xAB____ZQ____VQ =0; } 
+if( __6AB__acquired ) { for( __6AB____dynamic_entry =0; __6AB____dynamic_entry < __6AB__size ;++ __6AB____dynamic_entry ) { __runtime_free ((( ptr **) __6AB__acquired )[0][ __6AB____dynamic_entry ]); } __runtime_free ( __6AB__acquired ); __6AB__acquired =0; __6AB__size =0; __6AB__allocated =0; } 
+ if( __6AB__acquired ) { for( __6AB____ZQ____dynamic_entry =0; __6AB____ZQ____dynamic_entry < __6AB____ZQ____UQ ;++ __6AB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __6AB__acquired )[0][ __6AB____ZQ____dynamic_entry ]); } __runtime_free ( __6AB__acquired ); __6AB__acquired =0; __6AB____ZQ____UQ =0; __6AB____ZQ____VQ =0; } 
+if( __xAB__acquired ) { for( __xAB____dynamic_entry =0; __xAB____dynamic_entry < __xAB__size ;++ __xAB____dynamic_entry ) { __runtime_free ((( ptr **) __xAB__acquired )[0][ __xAB____dynamic_entry ]); } __runtime_free ( __xAB__acquired ); __xAB__acquired =0; __xAB__size =0; __xAB__allocated =0; } 
+ if( __xAB__acquired ) { for( __xAB____ZQ____dynamic_entry =0; __xAB____ZQ____dynamic_entry < __xAB____ZQ____UQ ;++ __xAB____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __xAB__acquired )[0][ __xAB____ZQ____dynamic_entry ]); } __runtime_free ( __xAB__acquired ); __xAB__acquired =0; __xAB____ZQ____UQ =0; __xAB____ZQ____VQ =0; } 
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
 __state->err =  __result__errocode;
 }

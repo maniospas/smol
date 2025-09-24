@@ -207,9 +207,9 @@ def next_line (
         ptr ret = f__contents?(ptr)fgets((char*)contents, size, (FILE*)f__contents):f__contents;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)contents)[0];
-        if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 10) {
+        if(bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 10) {
             bytes_read--;
-            if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 13) 
+            if(bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 13) 
                 bytes_read--;
             ((char*)reader__contents__mem)[bytes_read] = 0;
         }
@@ -248,7 +248,7 @@ def next_line(
         ptr ret = f__contents?(ptr)fgets((char*)reader__contents__mem, reader__contents__size, (FILE*)f__contents):f__contents;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
-        if (bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 10) {
+        if(bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 10) {
             bytes_read--;
             if(bytes_read && ((char*)reader__contents__mem)[bytes_read-1] == 13) bytes_read--;
             ((char*)reader__contents__mem)[bytes_read] = 0;
@@ -359,7 +359,7 @@ def console(@access @mut WriteFile)
         #if defined(_WIN32) || defined(_WIN64)
             #include <windows.h>
             #include <io.h>
-            #define SMOLAMBDA_CONSOLE(f) AllocConsole(); {HANDLE hIn = CreateFileA("CONIN$", GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); HANDLE hOut = CreateFileA("CONOUT$", GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); if (hIn != INVALID_HANDLE_VALUE && hOut != INVALID_HANDLE_VALUE) {int fd = _open_osfhandle((intptr_t)hIn, 0); if (fd != -1) {(f) = (ptr)_fdopen(fd, "r+"); if ((f)) {setvbuf((FILE*)(f), NULL, _IONBF, 0); DWORD mode; GetConsoleMode(hIn, &mode); mode &= ~ENABLE_ECHO_INPUT; SetConsoleMode(hIn, mode);}} int fdOut = _open_osfhandle((intptr_t)hOut, 0); if (fdOut != -1) dup2(fdOut, _fileno((FILE*)(f)));}}
+            #define SMOLAMBDA_CONSOLE(f) AllocConsole(); {HANDLE hIn = CreateFileA("CONIN$", GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); HANDLE hOut = CreateFileA("CONOUT$", GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); if(hIn != INVALID_HANDLE_VALUE && hOut != INVALID_HANDLE_VALUE) {int fd = _open_osfhandle((intptr_t)hIn, 0); if(fd != -1) {(f) = (ptr)_fdopen(fd, "r+"); if((f)) {setvbuf((FILE*)(f), NULL, _IONBF, 0); DWORD mode; GetConsoleMode(hIn, &mode); mode &= ~ENABLE_ECHO_INPUT; SetConsoleMode(hIn, mode);}} int fdOut = _open_osfhandle((intptr_t)hOut, 0); if(fdOut != -1) dup2(fdOut, _fileno((FILE*)(f)));}}
             #define SMOLAMBDA_CONSOLE_CLOSE(f) if(f)fclose((FILE*)(f)); FreeConsole();
         #else
             #include <stdlib.h>
@@ -367,7 +367,7 @@ def console(@access @mut WriteFile)
             #include <fcntl.h>
             #include <termios.h>
             #include <string.h>
-            #define SMOLAMBDA_CONSOLE(f) {int pty_fd = posix_openpt(O_RDWR | O_NOCTTY); if (pty_fd >= 0 && grantpt(pty_fd) == 0 && unlockpt(pty_fd) == 0) {char pts_name[128]; if (ptsname_r(pty_fd, pts_name, sizeof(pts_name)) == 0) {struct termios tio; tcgetattr(pty_fd, &tio); tio.c_lflag &= ~(ECHO | ICANON); tcsetattr(pty_fd, TCSANOW, &tio); const char* terms[] = {"xterm", "konsole"}; const char* found = NULL; for (int i = 0; i < 2 && !found; i++) {char cmd[64]; snprintf(cmd, sizeof(cmd), "command -v %s >/dev/null 2>&1", terms[i]); if (system(cmd) == 0) found = terms[i];} if (found) {pid_t pid = fork(); if (pid == 0) {close(pty_fd); if (strcmp(found, "xterm") == 0) execlp("xterm", "xterm", "-e", pts_name, NULL); else if (strcmp(found, "konsole") == 0) execlp("konsole", "konsole", "-e", "socat", "-", pts_name, NULL); _exit(1);} else {(f) = (ptr)fdopen(pty_fd, "r+"); if (f) setvbuf((FILE*)(f), NULL, _IONBF, 0);}} else {(f) = (ptr)fdopen(pty_fd, "r+"); if (f) setvbuf((FILE*)(f), NULL, _IONBF, 0);}}}}
+            #define SMOLAMBDA_CONSOLE(f) {int pty_fd = posix_openpt(O_RDWR | O_NOCTTY); if(pty_fd >= 0 && grantpt(pty_fd) == 0 && unlockpt(pty_fd) == 0) {char pts_name[128]; if(ptsname_r(pty_fd, pts_name, sizeof(pts_name)) == 0) {struct termios tio; tcgetattr(pty_fd, &tio); tio.c_lflag &= ~(ECHO | ICANON); tcsetattr(pty_fd, TCSANOW, &tio); const char* terms[] = {"xterm", "konsole"}; const char* found = NULL; for(int i = 0; i < 2 && !found; i++) {char cmd[64]; snprintf(cmd, sizeof(cmd), "command -v %s >/dev/null 2>&1", terms[i]); if(system(cmd) == 0) found = terms[i];} if(found) {pid_t pid = fork(); if(pid == 0) {close(pty_fd); if(strcmp(found, "xterm") == 0) execlp("xterm", "xterm", "-e", pts_name, NULL); else if(strcmp(found, "konsole") == 0) execlp("konsole", "konsole", "-e", "socat", "-", pts_name, NULL); _exit(1);} else {(f) = (ptr)fdopen(pty_fd, "r+"); if(f) setvbuf((FILE*)(f), NULL, _IONBF, 0);}} else {(f) = (ptr)fdopen(pty_fd, "r+"); if(f) setvbuf((FILE*)(f), NULL, _IONBF, 0);}}}}
             #define SMOLAMBDA_CONSOLE_CLOSE(f) if(f)fclose((FILE*)f);
         #endif
     }

@@ -33,7 +33,7 @@ Variable Def::parse_with(const shared_ptr<Import>& imp, size_t& p, const Variabl
             && (what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found")
         ) 
             throw e;
-        if(Def::markdown_errors) 
+        if(Def::lsp) 
             overloading_errors += "\n";
         else overloading_errors += "\n- ";
         overloading_errors += what;
@@ -57,7 +57,7 @@ Variable Def::parse_with(const shared_ptr<Import>& imp, size_t& p, const Variabl
                 string what = e.what();
                 if(what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found") 
                     throw e;
-                if(Def::markdown_errors) 
+                if(Def::lsp) 
                     overloading_errors += "\n";
                 else 
                     overloading_errors += "\n- ";
@@ -74,7 +74,7 @@ Variable Def::parse_with(const shared_ptr<Import>& imp, size_t& p, const Variabl
     if(numberOfCandidates>1) 
         ERROR("Competes with previous branch of `with`"+competing);
     if(numberOfCandidates==0) 
-        imp->error(with_start, "No valid branch of `with`"+string(Def::markdown_errors?"\n```rust":"")+overloading_errors+(Def::markdown_errors?"\n```\n":""));
+        imp->error(with_start, "No valid branch of `with`"+string(Def::lsp?"\n```rust":"")+overloading_errors+(Def::lsp?"\n```\n":""));
 
     implementation += Code(finally_var,COLON_VAR);
     uplifting_targets.pop_back();

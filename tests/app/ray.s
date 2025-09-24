@@ -19,19 +19,19 @@ def process(@mut Sphere s, f64 dt)
     @mut ny = s.y:add(s.dy * dt)
     @mut ndx = s.dx
     @mut ndy = s.dy
-    if (nx - s.r)< 0.0
+    if(nx - s.r)< 0.0
         nx = s.r
         ndx = ndx:negative
         end
-    elif (nx + s.r) > 800.0
+    elif(nx + s.r) > 800.0
         nx = 800.0 - s.r
         ndx = ndx:negative
         end
-    if (ny - s.r) < 0.0
+    if(ny - s.r) < 0.0
         ny = s.r
         ndy = ndy:negative
         end
-    elif (ny + s.r) > 450.0
+    elif(ny + s.r) > 450.0
         ny = 450.0 - s.r
         ndy = ndy:negative
         end

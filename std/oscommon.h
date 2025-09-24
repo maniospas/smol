@@ -4,7 +4,7 @@
 #if defined(_WIN32) || defined(_WIN64)
     static inline FILE* fmemopen(void *buf, size_t size, const char *mode) {
         FILE *f = tmpfile();
-        if (!f) 
+        if(!f) 
             return NULL;
         return f;
     }
@@ -16,14 +16,14 @@
 
     static void __smo_exact_sleep(double duration) {
         unsigned long ms = (unsigned long)(duration * 1000.0);
-        if (ms) Sleep(ms);
+        if(ms) Sleep(ms);
     }
 
     static LARGE_INTEGER __smo_time_freq, __smo_time_start;
     static int __smo_time_initialized = 0;
 
     static double __smo_time_eta(void) {
-        if (!__smo_time_initialized) {
+        if(!__smo_time_initialized) {
             QueryPerformanceFrequency(&__smo_time_freq);
             QueryPerformanceCounter(&__smo_time_start);
             __smo_time_initialized = 1;
@@ -43,7 +43,7 @@
         struct timespec ts;
         ts.tv_sec = (time_t)duration;
         ts.tv_nsec = (long)((duration - ts.tv_sec) * 1000000000ULL);
-        if (ts.tv_sec > 0 || ts.tv_nsec > 0)
+        if(ts.tv_sec > 0 || ts.tv_nsec > 0)
             nanosleep(&ts, NULL);
     }
 
@@ -51,7 +51,7 @@
     static int __smo_time_initialized = 0;
 
     static double __smo_time_eta(void) {
-        if (!__smo_time_initialized) {
+        if(!__smo_time_initialized) {
             clock_gettime(CLOCK_MONOTONIC, &__smo_time_start);
             __smo_time_initialized = 1;
             return 0.0;
@@ -76,15 +76,15 @@
 #include <stdint.h>
 
 uint64_t __smo_file_size(FILE* fp) {
-    if (!fp) return 0;
+    if(!fp) return 0;
 #if defined(_WIN32)
     struct _stat64 st;
-    if (_fstat64(_fileno(fp), &st) == 0) {
+    if(_fstat64(_fileno(fp), &st) == 0) {
         return (u64)st.st_size;
     }
 #else
     struct stat st;
-    if (fstat(fileno(fp), &st) == 0) 
+    if(fstat(fileno(fp), &st) == 0) 
         return (uint64_t)st.st_size;
 #endif
     return 0;

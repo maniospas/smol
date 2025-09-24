@@ -25,7 +25,7 @@ string numberToVar(std::size_t num) {
     int count = popcount(num);
     string result;
     result.reserve(count);
-    while (num) {
+    while(num) {
         result += base62_chars[num % 62];
         num /= 62;
     }

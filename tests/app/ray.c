@@ -20,7 +20,7 @@
 #define __BUFFER__ERROR 2
 #define __UNHANDLED__ERROR 3
 #define __TRANSIENT(message)
-#define __builtin_assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
+#define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)
 #ifdef __cplusplus
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
@@ -682,13 +682,13 @@ __GGB__dynamic = __runtime_calloc(3*sizeof(u64)) ;
  goto __2GB____Eo____Wm____ZU____oD ;
  __builtin_unreachable();
  __2GB____Eo____Wm____WU__fi :
- if ( __2GB__allocator__length + __2GB____Eo____Wm__size > __2GB__allocator__contents__size ) { __2GB__allocator__length =0; __2GB__allocator__cycles = __2GB__allocator__cycles +1; } 
+ if( __2GB__allocator__length + __2GB____Eo____Wm__size > __2GB__allocator__contents__size ) { __2GB__allocator__length =0; __2GB__allocator__cycles = __2GB__allocator__cycles +1; } 
  __2GB____Eo____Wm___contents =( ptr )(( char *) __2GB__allocator__contents__mem + __2GB__allocator__length ); 
  __2GB__allocator__length = __2GB__allocator__length + __2GB____Eo____Wm__size ; 
  __2GB____Eo____Wm____dU = 0 ;
  __2GB____Eo____Wm____fU__bytesize = sizeof ( __2GB____Eo____Wm____fU____CF )* __2GB____Eo____Wm__size ; 
  __2GB____Eo____Wm____fU____end :
- if ( __2GB____Eo____Wm___contents ) { __2GB____Eo__length =( u64 ) snprintf (( char *) __2GB____Eo____Wm___contents , sizeof ( char )* 21 , "%lu" , __1GB ); if ( __2GB____Eo__length < 32 ) { __2GB____Eo__contents = malloc ( __2GB____Eo__length +1); if ( __2GB____Eo__contents ) { memcpy ( __2GB____Eo__contents ,( char *) __2GB____Eo____Wm___contents , __2GB____Eo__length );(( char *) __2GB____Eo__contents )[ __2GB____Eo__length ]=0; __2GB____Eo__first =(( char *) __2GB____Eo__contents )[0]; } } } 
+ if( __2GB____Eo____Wm___contents ) { __2GB____Eo__length =( u64 ) snprintf (( char *) __2GB____Eo____Wm___contents , sizeof ( char )* 21 , "%lu" , __1GB ); if( __2GB____Eo__length < 32 ) { __2GB____Eo__contents = malloc ( __2GB____Eo__length +1); if( __2GB____Eo__contents ) { memcpy ( __2GB____Eo__contents ,( char *) __2GB____Eo____Wm___contents , __2GB____Eo__length );(( char *) __2GB____Eo__contents )[ __2GB____Eo__length ]=0; __2GB____Eo__first =(( char *) __2GB____Eo__contents )[0]; } } } 
  __2GB____Eo____Ym__x = __2GB____Eo__contents ;
  __2GB____Eo____Ym__z =( __2GB____Eo____Ym__x ); 
  __2GB____Eo____Ym____end :
@@ -725,7 +725,7 @@ __GGB__dynamic = __runtime_calloc(3*sizeof(u64)) ;
  goto __4GB____Dc____ZU____oD ;
  __builtin_unreachable();
  __4GB____Dc____WU__fi :
- if ( __fGB____nW__length + __4GB____Dc__size > __fGB____nW__contents__size ) { __fGB____nW__length =0; __fGB____nW__cycles = __fGB____nW__cycles +1; } 
+ if( __fGB____nW__length + __4GB____Dc__size > __fGB____nW__contents__size ) { __fGB____nW__length =0; __fGB____nW__cycles = __fGB____nW__cycles +1; } 
  __4GB____Dc___contents =( ptr )(( char *) __fGB____nW__contents__mem + __fGB____nW__length ); 
  __fGB____nW__length = __fGB____nW__length + __4GB____Dc__size ; 
  __4GB____Dc____dU = 0 ;
@@ -901,7 +901,7 @@ __failsafe:
 
 // HOTPATH SKIPS TO HERE
 __return:
-if ( __fGB____nW__contents__mem ) __runtime_free ( __fGB____nW__contents__mem ); __fGB____nW__contents__mem =0; 
+if( __fGB____nW__contents__mem ) __runtime_free ( __fGB____nW__contents__mem ); __fGB____nW__contents__mem =0; 
 if( __GGB__dynamic ){if((u64*)((u64*) __GGB__dynamic )[2]) __runtime_free((u64*)((u64*) __GGB__dynamic )[0]) ;
  __runtime_free( __GGB__dynamic ) ;
  __GGB__dynamic = 0 ;

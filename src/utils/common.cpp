@@ -39,7 +39,7 @@ string pretty_var(const string& name) {
     if(name.size() >= 2 && name[0] == '_' && name[1] == '_') return "";
     string result;
     size_t i = 0;
-    while (i < name.size()) {
+    while(i < name.size()) {
         if(i && name[i] == '_' && i+1 < name.size() && name[i+1] == '_' && name[i-1] != '_') {
             result += '.';
             i += 2;
@@ -76,12 +76,12 @@ int sellersMinimumEditDistance(const string& pattern, const string& text) {
     int m = pattern.size();
     int n = text.size();
     vector<vector<int>> E(m + 1, vector<int>(n + 1));
-    for (int j = 0; j <= n; ++j) 
+    for(int j = 0; j <= n; ++j) 
         E[0][j] = 0;
-    for (int i = 1; i <= m; ++i) 
+    for(int i = 1; i <= m; ++i) 
         E[i][0] = i;
-    for (int i = 1; i <= m; ++i) 
-        for (int j = 1; j <= n; ++j) {
+    for(int i = 1; i <= m; ++i) 
+        for(int j = 1; j <= n; ++j) {
             int cost = (pattern[i - 1] == text[j - 1]) ? 0 : 1;
             E[i][j] = min3(
                 E[i - 1][j] + 1, 
@@ -90,7 +90,7 @@ int sellersMinimumEditDistance(const string& pattern, const string& text) {
             );
         }
     int minDist = numeric_limits<int>::max();
-    for (int j = 0; j <= n; ++j) minDist = min2(minDist, E[m][j]);
+    for(int j = 0; j <= n; ++j) minDist = min2(minDist, E[m][j]);
     return minDist;
 }
 
@@ -99,7 +99,7 @@ bool is_primitive(const string& name) {
         return true;
     const char* str = name.c_str();
     char* end;
-    while (isspace(*str)) ++str;
+    while(isspace(*str)) ++str;
     if(*str == '\0') return false;
     strtol(str, &end, 10);
     if(end != str && *end == '\0') return true;
@@ -111,7 +111,7 @@ bool is_primitive(const string& name) {
 }
 
 string type_primitive(const string& name) {
-    if (name == "true" || name == "false") 
+    if(name == "true" || name == "false") 
         return "bool";
     const char* str = name.c_str();
     char* end;
@@ -153,15 +153,15 @@ bool is_symbol_or_digit(const string& s) {
 }
 
 bool is_digits(const string& s) {
-    for (char ch : s) 
-        if (!isdigit(static_cast<unsigned char>(ch))) 
+    for(char ch : s) 
+        if(!isdigit(static_cast<unsigned char>(ch))) 
             return false;
     return !s.empty();
 }
 
 bool is_digits_part(const string& s) {
-    for (char ch : s) 
-        if (!isdigit(static_cast<unsigned char>(ch)) &&
+    for(char ch : s) 
+        if(!isdigit(static_cast<unsigned char>(ch)) &&
             ch!='X' && ch!='x' && ch!='U' && ch!='u' &&
             ch!='L' && ch!='l' && ch!='e' && ch!='E')
             return false;
@@ -173,8 +173,8 @@ bool is_digits_part(const string& s) {
 string unescape_string(const string& input) {
     ostringstream out;
     // Start at 1 to skip opening quote, end at size()-1 to skip closing quote
-    for (size_t i = 1; i + 1 < input.size(); ++i) {
-        if (input[i] == '\\' && i + 1 < input.size() - 1) {
+    for(size_t i = 1; i + 1 < input.size(); ++i) {
+        if(input[i] == '\\' && i + 1 < input.size() - 1) {
             char next = input[i + 1];
             switch (next) {
                 case 'n': out << '\n'; break;
@@ -203,7 +203,7 @@ void replaceAll(string& str, const string& from, const string& to) {
 
 string html_escape(const string& code) {
     string out;
-    for (char c : code) {
+    for(char c : code) {
         switch (c) {
             case '&': out += "&amp;"; break;
             case '<': out += "&lt;"; break;

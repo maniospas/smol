@@ -31,8 +31,8 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
     vars[next+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
 
     size_t count_packs = 0;
-    for (const auto& pack : buffer_types[next]->packs)
-        if (buffer_types[next]->contains(pack) && buffer_types[next]->vars[pack]->name != NOM_VAR)
+    for(const auto& pack : buffer_types[next]->packs)
+        if(buffer_types[next]->contains(pack) && buffer_types[next]->vars[pack]->name != NOM_VAR)
             count_packs++;
     if(buffer_types[next]->_is_primitive) 
         count_packs++;
@@ -111,7 +111,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         vars[elem] = buffer_types[next];
         if(mutables.find(next)!=mutables.end()) 
             mutables.insert(elem);
-        for (const auto& pack : buffer_types[next]->packs) {
+        for(const auto& pack : buffer_types[next]->packs) {
             if(!buffer_types[next]->contains(pack)) 
                 imp->error(--p, "Internal error: failed to unpack value stored on buffer due to unknown type: "
                     +pack.to_string()

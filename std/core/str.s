@@ -185,13 +185,13 @@ def strip(@access String _s)
         u64 endpos = s__length;
         while(start < endpos) {
             char c = ((char*)s__contents)[start];
-            if (c == 32 || c == 9 || c == 13 || c == 10) 
+            if(c == 32 || c == 9 || c == 13 || c == 10) 
                 start++; // ' ', '\t', '\r', '\n'
             else break;
         }
         while(endpos > start) {
             char c = ((char*)s__contents)[endpos - 1];
-            if (c == 32 || c == 9 || c == 13 || c == 10) 
+            if(c == 32 || c == 9 || c == 13 || c == 10) 
                 endpos--;
             else break;
         }
@@ -260,7 +260,7 @@ def next(
     if ret 
         @mut searching = true
         prev = self.pos
-        while (searching==true) and (self.pos<self.query:len-self.sep:len)
+        while(searching==true) and (self.pos<self.query:len-self.sep:len)
             if self.sep==self.query[self.pos to self.pos+self.sep:len] 
                 if self.pos>prev value = self.query[prev to self.pos] searching = false --
                 self.pos = self.pos+self.sep:len

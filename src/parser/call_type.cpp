@@ -111,7 +111,7 @@ Variable Def::call_type(
             }
             if(type->choice_power<highest_choice_power) continue;
             successfullType = type;
-            if(markdown_errors) 
+            if(lsp) 
                 multipleFound += "\n";
             else 
                 multipleFound += "\n- ";
@@ -123,7 +123,7 @@ Variable Def::call_type(
                 overloading_errors = "";
                 numberOfErrors = 0;
             }
-            if(markdown_errors) 
+            if(lsp) 
                 overloading_errors += "\n";
             else 
                 overloading_errors += "\n- ";
@@ -223,7 +223,7 @@ Variable Def::call_type(
                 if(type->choice_power<highest_choice_power) 
                     continue;
                 successfullType = type;
-                if(markdown_errors) 
+                if(lsp) 
                     multipleFound += "\n";
                 else 
                     multipleFound += "\n- ";
@@ -235,7 +235,7 @@ Variable Def::call_type(
                     overloading_errors = "";
                     numberOfErrors = 0;
                 }
-                if(markdown_errors) 
+                if(lsp) 
                     overloading_errors += "\n";
                 else 
                     overloading_errors += "\n- ";
@@ -251,13 +251,13 @@ Variable Def::call_type(
     if(!type && numberOfErrors) 
         imp->error(first_token_pos, "Not found\n"
             +prev_errors
-            +string(markdown_errors?"```rust\n":"")
+            +string(lsp?"```rust\n":"")
             +previousType->name.to_string()
-            +signature_like(types, unpacks)+(markdown_errors?"\n```\n":"")
+            +signature_like(types, unpacks)+(lsp?"\n```\n":"")
             +"\namong "+to_string(numberOfErrors)
-            +" candidates"+(markdown_errors?"\n```rust":"")
+            +" candidates"+(lsp?"\n```rust":"")
             +overloading_errors
-            +(markdown_errors?"\n```\n":"")
+            +(lsp?"\n```\n":"")
         );
     if(!type) 
         imp->error(first_token_pos, "Not found runtype version: "
@@ -356,7 +356,7 @@ Variable Def::call_type(
 
 
     // TODO: reinstate this but improve inference
-    //if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of ["+to_string(unpacks.size())+"] structural arguments - they match "+to_string(numberOfFound)+" candidates"+(markdown_errors?"\n```rust":"")+multipleFound+(markdown_errors?"\n```\n":""));
+    //if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of ["+to_string(unpacks.size())+"] structural arguments - they match "+to_string(numberOfFound)+" candidates"+(lsp?"\n```rust":"")+multipleFound+(lsp?"\n```\n":""));
 
     for(const Variable& pack : type->packs) 
         type->coallesce_finals(pack);
@@ -502,7 +502,7 @@ Variable Def::call_type(
     for(const auto& it : type->active_calls) 
         active_calls[var+it.first] = var+it.second;
     for(const auto& it : type->vars) 
-        if(it.second) { // TODO: remove this if (currently it guards against some leftover labels)
+        if(it.second) { // TODO: remove this if(currently it guards against some leftover labels)
             if(!it.second) 
                 imp->error(--p, type->name.to_string()+"."+pretty_var(it.first.to_string())+" is undefined");
             vars[var+it.first] = it.second;

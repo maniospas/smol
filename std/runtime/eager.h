@@ -71,11 +71,11 @@ static inline __SmolambdaLinkedMemory* __runtime_prepend_linked(__SmolambdaLinke
 }
 
 static inline void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void (*func)(void *), int is_destructor) {
-    while (memory) {
-        if (memory->contents)
+    while(memory) {
+        if(memory->contents)
             func(memory->contents);
         __SmolambdaLinkedMemory* next = memory->next;
-        if (is_destructor)
+        if(is_destructor)
             __runtime_free(memory);
         memory = next;
     }
@@ -88,15 +88,15 @@ static inline void __smolambda_task_wait(void *task_ptr) {}
 
 /* ---------------- TASK SLEEP ---------------- */
 static inline void __smolambda_task_sleep(double secs) {
-    if (secs <= 0.0) return;
+    if(secs <= 0.0) return;
 #ifdef _WIN32
     DWORD ms = (DWORD)(secs * 1000.0);
-    if (ms > 0) Sleep(ms);
+    if(ms > 0) Sleep(ms);
 #else
     struct timespec ts;
     ts.tv_sec = (time_t)secs;
     ts.tv_nsec = (long)((secs - ts.tv_sec) * 1e9);
-    if (ts.tv_sec > 0 || ts.tv_nsec > 0)
+    if(ts.tv_sec > 0 || ts.tv_nsec > 0)
         nanosleep(&ts, NULL);
 #endif
 }

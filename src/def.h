@@ -36,8 +36,8 @@
 
 using namespace std;
 
-#define CODE_START() string(markdown_errors?"\n```rust\n":"")
-#define CODE_END() string(markdown_errors?"```\n":"")
+#define CODE_START() string(lsp?"\n```rust\n":"")
+#define CODE_END() string(lsp?"```\n":"")
 
 class Def;
 using Type = std::shared_ptr<Def>;
@@ -196,7 +196,7 @@ public:
     Variable buffer_ptr;
     Variable buffer_size;
     Variable buffer_release;
-    static bool markdown_errors;
+    static bool lsp;
     static int log_depth;
     size_t identifier;
     int choice_power;

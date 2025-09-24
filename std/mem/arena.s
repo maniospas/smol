@@ -111,7 +111,7 @@ def used(@access @mut Volatile self)
     return 0
 
 def allocate(@access @mut Arena self, u64 size)
-    if (self.length+size)>self.contents.size 
+    if(self.length+size)>self.contents.size 
         return fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
@@ -120,7 +120,7 @@ def allocate(@access @mut Arena self, u64 size)
 def allocate(@access @mut Arena self, u64 _size, Primitive) 
     primitive = Primitive
     @body{u64 size = _size*sizeof(primitive);}
-    if (self.length+size)>self.contents.size 
+    if(self.length+size)>self.contents.size 
         return fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
@@ -149,17 +149,17 @@ def read(@access @mut Arena self)
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
     @body{
-        if (self__length >= self__contents__size) {
+        if(self__length >= self__contents__size) {
             ptr _contents = 0;
         } else {
             char *dest = (char*)self__contents__mem + self__length;
             u64 maxlen = self__contents__size - self__length;
 
-            if (fgets(dest, maxlen, stdin)) {
+            if(fgets(dest, maxlen, stdin)) {
                 u64 length = strlen(dest);
 
                 // Trim CR or LF
-                if (length && (dest[length - 1]==10 || dest[length - 1]==13)) {
+                if(length && (dest[length - 1]==10 || dest[length - 1]==13)) {
                     dest[--length] = 0;
                 }
 

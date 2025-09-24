@@ -29,7 +29,7 @@ public:
     int get_id(const std::string& seg) {
         //std::lock_guard<std::mutex> lock(mutex_);
         auto it = seg_to_id.find(seg);
-        if (it != seg_to_id.end()) 
+        if(it != seg_to_id.end()) 
             return it->second;
         unsigned int id = id_to_seg.size();
         seg_to_id[seg] = id;
@@ -56,40 +56,40 @@ public:
     unsigned int* segments;
     SegmentedString() : size(0), first_segment(0), segments(nullptr) {}
     SegmentedString(const std::string& input) : size(0), first_segment(0), segments(nullptr) {
-        if (input.empty()) 
+        if(input.empty()) 
             return;
         // Count segments
         size_t pos = 0, next;
-        while ((next = input.find("__", pos)) != std::string::npos) {
+        while((next = input.find("__", pos)) != std::string::npos) {
             ++size;
             pos = next + 2;
         }
-        if (pos < input.size()) 
+        if(pos < input.size()) 
             ++size;
-        if (size == 0) return;
+        if(size == 0) return;
         // Parse segments
         pos = 0;
         next = input.find("__", pos);
         std::string first_seg_str = (next == std::string::npos) ? input : input.substr(pos, next-pos);
         first_segment = SegmentMap::instance().get_id(first_seg_str);
 
-        if (size > 1) {
+        if(size > 1) {
             segments = (unsigned int*)malloc(sizeof(unsigned int) * (size - 1));
             size_t found = 0;
-            if (next != std::string::npos) {
+            if(next != std::string::npos) {
                 pos = next + 2;
                 // Fill in the rest segments[1..size-1]
-                while ((next = input.find("__", pos)) != std::string::npos) {
+                while((next = input.find("__", pos)) != std::string::npos) {
                     segments[found++] = SegmentMap::instance().get_id(input.substr(pos, next-pos));
                     pos = next + 2;
                 }
-                if (pos < input.size())
+                if(pos < input.size())
                     segments[found] = SegmentMap::instance().get_id(input.substr(pos));
             }
         }
     }
     SegmentedString(const SegmentedString& other): size(other.size), first_segment(other.first_segment), segments(nullptr) {
-        if (size > 1) {
+        if(size > 1) {
             segments = (unsigned int*)malloc(sizeof(unsigned int) * (size - 1));
             std::copy(other.segments, other.segments + (size - 1), segments);
         }
@@ -100,11 +100,11 @@ public:
     }
     SegmentedString& operator=(const SegmentedString& other) {
         if(this != &other) {
-            if (size > 1) 
+            if(size > 1) 
                 free(segments);
             size = other.size;
             first_segment = other.first_segment;
-            if (size > 1) {
+            if(size > 1) {
                 segments = (unsigned int*)malloc(sizeof(unsigned int) * (size - 1));
                 std::copy(other.segments, other.segments + (size - 1), segments);
             }
@@ -122,7 +122,7 @@ public:
         }
         return *this;
     }
-    ~SegmentedString() {if (size>1) free(segments);}
+    ~SegmentedString() {if(size>1) free(segments);}
     explicit SegmentedString(unsigned int* segments, unsigned int size, unsigned int first_segment)
         : size(size), first_segment(first_segment), segments(segments) {}
     inline bool is_empty() const { 
@@ -136,17 +136,17 @@ public:
     }
     inline std::string to_string() const {
         std::ostringstream oss;
-        if (size == 0) return "";
+        if(size == 0) return "";
         oss << SegmentMap::instance().get_segment(first_segment);
-        for (size_t i = 1; i < size; ++i) 
+        for(size_t i = 1; i < size; ++i) 
             oss << "__" << SegmentMap::instance().get_segment(segments[i - 1]);
         return oss.str();
     }
 
     inline SegmentedString operator+(const SegmentedString& other) const {
-        if (size == 0)
+        if(size == 0)
             return other;
-        if (other.size == 0) 
+        if(other.size == 0) 
             return *this;
         size_t new_size = size + other.size;
         unsigned int* new_segments = (unsigned int*)malloc(sizeof(unsigned int) * (new_size - 1));
@@ -159,11 +159,11 @@ public:
     }
 
     inline bool operator==(const SegmentedString& other) const {
-        if (size != other.size) 
+        if(size != other.size) 
             return false;
-        if (size && first_segment != other.first_segment) 
+        if(size && first_segment != other.first_segment) 
             return false;
-        if (size > 1 && memcmp(segments, other.segments, sizeof(unsigned int) * (size - 1)) != 0) 
+        if(size > 1 && memcmp(segments, other.segments, sizeof(unsigned int) * (size - 1)) != 0) 
             return false;
         return true;
     }
@@ -172,10 +172,10 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& os, const SegmentedString& ss) {
-        if (ss.size == 0) 
+        if(ss.size == 0) 
             return os;
         os << SegmentMap::instance().get_segment(ss.first_segment);
-        for (size_t i = 1; i < ss.size; ++i) 
+        for(size_t i = 1; i < ss.size; ++i) 
             os << "__" << SegmentMap::instance().get_segment(ss.segments[i - 1]);
         return os;
     }
@@ -211,7 +211,7 @@ namespace std {
                 h ^= std::hash<unsigned int>()(id) + 0x9e3779b9 + (h << 6) + (h >> 2);
             }
             // FNV-1a or similar combination, but simple XOR+hash is enough for most
-            for (size_t i = 1; i < s.size; ++i) {
+            for(size_t i = 1; i < s.size; ++i) {
                 unsigned int id = s.segments[i-1];
                 h ^= std::hash<unsigned int>()(id) + 0x9e3779b9 + (h << 6) + (h >> 2);
             }
@@ -256,8 +256,8 @@ public:
     }
     inline std::string to_string() const {
         std::ostringstream oss;
-        for (size_t i = 0; i < segments.size(); ++i) {
-            if (i > 0) 
+        for(size_t i = 0; i < segments.size(); ++i) {
+            if(i > 0) 
                 oss << " ";
             oss << segments[i];
         }
@@ -266,8 +266,8 @@ public:
     inline bool is_empty() const { return segments.empty(); }
     inline bool exists() const { return !segments.empty(); }
     friend std::ostream& operator<<(std::ostream& os, const SegmentSequence& ss) {
-        for (size_t i = 0; i < ss.segments.size(); ++i) {
-            if (i > 0) 
+        for(size_t i = 0; i < ss.segments.size(); ++i) {
+            if(i > 0) 
                 os << " ";
             os << ss.segments[i];
         }
@@ -275,7 +275,7 @@ public:
     }
     inline size_t find(const SegmentedString& query) const {
         auto it = std::find(segments.begin(), segments.end(), query);
-        if (it == segments.end())
+        if(it == segments.end())
             return std::string::npos;
         return std::distance(segments.begin(), it);
     }
@@ -295,7 +295,7 @@ namespace std {
     struct hash<SegmentSequence> {
         std::size_t operator()(const SegmentSequence& seq) const noexcept {
             std::size_t h = 0;
-            for (const auto& s : seq.segments) 
+            for(const auto& s : seq.segments) 
                 h ^= std::hash<SegmentedString>()(s) + 0x9e3779b9 + (h << 6) + (h >> 2);
             return h;
         }
