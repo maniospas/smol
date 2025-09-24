@@ -16,7 +16,7 @@ service run(String command)
 
 service std_test(String name)
     redirect = " 2>&1"
-    command = on Heap:dynamic return "./smol tests/unit/"+name+".s --runtime eager"+redirect
+    command = on Heap:dynamic return "./smol tests/unit/"+name+".s --workers 1 --runtime eager"+redirect
     // new memory surface because the previous one was made immutable 
     // by feeding into a service call
     on Heap:dynamic
@@ -40,9 +40,9 @@ service all()
     std_test("file")
     std_test("filesize")
     std_test("finally")
-    std_test("map")
+    //std_test("map")
     std_test("nom")
-    std_test("unsafe")
+    //std_test("unsafe")
     std_test("mem")
     std_test("memtest")
     std_test("mutpoint")

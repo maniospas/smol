@@ -64,6 +64,21 @@ int main(int argc, char* argv[]) {
     for(int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if(arg == "--log") log_type_resolution = true;
+        else if(arg == "--workers") {
+            if (i + 1 >= argc) {
+                cerr << "Error: --workers requires a number or zero" << endl;
+                return 1;
+            }
+            try {
+                worker_limit = stoi(argv[++i]);
+            } catch (const invalid_argument&) {
+                cerr << "Error: --workers argument must be an integer" << endl;
+                return 1;
+            } catch (const out_of_range&) {
+                cerr << "Error: --workers value out of range" << endl;
+                return 1;
+            }
+        }
         else if(arg == "--runtime") {
             if(i + 1 >= argc) {
                 cerr << "Error: --runtime requires an argument. Provide an unknown name, like 'none', to see available runtimes" << endl;
@@ -132,16 +147,16 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         try {
-            errors = codegen(included, file, builtins, selected_task, task_report);
+            errors = codegen_all(included, file, builtins, selected_task, task_report);
             size_t number = 1;
             if(Def::export_docs) {
-                std::string docs = "";
-                std::string toc = "<h1 id=\"toc\">Contents</h1>\n";
+                string docs = "";
+                string toc = "<h1 id=\"toc\">Contents</h1>\n";
                 for(auto& include : included) {
                     string display_name = include.first;
                     if(display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  
                         display_name = display_name.substr(0, display_name.size() - 2);
-                    display_name = std::regex_replace(display_name, std::regex("[\\\\/]"), ".");
+                    display_name = regex_replace(display_name, regex("[\\\\/]"), ".");
                     string unsafe_html = "";
                     if(include.second.imp->allow_unsafe) 
                         unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
@@ -160,9 +175,9 @@ int main(int argc, char* argv[]) {
                             "eliminates. By using this file as a direct or indirect dependency you are trusting its implementation. "
                             "Given this trust, consider other non-unsafe files using it as safe.</i></p>";
                     string overload_docs("");
-                    std::vector<pair<Variable, Type>> keys;
+                    vector<pair<Variable, Type>> keys;
                     for(const auto& type : include.second.vars) keys.push_back(pair<Variable,Type>(type.first, type.second));
-                    std::sort(keys.begin(), keys.end(), [](pair<Variable, Type>& lhs, pair<Variable, Type>& rhs) {
+                    sort(keys.begin(), keys.end(), [](pair<Variable, Type>& lhs, pair<Variable, Type>& rhs) {
                         return lhs.second->pos < rhs.second->pos;
                     });
                     bool has_prev = false;
@@ -217,7 +232,7 @@ int main(int argc, char* argv[]) {
                     docs += overload_docs;
                     toc += "</div>";
                 }
-                std::ofstream out(file.substr(0, file.size()-2)+".html");
+                ofstream out(file.substr(0, file.size()-2)+".html");
                 out << "<!DOCTYPE html>\n<html>\n<head>\n"
                 "<meta charset=\"UTF-8\">\n"
                 "<title>Documentation</title>\n"
@@ -283,7 +298,7 @@ int main(int argc, char* argv[]) {
                     }
                     
             // globals
-            auto out = std::stringstream{""};
+            auto out = stringstream{""};
             out << 
                 "#define SMOLAMBDA_SERVICES "<<(selected_task==Task::Library?1:count_services)<<"\n" // libraries do not run on their own scheduler
                 "#ifdef __cplusplus\n"
@@ -563,7 +578,7 @@ int main(int argc, char* argv[]) {
                 string c_filename = file.substr(0, file.size()-2) + ".c";
                 ofstream c_out(c_filename);
                 if(!c_out) {
-                    std::cerr << "Failed to open " << c_filename << " for writing\n";
+                    cerr << "Failed to open " << c_filename << " for writing\n";
                     return 1;
                 }
                 c_out << out.str();
@@ -577,10 +592,10 @@ int main(int argc, char* argv[]) {
             }
 
         }
-        catch(const std::runtime_error& e) {
+        catch(const runtime_error& e) {
             if(selected_task!=Task::Run) 
                 cout << "\033[30;41m ERROR \033[0m " << file << "\n";
-            cerr << e.what() << std::endl;
+            cerr << e.what() << endl;
         }
         
         included.clear();

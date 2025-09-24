@@ -1,12 +1,27 @@
+// Copyright 2025 Emmanouil Krasanakis (maniospas@hotmail.com)
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 #include "../codegen.h"
 
 using namespace std;
 
 vector<string> installation_permissions;
+mutex g_importMutex;
+condition_variable g_importCv;
+vector<ImportItem> g_imports;
 
 static bool handle_about(Import* imp, size_t& p) {
     auto next = imp->at(p+=2);
-    if(next[0] == '"') 
+    if(next[0]=='"') 
         imp->about = next;
     else {
         ++p;
@@ -18,44 +33,55 @@ static bool handle_about(Import* imp, size_t& p) {
     return false;
 }
 
-bool codegen(
+unsigned worker_limit = 0;
+
+void codegen(
     map<string, Types>& files, 
     string file,
     const Memory& builtins, 
     Task selected_task,
-    string& task_report
-) {
-
+    string& task_report,
+    string& halted,
+    bool& errors
+) { 
     auto& types = files[file];
-    if(types.vars.size())
-        return false;
-
-    auto imp = tokenize(file);
+    auto already_tokenized = bool{types.imp};
+    auto imp = already_tokenized?types.imp:tokenize(file);
     types.imp = imp;
+    if(!already_tokenized)
+        for(const auto& it : builtins.vars)
+            types.vars[it.first] = it.second;
 
-    for(const auto& it : builtins.vars)
-        types.vars[it.first] = it.second;
+    auto& p = imp->parse_progress;
+    if(p>=imp->size()-1) {
+        //cout << file+" -- ALREADY PARSED\n";
+        return;
+    }
+    // if(p)
+    //     cout << file+" -- continuing from "+imp->at(imp->parse_progress)+imp->at(imp->parse_progress+1)+"\n";
+    // else
+    //     cout << file+" -- tokenized and parsing\n";
 
-    auto p = size_t{0};
     auto warnings = size_t{0};
-    auto errors = false;
-
     if(imp->tokens.size())
         while(p < imp->tokens.size() - 1) {
             try {
-                if(imp->at(p) == "@" && imp->at(p + 1) == "unsafe") {
+                if(imp->at(p)=="@" && imp->at(p + 1)=="unsafe") {
                     imp->allow_unsafe = true;
                     ++p;
                 }
-                else if(imp->at(p) == "@" && imp->at(p + 1) == "about")
+                else if(imp->at(p)=="@" && imp->at(p+1)=="about")
                     errors |= handle_about(imp.get(), p);
-                else if(imp->at(p) == "@" && imp->at(p + 1) == "install")
-                    errors |= handle_install(files, file, builtins, selected_task, task_report, imp, p);
-                else if(imp->at(p) == "@" && imp->at(p + 1) == "include")
-                    errors |= handle_include(files, file, builtins, selected_task, task_report, imp, p, types);
-                else if(imp->at(p) == "def" || imp->at(p) == "service")
+                else if(imp->at(p)=="@" && imp->at(p+1)=="install")
+                    handle_install(files, file, builtins, selected_task, task_report, imp, p, errors);
+                else if(imp->at(p)=="@" && imp->at(p+1)=="include") {
+                    handle_include(files, file, builtins, selected_task, task_report, imp, p, types, halted, errors);
+                    if(halted.size()) 
+                        return;
+                }
+                else if(imp->at(p)=="def" || imp->at(p)=="service")
                     handle_def_or_service(files, file, builtins, selected_task, task_report, imp, p, types, errors);
-                else if(imp->at(p) == "union")
+                else if(imp->at(p)=="union")
                     handle_union(imp, p, types);
                 else
                     imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union`, `@include`, `@install`, `@about`, or `@unsafe` allowed");
@@ -67,29 +93,29 @@ bool codegen(
                 string preample = message;
                 if(!Def::lsp)
                     preample = message.substr(0, message.find('\n'));
-                if(types.all_errors.find(preample) == types.all_errors.end())
+                if(types.all_errors.find(preample)==types.all_errors.end())
                     types.all_errors[preample] += message.substr(message.find('\n'));
                 else
                     types.suppressed[preample] += 1;
                 while(p < imp->size() - 1) {
                     p++;
-                    if(imp->at(p) == "def" || imp->at(p) == "union" || imp->at(p) == "service") break;
-                    if(imp->at(p) == "@" && p < imp->size() - 1 && imp->at(p + 1) == "include") break;
-                    if(imp->at(p) == "@" && p < imp->size() - 1 && imp->at(p + 1) == "install") break;
-                    if(imp->at(p) == "@" && p < imp->size() - 1 && imp->at(p + 1) == "unsafe") break;
-                    if(imp->at(p) == "@" && p < imp->size() - 1 && imp->at(p + 1) == "about") break;
+                    if(imp->at(p)=="def" || imp->at(p)=="union" || imp->at(p)=="service") break;
+                    if(imp->at(p)=="@" && p < imp->size() - 1 && imp->at(p + 1)=="include") break;
+                    if(imp->at(p)=="@" && p < imp->size() - 1 && imp->at(p + 1)=="install") break;
+                    if(imp->at(p)=="@" && p < imp->size() - 1 && imp->at(p + 1)=="unsafe") break;
+                    if(imp->at(p)=="@" && p < imp->size() - 1 && imp->at(p + 1)=="about") break;
                 }
                 if(p >= imp->size() - 1) break;
             }
         }
 
     for(const auto& err : types.all_errors) {
-        cerr << err.first;
+        cout << err.first;
         if(types.suppressed.find(err.first) != types.suppressed.end())
-            cerr << "\033[33m -- " << types.suppressed[err.first] << " similar errors in this file\033[0m";
+            cout << "\033[33m -- " << types.suppressed[err.first] << " similar errors in this file\033[0m";
         if(!Def::lsp)
-            cerr << err.second;
-        cerr << "\n";
+            cout << err.second;
+        cout << "\n";
         errors = true;
     }
 
@@ -98,10 +124,121 @@ bool codegen(
             imp->about = "\"Unsafe code without description at " + imp->path + "\"";
         else if(imp->about.empty())
             imp->about = "\"" + imp->path + "\"";
-        if(selected_task == Task::Verify && warnings)
+        if(selected_task==Task::Verify && warnings)
             task_report += "\033[30;41m " + string(warnings < 10 ? " " : "") + to_string(warnings) + " ERRORS \033[0m " + file + "\n";
-        else if(selected_task == Task::Verify)
+        else if(selected_task==Task::Verify)
             task_report += "\033[30;42m OK \033[0m " + file + "\n";
     }
-    return errors;
+}
+
+
+bool is_import_done(const string &path) {
+    lock_guard<mutex> lock(g_importMutex);
+    for (auto &item : g_imports)
+        if(item.path==path)
+            return item.status==ImportStatus::Done;
+    return false;
+}
+
+void request_import(const string &path) {
+    lock_guard<mutex> lock(g_importMutex);
+    auto it = find_if(g_imports.begin(), g_imports.end(), [&](const ImportItem &i){ return i.path==path; });
+    if(it==g_imports.end()) {
+        g_imports.push_back({path, ImportStatus::Requested, nullptr});
+        g_importCv.notify_all(); // wake up any worker polling
+    }
+}
+
+void mark_import_done(const string &path, shared_ptr<Import> imp) {
+    lock_guard<mutex> lock(g_importMutex);
+    for (auto &item : g_imports) {
+        if(item.path==path) {
+            item.status = ImportStatus::Done;
+            item.imp = imp;
+            g_importCv.notify_all();
+            return;
+        }
+    }
+}
+
+#include <chrono>  
+
+bool codegen_all(
+    map<string, Types>& files,
+    string first_file,
+    const Memory& builtins,
+    Task selected_task,
+    string& task_report
+) {
+    auto t_start = chrono::steady_clock::now();
+    {
+        lock_guard<mutex> lock(g_importMutex);
+        auto it = find_if(g_imports.begin(), g_imports.end(), [&](const ImportItem &i){ return i.path==first_file; });
+        if(it==g_imports.end()) {
+            g_imports.push_back({first_file, ImportStatus::Requested, nullptr});
+            g_importCv.notify_all();
+        }
+    }
+
+    // --- 2. Launch workers ---
+    atomic<bool> global_errors{false};
+
+    auto worker = [&]() { for (;;) {
+        unique_lock<mutex> lock(g_importMutex);
+        g_importCv.wait(lock, [] {
+            return any_of(g_imports.begin(), g_imports.end(), [](auto &i){ return i.status==ImportStatus::Requested; }) ||
+                   all_of(g_imports.begin(), g_imports.end(), [](auto &i){ return i.status==ImportStatus::Done; });
+        });
+
+        if(none_of(g_imports.begin(), g_imports.end(),
+                 [](auto &i){ return i.status == ImportStatus::Requested ||
+                                      i.status == ImportStatus::InProgress; }))
+            break;
+        auto it = find_if(g_imports.begin(), g_imports.end(), [](auto &i){ return i.status==ImportStatus::Requested; });
+        if(it==g_imports.end())
+            continue;
+
+        auto path = it->path;
+        auto halted = string{""};
+        auto errors = false;
+        it->status = ImportStatus::InProgress;
+        lock.unlock();
+
+        codegen(files, path, builtins, selected_task, task_report, halted, errors);
+        if(errors)
+            global_errors = true;
+
+        if(!halted.empty()) {
+            lock_guard<mutex> relock(g_importMutex);
+            //cout << path << " -- has incomplete import (will continue later)\n";
+            auto it2 = find_if(g_imports.begin(), g_imports.end(),[&](const ImportItem &i){ return i.path==path; });
+            if(it2 != g_imports.end()) {
+                it2->status = ImportStatus::Requested;
+                rotate(it2, it2 + 1, g_imports.end());
+            }
+            g_importCv.notify_all();
+            continue;
+        }
+        mark_import_done(path, nullptr);
+    }};
+
+    unsigned num_workers = max(1u, thread::hardware_concurrency());
+    if(worker_limit && worker_limit<num_workers)
+        num_workers = worker_limit;
+    if(num_workers==1) {
+        cout << "Compiling on --workers "+to_string(num_workers)+" ... ";
+        worker();
+        cout << "finished in "+to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count())+" ms\n";
+    }
+    else {
+        cout << "Compiling on --workers "+to_string(num_workers)+" ... ";
+        vector<thread> workers;
+        for (unsigned i = 0; i < num_workers-1; ++i)
+            workers.emplace_back(worker);
+        worker(); // don't neglect the current thread
+        for (auto &t : workers) 
+            t.join();
+        cout << "finished in "+to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count())+" ms\n";
+    }
+    return global_errors.load();
 }

@@ -30,9 +30,10 @@ class Import {
 public:
     string path;
     size_t pair;
-    bool allow_unsafe;
+    size_t parse_progress;
     string about;
     unordered_map<string, string> docs;
+    bool allow_unsafe;
     Import(const string& p);
     vector<Token> tokens;
     string& at(size_t pos);

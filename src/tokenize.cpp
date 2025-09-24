@@ -37,7 +37,7 @@ size_t parse_integer_suffix(const std::string& line, size_t i) {
 
 // ---------- Import ----------
 Import::Import(const std::string& p)
-    : path(p), pair(0), allow_unsafe(false) {}
+    : path(p), pair(0), parse_progress(0), allow_unsafe(false) {}
 
 std::string& Import::at(size_t pos) {
     if(pos < 0) 

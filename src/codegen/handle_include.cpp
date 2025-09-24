@@ -1,6 +1,18 @@
+// Copyright 2025 Emmanouil Krasanakis (maniospas@hotmail.com)
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 #include "../codegen.h"
 
-bool handle_include(
+void handle_include(
     map<string, Types>& files, 
     string file,
     const Memory& builtins, 
@@ -8,20 +20,35 @@ bool handle_include(
     string& task_report, 
     const shared_ptr<Import>& imp, 
     size_t& p,
-    Types& types
+    Types& types,
+    string& halted,
+    bool& errors
 ) {
+    auto prev_progress = p;
     auto path = imp->at(p+=2);
     while(p<imp->size()-1 && imp->at(p+1) == ".") 
         path += "/" + imp->at(p+=2);
     path += ".s";
     if(path==file)
         imp->error(p, "Circular include");
-    {
-        ifstream f(path);
-        if(!f)
-            imp->error(p, "Could not open file: " + path);
+    // if(!is_import_exists(path)) {
+    //     codegen(files, path, builtins, selected_task, task_report, halted, errors);
+    //     if(halted.size()) {
+    //         return;
+    //     }
+    // }
+    if(!is_import_done(path)) {
+        p = prev_progress; // go back to the import statement
+        halted = path;
+        //cout << file+" -- dependency "+path+" not yet compiled\n";
+        request_import(path);
+        return;
     }
-    auto errors = codegen(files, path, builtins, selected_task, task_report);
+    // {
+    //     ifstream f(path);
+    //     if(!f)
+    //         imp->error(p, "Could not open file: " + path);
+    // }
     auto filter = unordered_set<Variable>{};
     if(p < imp->size() - 1 && imp->at(p + 1) == "-") {
         p += 2;
@@ -89,7 +116,8 @@ bool handle_include(
     for(auto& it : files[path].reverse_alignment_labels)
         types.reverse_alignment_labels[it.first] = it.second;
 
+    //cout << path+" -- include finished\n";
+
     if(files[path].all_errors.size() && Def::lsp)
         imp->error(p, "Errors in included file: " + path);
-    return errors;
 }

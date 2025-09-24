@@ -1,3 +1,15 @@
+// Copyright 2025 Emmanouil Krasanakis (maniospas@hotmail.com)
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 #include "../codegen.h"
 
 void handle_union(const shared_ptr<Import>& imp, size_t& p, Types& types) {
@@ -5,7 +17,7 @@ void handle_union(const shared_ptr<Import>& imp, size_t& p, Types& types) {
     if(types.contains(name))
         imp->error(--p, "Already defined: " + name);
 
-    auto def = std::make_shared<Def>(types);
+    auto def = make_shared<Def>(types);
     all_types.push_back(def);
     def->imp = imp;
     def->pos = p;
@@ -29,7 +41,7 @@ void handle_union(const shared_ptr<Import>& imp, size_t& p, Types& types) {
                 continue;
             if(option->lazy_compile)
                 imp->error(--p, "Internal error: failed to compile runtype " + option->signature(types));
-            if(!std::ranges::contains(def->options, option)) {
+            if(!ranges::contains(def->options, option)) {
                 def->options.push_back(option);
                 added = true;
             }
@@ -39,6 +51,6 @@ void handle_union(const shared_ptr<Import>& imp, size_t& p, Types& types) {
                 "\nCannot create a runtype union that includes non-nominal types (those would be ignored)"
             );
     }
-    
+
     def->assert_options_validity(imp, --p);
 }
