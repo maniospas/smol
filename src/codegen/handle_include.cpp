@@ -38,10 +38,22 @@ void handle_include(
     //     }
     // }
     if(!is_import_done(path)) {
-        //cout << file+" -- dependency "+path+" not yet compiled\n";
+        if(imp->forward_p<=p) {
+            imp->forward_p = p+1; // don't repeat this code block while is_import done polls to false, but do repeat it whenever we progress
+            auto forward_p = p+1;
+            // forwrd look for more imports and add them to the queue if needed
+            while(forward_p<imp->size()-2 && imp->at(forward_p)=="@" && imp->at(forward_p+1)=="include") {
+                auto forward_path = imp->at(forward_p+=2);
+                while(forward_p<imp->size()-1 && imp->at(forward_p+1) == ".") 
+                    forward_path += "/" + imp->at(forward_p+=2);
+                forward_path += ".s";
+                request_import_if_needed(forward_path); // these are batched without calling g_importCv.notify_all(); 
+                forward_p++;
+            }
+        }
         if(request_import(path)) {
             p = prev_progress; // go back to the import statement
-            halted = path;
+            halted = path; // who is blocking
             return;
         }
         else {

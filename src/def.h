@@ -33,6 +33,7 @@
 #include "utils/faststring.h"
 #include "utils/base62.h"
 #include "utils/segments.h"
+#include <atomic>
 
 using namespace std;
 
@@ -120,7 +121,7 @@ public:
 
 class Types: public Memory {
 public:
-    static unsigned long last_type_id;
+    static atomic<unsigned long> last_type_id;
     Types() = default;
     shared_ptr<Import> imp;
     unordered_map<Def*, unsigned long> alignment_labels;
@@ -130,7 +131,7 @@ extern bool log_type_resolution;
 extern vector<Type> all_types;
 
 class Def : public enable_shared_from_this<Def> {
-    static int temp;
+    static atomic<int> temp;
     static string create_temp() {return "__"+numberToVar(++temp);}
     unordered_map<Variable, Variable> current_renaming;
     string recommend_runtype(const Types& types, const Variable& candidate);

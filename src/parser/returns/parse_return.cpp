@@ -58,7 +58,16 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, 
         return;
     }
 
-    vector<Variable> tentative = map_to_return(imp, p, types, true);
+    auto tentative = map_to_return(imp, p, types, true);
+
+    if(is_service) {
+        auto cleaned_tentative = vector<Variable>{};
+        cleaned_tentative.reserve(tentative.size());
+        for(size_t i=0;i<packs.size();++i) if(i==0 || packs[i]!=ERR_VAR)
+            cleaned_tentative.push_back(tentative[i]); 
+        if(cleaned_tentative.size()!=tentative.size())
+           tentative = cleaned_tentative;
+    }
 
     if(!has_returned) 
         packs = tentative;

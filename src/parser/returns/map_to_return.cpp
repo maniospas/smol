@@ -33,7 +33,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
             packs.push_back(ERR_VAR);
             vars[ERR_VAR] = types.vars[ERRCODE_VAR];
         }
-        for(const auto& arg : args) {
+        for (const auto& arg : args) {
             Variable next = arg.name;
             if(vars[next]->nozero)
                 nozero = true;
@@ -116,6 +116,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                     );
                 if(vars[alias_for]->alias_for.exists()) 
                     alias_for = next+vars[alias_for]->alias_for;
+                
                 for(const Variable& pack : vars[next]->packs) {
                     if(released[next+pack]) 
                         imp->error(--p, "Returned a releaased resource: "

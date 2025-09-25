@@ -12,42 +12,48 @@
 // limitations under the License.
 #include "../codegen.h"
 #include <filesystem>
+#include <unordered_set>
 
 namespace fs = std::filesystem;
 
 vector<string> installation_permissions;
 mutex g_importMutex;
-condition_variable g_importCv;
-vector<ImportItem> g_imports;
+queue<string> g_imports;
+
+// NEW global sets replacing the old status enum
+unordered_set<string> status_requested;
+unordered_set<string> status_progress;
+unordered_set<string> status_done;
 
 bool is_import_done(const string &path) {
     lock_guard<mutex> lock(g_importMutex);
-    for (auto &item : g_imports)
-        if(item.path==path)
-            return item.status==ImportStatus::Done;
-    return false;
+    return status_done.find(path)!=status_done.end();
 }
 
 bool request_import(const string &path) {
     lock_guard<mutex> lock(g_importMutex);
-    auto it = find_if(g_imports.begin(), g_imports.end(), [&](const ImportItem &i){ return i.path==path; });
-    if(it==g_imports.end()) {
-        if (!fs::is_regular_file(path))
-            return false;
-        g_imports.push_back({path, ImportStatus::Requested, nullptr});
-        g_importCv.notify_all(); // wake up any worker polling
-    }
+    if(status_done.find(path)!=status_done.end()) return true;
+    if(status_requested.find(path)!=status_requested.end()) return true;
+    if(status_progress.find(path)!=status_progress.end()) return true;
+    if (!fs::is_regular_file(path))
+        return false;
+    g_imports.push(path);
+    status_requested.insert(path);
     return true;
 }
 
-void mark_import_done(const string &path, shared_ptr<Import> imp) {
+void request_import_if_needed(const string &path) {
     lock_guard<mutex> lock(g_importMutex);
-    for (auto &item : g_imports) {
-        if(item.path==path) {
-            item.status = ImportStatus::Done;
-            item.imp = imp;
-            g_importCv.notify_all();
-            return;
-        }
-    }
+    if(status_done.find(path)!=status_done.end()) return;
+    if(status_requested.find(path)!=status_requested.end()) return;
+    if(status_progress.find(path)!=status_progress.end()) return;
+    g_imports.push(path);
+    status_requested.insert(path);
+}
+
+void mark_import_done(const string &path) {
+    lock_guard<mutex> lock(g_importMutex);
+    status_progress.erase(path);
+    status_requested.erase(path);
+    status_done.insert(path);
 }

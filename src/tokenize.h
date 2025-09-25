@@ -31,6 +31,7 @@ public:
     string path;
     size_t pair;
     size_t parse_progress;
+    size_t forward_p;//this is used to mark the point up to which imports are concluded
     string about;
     unordered_map<string, string> docs;
     bool allow_unsafe;

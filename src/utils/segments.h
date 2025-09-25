@@ -24,29 +24,64 @@
 #include <algorithm>
 #include <functional> // for std::hash
 
+// class SegmentMap {
+// public:
+//     int get_id(const string& seg) {
+//         //std::lock_guard<std::mutex> lock(mutex_);
+//         auto it = seg_to_id.find(seg);
+//         if(it != seg_to_id.end()) 
+//             return it->second;
+//         unsigned int id = id_to_seg.size();
+//         seg_to_id[seg] = id;
+//         id_to_seg.push_back(seg);
+//         return id;
+//     }
+//     const string& get_segment(unsigned int id) const {
+//         return id_to_seg.at(id);
+//     }
+//     static SegmentMap& instance() {
+//         static SegmentMap inst;
+//         return inst;
+//     }
+// private:
+//     std::unordered_map<string, unsigned int> seg_to_id;
+//     std::vector<string> id_to_seg;
+//     //mutable std::mutex mutex_;
+// };
+
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <mutex>
+
 class SegmentMap {
 public:
-    int get_id(const string& seg) {
-        //std::lock_guard<std::mutex> lock(mutex_);
+    int get_id(const std::string& seg) {
+        std::lock_guard<std::mutex> lock(mutex_);
         auto it = seg_to_id.find(seg);
-        if(it != seg_to_id.end()) 
+        if (it != seg_to_id.end())
             return it->second;
-        unsigned int id = id_to_seg.size();
+
+        unsigned int id = static_cast<unsigned int>(id_to_seg.size());
         seg_to_id[seg] = id;
         id_to_seg.push_back(seg);
         return id;
     }
-    const string& get_segment(unsigned int id) const {
+
+    const std::string& get_segment(unsigned int id) const {
+        std::lock_guard<std::mutex> lock(mutex_);
         return id_to_seg.at(id);
     }
     static SegmentMap& instance() {
         static SegmentMap inst;
         return inst;
     }
+
 private:
-    std::unordered_map<string, unsigned int> seg_to_id;
-    std::vector<string> id_to_seg;
-    //mutable std::mutex mutex_;
+    SegmentMap() = default;
+    unordered_map<std::string, unsigned int> seg_to_id;
+    vector<std::string> id_to_seg;
+    mutable std::mutex mutex_;
 };
 
 class SegmentedString {

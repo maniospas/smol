@@ -28,6 +28,11 @@ static bool handle_about(Import* imp, size_t& p) {
 
 unsigned worker_limit = 0;
 
+Types& get_file(map<string, Types>& files, string file) {
+    unique_lock<mutex> lock(g_importMutex);
+    return files[file];
+}
+
 void codegen(
     map<string, Types>& files, 
     string file,
@@ -37,9 +42,9 @@ void codegen(
     string& halted,
     bool& errors
 ) { 
-    auto& types = files[file];
+    auto& types = get_file(files, file);
     auto already_tokenized = bool{types.imp};
-    shared_ptr<Import> imp = already_tokenized?types.imp:tokenize(file);
+    auto imp = already_tokenized?types.imp:tokenize(file);
     types.imp = imp;
     if(!already_tokenized)
         for(const auto& it : builtins.vars)

@@ -23,72 +23,64 @@ bool codegen_all(
     auto t_start = chrono::steady_clock::now();
     {
         lock_guard<mutex> lock(g_importMutex);
-        auto it = find_if(g_imports.begin(), g_imports.end(), [&](const ImportItem &i){ return i.path==first_file; });
-        if(it==g_imports.end()) {
-            g_imports.push_back({first_file, ImportStatus::Requested, nullptr});
-            g_importCv.notify_all();
-        }
+        g_imports.push(first_file);
+        status_requested.insert(first_file);
     }
 
-    // --- 2. Launch workers ---
     atomic<bool> global_errors{false};
 
-    auto worker = [&]() { for (;;) {
-        unique_lock<mutex> lock(g_importMutex);
-        g_importCv.wait(lock, [] {
-            return any_of(g_imports.begin(), g_imports.end(), [](auto &i){ return i.status==ImportStatus::Requested; }) ||
-                   all_of(g_imports.begin(), g_imports.end(), [](auto &i){ return i.status==ImportStatus::Done; });
-        });
-
-        if(none_of(g_imports.begin(), g_imports.end(),
-                 [](auto &i){ return i.status == ImportStatus::Requested ||
-                                      i.status == ImportStatus::InProgress; }))
-            break;
-        auto it = find_if(g_imports.begin(), g_imports.end(), [](auto &i){ return i.status==ImportStatus::Requested; });
-        if(it==g_imports.end())
-            continue;
-
-        auto path = it->path;
-        auto halted = string{""};
-        auto errors = false;
-        it->status = ImportStatus::InProgress;
-        lock.unlock();
-
-        codegen(files, path, builtins, selected_task, task_report, halted, errors);
-        if(errors)
-            global_errors = true;
-
-        if(!halted.empty()) {
-            lock_guard<mutex> relock(g_importMutex);
-            //cout << path << " -- has incomplete import (will continue later)\n";
-            auto it2 = find_if(g_imports.begin(), g_imports.end(),[&](const ImportItem &i){ return i.path==path; });
-            if(it2 != g_imports.end()) {
-                it2->status = ImportStatus::Requested;
-                rotate(it2, it2 + 1, g_imports.end());
+    auto worker = [&]() {
+        for (;;) {
+            auto path = string{""};
+            auto halted = string{""};
+            auto errors = false;
+            {
+                unique_lock<mutex> lock(g_importMutex);
+                if(status_requested.empty() && status_progress.empty()) 
+                    break;
+                if(!g_imports.size())
+                    continue;
+                path = g_imports.front();
+                g_imports.pop();
             }
-            g_importCv.notify_all();
-            continue;
+            codegen(files, path, builtins, selected_task, task_report, halted, errors);
+            if (errors) 
+                global_errors = true;
+
+            {
+                unique_lock<mutex> lock(g_importMutex);
+                status_progress.erase(path);
+                if (!halted.empty()) {
+                    status_requested.insert(path);
+                    g_imports.push(path);
+                    continue;
+                }
+                status_requested.erase(path);
+                status_progress.erase(path);
+                status_done.insert(path);
+            }
         }
-        mark_import_done(path, nullptr);
-    }};
+    };
 
     unsigned num_workers = max(1u, thread::hardware_concurrency());
-    if(worker_limit && worker_limit<num_workers)
+    if(!worker_limit)
+        num_workers = 1;
+    if (worker_limit && worker_limit < num_workers)
         num_workers = worker_limit;
-    if(num_workers==1) {
-        cout << "Compiling on --workers "+to_string(num_workers)+"\n";
+
+    cout << "Compiling on --workers " + to_string(num_workers) + "\n";
+    if (num_workers == 1) 
         worker();
-        cout << "finished in "+to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count())+" ms\n";
-    }
     else {
-        cout << "Compiling on --workers "+to_string(num_workers)+"\n";
         vector<thread> workers;
-        for (unsigned i = 0; i < num_workers-1; ++i)
+        for (unsigned i = 0; i < num_workers - 1; ++i)
             workers.emplace_back(worker);
-        worker(); // don't neglect the current thread
-        for (auto &t : workers) 
+        worker(); // also use the current thread
+        for (auto &t : workers)
             t.join();
-        cout << "Finished in "+to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count())+" ms\n";
     }
+    cout << "Finished in " +
+        to_string(chrono::duration_cast<chrono::milliseconds>(
+            chrono::steady_clock::now() - t_start).count()) + " ms\n";
     return global_errors.load();
 }

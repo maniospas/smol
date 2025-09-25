@@ -25,8 +25,10 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
         return first_token;
     Variable next = first_token;
     while(true) {
-        CHECK_RELEASE(next);
-        CHECK_ERRCODE(next);
+        if(next!=first_token) {
+            CHECK_RELEASE(next);
+            CHECK_ERRCODE(next);
+        }
         if(p>=n) 
             break;
         if(imp->at(p)==":") {

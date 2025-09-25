@@ -23,17 +23,11 @@ using namespace std;
 extern vector<string> installation_permissions;
 extern unsigned worker_limit;
 
-enum class ImportStatus { Requested, Done, InProgress };
-
-struct ImportItem {
-    string path;
-    ImportStatus status;
-    shared_ptr<Import> imp;
-};
-
+extern unordered_set<string> status_requested;
+extern unordered_set<string> status_done;
+extern unordered_set<string> status_progress;
+extern queue<string> g_imports;
 extern mutex g_importMutex;
-extern condition_variable g_importCv;
-extern vector<ImportItem> g_imports;
 
 void handle_def_or_service(
     map<string, Types>& files,
@@ -81,7 +75,8 @@ void codegen(
 
 bool is_import_done(const string &path);
 bool request_import(const string &path); // true if it was requested or already there, false if the file does not exist
-void mark_import_done(const string &path, shared_ptr<Import> imp);
+void request_import_if_needed(const string &path);
+void mark_import_done(const string &path);
 void worker_loop();
 
 bool codegen_all(

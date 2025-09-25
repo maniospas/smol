@@ -12,12 +12,12 @@
 // limitations under the License.
 #include "def.h"
 
-int Def::temp = 0;
+atomic<int> Def::temp = 0;
 bool Def::calls_on_heap = true;
 bool Def::debug = false;
 bool Def::export_docs = false;
 bool Def::lsp = false;
-unsigned long Types::last_type_id = 0;
+atomic<unsigned long> Types::last_type_id = 0;
 bool log_type_resolution = false;
 vector<Type> all_types;
 
