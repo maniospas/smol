@@ -31,7 +31,7 @@
                "\n<pre>def foo(CString _s)"
                "\n    s = _s:nstr"
                "\n    ..."
-               "\n    end/pre>"
+               "\n    end</pre>"
 @about IndependentString "A copy of the String union that can be used when a second argument is needed for a string of a potentially different variation."
 @about is      "Compile-time check of a String exact type matching compared to an arbitrary type.<br>Example usage:"
                "<pre>def foo(String s)\n    with s:is(str)\n        ...\n        end else\n        ...\n    end end</pre>"

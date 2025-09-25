@@ -22,7 +22,7 @@ Here's what smoλ programs look like.
 </li><li><code class="language-smolambda">nominal</code> needed for calls whose results is attached to a specific name for safety (nominal type).
 </li><li><code class="language-smolambda">:</code> passes the left-hand-side as the first argument ("currying"). <code class="language-smolambda">()</code> is ommitted. Currying into a loop passes the value into first call in the condition; in this case <code class="language-smolambda">next(chunks&, str&)</code> is called to progress the iteration.
 </li>
-<li><code class="language-smolambda">@mut</code>, if prepended to the first declation of a variable, indicates values that can may change.</li>
+<li><code class="language-smolambda">@mut</code>, if prepended to the first declation of a variable, indicates values that may change.</li>
 </ul>
 
 ```rust
