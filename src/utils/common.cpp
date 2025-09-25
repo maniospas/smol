@@ -98,7 +98,8 @@ bool is_primitive(const string& name) {
     if(name=="true"||name=="false") return true;
     const char* s=name.c_str(); while(isspace(*s)) ++s; if(*s=='\0') return false;
     char* e;
-    if(s[0]=='0'&&(s[1]=='x'||s[1]=='X')){ strtol(s,&e,16); if(e!=s+2&&*e=='\0') return true; }
+    // checking s[0] and progressively s[1] is fine due to null-termination
+    if(s[0]=='0'&&(s[1]=='x'||s[1]=='X')){ strtol(s,&e,16); if(e!=s+2&&*e=='\0') return true; } 
     else if(s[0]=='0'&&(s[1]=='b'||s[1]=='B')){ const char* p=s+2; if(*p){ while(*p=='0'||*p=='1') ++p; if(*p=='\0') return true; } }
     else if(s[0]=='0'&&(s[1]=='o'||s[1]=='O')){ const char* p=s+2; if(*p){ while(*p>='0'&&*p<='7') ++p; if(*p=='\0') return true; } }
     strtol(s,&e,10); if(e!=s&&*e=='\0') return true;
@@ -111,6 +112,7 @@ string type_primitive(const string& name) {
     if(name=="true"||name=="false") return "bool";
     const char* s=name.c_str(); while(isspace(*s)) ++s; if(*s=='\0') return "CANNOT DETECT TYPE";
     char* e;
+    // checking s[0] and progressively s[1] is fine due to null-termination
     if(s[0]=='0'&&(s[1]=='x'||s[1]=='X')){ strtol(s,&e,16); if(e!=s+2&&*e=='\0') return "u64"; }
     else if(s[0]=='0'&&(s[1]=='b'||s[1]=='B')){ const char* p=s+2; if(*p){ while(*p=='0'||*p=='1') ++p; if(*p=='\0') return "u64"; } }
     else if(s[0]=='0'&&(s[1]=='o'||s[1]=='O')){ const char* p=s+2; if(*p){ while(*p>='0'&&*p<='7') ++p; if(*p=='\0') return "u64"; } }

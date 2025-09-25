@@ -30,12 +30,12 @@
             "different services. These safety mechanisms help safeguard speed and prevent common mistakes, for example by making impossible to directly "
             "re-initialize Rand in each loop to get a next number."
 @about next "Computes the next random number of a Rand sequence."
-            "Example:<pre>@mut rnd = Rand()\nrange(10)\n:while next(@mut u64 i)\n    print(rnd:next)\n    --</pre>"
+            "Example:<pre>@mut rnd = Rand()\nrange(10)\n:while next(@mut u64 i)\n    print(rnd:next)\n    end</pre>"
 @about splitmix64 "Computes the next random number of a splitmix64 sequence using the mutable unsigned int argument as state to be updated. "
             "This is NOT cryptographically secure and also has small period of 2^64 so usage is not recommended for long-running sequences."
             "It is, however, faster than computing a next Rand state with next. If you do not provide a seed, a number obtained from the current "
             "time is provided. That can only be the start of a sequence, and marked as a leaking resource to prevent time-based randomization (which is not random)."
-            "Example:<pre>@mut rnd = splitmix64()\nrange(10)\n:while next(@mut u64 i)\n    print(rnd:splitmix64) // rnd is the state, the result is f64\n    --</pre>"
+            "Example:<pre>@mut rnd = splitmix64()\nrange(10)\n:while next(@mut u64 i)\n    print(rnd:splitmix64) // rnd is the state, the result is f64\n    end</pre>"
 
 
 def __rotl(u64 x, u64 k)

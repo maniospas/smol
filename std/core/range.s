@@ -24,7 +24,7 @@
              "\n<pre>range(10)"
              "\n:while next(@mut u64 i)"
              "\n    print(i)"
-             "\n    --</pre>"
+             "\n    end</pre>"
 
 def range(u64 start, u64 sup, u64 step) 
     @mut pos = start 

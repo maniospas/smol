@@ -40,7 +40,7 @@
 //            "\n    1:put(\"entry 1\")"
 //            "\n    2:put(\"entry 2\")"
 //            "\n    3:put(\"entry 3\")"
-//            "\n    --"
+//            "\n    end"
 //            "\nprint(map[3])"
 //            "\n</pre>"
 // @about List "Constructs a list given a memory allocator, a maximum capacity, and the type of its elements."
