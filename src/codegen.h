@@ -80,7 +80,7 @@ void codegen(
 );
 
 bool is_import_done(const string &path);
-void request_import(const string &path);
+bool request_import(const string &path); // true if it was requested or already there, false if the file does not exist
 void mark_import_done(const string &path, shared_ptr<Import> imp);
 void worker_loop();
 

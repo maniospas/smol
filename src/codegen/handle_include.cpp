@@ -38,17 +38,17 @@ void handle_include(
     //     }
     // }
     if(!is_import_done(path)) {
-        p = prev_progress; // go back to the import statement
-        halted = path;
         //cout << file+" -- dependency "+path+" not yet compiled\n";
-        request_import(path);
-        return;
+        if(request_import(path)) {
+            p = prev_progress; // go back to the import statement
+            halted = path;
+            return;
+        }
+        else {
+            imp->error(p, "Could not open file: " + path);
+            return;
+        }
     }
-    // {
-    //     ifstream f(path);
-    //     if(!f)
-    //         imp->error(p, "Could not open file: " + path);
-    // }
     auto filter = unordered_set<Variable>{};
     if(p < imp->size() - 1 && imp->at(p + 1) == "-") {
         p += 2;

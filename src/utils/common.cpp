@@ -95,36 +95,31 @@ int sellersMinimumEditDistance(const string& pattern, const string& text) {
 }
 
 bool is_primitive(const string& name) {
-    if(name == "true" || name == "false") 
-        return true;
-    const char* str = name.c_str();
-    char* end;
-    while(isspace(*str)) ++str;
-    if(*str == '\0') return false;
-    strtol(str, &end, 10);
-    if(end != str && *end == '\0') return true;
-    strtod(str, &end);
-    if(end != str && *end == '\0') return true;
-    if(name.size() >= 2 && name.front() == '"' && name.back() == '"') 
-        return true;
+    if(name=="true"||name=="false") return true;
+    const char* s=name.c_str(); while(isspace(*s)) ++s; if(*s=='\0') return false;
+    char* e;
+    if(s[0]=='0'&&(s[1]=='x'||s[1]=='X')){ strtol(s,&e,16); if(e!=s+2&&*e=='\0') return true; }
+    else if(s[0]=='0'&&(s[1]=='b'||s[1]=='B')){ const char* p=s+2; if(*p){ while(*p=='0'||*p=='1') ++p; if(*p=='\0') return true; } }
+    else if(s[0]=='0'&&(s[1]=='o'||s[1]=='O')){ const char* p=s+2; if(*p){ while(*p>='0'&&*p<='7') ++p; if(*p=='\0') return true; } }
+    strtol(s,&e,10); if(e!=s&&*e=='\0') return true;
+    strtod(s,&e);    if(e!=s&&*e=='\0') return true;
+    if(name.size()>=2&&name.front()=='"'&&name.back()=='"') return true;
     return false;
 }
 
 string type_primitive(const string& name) {
-    if(name == "true" || name == "false") 
-        return "bool";
-    const char* str = name.c_str();
-    char* end;
-    while(isspace(*str)) ++str;
-    if(*str == '\0') return "CANNOT DETECT TYPE";
-    strtol(str, &end, 10);
-    if(end != str && *end == '\0') return "u64";
-    strtod(str, &end);
-    if(end != str && *end == '\0') return "f64";
-    if(name.size() >= 2 && name.front() == '"' && name.back() == '"') 
-        return "cstr";
+    if(name=="true"||name=="false") return "bool";
+    const char* s=name.c_str(); while(isspace(*s)) ++s; if(*s=='\0') return "CANNOT DETECT TYPE";
+    char* e;
+    if(s[0]=='0'&&(s[1]=='x'||s[1]=='X')){ strtol(s,&e,16); if(e!=s+2&&*e=='\0') return "u64"; }
+    else if(s[0]=='0'&&(s[1]=='b'||s[1]=='B')){ const char* p=s+2; if(*p){ while(*p=='0'||*p=='1') ++p; if(*p=='\0') return "u64"; } }
+    else if(s[0]=='0'&&(s[1]=='o'||s[1]=='O')){ const char* p=s+2; if(*p){ while(*p>='0'&&*p<='7') ++p; if(*p=='\0') return "u64"; } }
+    strtol(s,&e,10); if(e!=s&&*e=='\0') return "u64";
+    strtod(s,&e);    if(e!=s&&*e=='\0') return "f64";
+    if(name.size()>=2&&name.front()=='"'&&name.back()=='"') return "cstr";
     return "";
 }
+
 
 bool accepted_var_name(const string& name) {
     return !(name=="(" || name==")" || name=="{" || name=="}" ||

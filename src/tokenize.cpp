@@ -153,7 +153,8 @@ shared_ptr<Import> tokenize(const string& path) {
                     else col++;
                     i++;
                 }
-                if(i >= line.size()) ERROR("String segments can only span one line\n"+tokens[tokens.size()-1].show());
+                //if(i >= line.size()) ERROR("String segments can only span one line\n"+tokens[tokens.size()-1].show());
+                if(i >= line.size()) tokens.emplace_back("String segments can only span one line", line_num, start_col, main_file);
                 i++; // skip closing quote
                 col++;
                 string current_str_token = (prefix + line.substr(start, i - start));
@@ -269,7 +270,8 @@ shared_ptr<Import> tokenize(const string& path) {
                         size_t hex_start = i;
                         while(i < line.size() && isxdigit(line[i])) { i++; col++; }
                         if(hex_start == i)
-                            ERROR("Invalid hexadecimal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
+                            tokens.emplace_back("Invalid hexadecimal number", line_num, number_col, main_file);
+                            //ERROR("Invalid hexadecimal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
                         // <<<<<< ADD THIS >>>>>
                         size_t suffix_end = parse_integer_suffix(line, i);
                         col += (suffix_end - i);
@@ -281,7 +283,8 @@ shared_ptr<Import> tokenize(const string& path) {
                         size_t bin_start = i;
                         while(i < line.size() && (line[i] == '0' || line[i] == '1')) { i++; col++; }
                         if(bin_start == i)
-                            ERROR("Invalid binary number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
+                            tokens.emplace_back("Invalid binary number", line_num, number_col, main_file);
+                            //ERROR("Invalid binary number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
                         size_t suffix_end = parse_integer_suffix(line, i);
                         col += (suffix_end - i);
                         i = suffix_end;
@@ -292,7 +295,8 @@ shared_ptr<Import> tokenize(const string& path) {
                         size_t oct_start = i;
                         while(i < line.size() && (line[i] >= '0' && line[i] <= '7')) { i++; col++; }
                         if(oct_start == i)
-                            ERROR("Invalid octal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
+                            tokens.emplace_back("Invalid octal number", line_num, number_col, main_file);
+                            //ERROR("Invalid octal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
                         size_t suffix_end = parse_integer_suffix(line, i);
                         col += (suffix_end - i);
                         i = suffix_end;

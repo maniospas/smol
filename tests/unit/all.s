@@ -15,19 +15,15 @@ service run(String command)
     end
 
 service std_test(String name)
-    redirect = " 2>&1"
-    command = on Heap:dynamic return "./smol tests/unit/"+name+".s --workers 1 --runtime eager"+redirect
+    command = on Heap:dynamic return "./smol tests/unit/"+name+".s --workers 1 --runtime eager 2>&1"
     // new memory surface because the previous one was made immutable 
     // by feeding into a service call
     on Heap:dynamic
         if run(command).err:bool
             print("[ \033[31mERROR\033[0m ] "+name+".s")
-            end
-        else
+        end else
             print("[ \033[32mOK\033[0m ] "+name+".s")
-            end
-        end
-    end
+    end end end
 
 service all()
     // services are asynchronous co-routines
