@@ -11,6 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include "../codegen.h"
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 vector<string> installation_permissions;
 mutex g_importMutex;
@@ -29,11 +32,8 @@ bool request_import(const string &path) {
     lock_guard<mutex> lock(g_importMutex);
     auto it = find_if(g_imports.begin(), g_imports.end(), [&](const ImportItem &i){ return i.path==path; });
     if(it==g_imports.end()) {
-        {
-            ifstream f(path);
-            if(!f)
-                return false;
-        }
+        if (!fs::is_regular_file(path))
+            return false;
         g_imports.push_back({path, ImportStatus::Requested, nullptr});
         g_importCv.notify_all(); // wake up any worker polling
     }

@@ -70,7 +70,7 @@ def is_nan(f64 x)
 
 def is_inf(f64 x) 
     @head{#include <cmath>} 
-    @body{bool z=std::isinf(x);}
+    @body{bool z=isinf(x);}
     return z
 
 def sqrt(f64 x)

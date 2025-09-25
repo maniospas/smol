@@ -28,6 +28,9 @@
 #include <array>
 #include <memory>
 #include <stdexcept>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 
 int main(int argc, char* argv[]) {
@@ -147,6 +150,10 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         try {
+            if(!fs::is_regular_file(file)) {
+                cerr << "\033[30;41m ERROR \033[0m could not find file: " << file << endl; 
+                return 1;
+            }
             errors = codegen_all(included, file, builtins, selected_task, task_report);
             size_t number = 1;
             if(Def::export_docs) {

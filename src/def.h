@@ -40,7 +40,7 @@ using namespace std;
 #define CODE_END() string(lsp?"```\n":"")
 
 class Def;
-using Type = std::shared_ptr<Def>;
+using Type = shared_ptr<Def>;
 using Variable = SegmentedString;
 using Code = SegmentSequence;
 
@@ -129,7 +129,7 @@ public:
 extern bool log_type_resolution;
 extern vector<Type> all_types;
 
-class Def : public std::enable_shared_from_this<Def> {
+class Def : public enable_shared_from_this<Def> {
     static int temp;
     static string create_temp() {return "__"+numberToVar(++temp);}
     unordered_map<Variable, Variable> current_renaming;
@@ -255,8 +255,8 @@ public:
     inline bool not_primitive() const {return !_is_primitive;}
 
     // property managers for finals, errors, mutability, service calls, etc
-    void add_preample(const std::string& pre);
-    void add_linker(const std::string& pre);
+    void add_preample(const string& pre);
+    void add_linker(const string& pre);
     void assert_options_validity(const shared_ptr<Import>& imp, size_t& p);
     void coallesce_finals(const Variable& original);
     void notify_release(const Variable& original);

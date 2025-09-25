@@ -16,7 +16,7 @@
 #include <cctype>
 
 // ---------- parse_integer_suffix ----------
-size_t parse_integer_suffix(const std::string& line, size_t i) {
+size_t parse_integer_suffix(const string& line, size_t i) {
     bool found_u = false;
     int l_count = 0;
 
@@ -36,10 +36,10 @@ size_t parse_integer_suffix(const std::string& line, size_t i) {
 }
 
 // ---------- Import ----------
-Import::Import(const std::string& p)
+Import::Import(const string& p)
     : path(p), pair(0), parse_progress(0), allow_unsafe(false) {}
 
-std::string& Import::at(size_t pos) {
+string& Import::at(size_t pos) {
     if(pos < 0) 
         ERROR("Tried to read before the beginning of file: " + path);
     if(pos >= tokens.size()) 
@@ -47,7 +47,7 @@ std::string& Import::at(size_t pos) {
     return tokens[pos].name;
 }
 
-void Import::error(size_t pos, const std::string& message) {
+void Import::error(size_t pos, const string& message) {
     if(pos < 0) 
         ERROR("Tried to read before the beginning of file: " + path);
     if(pos >= tokens.size()) 
@@ -62,18 +62,18 @@ size_t Import::size() {
 // ---------- Token ----------
 Token::Token() : line(0), character(0) {}
 
-Token::Token(const std::string& n, size_t l, size_t c, const std::shared_ptr<Import>& i)
+Token::Token(const string& n, size_t l, size_t c, const shared_ptr<Import>& i)
     : name(n), line(l), character(c), imp(i) {}
 
-std::string Token::show() const {
+string Token::show() const {
     if(!imp || imp->path.empty()) 
         return "[no file]";
 
-    std::ifstream file(imp->path);
+    ifstream file(imp->path);
     if(!file) 
         return imp->path;
 
-    std::string current;
+    string current;
     size_t current_line = 1;
     while(getline(file, current)) {
         if(current_line == line) break;
@@ -82,7 +82,7 @@ std::string Token::show() const {
     if(current_line != line)
         return imp->path;
 
-    std::string expanded_line;
+    string expanded_line;
     for(char c : current) {
         if(c == '\t') expanded_line += "    ";
         else expanded_line += c;
@@ -99,16 +99,16 @@ std::string Token::show() const {
         col++;
     }
 
-    std::string red_marker =
+    string red_marker =
         "\033[31m" +
-        std::string(display_col, ' ') +
+        string(display_col, ' ') +
         "^" +
-        std::string(name.size() - 1, '^') +
+        string(name.size() - 1, '^') +
         "\033[0m";
 
     return "at \033[90m " + imp->path +
-           " line " + std::to_string(line) +
-           " col " + std::to_string(character) +
+           " line " + to_string(line) +
+           " col " + to_string(character) +
            "\033[0m\n" +
            expanded_line + "\n" + red_marker;
 }

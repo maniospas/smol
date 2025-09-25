@@ -70,11 +70,11 @@ void handle_union(
     Types& types
 );
 void codegen(
-    std::map<std::string, Types>& files,
-    std::string file,
+    map<string, Types>& files,
+    string file,
     const Memory& builtins,
     Task selected_task,
-    std::string& task_report,
+    string& task_report,
     string& halted,
     bool& errors
 );
@@ -85,11 +85,11 @@ void mark_import_done(const string &path, shared_ptr<Import> imp);
 void worker_loop();
 
 bool codegen_all(
-    std::map<std::string, Types>& files,
-    std::string first_file,
+    map<string, Types>& files,
+    string first_file,
     const Memory& builtins,
     Task selected_task,
-    std::string& task_report
+    string& task_report
 );
 
 

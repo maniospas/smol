@@ -26,7 +26,7 @@
 
 class SegmentMap {
 public:
-    int get_id(const std::string& seg) {
+    int get_id(const string& seg) {
         //std::lock_guard<std::mutex> lock(mutex_);
         auto it = seg_to_id.find(seg);
         if(it != seg_to_id.end()) 
@@ -36,7 +36,7 @@ public:
         id_to_seg.push_back(seg);
         return id;
     }
-    const std::string& get_segment(unsigned int id) const {
+    const string& get_segment(unsigned int id) const {
         return id_to_seg.at(id);
     }
     static SegmentMap& instance() {
@@ -44,8 +44,8 @@ public:
         return inst;
     }
 private:
-    std::unordered_map<std::string, unsigned int> seg_to_id;
-    std::vector<std::string> id_to_seg;
+    std::unordered_map<string, unsigned int> seg_to_id;
+    std::vector<string> id_to_seg;
     //mutable std::mutex mutex_;
 };
 
@@ -55,12 +55,12 @@ public:
     unsigned int first_segment;
     unsigned int* segments;
     SegmentedString() : size(0), first_segment(0), segments(nullptr) {}
-    SegmentedString(const std::string& input) : size(0), first_segment(0), segments(nullptr) {
+    SegmentedString(const string& input) : size(0), first_segment(0), segments(nullptr) {
         if(input.empty()) 
             return;
         // Count segments
         size_t pos = 0, next;
-        while((next = input.find("__", pos)) != std::string::npos) {
+        while((next = input.find("__", pos)) != string::npos) {
             ++size;
             pos = next + 2;
         }
@@ -70,16 +70,16 @@ public:
         // Parse segments
         pos = 0;
         next = input.find("__", pos);
-        std::string first_seg_str = (next == std::string::npos) ? input : input.substr(pos, next-pos);
+        string first_seg_str = (next == string::npos) ? input : input.substr(pos, next-pos);
         first_segment = SegmentMap::instance().get_id(first_seg_str);
 
         if(size > 1) {
             segments = (unsigned int*)malloc(sizeof(unsigned int) * (size - 1));
             size_t found = 0;
-            if(next != std::string::npos) {
+            if(next != string::npos) {
                 pos = next + 2;
                 // Fill in the rest segments[1..size-1]
-                while((next = input.find("__", pos)) != std::string::npos) {
+                while((next = input.find("__", pos)) != string::npos) {
                     segments[found++] = SegmentMap::instance().get_id(input.substr(pos, next-pos));
                     pos = next + 2;
                 }
@@ -134,7 +134,7 @@ public:
     inline bool is_private() const { 
         return size && SegmentMap::instance().get_segment(first_segment).size(); 
     }
-    inline std::string to_string() const {
+    inline string to_string() const {
         std::ostringstream oss;
         if(size == 0) return "";
         oss << SegmentMap::instance().get_segment(first_segment);
@@ -180,10 +180,10 @@ public:
         return os;
     }
 
-    inline bool operator==(const std::string& s) const {
+    inline bool operator==(const string& s) const {
         size_t pos = 0;
         // Compare first segment
-        const std::string& seg0 = SegmentMap::instance().get_segment(first_segment);
+        const string& seg0 = SegmentMap::instance().get_segment(first_segment);
         if(s.compare(pos, seg0.size(), seg0) != 0) 
             return false;
         pos += seg0.size();
@@ -191,7 +191,7 @@ public:
             if(s.compare(pos, 2, "__") != 0) 
                 return false;
             pos += 2;
-            const std::string& seg = SegmentMap::instance().get_segment(segments[i - 1]);
+            const string& seg = SegmentMap::instance().get_segment(segments[i - 1]);
             if(s.compare(pos, seg.size(), seg) != 0) 
                 return false;
             pos += seg.size();
@@ -220,11 +220,11 @@ namespace std {
     };
 }
 
-inline bool operator==(const std::string& lhs, const SegmentedString& rhs) {
+inline bool operator==(const string& lhs, const SegmentedString& rhs) {
     return rhs == lhs;
 }
 
-inline bool operator!=(const std::string& lhs, const SegmentedString& rhs) {
+inline bool operator!=(const string& lhs, const SegmentedString& rhs) {
     return !(rhs == lhs);
 }
 
@@ -254,7 +254,7 @@ public:
         segments.push_back(seg);
         return *this;
     }
-    inline std::string to_string() const {
+    inline string to_string() const {
         std::ostringstream oss;
         for(size_t i = 0; i < segments.size(); ++i) {
             if(i > 0) 
@@ -276,7 +276,7 @@ public:
     inline size_t find(const SegmentedString& query) const {
         auto it = std::find(segments.begin(), segments.end(), query);
         if(it == segments.end())
-            return std::string::npos;
+            return string::npos;
         return std::distance(segments.begin(), it);
     }
     inline size_t size() const { 
