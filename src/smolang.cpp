@@ -34,11 +34,11 @@ namespace fs = std::filesystem;
 
 
 int main(int argc, char* argv[]) {
-    Task selected_task = Task::Run;
+    auto selected_task = Task::Run;
+    auto errors = false;
+    map<string, shared_ptr<Types>> included;
     vector<string> files;
-    map<string, Types> included;
     Types builtins;
-    bool errors = false;
 
     builtins.vars[U64_VAR] = make_shared<Def>("u64");
     builtins.vars[Variable("i64")] = make_shared<Def>("i64");
@@ -147,12 +147,12 @@ int main(int argc, char* argv[]) {
     for(const string& file : files) {
         if(file.size()<2 || file.substr(file.size()-2) != ".s") {
             cerr << "\033[30;41m ERROR \033[0m expecting '.s' extension but got file: " << file << endl; 
-            return 1;
+            goto return_errors;
         }
         try {
             if(!fs::is_regular_file(file)) {
                 cerr << "\033[30;41m ERROR \033[0m could not find file: " << file << endl; 
-                return 1;
+                goto return_errors;
             }
             errors = codegen_all(included, file, builtins, selected_task, task_report);
             size_t number = 1;
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
                         display_name = display_name.substr(0, display_name.size() - 2);
                     display_name = regex_replace(display_name, regex("[\\\\/]"), ".");
                     string unsafe_html = "";
-                    if(include.second.imp->allow_unsafe) 
+                    if(include.second->imp->allow_unsafe) 
                         unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
                     string file_anchor = "file_" + display_name;
                     toc += "<br><b><a href=\"#" + file_anchor + "\">" + display_name + "</a></b><div style=\"color:gray\">";
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
                         + display_name 
                         + unsafe_html 
                         + "</span><a href=\"#toc\">&nbsp;🔝</a></h1>\n"
-                        + include.second.imp->about.substr(1, include.second.imp->about.size() - 2) 
+                        + include.second->imp->about.substr(1, include.second->imp->about.size() - 2) 
                         + "</p>\n";
                     number++;
                     if(unsafe_html.size()) 
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
                             "Given this trust, consider other non-unsafe files using it as safe.</i></p>";
                     string overload_docs("");
                     vector<pair<Variable, Type>> keys;
-                    for(const auto& type : include.second.vars) keys.push_back(pair<Variable,Type>(type.first, type.second));
+                    for(const auto& type : include.second->vars) keys.push_back(pair<Variable,Type>(type.first, type.second));
                     sort(keys.begin(), keys.end(), [](pair<Variable, Type>& lhs, pair<Variable, Type>& rhs) {
                         return lhs.second->pos < rhs.second->pos;
                     });
@@ -191,11 +191,11 @@ int main(int argc, char* argv[]) {
                     for(const auto& type : keys) {
                         string type_docs("");
                         for(const auto& subtype : type.second->options)
-                            if(/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second.imp.get()==subtype->imp.get()) {
+                            if(/*include.second.imp->docs.find(subtype->name)!=include.second.imp->docs.end() &&*/ include.second->imp.get()==subtype->imp.get()) {
                                 try {
-                                    string sig = ansi_to_html(subtype->signature(include.second))+"&nbsp;→&nbsp;";
+                                    string sig = ansi_to_html(subtype->signature(*include.second.get()))+"&nbsp;→&nbsp;";
                                     if(subtype->alias_for.exists() && subtype->vars[subtype->alias_for]->name==subtype->name) 
-                                        sig = sig+ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
+                                        sig = sig+ansi_to_html(subtype->vars[subtype->alias_for]->signature(*include.second.get()));
                                     else if(subtype->alias_for.exists()) 
                                         sig = sig+ansi_to_html(pretty_runtype(subtype->vars[subtype->alias_for]->name.to_string())/*+"["+to_string(subtype->vars[subtype->alias_for]->args.size())+"]"*/);//ansi_to_html(subtype->vars[subtype->alias_for]->signature(include.second));
                                     else if(subtype->packs.size()==1) 
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
                                     else if(subtype->packs.size()==0) 
                                         sig += "()";
                                     else 
-                                        sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(include.second, subtype->packs)));
+                                        sig += ""+ansi_to_html(ansi_to_html(subtype->signature_like(*include.second.get(), subtype->packs)));
                                     sig +=  "<br>\n";
                                     //for(const auto& param : subtype->parametric_types) {
                                     //    sig += "&nbsp;&nbsp;&nbsp;&nbsp;"+param.first + " = " + ansi_to_html(param.second->signature(include.second))+"<br>\n";
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
                                 } catch (const runtime_error&) {}
                             }
                         if(type_docs.size()) {
-                            string desc = include.second.imp->docs[type.second->name.to_string()];
+                            string desc = include.second->imp->docs[type.second->name.to_string()];
                             desc = unescape_string(desc);
                             if(desc.size()>=2) {
                                 replaceAll(desc, "<pre>", "<pre class=\"language-smolambda\"><code class=\"language-smolambda\">");
@@ -282,18 +282,18 @@ int main(int argc, char* argv[]) {
                 included.clear();
                 continue;
             }
-            Type main = included[file].vars[Variable("main")];
+            Type main = included[file]->vars[Variable("main")];
             if(!main) 
                 ERROR("Missing main service at: "+file);
             if(!main->is_service) 
                 ERROR("Main was not a service at: "+file);
-            if(included[file].all_errors.size()) 
+            if(included[file]->all_errors.size()) 
                 ERROR("Aborted due to the above errors\n");
 
             //define services
             auto count_services = size_t{0};
             unordered_set<string> preample;
-            for(const auto& it : included[file].vars) 
+            for(const auto& it : included[file]->vars) 
                 if(it.second->is_service) 
                     for(const auto& service : it.second->options) {
                         for(const string& pre : service->preample) 
@@ -362,7 +362,7 @@ int main(int argc, char* argv[]) {
             for(const string& pre : preample) 
                 out << pre << "\n";
             unordered_set<Type> added_services; // we track added services because somtimes services add themselves to themselves
-            for(const auto& it : included[file].vars) 
+            for(const auto& it : included[file]->vars) 
                 if(it.second->is_service) 
                     for(const auto& service : it.second->options)
                         if(!ranges::contains(added_services, it.second) && !service->lazy_compile) {
@@ -585,7 +585,7 @@ int main(int argc, char* argv[]) {
                 ofstream c_out(c_filename);
                 if(!c_out) {
                     cerr << "Failed to open " << c_filename << " for writing\n";
-                    return 1;
+                    goto return_errors;
                 }
                 c_out << out.str();
                 return 0;
@@ -618,12 +618,37 @@ int main(int argc, char* argv[]) {
                 cout << def->imp->about.substr(1, def->imp->about.size()-2) << "\n";
                 def->imp->about = "";
             }
-
-    for(const auto& def : all_types) 
-        if(def && def->imp) 
-            def->imp->tokens.clear();
-    all_types.clear();
     if(errors)
-        return 1;
+        goto return_errors;
+    
+    for(const auto& it : included) {
+        it.second->imp->tokens.clear();
+        it.second->imp = nullptr;
+    }
+    for(const auto& def : all_types) {
+        if(def) {
+            def->clear();
+        }
+    }
+    included.clear();
+    all_types.clear();
+    builtins.vars.clear(); 
+    SegmentMap::instance().clear();
     return 0;
+    
+
+    return_errors:
+    for(const auto& it : included) {
+        it.second->imp->tokens.clear();
+        it.second->imp = nullptr;
+    }
+    for(const auto& def : all_types) 
+        if(def) {
+            def->clear();
+        }
+    included.clear();
+    all_types.clear();
+    builtins.vars.clear(); 
+    SegmentMap::instance().clear();
+    return 1;
 }

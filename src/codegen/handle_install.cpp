@@ -13,7 +13,7 @@
 #include "../codegen.h"
 
 void handle_install(
-    map<string, Types>& files, 
+    map<string, shared_ptr<Types>>& files, 
     string file,
     const Memory& builtins, 
     Task selected_task,

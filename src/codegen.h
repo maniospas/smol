@@ -30,7 +30,7 @@ extern queue<string> g_imports;
 extern mutex g_importMutex;
 
 void handle_def_or_service(
-    map<string, Types>& files,
+    map<string, shared_ptr<Types>>& files,
     const string& file,
     const Memory& builtins,
     Task selected_task,
@@ -41,7 +41,7 @@ void handle_def_or_service(
     bool& errors
 );
 void handle_include(
-    map<string, Types>& files, string file,
+    map<string, shared_ptr<Types>>& files, string file,
     const Memory& builtins, Task selected_task,
     string& task_report, const shared_ptr<Import>& imp, size_t& p,
     Types& types,
@@ -49,7 +49,7 @@ void handle_include(
     bool& errors
 );
 void handle_install(
-    map<string, Types>& files, 
+    map<string, shared_ptr<Types>>& files, 
     string file,
     const Memory& builtins, 
     Task selected_task,
@@ -64,7 +64,7 @@ void handle_union(
     Types& types
 );
 void codegen(
-    map<string, Types>& files,
+    map<string, shared_ptr<Types>>& files,
     string file,
     const Memory& builtins,
     Task selected_task,
@@ -80,12 +80,13 @@ void mark_import_done(const string &path);
 void worker_loop();
 
 bool codegen_all(
-    map<string, Types>& files,
+    map<string, shared_ptr<Types>>& files,
     string first_file,
     const Memory& builtins,
     Task selected_task,
     string& task_report
 );
+shared_ptr<Types> get_file(map<string, shared_ptr<Types>>& files, string file);
 
 
 #endif // CODEGEN_H

@@ -109,6 +109,7 @@ public:
         return vars.find(var)!=vars.end() && vars.find(var)->second;
     }
     Memory() = default;
+    ~Memory() = default;
 };
 
 class Arg {
@@ -117,12 +118,14 @@ public:
     Type type;
     bool mut;
     Arg(const Variable& n, const Type& t, bool m):name(n),type(t),mut(m){}
+    ~Arg() = default;
 };
 
 class Types: public Memory {
 public:
     static atomic<unsigned long> last_type_id;
     Types() = default;
+    ~Types() = default;
     shared_ptr<Import> imp;
     unordered_map<Def*, unsigned long> alignment_labels;
     unordered_map<unsigned long, Def*> reverse_alignment_labels;
@@ -253,6 +256,34 @@ public:
         types.alignment_labels[this] = Types::last_type_id;
         identifier = Types::last_type_id;
     } 
+    inline void clear() {
+        for(const auto& it : options)
+            if(it && it.get()!=this)
+                it->clear();
+        options.clear();
+        args.clear();
+        packs.clear();
+        errors.clear();
+        preample.clear();
+        linker.clear();
+        singletons.clear();
+        acquired.clear();
+        buffer_types.clear();
+        active_calls.clear();
+        released.clear();
+        has_been_service_arg.clear();
+        has_been_retrieved_as_immutable.clear();
+        finals.clear();
+        parametric_types.clear();
+        alignments.clear(); 
+        mutables.clear();
+        uplifting_targets.clear();
+        uplifiting_is_loop.clear();
+        if(imp)
+            imp->tokens.clear();
+        imp = nullptr;
+    }
+    ~Def() = default;
     inline bool not_primitive() const {return !_is_primitive;}
 
     // property managers for finals, errors, mutability, service calls, etc

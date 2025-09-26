@@ -13,6 +13,7 @@ release: $(TARGET)
 
 debug: CXXFLAGS += -g -O0 -rdynamic -DDEBUG -fsanitize=address,undefined
 debug: LDFLAGS += -fsanitize=address,undefined -rdynamic
+debug: export ASAN_OPTIONS = detect_leaks=1
 debug: $(TARGET)
 
 # ---- Profile target ----

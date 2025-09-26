@@ -14,7 +14,7 @@
 #include <chrono>  
 
 bool codegen_all(
-    map<string, Types>& files,
+    map<string, shared_ptr<Types>>& files,
     string first_file,
     const Memory& builtins,
     Task selected_task,
@@ -28,8 +28,7 @@ bool codegen_all(
     }
 
     atomic<bool> global_errors{false};
-
-    auto worker = [&]() {
+    auto worker = [&global_errors, &files, &builtins, &selected_task, &task_report]() {
         for (;;) {
             auto path = string{""};
             auto halted = string{""};
@@ -38,8 +37,11 @@ bool codegen_all(
                 unique_lock<mutex> lock(g_importMutex);
                 if(status_requested.empty() && status_progress.empty()) 
                     break;
-                if(!g_imports.size())
+                if (g_imports.empty()) {
+                    lock.unlock(); 
+                    this_thread::sleep_for(chrono::milliseconds(1));
                     continue;
+                }
                 path = g_imports.front();
                 g_imports.pop();
             }

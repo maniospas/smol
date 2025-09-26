@@ -14,7 +14,7 @@
 
 int Def::log_depth = 0;
 void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types) {
-    bool is_as = false;
+    auto is_as = false;
     if(p>=imp->size()) 
         ERROR("Internal error: parsing "+name.to_string()+" has misjudged end of file");
     if(imp->at(p)=="as") 
@@ -35,10 +35,10 @@ void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types
     if(imp->at(p++)!="(") 
         imp->error(--p, "Missing left parenthesis");
     while(true) {
-        bool autoconstruct = false;
-        bool mut = false;
-        bool can_access_mutables = false;
-        string next = imp->at(p++);
+        auto autoconstruct = false;
+        auto mut = false;
+        auto can_access_mutables = false;
+        auto next = imp->at(p++);
         if(next==")") 
             break;
         if(args.size()) {

@@ -77,11 +77,17 @@ public:
         return inst;
     }
 
+    void clear() {
+        seg_to_id.clear();
+        id_to_seg.clear();
+        id_to_seg.shrink_to_fit();
+    }
 private:
     SegmentMap() = default;
-    unordered_map<std::string, unsigned int> seg_to_id;
-    vector<std::string> id_to_seg;
-    mutable std::mutex mutex_;
+    ~SegmentMap() = default;
+    unordered_map<string, unsigned int> seg_to_id;
+    vector<string> id_to_seg;
+    mutable mutex mutex_;
 };
 
 class SegmentedString {
@@ -153,6 +159,7 @@ public:
             size = other.size;
             first_segment = other.first_segment;
             segments = other.segments;
+            segments = other.segments; // REQUIRED ONLY FOR THE SANITIZER TO BE OK WITH US
             other.size = 0;
         }
         return *this;
@@ -179,13 +186,11 @@ public:
     }
 
     inline SegmentedString operator+(const SegmentedString& other) const {
-        if(size == 0)
-            return other;
-        if(other.size == 0) 
-            return *this;
+        if (size == 0) return SegmentedString(other);   // force a copy
+        if (other.size == 0) return SegmentedString(*this);
         size_t new_size = size + other.size;
-        unsigned int* new_segments = (unsigned int*)malloc(sizeof(unsigned int) * (new_size - 1));
-        if(size > 1) 
+        unsigned int* new_segments = new_size>1?(unsigned int*)malloc(sizeof(unsigned int) * (new_size - 1)):nullptr;
+        if(size > 1) // guarantees new_size>1
             memcpy(new_segments, segments, sizeof(unsigned int) * (size - 1));
         new_segments[size - 1] = other.first_segment;
         if(other.size > 1) 

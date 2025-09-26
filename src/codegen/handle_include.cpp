@@ -13,7 +13,7 @@
 #include "../codegen.h"
 
 void handle_include(
-    map<string, Types>& files, 
+    map<string, shared_ptr<Types>>& files, 
     string file,
     const Memory& builtins, 
     Task selected_task,
@@ -61,13 +61,15 @@ void handle_include(
             return;
         }
     }
+
+    auto included_file = get_file(files, path);
     auto filter = unordered_set<Variable>{};
     if(p < imp->size() - 1 && imp->at(p + 1) == "-") {
         p += 2;
         if(imp->at(p++) != ">")
             imp->error(--p, "Expecting -> to import specific symbols");
         while(p < imp->size() - 1) {
-            if(files[path].vars.find(imp->at(p)) == files[path].vars.end())
+            if(included_file->vars.find(imp->at(p)) == included_file->vars.end())
                 imp->error(p, "Could not import " + imp->at(p) + " from " + path);
             filter.insert(imp->at(p++));
             if(imp->at(p) != ",") {
@@ -79,11 +81,11 @@ void handle_include(
     }
 
     // unions and @access propagation
-    for(const auto& it : files[path].vars)
+    for(const auto& it : included_file->vars)
         if(filter.find(it.first) != filter.end())
             for(const auto& option : it.second->options)
                 filter.insert(option->name);
-    for(const auto& it : files[path].vars) {
+    for(const auto& it : included_file->vars) {
         for(const auto& access : it.second->can_access_mutable_fields)
             if(it.second->contains(access) && filter.find(it.second->vars[access]->name) != filter.end())
                 filter.insert(it.second->name);
@@ -95,7 +97,7 @@ void handle_include(
                 }
     }
 
-    for(const auto& it : files[path].vars) {
+    for(const auto& it : included_file->vars) {
         const Variable& name = it.first;
         if(filter.size() && filter.find(name) == filter.end())
             continue;
@@ -123,13 +125,13 @@ void handle_include(
         }
     }
 
-    for(auto& it : files[path].alignment_labels)
+    for(auto& it : included_file->alignment_labels)
         types.alignment_labels[it.first] = it.second;
-    for(auto& it : files[path].reverse_alignment_labels)
+    for(auto& it : included_file->reverse_alignment_labels)
         types.reverse_alignment_labels[it.first] = it.second;
 
     //cout << path+" -- include finished\n";
 
-    if(files[path].all_errors.size() && Def::lsp)
+    if(included_file->all_errors.size() && Def::lsp)
         imp->error(p, "Errors in included file: " + path);
 }

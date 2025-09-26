@@ -40,6 +40,7 @@ public:
     string& at(size_t pos);
     void error(size_t pos, const string& message);
     size_t size();
+    ~Import() = default;
 };
 
 class Token {
@@ -51,6 +52,7 @@ public:
     Token();
     Token(const string& n, size_t l, size_t c, const shared_ptr<Import>& i);
     string show() const;
+    ~Token() = default;
 };
 
 shared_ptr<Import> tokenize(const string& path);

@@ -28,13 +28,18 @@ static bool handle_about(Import* imp, size_t& p) {
 
 unsigned worker_limit = 0;
 
-Types& get_file(map<string, Types>& files, string file) {
+shared_ptr<Types> get_file(map<string, shared_ptr<Types>>& files, string file) {
     unique_lock<mutex> lock(g_importMutex);
-    return files[file];
+    auto ret = files[file];
+    if(!ret) {
+        ret = make_shared<Types>();
+        files[file] = ret;
+    }
+    return ret;
 }
 
 void codegen(
-    map<string, Types>& files, 
+    map<string, shared_ptr<Types>>& files, 
     string file,
     const Memory& builtins, 
     Task selected_task,
@@ -42,13 +47,15 @@ void codegen(
     string& halted,
     bool& errors
 ) { 
-    auto& types = get_file(files, file);
-    auto already_tokenized = bool{types.imp};
+    auto types_ref = get_file(files, file);
+    auto& types = *types_ref;
+    auto already_tokenized = (bool)types.imp;
     auto imp = already_tokenized?types.imp:tokenize(file);
-    types.imp = imp;
-    if(!already_tokenized)
+    if(!already_tokenized) {
+        types.imp = imp;
         for(const auto& it : builtins.vars)
             types.vars[it.first] = it.second;
+    }
 
     auto& p = imp->parse_progress;
     if(p>=imp->size()-1) {

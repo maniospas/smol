@@ -13,7 +13,7 @@
 #include "../codegen.h"
 
 void handle_def_or_service(
-    std::map<std::string, Types>& files,
+    map<string, shared_ptr<Types>>& files,
     const std::string& file,
     const Memory& builtins,
     Task selected_task,
