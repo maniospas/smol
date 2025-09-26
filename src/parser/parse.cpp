@@ -223,5 +223,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         vars[endvar] = types.vars[LABEL_VAR];
         implementation += Code(endvar, COLON_VAR);
         simplify();
+        if(p<imp->size()-1 && imp->at(p+1)!="@" && imp->at(p+1)!="def" && imp->at(p+1)!="service" && imp->at(p+1)!="union")
+            imp->error(p+1, "Unparsed code\nThe functio has already ended, so it can only be followed by def, srevice, union, or @ directives");
     }
 }

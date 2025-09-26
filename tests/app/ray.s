@@ -48,8 +48,7 @@ def process(@mut Sphere[] spheres, f64 dt)
     .range()
     .while next(@mut u64 i)
         spheres[i] =. process(dt)
-        end
-    end
+    end end
 
 service test()
     @mut spheres = Sphere[].expect(2)

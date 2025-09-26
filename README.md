@@ -19,10 +19,10 @@ Here's what smoλ programs look like.
 <ul>
 <li><code class="language-smolambda">def</code> functions are inlined and could fail. Results are treated as both tuples and types.
 </li><li><code class="language-smolambda">service</code> functions safely deallocate resources on internal failure (e.g., of called def or other services). Result errors can be checked or -if not- cascade into more failures.
-</li><li><code class="language-smolambda">nominal</code> needed for calls whose results is attached to a specific name for safety (nominal type).
-</li><li><code class="language-smolambda">:</code> passes the left-hand-side as the first argument ("currying"). <code class="language-smolambda">()</code> is ommitted. Currying into a loop passes the value into first call in the condition; in this case <code class="language-smolambda">next(chunks&, str&)</code> is called to progress the iteration.
-</li>
+</li><li><code class="language-smolambda">nominal</code> references types by name for safety (aka nominally).
 <li><code class="language-smolambda">@mut</code>, if prepended to the first declation of a variable, indicates values that may change.</li>
+</li><li><code class="language-smolambda">.</code> is element access, or passes the left-hand-side as the first argument into functions ("currying"). Currying into a loop passes the value into first call in the condition; in this case <code class="language-smolambda">next(@mut chunks, @mut str)</code> is called to progress the iteration.
+</li>
 </ul>
 
 ```rust
@@ -47,11 +47,11 @@ def print(file_stats stats)
 def file_reader(String path, @mut Memory memory) // define for all String variations
     @mut stat_lines = 0
     @mut stat_chars = 0
-    @mut file = ReadFile:open(path) // the ReadFile type as the first argument to open
-    endl = "\n":str.first
+    @mut file = ReadFile.open(path) // the ReadFile type as the first argument to open
+    endl = "\n".str().first
     on memory:arena(1024)
         file
-        :while next_line(str &line)
+        .while next_line(str &line)
             printin("| ")
             print(line)
             stat_lines = stat_lines + 1

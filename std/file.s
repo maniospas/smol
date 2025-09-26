@@ -32,7 +32,7 @@
                   "<pre>if is_file(\"hi.txt\")"
                   "\n    remove_file(\"hi.txt\")"
                   "\n    end"
-                  "\n@mut file = WriteFile:open(\"tmp.txt\")"
+                  "\n@mut file = WriteFile.open(\"tmp.txt\")"
                   "\nfile:print(\"Hello world!\")"
                   "\n@release file // early release closes the file"
                   "\n</pre>"
@@ -94,7 +94,7 @@ def WriteFile(nominal, ptr contents)
 union File
     ReadFile
     WriteFile
-    --
+    end
 
 def open(@access @mut ReadFile, String _path) 
     path = _path.str()
@@ -109,14 +109,15 @@ def open(@access @mut ReadFile, String _path)
     }
     if contents.exists().not()
         @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} 
-    --return nominal.ReadFile(contents)
+        end
+    return nominal.ReadFile(contents)
 
 def to_start(@access @mut File f) 
     if f.contents.exists().not()
         @fail{printf("Failed to move to start of closed file");} 
-        --
+        end
     @body{fseek((FILE*)f__contents, 0, SEEK_SET);}
-    --
+    end
 
 def to_end(@access @mut WriteFile f) 
     // only useful for moving to the end of write files. For read files, @release them instead.
@@ -147,7 +148,7 @@ def print(@access @mut WriteFile f, String _s)
     s = _s.str()
     if f.contents.exists().not()
         @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
-        --
+        end
     @head{#include <stdio.h>}
     @body{
         u64 bytes_written = fwrite((char*)s__contents, 1, s__length, (FILE*)f__contents);
@@ -155,7 +156,7 @@ def print(@access @mut WriteFile f, String _s)
     }
     if success.not()
         @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
-    ----
+    end end
 
 def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     // using temporary files can be exceptionall 
@@ -191,7 +192,7 @@ def next_chunk (
         reader__length = reader__length + bytes_read;
     }
     value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
-    return ret:bool
+    return ret.bool()
 
 def next_line (
         @mut Volatile reader, 
@@ -216,7 +217,7 @@ def next_line (
         reader__length = reader__length + bytes_read;
     }
     value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
-    return ret:bool
+    return ret.bool()
 
 def next_chunk (
         @mut Arena reader, 
@@ -234,7 +235,7 @@ def next_chunk (
         reader__length = reader__length + bytes_read;
     }
     value = nominal.nstr(ret, bytes_read, first, reader.contents.mem.ptr())
-    return ret:bool
+    return ret.bool()
 
 def next_line(
         @mut Arena reader,
@@ -256,7 +257,7 @@ def next_line(
         reader__length = reader__length + bytes_read;
     }
     value = nominal.nstr(ret, bytes_read, first, reader.contents.mem.ptr())
-    return ret:bool
+    return ret.bool()
 
 def next_line (
         @mut BoundedMemory reader,
@@ -331,7 +332,8 @@ def open(@access @mut WriteFile, String _path)
     }
     if contents.exists().not()
         @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
-    --return nominal.WriteFile(contents)
+        end
+    return nominal.WriteFile(contents)
 
 def create_dir(String _path)
     path = _path.str()
@@ -350,7 +352,7 @@ def create_dir(String _path)
     }
     if created.not()
         @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
-    ----
+    end end
     
 def console(@access @mut WriteFile)
     @head{#include <stdio.h>}

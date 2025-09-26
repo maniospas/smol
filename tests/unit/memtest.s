@@ -14,6 +14,5 @@ def test(@mut File file)
 service main()
     ReadFile
     .open("README.md")
-    .test
+    .test()
     end
-ot 

@@ -18,12 +18,24 @@
 Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test) {
     if(first_token.is_empty()) 
         return EMPTY_VAR;
-    size_t n = i->size();
+    auto n = i->size();
     CHECK_RELEASE(first_token);
     CHECK_ERRCODE(first_token);
     if(p>=n) 
         return first_token;
-    Variable next = first_token;
+    auto next = first_token;
+    if(types.contains(next)) {
+        auto type = types.vars[next];
+        next = create_temp();
+        vars[next] = type;
+        mutables.insert(next);
+        for(const auto& pack : type->packs) {
+            if(type->alignments[pack])
+                alignments[next+pack] = type->alignments[pack];
+            assign_variable(type->vars[pack], next+pack, ZERO_VAR, i, p);
+            mutables.insert(next+pack);
+        }
+    }
     while(true) {
         if(next!=first_token) {
             CHECK_RELEASE(next);

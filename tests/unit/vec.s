@@ -17,7 +17,7 @@ def one_hot(@mut Memory memory, u64 pos, u64 size)
         // vector and we return that from `on` 
         // whose outcome is in turn returned 
         // by `one_hot`.
-        return pos:put(1.0)
+        return pos.put(1.0)
 
 service main() 
     @mut memory = Stack.arena(1024)

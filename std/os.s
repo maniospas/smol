@@ -99,7 +99,7 @@ def next_chunk(
         char first = ((char*)reader__contents__mem)[0];
     }
     value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
-    return ret:bool
+    return ret.bool()
 
 def next_line(
         @mut DerivedMemory reader, 
@@ -113,7 +113,7 @@ def next_line(
         char first = ((char*)reader__contents__mem)[0];
     }
     value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
-    return ret:bool
+    return ret.bool()
 
 def next_chunk(
         @mut DerivedMemory memory, 
