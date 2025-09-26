@@ -10,22 +10,23 @@ def read_name(@mut Arena arn)
     // --return name
 
 service main()
-    name = Heap:arena(24):read_name
-    on Heap:dynamic
+    name = Heap.arena(24).read_name()
+    on Heap.dynamic()
         print("Hi "+name+"!")
         end
-    on Stack:dynamic
+    on Stack.dynamic()
         print("Hi "+name+"!")
         end
-    on Heap:arena(1024)
+    on Heap.arena(1024)
         print("Hi "+name+"!")
         end
-    on Stack:arena(1024)
+    on Stack.arena(1024)
         print("Hi "+name+"!")
         end
-    on Stack:volatile(1024)
+    on Stack.volatile(1024)
         print("Hi "+name+"!")
         end
-    on Heap:volatile(1024)
+    on Heap.volatile(1024)
         print("Hi "+name+"!")
         end
+    end

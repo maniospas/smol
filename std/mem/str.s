@@ -21,23 +21,28 @@
 @about "Standard library implementation of string operations using its own allocators and C memory operations."
 @about copy "Copies a string on a given Memory allocator. The result is nstr, that is, a string variation is null-terminated. This operation may fail if the allocation fails."
 @about add  "Overloads the + operator to concatenate two strings. The result is nstr, that is, a string variation that is null-terminated. "
-            "Example:<pre>name = \"Mario\"\non Heap:arena(1024)\n    message = \"It's a me, \"+name+\"!\"\n    end\nprint(message)</pre>"
+            "Example:"
+            "<pre>name = \"Mario\""
+            "\non Heap.arena(1024)"
+            "\n    message = \"It's a me, \"+name+\"!\""
+            "\n    end"
+            "\nprint(message)</pre>"
 @about str  "Provides methods for converting numbers to strings that are stored on provided Memory allocators. These are not necessarily null-terminated, so use nstr if that is important."
 @about str  "Provides methods for converting numbers to strings that are stored on provided Memory allocators. The result is a null-terminated nstr."
 
 def copy(@access @mut Memory allocator, String _s)
-    s = _s:str
-    mem = allocator:allocate(s.length+1, char)
+    s = _s.str()
+    mem = allocator.allocate(s.length+1, char)
     @body{
         char first = 0;
         memcpy((char*)mem__mem, s__contents, s__length);
         ((char*)mem__mem)[s__length] = 0;
     }
-    return nominal:nstr(mem.mem, s.length, first, mem.underlying)
+    return nominal.nstr(mem.mem, s.length, first, mem.underlying)
 
 def add(@access @mut Memory allocator, String _x, IndependentString _y)
-    x = _x:str
-    y = _y:str
+    x = _x.str()
+    y = _y.str()
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @body{
@@ -46,20 +51,20 @@ def add(@access @mut Memory allocator, String _x, IndependentString _y)
         u64 total_len = len_x + len_y ;
         char first = x__length?x__first:y__first;
     }
-    mem = allocator:allocate(total_len+1, char)
+    mem = allocator.allocate(total_len+1, char)
     _contents = mem.mem
     @body{
         memcpy((char*)_contents, (char*)x__contents, len_x);
         memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
         ((char*)_contents)[total_len] = 0;
     }
-    return nominal:nstr(_contents, total_len, first, mem.underlying)
+    return nominal.nstr(_contents, total_len, first, mem.underlying)
 
 def nstr(@access @mut Memory allocator, i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
-    mem = allocator:allocate(21, char)
+    mem = allocator.allocate(21, char)
     readbuf = mem.mem
     @body{
         if(readbuf) {
@@ -74,16 +79,16 @@ def nstr(@access @mut Memory allocator, i64 number)
             }
         }
     }
-    if contents:exists:not
+    if contents.exists().not()
         @fail{printf("Failed to allocate str from number\n");} 
         --
-    return nominal:nstr(contents, length, first, mem.underlying)
+    return nominal.nstr(contents, length, first, mem.underlying)
 
 def nstr(@access @mut Memory allocator, u64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
-    mem = allocator:allocate(21, char)
+    mem = allocator.allocate(21, char)
     readbuf = mem.mem
     @body{
         if(readbuf) {
@@ -98,16 +103,16 @@ def nstr(@access @mut Memory allocator, u64 number)
             }
         }
     }
-    if contents:exists:not
+    if contents.exists().not()
         @fail{printf("Failed to allocate str from number\n");} 
         end
-    return nominal:nstr(contents, length, first, mem.underlying)
+    return nominal.nstr(contents, length, first, mem.underlying)
 
 def nstr(@access @mut Memory allocator, f64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
-    mem = allocator:allocate(25, char)
+    mem = allocator.allocate(25, char)
     readbuf = mem.mem
     @body{
         if(readbuf) {
@@ -122,16 +127,16 @@ def nstr(@access @mut Memory allocator, f64 number)
             }
         }
     }
-    if contents:exists:not
+    if contents.exists().not()
         @fail{printf("Failed to allocate str from number\n");} 
         end
-    return nominal:nstr(contents, length, first, mem.underlying)
+    return nominal.nstr(contents, length, first, mem.underlying)
 
 def str(@access @mut Memory allocator, u64 number)
-    return nstr(allocator, number):str
+    return nstr(allocator, number).str()
 
 def str(@access @mut Memory allocator, i64 number)
-    return nstr(allocator, number):str
+    return nstr(allocator, number).str()
 
 def str(@access @mut Memory allocator, f64 number)
-    return nstr(allocator, number):str
+    return nstr(allocator, number).str()

@@ -80,7 +80,7 @@ def close(@mut Window window)
 
 def is_open(@mut Window)
     @body{ bool ret = WindowShouldClose(); }
-    return ret:not
+    return ret.not()
 
 def begin(@mut Window window)
     @body{ BeginDrawing(); }
@@ -95,7 +95,7 @@ def clear(@mut Window window, Color color)
     return window
 
 def text(@mut Window window, CString _txt, Position pos, f64 size, Color color)
-    txt = _txt:nstr
+    txt = _txt.nstr()
     @body{
         DrawText(
             (char*)txt__contents, 
@@ -114,7 +114,7 @@ def Texture(nominal, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
     return @args
 
 def open(Texture, CString _path)
-    path = _path:nstr
+    path = _path.nstr()
     @head{#define __smolambda_ray_texture(id,width,height,mipmaps,format) {Texture2D ret = LoadTexture((char*)path__contents);id=ret.id;width=ret.width;height=ret.height;mipmaps=ret.mimpas;format=ret.format;}}
     @body{
         u64 id = 0;
@@ -125,7 +125,7 @@ def open(Texture, CString _path)
         __smolambda_ray_texture(id,width,heigh,mipmaps,format);
     }
     @finally mipmaps {UnloadTexture((Texture2D){id, width, height, mipmaps, format});}
-    return nominal:Texture(id, width, height, mipmaps, format)
+    return nominal.Texture(id, width, height, mipmaps, format)
 
 def draw(@mut Window window, Texture tex, Position pos, Color color)
     @body{ 

@@ -4,9 +4,9 @@
 @include std.time return time
 
 service run(String command)
-    @mut process = Process:open(command)
+    @mut process = Process.open(command)
     // read everything there is from the process
-    process:to_end
+    process.to_end()
     // Be explicit that the process is released
     // so that nobody accidentally returns it.
     // Releasng checks for failure of incomplete
@@ -15,11 +15,11 @@ service run(String command)
     end
 
 service std_test(String name)
-    command = on Heap:dynamic return "./smol tests/unit/"+name+".s --workers 1 --runtime eager 2>&1"
+    command = on Heap.dynamic() return "./smol tests/unit/"+name+".s --workers 1 --runtime eager 2>&1"
     // new memory surface because the previous one was made immutable 
     // by feeding into a service call
-    on Heap:dynamic
-        if run(command).err:bool
+    on Heap.dynamic()
+        if run(command).err.bool()
             print("[ \033[31mERROR\033[0m ] "+name+".s")
         end else
             print("[ \033[32mOK\033[0m ] "+name+".s")

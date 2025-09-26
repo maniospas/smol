@@ -15,7 +15,7 @@ Variable Def::parse_while(const shared_ptr<Import>& imp, size_t& p, const Variab
     if(!contains(var)) 
         imp->error(--p, "Expression did not evaluate to anything");
     if(vars.find(var)->second!=types.vars[BOOL_VAR]) 
-        imp->error(--p, "If expects bool condition but got "
+        imp->error(--p, "While expects bool condition but got "
             +vars.find(var)->second->name.to_string()
             +" "+pretty_var(var.to_string())
         );

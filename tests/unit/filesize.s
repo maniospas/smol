@@ -3,6 +3,6 @@
 
 service main()
     ReadFile
-    :open("README.md")
-    :len
-    :print
+    .open("README.md")
+    .len()
+    .print()

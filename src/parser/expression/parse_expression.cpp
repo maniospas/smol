@@ -28,13 +28,12 @@ Variable Def::parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, 
         || first_token==CURRY_VAR
         || first_token==LBRACKET_VAR 
         || first_token==RBRACKET_VAR 
+        || first_token==ASSIGN_VAR
         || first_token=="{" 
         || first_token=="}" 
         || first_token==";"
-        || first_token==":"
         || first_token=="and"
         || first_token=="or"
-        || first_token=="="
         //|| first_token=="@"
         || first_token=="union"
         || first_token=="def"

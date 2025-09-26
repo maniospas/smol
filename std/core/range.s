@@ -22,7 +22,7 @@
              "\n<br><br>Below is the main usage pattern. Notice that next's argument is an in-place constructed u64 number that is mutable to obtain the next value. "
              "The function sets the next value, progresses the range's state, and returns whether the iteration eneded. The first retrieved value is the starting element of the range. Example:"
              "\n<pre>range(10)"
-             "\n:while next(@mut u64 i)"
+             "\n.while next(@mut u64 i)"
              "\n    print(i)"
              "\n    end</pre>"
 

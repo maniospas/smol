@@ -21,11 +21,11 @@
 @about "Standard library implementations of error utilities."
 @about assert_ok "Checks if an error code corresponds to no error. If it does not, the service fails while printing the type of error. Error codes can be user errors, buffer errors, unknown errors, or no errors."
 @about fail  "Causes the current service to fail given a String message. This creates a user error code. "
-             "Example: <pre>printin(\"Give a number:\")"
-             "\nx = i64:read"
+             "Example: <pre>printin(\"Give a number.\")"
+             "\nx = i64.read()"
              "\nif x==0.0"
              "\n    return fail(\"Cannot compute the inverse of zero\")"
-             "\nprintin(\"Its inverse is:\")"
+             "\nprintin(\"Its inverse is.\")"
              "\nprint(1.0/x)</pre>"
 @about print "Prints a string interpretation of an error code."
 
@@ -81,7 +81,6 @@ def print(errcode error)
 
 def assert(bool condition, cstr error)
     // prefer using this function as in the future constant evaluation of certain conditions will occur
-    if condition:not 
+    if condition.not()
         fail(error)
-        end
-    end
+    end end

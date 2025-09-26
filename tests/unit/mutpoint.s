@@ -29,23 +29,23 @@ def zero(@access @mut Point p)
     end
 
 def zero(@mut IPoint p)
-    p = nominal:IPoint(0.0, 0.0)
+    p = nominal.IPoint(0.0, 0.0)
     // p.x = 0.0 // creates an ERROR (p is mutable as a whole only)
     end
 
 service main()
     @mut p = Point(1.0,1.0)
-    p:scale(5.0)
+    p.scale(5.0)
     print(p) // 5.0, 5.0
     zero(p)
     print(p) // 0
     
-    @mut ip = nominal:IPoint(1.0,1.0)
+    @mut ip = nominal.IPoint(1.0,1.0)
     print(ip.x) // 1 
     zero(ip)
     print(ip.x) // 0
 
 
     @mut tp = TPoint(1.0,1.0)
-    tp:scale(5.0) // creates an error if we remove @mut from before tp
+    tp.scale(5.0) // creates an error if we remove @mut from before tp
     end

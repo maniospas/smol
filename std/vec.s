@@ -53,13 +53,13 @@
 @about div   "Divides two vectors element-by-element and stores the result on eiter a third mutable vector also of the same size, or on a "
              "newlly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
              "the required space. Division may create NaN values. Example where an <code>on</code> context is used to allow operator overloading:"
-             "<pre>@mut rnd = Rand()\non Heap:dynamic"
-             "\n    v1 = rnd:vector(10)"
-             "\n    v2 = rnd:vector(10)"
+             "<pre>@mut rnd = Rand()\non Heap.dynamic()"
+             "\n    v1 = rnd.vector(10)"
+             "\n    v2 = rnd.vector(10)"
              "\n    v3 = v1/v2"
              "\n    end</pre>"
 @about len   "Retrieves the length of a vector."
-@about at    "Retrieves a specific f64 element from a vector. This overloads the element access operation like this:<pre>vec = Rand():vector(Heap:dynamic, 10)\nprint(vev[0])</pre>"
+@about at    "Retrieves a specific f64 element from a vector. This overloads the element access operation like this:<pre>vec = Rand():vector(Heap.dynamic(), 10)\nprint(vev[0])</pre>"
 
 @include std.core
 @include std.rand
@@ -69,11 +69,12 @@ def Vec(nominal, ptr contents, u64 size, ptr surface)
     return @args
 
 def vector(@mut Memory memory, u64 size)
-    mem = memory:allocate(size,f64)
+    mem = memory.allocate(size,f64)
     range(size)
-    :while next(@mut u64 i)
+    .while next(@mut u64 i)
         @body{((f64*)mem__mem)[i] = 0;}
-    --return nominal:Vec(mem.mem, size, mem.mem)
+        end
+    return nominal.Vec(mem.mem, size, mem.mem)
 
 def len(@access Vec v) 
     return v.size
@@ -85,16 +86,16 @@ def slice(@access Vec v, u64 from, u64 to)
         return fail("Vec out of bounds")
     // so we have 0<=from < to <= v.size
     @body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
-    return nominal:Vec(contents, to-from, v.surface)
+    return nominal.Vec(contents, to-from, v.surface)
 
 def vector(@mut Memory memory, @mut Rand rand, u64 size)
-    mem = memory:allocate(size,f64)
+    mem = memory.allocate(size,f64)
     range(size)
-    :while next(@mut u64 i)
-        value = rand:next
+    .while next(@mut u64 i)
+        value = rand.next()
         @body{((f64*)mem__mem)[i] = value;}
         end
-    return nominal:Vec(mem.mem, size, mem.mem)
+    return nominal.Vec(mem.mem, size, mem.mem)
 
 def vector(@mut Rand rand, @mut Memory memory, u64 size) 
     return vector(memory, rand, size)
@@ -119,9 +120,9 @@ def dot(@access Vec x1, @access Vec x2)
     while i<x1.size 
         @next i = i+1
         sum = x1
-        :at(i)
-        :mul(x2:at(i))
-        :add(sum)
+        .at(i)
+        .mul(x2.at(i))
+        .add(sum)
         end
     return sum 
 
@@ -141,48 +142,48 @@ def add(@mut Memory memory, @access Vec x1, @access Vec x2)
         return fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    mem = memory:allocate(size,f64)
+    mem = memory.allocate(size,f64)
     @body{
         for(u64 i=0;i<size;++i)
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];
     }
-    return nominal:Vec(mem.mem, size, mem.mem)
+    return nominal.Vec(mem.mem, size, mem.mem)
 
 def sub(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         return fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    mem = memory:allocate(size,f64)
+    mem = memory.allocate(size,f64)
     @body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];
     }
-    return nominal:Vec(mem.mem, size, mem.mem)
+    return nominal.Vec(mem.mem, size, mem.mem)
 
 def mul(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         return fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    mem = memory:allocate(size,f64)
+    mem = memory.allocate(size,f64)
     @body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];
     }
-    return nominal:Vec(mem.mem, size, mem.mem)
+    return nominal.Vec(mem.mem, size, mem.mem)
 
 def div(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         return fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    mem = memory:allocate(size,f64)
+    mem = memory.allocate(size,f64)
     @body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]/((f64*)x2__contents)[i];
     }
-    return nominal:Vec(mem.mem, size, mem.mem)
+    return nominal.Vec(mem.mem, size, mem.mem)
 
 def add(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if result.size!=x1.size 
@@ -252,8 +253,8 @@ def print(@access Vec v)
             return v.size
     printin("[")
     range(size)
-    :while next(@mut u64 pos)
-        if pos:bool
+    .while next(@mut u64 pos)
+        if pos.bool()
             printin(" ")
             end
         printin(v[pos])

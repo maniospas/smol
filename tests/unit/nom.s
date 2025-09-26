@@ -12,6 +12,6 @@ def print(point p)
     end
 
 service main()
-    p = nominal:point(1,2)
+    p = nominal.point(1,2)
     print(p.type,1,2,2)
     end

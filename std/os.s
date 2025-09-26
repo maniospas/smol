@@ -43,7 +43,7 @@ def Process(nominal, ptr contents)
     return @args
 
 def open(@access @mut Process, CString _command)
-    command = _command:nstr.contents
+    command = _command.nstr().contents
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -54,9 +54,9 @@ def open(@access @mut Process, CString _command)
         #endif
     }
     @body{ptr contents = (ptr)popen((cstr)command, "r");}
-    if contents:exists:not 
+    if contents.exists().not() 
         @fail{printf("Error: Failed to start process\n");} 
-        --
+        end
     @finally contents { 
         i64 status = 0;
         if(contents) 
@@ -70,7 +70,7 @@ def open(@access @mut Process, CString _command)
             goto __failsafe; // already cleaned resources will not have an issue with this
         }
     }
-    return nominal:Process(contents)
+    return nominal.Process(contents)
 
 def to_end(@access @mut Process p)
     @head{#include <string.h>}
@@ -81,7 +81,7 @@ def to_end(@access @mut Process p)
             while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) {}
         }
     }
-    --
+    end
 
 def next_chunk(
         @mut DerivedMemory reader, 
@@ -98,7 +98,7 @@ def next_chunk(
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
-    value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret:bool
 
 def next_line(
@@ -112,7 +112,7 @@ def next_line(
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
-    value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret:bool
 
 def next_chunk(
@@ -121,7 +121,7 @@ def next_chunk(
         @mut str value
     ) 
     ret = next_chunk(memory, p, nstr &retvalue)
-    value = retvalue:str
+    value = retvalue.str()
     return ret
 
 def next_line(
@@ -130,7 +130,7 @@ def next_line(
         @mut str value
     ) 
     ret = next_line(memory, p, nstr &retvalue)
-    value = retvalue:str
+    value = retvalue.str()
     return ret
 
 def system(cstr command)
@@ -138,14 +138,14 @@ def system(cstr command)
     @body{u64 result = system((char*)command);}
     if result!=0 
         return fail("Error: System call failed")
-    --
+    end
 
 def system(str command) 
-    system(Stack:copy(command).memory:cstr)
-    --
+    system(Stack.copy(command).memory.cstr())
+    end
 
 def open(@access @mut Process, str command)
-    mem = Stack:allocate(command.length+1, char)
+    mem = Stack.allocate(command.length+1, char)
     @body{
         char first = 0;
         if(mem__mem) {
@@ -158,5 +158,5 @@ def open(@access @mut Process, str command)
         // we don't do it)
         cstr mem = (const char*)mem__mem; 
     }
-    return Process:open(mem)
+    return Process.open(mem)
 

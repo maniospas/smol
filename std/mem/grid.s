@@ -25,7 +25,7 @@ def MemoryGrid (
         u64 size, 
         u64 squares
     )
-    surface = memory:allocate(size*squares, Primitive)
+    surface = memory.allocate(size*squares, Primitive)
     return type, surface, size, squares
 
 def GridEntry (
@@ -36,12 +36,12 @@ def GridEntry (
     return @args
 
 def at(@mut MemoryGrid self, u64 id) 
-    return nominal:GridEntry(self, id)
+    return nominal.GridEntry(self, id)
 
 def at(@access GridEntry self, u64 pos) 
     true_pos = pos
-    :mul(self.grid.squares)
-    :add(self.id)
+    .mul(self.grid.squares)
+    .add(self.id)
     return self.grid.surface[true_pos]
 
 def put(
@@ -50,16 +50,16 @@ def put(
         Primitive value
     )
     with 
-        Primitive:is(self.MemoryGrid.Primitive) 
+        value.is(self.MemoryGrid.Primitive) 
         end
     true_pos = pos
-    :mul(self.grid.squares)
-    :add(self.id)
-    self.grid.surface:__unsafe_put(true_pos, value)
+    .mul(self.grid.squares)
+    .add(self.id)
+    self.grid.surface.__unsafe_put(true_pos, value)
     end
 
 def len(@access GridEntry self) 
     return self.grid.size
 
 def grid(@mut Memory memory, u64 size, u64 squares, Primitive)
-    return nominal:MemoryGrid(memory, Primitive, size, squares)
+    return nominal.MemoryGrid(memory, Primitive, size, squares)

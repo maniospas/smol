@@ -7,15 +7,15 @@ service main()
     // random vector constructors (those 
     // expect an allocator)
     rand = Rand(10)
-    on nominal:Stack
-        a = rand:vector(10)
-        b = rand:vector(10)
-        c = rand:vector(10)
+    on Stack.dynamic()
+        a = rand.vector(10)
+        b = rand.vector(10)
+        c = rand.vector(10)
         end
     // operator results in a preallocated vector 
     // that is eventually returned (only one 
     // allocation but we need operations to apply
     // sequentially)
-    result = on Stack:vector(10) return (a*b*c)+a+b+c
+    result = on Stack.vector(10) return (a*b*c)+a+b+c
     print(result)
 

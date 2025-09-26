@@ -3,9 +3,9 @@
 @include std.file
 
 def test(@mut File file)
-    on Heap:volatile(32)
+    on Heap.volatile(32)
         file
-        :while next_chunk(@mut str chunk) 
+        .while next_chunk(@mut str chunk) 
             printin(chunk)
         end end
     print("")
@@ -13,6 +13,7 @@ def test(@mut File file)
 
 service main()
     ReadFile
-    :open("README.md")
-    :test
+    .open("README.md")
+    .test
     end
+ot 

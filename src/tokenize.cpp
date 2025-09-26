@@ -176,7 +176,7 @@ shared_ptr<Import> tokenize(const string& path) {
                 }
             }
             else if(!in_brackets && line[i]=='+') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("add", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i++;
@@ -184,70 +184,70 @@ shared_ptr<Import> tokenize(const string& path) {
                 continue;
             }
             else if(!in_brackets && line[i]=='-' && i && line[i-1]!='-' && i<line.size()-1 && line[i+1]!='-' && line[i+1]!='>') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("sub", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i++; col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='*') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("mul", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i++; col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='/') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back("", line_num, col, main_file);
                 tokens.emplace_back("div", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i++; col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='%') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("mod", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i++; col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='>' && i<line.size()-1 && line[i+1]=='=') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("geq", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i+=2; col+=2;
                 continue;
             }
             else if(!in_brackets && line[i]=='<' && i<line.size()-1 && line[i+1]=='=') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("leq", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i+=2; col+=2;
                 continue;
             }
             else if(!in_brackets && line[i]=='<') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("lt", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i++; col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='>' && i && line[i-1]!='-' && line[i-1]!='>') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("gt", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i++; col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='=' && i<line.size()-1 && line[i+1]=='=') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("eq", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i+=2; col+=2;
                 continue;
             }
             else if(!in_brackets && line[i]=='!' && i<line.size()-1 && line[i+1]=='=') {
-                tokens.emplace_back(":", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("neq", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
                 i+=2; col+=2;

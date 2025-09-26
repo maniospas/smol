@@ -68,10 +68,10 @@ def allocate(@access Stack, u64 size, Primitive)
     @head{#include <stdlib.h>}
     primitive = Primitive
     @body{ptr mem=alloca(size*sizeof(primitive));}
-    if mem:bool:not 
+    if mem.bool().not() 
         return fail("Failed a Stack allocation")
     @noshare mem
-    return nominal:ContiguousMemory(Stack, size, Primitive, mem, mem)
+    return nominal.ContiguousMemory(Stack, size, Primitive, mem, mem)
 
 def allocate(@access Heap, u64 size, Primitive)
     if size==0 
@@ -79,55 +79,55 @@ def allocate(@access Heap, u64 size, Primitive)
     @head{#include <stdlib.h>}
     primitive = Primitive
     @body{ptr mem=__runtime_alloc(size*sizeof(primitive));}
-    if mem:bool:not 
+    if mem.bool().not() 
         return fail("Failed a Heap allocation")
     @finally mem {
         if(mem)
             __runtime_free(mem);
         mem=0;
     }
-    return nominal:ContiguousMemory(Heap, size, Primitive, mem, mem)
+    return nominal.ContiguousMemory(Heap, size, Primitive, mem, mem)
 
-def allocate(@access MemoryDevice, u64 size) 
+def allocate(@access MemoryDevice, u64 size)
     return allocate(MemoryDevice, size, char)
 
 def at(@access ContiguousMemory v, u64 pos) 
     if pos>=v.size 
         return fail("ContiguousMemory out of bounds")
     with 
-        v.Primitive:is(u64) 
+        v.Primitive.is(u64) 
         @body{u64 value = ((u64*)v__mem)[pos];}
         end
     else
-        v.Primitive:is(i64) 
+        v.Primitive.is(i64) 
         @body{i64 value = ((i64*)v__mem)[pos];}
         end 
     else
-        v.Primitive:is(f64) 
+        v.Primitive.is(f64) 
         @body{f64 value = ((f64*)v__mem)[pos];}
         end 
     else 
-        v.Primitive:is(char) 
+        v.Primitive.is(char) 
         @body{char value = ((char*)v__mem)[pos];}
         end
     return value
     
 def __unsafe_put(@access ContiguousMemory v, u64 pos, Primitive value)
     with 
-        v.Primitive:is(Primitive) 
+        v.Primitive.is(Primitive) 
         end
     if pos>=v.size 
         return fail("ContiguousMemory out of bounds")
-    with value:is(u64) 
+    with value.is(u64) 
         @body{((u64*)v__mem)[pos] = value;}
         end
-    else value:is(i64) 
+    else value.is(i64) 
         @body{((i64*)v__mem)[pos] = value;}
         end
-    else value:is(f64) 
+    else value.is(f64) 
         @body{((f64*)v__mem)[pos] = value;} 
         end
-    else value:is(char) 
+    else value.is(char) 
         @body{((char*)v__mem)[pos] = value;}
         end
     return v

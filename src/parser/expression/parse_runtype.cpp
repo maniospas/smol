@@ -102,18 +102,30 @@ Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Vari
                 unpacks.push_back(rhs+pack);
     }
     else if(imp->at(p)!="(" && curry.exists()) {
-        if(!contains(curry)) 
-            imp->error(first_token_pos-2, "Not found: "
-                +pretty_var(curry.to_string())
-                +recommend_runtype(types, curry)
-            );
-        else if(vars.find(curry)->second->not_primitive()) {
-            for(const Variable& pack : vars.find(curry)->second->packs) 
-                unpacks.push_back(curry.to_string()+"__"+pack.to_string());
-        }
-        else unpacks.push_back(curry);
+        imp->error(first_token_pos-2, "Not found: "
+            +pretty_var(curry.to_string())
+            +recommend_runtype(types, curry)
+        );
+        // if(!contains(curry)) 
+        //     imp->error(first_token_pos-2, "Not found: "
+        //         +pretty_var(curry.to_string())
+        //         +recommend_runtype(types, curry)
+        //     );
+        // else if(vars.find(curry)->second->not_primitive()) {
+        //     for(const Variable& pack : vars.find(curry)->second->packs) 
+        //         unpacks.push_back(curry.to_string()+"__"+pack.to_string());
+        // }
+        // else unpacks.push_back(curry);
     }
-    else if(imp->at(p)==")" || imp->at(p)=="]" || imp->at(p)=="," || imp->at(p)==":"){// || imp->at(p)=="and" || imp->at(p)=="or" 
+    else if(imp->at(p)==")" || imp->at(p)=="]" || imp->at(p)=="," 
+        //|| imp->at(p)==":" 
+        //|| (imp->at(p)=="." && p<imp->size()-2 && imp->at(p+2)=="(")
+        || (imp->at(p)=="." && p<imp->size()-2 && imp->at(p+2)=="(")
+        || (imp->at(p)=="." && p<imp->size()-2 && imp->at(p+2)=="__consume")
+        || (imp->at(p)=="." && imp->at(p+1)=="if")
+        || (imp->at(p)=="." && imp->at(p+1)=="on")
+        || (imp->at(p)=="." && imp->at(p+1)=="while")
+    ){// || imp->at(p)=="and" || imp->at(p)=="or" 
         //|| types.vars.find(imp->at(p))!=types.vars.end() || (imp->at(p)=="-" && p<imp->size()-1 && (imp->at(p+1)=="-" || imp->at(p+1)==">"))) {
         int num_choices = 0;
         int highest_choice_power = 0;

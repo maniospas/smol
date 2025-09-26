@@ -8,10 +8,10 @@ def data(
 
 service main()
     @mut vals = u64[]
-    :push(1)
-    :push(2)
+    .push(1)
+    .push(2)
     p = data[]
-    :push(data(10, vals))
+    .push(data(10, vals))
 
     print(p[0].id)
     print(p[0].values[0])

@@ -17,7 +17,7 @@
 
 @include std.core.num
 @include std.core.str
-@include std.core.err 
+@include std.core.err
 @include std.mem
 @unsafe
 @about "Standard library implementation of file management that uses the C filesystem."
@@ -50,28 +50,28 @@
                   "temporary file folders if systems are abruptly powered off. This type of file should be mostly used to store temporary data or for "
                   "testing purposes.\n\nExample usage:"
                   "<pre>on Heap:dynamic // allocator for the file"
-                  "\n    @mut f = WrteFile:temp(1024)"
+                  "\n    @mut f = WrteFile.temp(1024)"
                   "\n    end"
-                  "\nf:print(\"hello from withing a temp file!\")"
-                  "\nf:to_start"
-                  "\nf:next_line(@mut u64 line)"
+                  "\nf.print(\"hello from withing a temp file!\")"
+                  "\nf.to_start()"
+                  "\nf.next_line(@mut u64 line)"
                   "\nprint(line)"
                   "\n</pre>"
 @about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
                   "Here is an example where volatile memory is used to avoid repeated or large allocations:"
                   "<pre>on Heap:volatile(1024)"
                   "\n    ReadFile"
-                  "\n    :open(\"README.md\")"
-                  "\n    :while next_chunk(@mut str chunk)"
+                  "\n    .open(\"README.md\")"
+                  "\n    .while next_chunk(@mut str chunk)"
                   "\n        print(chunk)"
                   "\n    end end</pre>"
 @about next_line  "Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
                   "Here is an example where volatile memory is used to avoid repeated or large allocations:"
-                  "<pre>endl=\"n\":str.first // optimized to just setting the new line character"
+                  "<pre>endl=\"n\".str().first // optimized to just setting the new line character"
                   "\non Heap:volatile(1024)"
                   "\n    ReadFile(\"README.md\")"
-                  "\n    :open(\"README.md\")"
-                  "\n    :while next_line(@mut str line)"
+                  "\n    .open(\"README.md\")"
+                  "\n    .while next_line(@mut str line)"
                   "\n        if line[line:len-1]==endl"
                   "\n             line = line[0 to line:len-1]"
                   "\n             end"
@@ -97,7 +97,7 @@ union File
     --
 
 def open(@access @mut ReadFile, String _path) 
-    path = _path:str
+    path = _path.str()
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -107,12 +107,12 @@ def open(@access @mut ReadFile, String _path)
             fclose((FILE*)contents);
         contents=0;
     }
-    if contents:exists:not 
+    if contents.exists().not()
         @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} 
-    --return nominal:ReadFile(contents)
+    --return nominal.ReadFile(contents)
 
 def to_start(@access @mut File f) 
-    if f.contents:exists:not 
+    if f.contents.exists().not()
         @fail{printf("Failed to move to start of closed file");} 
         --
     @body{fseek((FILE*)f__contents, 0, SEEK_SET);}
@@ -124,7 +124,7 @@ def to_end(@access @mut WriteFile f)
         if(f__contents) 
             fseek((FILE*)f__contents, 0, SEEK_END);
     }
-    return f.contents:exists
+    return f.contents.exists()
 
 def len(@access @mut File f)
     @head{#include "std/oscommon.h"}
@@ -144,8 +144,8 @@ def len(@access @mut File f)
     return size
 
 def print(@access @mut WriteFile f, String _s)
-    s = _s:str
-    if f.contents:exists:not 
+    s = _s.str()
+    if f.contents.exists().not()
         @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
         --
     @head{#include <stdio.h>}
@@ -153,7 +153,7 @@ def print(@access @mut WriteFile f, String _s)
         u64 bytes_written = fwrite((char*)s__contents, 1, s__length, (FILE*)f__contents);
         bool success = (bytes_written == s__length);
     }
-    if success:not 
+    if success.not()
         @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
     ----
 
@@ -163,14 +163,14 @@ def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
     @head{#include "std/oscommon.h"}
-    mem = memory:allocate(size)
+    mem = memory.allocate(size)
     @body{ptr contents = fmemopen(mem__mem, size, "w+");}
     @finally contents {
         if(contents)
             fclose((FILE*)contents);
         contents=0;
     }
-    return nominal:WriteFile(contents)
+    return nominal.WriteFile(contents)
     
 def next_chunk (
         @mut Volatile reader, 
@@ -190,7 +190,7 @@ def next_chunk (
         char first = ((char*)contents)[0];
         reader__length = reader__length + bytes_read;
     }
-    value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret:bool
 
 def next_line (
@@ -215,7 +215,7 @@ def next_line (
         }
         reader__length = reader__length + bytes_read;
     }
-    value = nominal:nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret:bool
 
 def next_chunk (
@@ -233,7 +233,7 @@ def next_chunk (
         char first = ((char*)reader__contents__mem)[0];
         reader__length = reader__length + bytes_read;
     }
-    value = nominal:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
+    value = nominal.nstr(ret, bytes_read, first, reader.contents.mem.ptr())
     return ret:bool
 
 def next_line(
@@ -255,7 +255,7 @@ def next_line(
         }
         reader__length = reader__length + bytes_read;
     }
-    value = nominal:nstr(ret, bytes_read, first, reader.contents.mem:ptr)
+    value = nominal.nstr(ret, bytes_read, first, reader.contents.mem.ptr())
     return ret:bool
 
 def next_line (
@@ -264,7 +264,7 @@ def next_line (
         @mut str value
     )
     ret = next_line(reader, f, nstr &retvalue)
-    value = retvalue:str
+    value = retvalue.str()
     return ret
 
 def next_chunk (
@@ -273,7 +273,7 @@ def next_chunk (
         @mut str value
     )
     ret = next_chunk(reader, f, nstr &retvalue)
-    value = retvalue:str
+    value = retvalue.str()
     return ret
 
 def ended(@access @mut File f)
@@ -286,7 +286,7 @@ def ended(@access @mut File f)
     return has_ended
 
 def is_file(CString _path)
-    path = _path:nstr
+    path = _path.nstr()
     @head{#include <stdio.h>}
     @body{
         ptr f = fopen((char*)path__contents, "r");
@@ -296,7 +296,7 @@ def is_file(CString _path)
     return exists
 
 def is_dir(CString _path)
-    path = _path:nstr
+    path = _path.nstr()
     @head{#include <sys/stat.h> #ifdef _WIN32 #define stat _stat #endif}
     @body{
         ptr info = (ptr)malloc(sizeof(struct stat));
@@ -307,14 +307,15 @@ def is_dir(CString _path)
     return result
 
 def remove_file(String _path)
-    path = _path:str
+    path = _path.str()
     @head{#include <stdio.h>}
     @body{u64 status = remove((char*)path__contents);}
-    if status:bool @fail{printf("Failed to remove file - make sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
-    ----
+    if status.bool() 
+        @fail{printf("Failed to remove file - make sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
+    end end
 
 def open(@access @mut WriteFile, String _path)
-    path = _path:str
+    path = _path.str()
     @head{#include <stdio.h>}
     @head{
         #if defined(_WIN32) || defined(_WIN64)
@@ -328,12 +329,12 @@ def open(@access @mut WriteFile, String _path)
         ptr contents = 0;
         __SMOLANG_CREATE_FILE(path__contents, contents);
     }
-    if contents:exists:not 
+    if contents.exists().not()
         @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
-    --return nominal:WriteFile(contents)
+    --return nominal.WriteFile(contents)
 
 def create_dir(String _path)
-    path = _path:str
+    path = _path.str()
     @head{#if defined(_WIN32) || defined(_WIN64)
     #include <direct.h>
     #define __SMOLANG_CREATE_DIR(path_cstr, status) (status) = _mkdir((char*)(path_cstr))
@@ -347,7 +348,7 @@ def create_dir(String _path)
         __SMOLANG_CREATE_DIR(path__contents, status);
         bool created = (status == 0);
     }
-    if created:not 
+    if created.not()
         @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
     ----
     
@@ -394,7 +395,7 @@ def console(@access @mut WriteFile)
             has_gui = false;
         if(!has_gui && isatty(STDIN_FILENO)) has_gui = false;
     }
-    if has_gui:not 
+    if has_gui.not()
         return fail("Cannot open a console in the current environment")
     @body{
         ptr f = 0;
@@ -404,4 +405,4 @@ def console(@access @mut WriteFile)
         SMOLAMBDA_CONSOLE_CLOSE(f)
         f = 0;
     }
-    return nominal:WriteFile(f)
+    return nominal.WriteFile(f)

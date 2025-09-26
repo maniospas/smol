@@ -26,5 +26,9 @@ Variable Def::parse_buffer_len(const shared_ptr<Import>& imp, size_t& p, const V
         Variable(")[1]:0"), 
         SEMICOLON_VAR
     );
+    if(imp->at(p++)!="(")
+        imp->error(--p, "Expected opening parenthesis");
+    if(imp->at(p++)!=")")
+        imp->error(--p, "Expected closign parenthesis");
     return next_var(imp, p, Variable("__buffer_size"), types);
 }

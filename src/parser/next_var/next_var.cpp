@@ -31,7 +31,13 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
         }
         if(p>=n) 
             break;
-        if(imp->at(p)==":") {
+        if((/*imp->at(p)==":" 
+            ||*/ (imp->at(p)=="." && p<imp->size()-2 && imp->at(p+2)=="(")
+            || (imp->at(p)=="." && p<imp->size()-2 && imp->at(p+2)=="__consume")
+            || (imp->at(p)=="." && imp->at(p+1)=="if")
+            || (imp->at(p)=="." && imp->at(p+1)=="on")
+            || (imp->at(p)=="." && imp->at(p+1)=="while")) 
+        ) {
             ++p;
             next = parse_expression(i, p, imp->at(p++), types, next);
         }

@@ -22,20 +22,20 @@ def file_reader(
     )
     @mut stat_lines = 0
     @mut stat_chars = 0
-    @mut file = ReadFile:open(path)
-    endl = "\n":str.first
-    on memory:arena(1024)
-        while file:next_line(@mut str line)
+    @mut file = ReadFile.open(path)
+    endl = "\n".str().first
+    on memory.arena(1024)
+        while file.next_line(@mut str line)
             printin("| ")
             print(line)
             stat_lines = stat_lines + 1
-            stat_chars = stat_chars + line:len
+            stat_chars = stat_chars + line.len()
             end
         end
     return nominal:file_stats(stat_lines, stat_chars)
 
 service main()
-    @mut memory = Stack:arena(1048576) // 1MB
+    @mut memory = Stack.arena(1048576) // 1MB
     stats = file_reader("README.md", memory)
     print(stats)
     end

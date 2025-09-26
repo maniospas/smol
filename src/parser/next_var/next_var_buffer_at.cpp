@@ -176,7 +176,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         buffer_types[elem+it.first] = it.second;
 
     // parse buff[element]::call(args)
-    if(p<imp->size()-2 && imp->at(p)==":" && imp->at(p+1)==":") {
+    if(p<imp->size()-2 && (/*(imp->at(p)==":" && imp->at(p+1)==":") ||*/ (imp->at(p)=="=" && imp->at(p+1)=="."))) {
         p += 2;
         if(mutables.find(buffer_var)==mutables.end())
             imp->error(p, "Buffer is immutable: "
@@ -216,6 +216,70 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         }
         return ret;
     }
+
+
+    if(p<imp->size()-2 && imp->at(p)=="=") {
+        // handle: buffer[index] = value
+        p += 1;
+        if(mutables.find(buffer_var)==mutables.end())
+            imp->error(p, "Buffer is immutable: "
+                +pretty_var(buffer_var.to_string())
+                +"\nCannot assign into an element of an immutable buffer."
+            );
+
+        // parse value to assign
+        size_t prev_p = p;
+        string next_tok = imp->at(p++);
+        Variable val = parse_expression(imp, p, next_tok, types, EMPTY_VAR);
+        if(!val.exists() || !contains(val))
+            imp->error(prev_p, "Expression does not yield a value for buffer assignment");
+        if(vars[val].get() != buffer_types[next].get())
+            imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching is allowed.\nExpected "
+                +buffer_types[next]->signature(types)+" but got "
+                +vars[val]->signature(types)
+            );
+
+        // locals (namespaced)
+        vars[next+Variable("__buffer_size")]      = types.vars[Variable("u64")];
+        vars[next+Variable("__buffer_alignment")] = types.vars[Variable("u64")];
+        vars[next+Variable("__buffer_contents")]  = types.vars[Variable("ptr")];
+
+        Variable fail_var = Variable("__result__buffer_error");
+        implementation += Code(token_ifnot, next, token_goto, fail_var, SEMICOLON_VAR);
+
+        // compute count_packs (valid packs only)
+        size_t count_packs = 0;
+        for(const auto& pack : buffer_types[next]->packs)
+            if(buffer_types[next]->contains(pack) && buffer_types[next]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR)
+                count_packs++;
+
+        implementation += Code(next+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), next, Variable(")[1]"), SEMICOLON_VAR);
+        implementation += Code(next+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_packs)), SEMICOLON_VAR);
+        implementation += Code(next+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), next, Variable(")[0])"), SEMICOLON_VAR);
+
+        // range check
+        implementation += Code(token_if, idx, Variable(">="), next+Variable("__buffer_size"), Variable(")goto"), fail_var, SEMICOLON_VAR);
+        errors.insert(Code(fail_var, Variable(":\nprintf(\"Buffer error\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")));
+
+        // write element packs at idx
+        size_t pack_index = 0;
+        for(const auto& pack : buffer_types[next]->packs) {
+            if(buffer_types[next]->contains(pack) && buffer_types[next]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR) {
+                implementation += Code(
+                    Variable("memcpy(&((u64*)"), next+Variable("__buffer_contents"), Variable(")["), idx,
+                    MUL_VAR, next+Variable("__buffer_alignment"),
+                    Variable("+"+to_string(pack_index)+"], &"),
+                    val+Variable(pack),
+                    Variable(", sizeof("+buffer_types[next]->vars[pack]->name.to_string()+"));")
+                );
+                pack_index++;
+            }
+        }
+
+        // after assignment, return the buffer itself (like put)
+        return EMPTY_VAR;
+    }
+
 
     next = elem;
     return next;
