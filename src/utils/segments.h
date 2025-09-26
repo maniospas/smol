@@ -186,8 +186,14 @@ public:
     }
 
     inline SegmentedString operator+(const SegmentedString& other) const {
-        if (size == 0) return SegmentedString(other);   // force a copy
-        if (other.size == 0) return SegmentedString(*this);
+        if(size == 0)
+            return other;
+        if(other.size == 0) 
+            return *this;
+        // if memory leak, maybe try this very inefficient thing:
+        // if (size == 0) return SegmentedString(other);   // force a copy
+        // if (other.size == 0) return SegmentedString(*this);
+        
         size_t new_size = size + other.size;
         unsigned int* new_segments = new_size>1?(unsigned int*)malloc(sizeof(unsigned int) * (new_size - 1)):nullptr;
         if(size > 1) // guarantees new_size>1
