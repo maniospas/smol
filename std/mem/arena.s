@@ -23,8 +23,9 @@ def Arena(nominal type, ContiguousMemory contents)
     @noborrow
     length = 0
     size = contents.size
-    with contents.Primitive.is(char) 
-    --
+    with 
+        contents.Primitive.is(char) 
+        end
     return type, contents, length, size
 
 def Volatile(nominal type, ContiguousMemory contents)
@@ -78,7 +79,7 @@ def dynamic(@access Stack)
 def allocate(@access @mut Dynamic self, u64 size, Primitive)
     @head{#include <stdlib.h>}
     primitive = Primitive
-    if self.acquired.bool().not() 
+    if self.acquired.bool().not()
         return fail("Did not initialize Dynamic")
     @body{
         u64 next_size = self__size+1;
@@ -101,7 +102,7 @@ def allocate(@access @mut Dynamic self, u64 size, Primitive)
         return fail("Failed a Dynamic allocation")
     return nominal.ContiguousMemory(Heap, size, Primitive, mem, self.acquired)
 
-def allocate(@access @mut Dynamic self, u64 size) 
+def allocate(@access @mut Dynamic self, u64 size)
     return allocate(self, size, char)
 
 def used(@access @mut Arena self)

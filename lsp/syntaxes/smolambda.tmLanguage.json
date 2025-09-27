@@ -12,11 +12,7 @@
     },
     {
       "name": "keyword.control",
-      "match": "\\b(smo|service|if|else|elif|include|on|while|union)\\b"
-    },
-    {
-      "name": "keyword.control",
-      "match": "-->|->|--"
+      "match": "\\b(smo|service|if|else|elif|include|on|while|union|return|end)\\b"
     },
     {
       "name": "keyword.operator",
@@ -24,7 +20,7 @@
     },
     {
       "name": "storage.type",
-      "match": "\\b(i64|u64|f64|ptr|nstr|str|buffer|main|copy|push)\\b"
+      "match": "\\b(i64|u64|f64|ptr|nstr|str|buffer|main|copy|push|put|expect)\\b"
     },
     {
       "name": "constant.numeric",
