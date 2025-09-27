@@ -24,29 +24,48 @@ queue<string> g_imports;
 unordered_set<string> status_requested;
 unordered_set<string> status_progress;
 unordered_set<string> status_done;
+unordered_map<string, unordered_set<string>> import_graph; // outgoing edges for each node
 
 bool is_import_done(const string &path) {
     lock_guard<mutex> lock(g_importMutex);
     return status_done.find(path)!=status_done.end();
 }
 
-bool request_import(const string &path) {
+bool request_import(const string &from, const string &path) {
     lock_guard<mutex> lock(g_importMutex);
     if(status_done.find(path)!=status_done.end()) return true;
+
+    if(import_graph[path].contains(from) || path==from)
+        throw runtime_error("Circular depenendency: " + path);
+    import_graph[from].insert(path);
+    for(const auto& it : import_graph[path])
+        import_graph[from].insert(it);
+    // cout << from << " " << path << "\n";
+    
     if(status_requested.find(path)!=status_requested.end()) return true;
     if(status_progress.find(path)!=status_progress.end()) return true;
-    if (!fs::is_regular_file(path))
+    if(!fs::is_regular_file(path))
         return false;
+
     g_imports.push(path);
     status_requested.insert(path);
     return true;
 }
 
-void request_import_if_needed(const string &path) {
+void request_import_if_needed(const string &from, const string &path) {
     lock_guard<mutex> lock(g_importMutex);
     if(status_done.find(path)!=status_done.end()) return;
+
+    if(import_graph[path].contains(from) || path==from)
+        throw runtime_error("Circular depenendency: " + path);
+    import_graph[from].insert(path);
+    for(const auto& it : import_graph[path])
+        import_graph[from].insert(it);
+    //cout << from << " " << path << "\n";
+
     if(status_requested.find(path)!=status_requested.end()) return;
     if(status_progress.find(path)!=status_progress.end()) return;
+
     g_imports.push(path);
     status_requested.insert(path);
 }

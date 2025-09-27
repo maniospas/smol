@@ -29,37 +29,41 @@ void handle_include(
     while(p<imp->size()-1 && imp->at(p+1) == ".") 
         path += "/" + imp->at(p+=2);
     path += ".s";
-    if(path==file)
-        imp->error(p, "Circular include");
     // if(!is_import_exists(path)) {
     //     codegen(files, path, builtins, selected_task, task_report, halted, errors);
     //     if(halted.size()) {
     //         return;
     //     }
     // }
-    if(!is_import_done(path)) {
-        if(imp->forward_p<=p) {
-            imp->forward_p = p+1; // don't repeat this code block while is_import done polls to false, but do repeat it whenever we progress
-            auto forward_p = p+1;
-            // forwrd look for more imports and add them to the queue if needed
-            while(forward_p<imp->size()-2 && imp->at(forward_p)=="@" && imp->at(forward_p+1)=="include") {
-                auto forward_path = imp->at(forward_p+=2);
-                while(forward_p<imp->size()-1 && imp->at(forward_p+1) == ".") 
-                    forward_path += "/" + imp->at(forward_p+=2);
-                forward_path += ".s";
-                request_import_if_needed(forward_path); // these are batched without calling g_importCv.notify_all(); 
-                forward_p++;
+    try {
+        if(!is_import_done(path)) {
+            if(imp->forward_p<=p) {
+                imp->forward_p = p+1; // don't repeat this code block while is_import done polls to false, but do repeat it whenever we progress
+                auto forward_p = p+1;
+                // forwrd look for more imports and add them to the queue if needed
+                while(forward_p<imp->size()-2 && imp->at(forward_p)=="@" && imp->at(forward_p+1)=="include") {
+                    auto forward_path = imp->at(forward_p+=2);
+                    while(forward_p<imp->size()-1 && imp->at(forward_p+1) == ".") 
+                        forward_path += "/" + imp->at(forward_p+=2);
+                    forward_path += ".s";
+                    request_import_if_needed(file, forward_path); // these are batched without calling g_importCv.notify_all(); 
+                    forward_p++;
+                }
+            }
+            if(request_import(file, path)) {
+                p = prev_progress; // go back to the import statement
+                halted = path; // who is blocking
+                return;
+            }
+            else {
+                imp->error(p, "Could not open file: " + path);
+                return;
             }
         }
-        if(request_import(path)) {
-            p = prev_progress; // go back to the import statement
-            halted = path; // who is blocking
-            return;
-        }
-        else {
-            imp->error(p, "Could not open file: " + path);
-            return;
-        }
+    }
+    catch(runtime_error& e) {
+        imp->error(p, e.what());
+        return;
     }
 
     auto included_file = get_file(files, path);

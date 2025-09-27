@@ -120,7 +120,7 @@ def next_chunk(
         @access @mut Process p, 
         @mut str value
     ) 
-    ret = next_chunk(memory, p, nstr &retvalue)
+    ret = next_chunk(memory, p, @mut nstr retvalue)
     value = retvalue.str()
     return ret
 
@@ -129,7 +129,7 @@ def next_line(
         @access @mut Process p, 
         @mut str value
     ) 
-    ret = next_line(memory, p, nstr &retvalue)
+    ret = next_line(memory, p, @mut nstr retvalue)
     value = retvalue.str()
     return ret
 

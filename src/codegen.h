@@ -74,8 +74,8 @@ void codegen(
 );
 
 bool is_import_done(const string &path);
-bool request_import(const string &path); // true if it was requested or already there, false if the file does not exist
-void request_import_if_needed(const string &path);
+bool request_import(const string &from, const string &path); // true if it was requested or already there, false if the file does not exist
+void request_import_if_needed(const string &from, const string &path);
 void mark_import_done(const string &path);
 void worker_loop();
 

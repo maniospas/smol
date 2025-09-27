@@ -264,7 +264,7 @@ def next_line (
         @access @mut File f, 
         @mut str value
     )
-    ret = next_line(reader, f, nstr &retvalue)
+    ret = next_line(reader, f, @mut nstr retvalue)
     value = retvalue.str()
     return ret
 
@@ -273,7 +273,7 @@ def next_chunk (
         @access @mut File f, 
         @mut str value
     )
-    ret = next_chunk(reader, f, nstr &retvalue)
+    ret = next_chunk(reader, f, @mut nstr retvalue)
     value = retvalue.str()
     return ret
 

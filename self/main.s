@@ -20,7 +20,7 @@ def tokenize(@mut Memory memory, @mut ReadFile f)
 
     on memory:volatile(1024)
         controlled_corrupt()
-        f:while next_line(str &line)
+        f:while next_line(@mut str line)
             &pos = 0
             &prev = 0
             while pos<line:len

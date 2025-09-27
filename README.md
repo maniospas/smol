@@ -51,7 +51,7 @@ def file_reader(String path, @mut Memory memory) // define for all String variat
     endl = "\n".str().first
     on memory:arena(1024)
         file
-        .while next_line(str &line)
+        .while next_line(@mut str line)
             printin("| ")
             print(line)
             stat_lines = stat_lines + 1

@@ -236,7 +236,7 @@ service main()
     // raw numbers you write are either 
     // f64 (floats) or u64 (unsigned ints)
     p = Point(3.0,5.0)
-    f = nominal:Field(1.0,2.0,p)
+    f = nominal.Field(1.0,2.0,p)
     print(f.start.x + f.end.y) // 6
     end
 </code></pre>
@@ -254,11 +254,12 @@ associated operations,
 you could write <code class="language-smolambda">@include std.core return Number</code>.
 </p>
 
-<p>Next are some so-called <i>runtypes</i>, declared with the <code class="language-smolambda">smo</code>
-keyword. These merge the concept of types and functions, where <code class="language-smolambda">-></code>
-returns a value or tuple. If variable names are part of the returned tuple, they can be accessed as fields
-from the result. <code class="language-smolambda">@args</code> is a shorthand for
-returning a tuple of all arguments. It is useful for declaring structural data without functionality - though
+<p>Next are some functions declared with the <code class="language-smolambda">def</code>
+keyword. The outcomes of functions obtained from <code class="language-smolambda">return</code> 
+are either single values or named tuples, 
+where. If named variables are part of the returned tuple, they can be accessed as fields
+from the result.zis a shorthand for
+packing all arguments, and is useful for declaring structural data structures without functionality - though
 those data may make runtime assertions.</p>
 
 <p>In general, runtypes are structural in that they are identified by their primitive
@@ -332,13 +333,8 @@ available in the standard library.
     </tr>
     <tr>
       <td><code class="language-smolambda">.</code></td>
-      <td>Field access</td>
+      <td>Field access or currying</td>
       <td>For named returns of runtypes</td>
-    </tr>
-    <tr>
-      <td><code class="language-smolambda">:</code></td>
-      <td>Currying operator</td>
-      <td>Passes value as first argument</td>
     </tr>
     <tr class="section-header"><td colspan="3"><u>Returns</u></td></tr>
     <tr>
@@ -662,7 +658,7 @@ when writing finite loops, as it is more resistant against mistakes.
 As a sneak peek, printing numbers <i>0,1,...,9</i> looks like this:
 </i><br><br>
 <pre><code class="language-smolambda">range(10)
-:while next(@mut u64 i) 
+.while next(@mut u64 i) 
     print(i)
     end
 </code></pre>
@@ -909,7 +905,7 @@ service main()
     p:scale(5.0)
     print(p.x) // 10
 
-    tp = nominal:Point(1.0,1.0)
+    tp = nominal.Point(1.0,1.0)
     tp:scale(5.0) // creates an ERROR
     end
 </code></pre>
@@ -995,7 +991,7 @@ def next(@mut custom_range r, @mut u64 current)
 
 service main()
     custom_range(0,10)
-    :while next(@mut u64 i) 
+    .while next(@mut u64 i) 
         print(i) 
     end end
 </code></pre>
@@ -1137,8 +1133,8 @@ def recognize(Type2 p)
     end
 
 service main()
-    p1 = nominal:Type1(1.0)
-    p2 = nominal:Type2(2.0)
+    p1 = nominal.Type1(1.0)
+    p2 = nominal.Type2(2.0)
     recognize(p1) 
     recognize(p2) 
     end
@@ -1252,7 +1248,7 @@ def strbuf(nominal, @mut str[] ref)
     return @args
 
 def strbuf(String value)
-    return nominal:strbuf(str[]:push(value:str))
+    return nominal.strbuf(str[]:push(value:str))
 
 def put(@mut strbuf buf, String value)
     return buf.ref:put(0, value:str)
@@ -1585,7 +1581,7 @@ service main()
 @include std.mem
 
 def zero(Memory, u64 n)
-    v = nominal:allocate(Memory, n, f64)
+    v = nominal.allocate(Memory, n, f64)
     i = 0 
     while i&lt;n
         @next i = i+1
