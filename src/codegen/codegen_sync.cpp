@@ -39,7 +39,8 @@ bool request_import(const string &from, const string &path) {
         throw runtime_error("Circular depenendency: " + path);
     import_graph[from].insert(path);
     for(const auto& it : import_graph[path])
-        import_graph[from].insert(it);
+        if(status_done.find(path)==status_done.end())
+            import_graph[from].insert(it);
     // cout << from << " " << path << "\n";
     
     if(status_requested.find(path)!=status_requested.end()) return true;
@@ -60,7 +61,8 @@ void request_import_if_needed(const string &from, const string &path) {
         throw runtime_error("Circular depenendency: " + path);
     import_graph[from].insert(path);
     for(const auto& it : import_graph[path])
-        import_graph[from].insert(it);
+        if(status_done.find(path)==status_done.end())
+            import_graph[from].insert(it);
     //cout << from << " " << path << "\n";
 
     if(status_requested.find(path)!=status_requested.end()) return;
