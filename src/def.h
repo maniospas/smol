@@ -285,6 +285,7 @@ public:
     }
     ~Def() = default;
     inline bool not_primitive() const {return !_is_primitive;}
+    inline auto estimate_stack_size() const {return vars.size()*4+args.size()*4+packs.size()*4+1024;}
 
     // property managers for finals, errors, mutability, service calls, etc
     void add_preample(const string& pre);

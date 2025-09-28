@@ -50,6 +50,63 @@ static inline void* __runtime_realloc(void* mem, size_t size, size_t prev_sze) {
 static inline void __runtime_free(void* mem) {free(mem);}
 
 
+#if defined(_WIN32)
+/* ---------------- Windows ---------------- */
+#include <windows.h>
+
+void *__runtime_stack_bottom(void)
+{
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    NT_TIB *tib = (NT_TIB *)NtCurrentTeb();
+    /* Skip the guard page by adding one system page. */
+    return (char *)tib->StackLimit + si.dwPageSize;
+}
+
+#elif defined(__APPLE__) || defined(__MACH__) || defined(__FreeBSD__) \
+   || defined(__OpenBSD__) || defined(__NetBSD__)
+/* -------- macOS and the BSD family -------- */
+#include <pthread.h>
+#include <unistd.h>   /* for sysconf */
+
+void *__runtime_stack_bottom(void)
+{
+    void *high = pthread_get_stackaddr_np(pthread_self());
+    size_t size = pthread_get_stacksize_np(pthread_self());
+    long page = sysconf(_SC_PAGESIZE);
+    /* macOS/BSD give the HIGH address; subtract size for the low end,
+       then move up by one page to stay above the guard page. */
+    return (char *)high - size + page;
+}
+
+#elif defined(__linux__)
+/* ----------------- Linux ------------------ */
+#include <pthread.h>
+#include <unistd.h>   /* for sysconf */
+
+void *__runtime_stack_bottom(void)
+{
+    pthread_attr_t attr;
+    pthread_getattr_np(pthread_self(), &attr);
+    void *low;
+    size_t size;
+    pthread_attr_getstack(&attr, &low, &size);
+    pthread_attr_destroy(&attr);
+    long page = sysconf(_SC_PAGESIZE);
+    /* Linux already returns the low end; move up by one page. */
+    return (char *)low + page;
+}
+
+#else
+/* ----------- Fallback / unsupported -------- */
+#warning "__runtime_stack_bottom: platform not supported (will not detect low-stack condition)"
+void *__runtime_stack_bottom(void)
+{
+    return 0; /* or abort(), depending on your needs */
+}
+#endif
+
+
 /* ---------------- TASK STRUCT ---------------- */
 typedef struct __SmolambdaLinkedMemory {
     void *contents;

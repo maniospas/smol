@@ -4,19 +4,22 @@
 def split(str query, str sep)
     @mut pos = 0
     @mut prev = 0
-    while pos<query:len-sep:len
-        if sep==query[pos to pos+sep:len] 
-            if pos>prev 
-                do print(query[prev to pos])
-            pos = pos+sep:len
+    while pos<query.len()-sep.len()
+        if sep==query[pos to pos+sep.len()]
+            if pos>prev
+                print(query[prev to pos])
+                end
+            pos = pos+sep.len()
             prev = pos
-            do nothing
+            end
         pos = pos+1 
-        do ended
-    if prev<query:len 
-        do query[prev to query:len]:print
+        end
+    if prev<query.len() 
+        query[prev to query.len()].print()
+    end end
 
 service main()
     print("Write some text to split:")
-    on Heap:arena(4096)
-        do Heap:arena(4096):read:split(" ":str)
+    on Heap.arena(4096)
+        Heap.arena(4096).read().split(" ".str())
+    end end

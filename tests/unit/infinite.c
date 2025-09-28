@@ -5,7 +5,7 @@
 #define __externc
 #endif
 #include <string.h>
-#include "std/runtime/eager.h"
+#include "std/runtime/auto.h"
 #define __IS_i64 1
 #define __IS_f64 2
 #define __IS_u64 3
@@ -50,53 +50,69 @@ typedef long i64;
 typedef uint64_t nominal;
 typedef double f64;
 
-#include <stdio.h>
 #include<stdio.h>
 
-struct test__182__state{errcode err;u64 n;u64 last;};
-__externc void test__182(void *__void__state);
+#include <stdio.h>
 struct main__183__state{errcode err;};
 __externc void main__183(void *__void__state);
+struct test__182__state{errcode err;u64 n;u64 last;};
+__externc void test__182(void *__void__state);
 
-void main__183(void *__void__state){
+void test__182(void *__void__state){
 errcode __result__errocode=0;
+char* __service_stack_floor = (char*)__runtime_stack_bottom();
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
 __SmolambdaLinkedMemory* __smolambda_all_task_results = 0;
-struct main__183__state *__state=(struct main__183__state*)__void__state;
-struct test__182__state* __AF____state = 0 ;
-u64 __AF__n=0;
-u64 __9E=0;
-errcode __AF__err=0;
-u64 __8E=0;
-ptr __AF____task=0;
+struct test__182__state *__state=(struct test__182__state*)__void__state;
+struct test__182__state* __8E____state = 0 ;
+u64 n= __state->n;
+u64 last= __state->last;
+u64 __6E=0;
+cstr __4E=0;
+bool __3E__z=0;
+ptr __8E____task=0;
+u64 __7E__z=0;
+errcode __8E__err=0;
+cstr __0E=0;
 
 // IMPLEMENTATION
-__8E = 1 ;
- __9E = 10 ;
- __AF____state = (struct test__182__state*)__runtime_calloc(sizeof(struct test__182__state)) ;
- __smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results, __AF____state ) ;
- __AF____state -> n = __8E ;
- __AF____state -> last = __9E ;
- __AF____task = __smolambda_add_task ( test__182 , __AF____state ) ;
- __smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks, __AF____task ) ;
- if( __AF__err ) goto  __result_unhandled_error ;
- __smolambda_task_wait ( __AF____task ) ;
- __AF__err = __AF____state -> err ;
- if( __AF__err )goto __BF ;
- printf ( "%lu\n" , __AF__n ); 
- __CF____end :
+__0E = "123" ;
+ printf ( "%lu\n" , n ); 
+ __1E____end :
+ __3E__z =( n == last ); 
+ __3E____end :
+ if(! __3E__z )goto __2E__fi ;
+ __4E = "loop ended" ;
+ goto __5E____oD ;
+ __builtin_unreachable();
+ goto __end ;
+ __2E__fi :
+ __6E = 1 ;
+ __7E__z = n + __6E ; 
+ __7E____end :
+ {char mark;if(__service_stack_floor+ 5236 >=(char*)&mark) goto __service_stack_floor_handler;} __8E____state = (struct test__182__state*)__runtime_calloc(sizeof(struct test__182__state)) ;
+ __smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results, __8E____state ) ;
+ __8E____state -> n = __7E__z ;
+ __8E____state -> last = last ;
+ __8E____task = __smolambda_add_task ( test__182 , __8E____state ) ;
+ __smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks, __8E____task ) ;
+ if( __8E__err ) goto  __result_unhandled_error ;
  __end :
 goto __return;
 
 // ERROR HANDLING
-__BF :
-printf("Runtime error from  __AF \n");
-__result__errocode=__UNHANDLED__ERROR;
-goto __failsafe;
 __result_unhandled_error :
  printf("Unhandled error\n") ;
  __result__errocode =__UNHANDLED__ERROR;
 goto __failsafe ;
+__service_stack_floor_handler:
+printf("Isufficient stack for safe service call\n");
+__result__errocode=__BUFFER__ERROR;
+goto __failsafe;
+__5E____oD :
+ printf ( "%s\n" , __4E ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
 __failsafe:
@@ -113,53 +129,49 @@ __state->err =  __result__errocode;
 }
 
 
-void test__182(void *__void__state){
+void main__183(void *__void__state){
 errcode __result__errocode=0;
+char* __service_stack_floor = (char*)__runtime_stack_bottom();
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
 __SmolambdaLinkedMemory* __smolambda_all_task_results = 0;
-struct test__182__state *__state=(struct test__182__state*)__void__state;
-struct test__182__state* __7E____state = 0 ;
-u64 n= __state->n;
-u64 last= __state->last;
-errcode __7E__err=0;
-ptr __7E____task=0;
-u64 __5E=0;
-u64 __6E__z=0;
-cstr __3E=0;
-bool __2E__z=0;
+struct main__183__state *__state=(struct main__183__state*)__void__state;
+struct test__182__state* __BF____state = 0 ;
+errcode __BF__err=0;
+u64 __AF=0;
+u64 __BF__n=0;
+ptr __BF____task=0;
+u64 __9E=0;
 
 // IMPLEMENTATION
-printf ( "%lu\n" , n ); 
- __0E____end :
- __2E__z =( n == last ); 
- __2E____end :
- if(! __2E__z )goto __1E__fi ;
- __3E = "loop ended" ;
- goto __4E____oD ;
- __builtin_unreachable();
- goto __end ;
- __1E__fi :
- __5E = 1 ;
- __6E__z = n + __5E ; 
- __6E____end :
- __7E____state = (struct test__182__state*)__runtime_calloc(sizeof(struct test__182__state)) ;
- __smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results, __7E____state ) ;
- __7E____state -> n = __6E__z ;
- __7E____state -> last = last ;
- __7E____task = __smolambda_add_task ( test__182 , __7E____state ) ;
- __smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks, __7E____task ) ;
- if( __7E__err ) goto  __result_unhandled_error ;
+__9E = 1 ;
+ __AF = 0 ;
+ {char mark;if(__service_stack_floor+ 5228 >=(char*)&mark) goto __service_stack_floor_handler;} __BF____state = (struct test__182__state*)__runtime_calloc(sizeof(struct test__182__state)) ;
+ __smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results, __BF____state ) ;
+ __BF____state -> n = __9E ;
+ __BF____state -> last = __AF ;
+ __BF____task = __smolambda_add_task ( test__182 , __BF____state ) ;
+ __smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks, __BF____task ) ;
+ if( __BF__err ) goto  __result_unhandled_error ;
+ __smolambda_task_wait ( __BF____task ) ;
+ __BF__err = __BF____state -> err ;
+ if( __BF__err )goto __CF ;
+ printf ( "%lu\n" , __BF__n ); 
+ __DF____end :
  __end :
 goto __return;
 
 // ERROR HANDLING
+__CF :
+printf("Runtime error from  __BF \n");
+__result__errocode=__UNHANDLED__ERROR;
+goto __failsafe;
 __result_unhandled_error :
  printf("Unhandled error\n") ;
  __result__errocode =__UNHANDLED__ERROR;
 goto __failsafe ;
-__4E____oD :
- printf ( "%s\n" , __3E ); 
-__result__errocode=__USER__ERROR;
+__service_stack_floor_handler:
+printf("Isufficient stack for safe service call\n");
+__result__errocode=__BUFFER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS

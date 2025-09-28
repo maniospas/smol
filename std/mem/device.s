@@ -62,14 +62,15 @@ def ContiguousMemory (
 def is(@access Primitive self, Primitive) 
     return self
 
-def allocate(@access Stack, u64 size, Primitive) 
-    if size==0 
-        return fail("Cannot allocate zero size")
+def allocate(@access Stack, u64 size, Primitive)
     @head{#include <stdlib.h>}
     primitive = Primitive
-    @body{ptr mem=alloca(size*sizeof(primitive));}
+    @body{
+        u64 size_bytes = size*sizeof(primitive); // also serves as a position pointer to check stack size (use >= to create error for zero size too)
+        ptr mem=(size_bytes+__service_stack_floor>=(char*)&size_bytes)?0:alloca(size_bytes);
+    }
     if mem.bool().not() 
-        return fail("Failed a Stack allocation")
+        return fail("Cannot allocate Stack space")
     @noshare mem
     return nominal.ContiguousMemory(Stack, size, Primitive, mem, mem)
 

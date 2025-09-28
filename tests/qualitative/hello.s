@@ -8,7 +8,7 @@ service main()
     printin("b=") b = u64.read()
     printin("c=") c = u64.read() // give 0 occasionally to see failure
     result = affine(a,b,c)
-    if result.err.bool() 
+    if result.err.bool()
         print("We failed to execute the code") 
         |end
     printin("(a+b)/c=")

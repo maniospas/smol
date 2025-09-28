@@ -378,6 +378,7 @@ int main(int argc, char* argv[]) {
                     main_service = service;
                 out << "\n";
                 out << "void "<<service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
+                out << "char* __service_stack_floor = (char*)__runtime_stack_bottom();\n";
                 if(service->active_calls.size()) {
                     out << "__SmolambdaLinkedMemory* __smolambda_all_tasks = 0;\n";
                     out << "__SmolambdaLinkedMemory* __smolambda_all_task_results = 0;\n";

@@ -56,7 +56,8 @@ size_t Import::size() {
 }
 
 // ---------- Token ----------
-Token::Token() : line(0), character(0) {}
+Token::Token() 
+    : line(0), character(0) {}
 
 Token::Token(const string& n, size_t l, size_t c, const shared_ptr<Import>& i)
     : name(n), line(l), character(c), imp(i) {}
@@ -117,19 +118,27 @@ shared_ptr<Import> tokenize(const string& path) {
     auto line = string{""};
     auto line_num = size_t{0};
     auto main_file = make_shared<Import>(path);
-    auto& tokens = main_file->tokens;
     auto in_brackets = size_t{0};
+    auto& tokens = main_file->tokens;
     while(getline(file, line)) {
         line_num++;
-        size_t i = 0;
-        size_t col = 1;
+        auto i = size_t{0};
+        auto col = size_t{1};
         while(i < line.size()) {
-            while(i < line.size() && isspace(line[i])) {if(line[i] == '\t') col += 4; else col++;i++;}
-            if(i >= line.size()) break;
-            if(line[i] == '/' && i + 1 < line.size() && line[i + 1] == '/') break;
-            size_t start = i;
-            size_t start_col = col;
-            string prefix("");
+            while(i < line.size() && isspace(line[i])) {
+                if(line[i] == '\t') 
+                    col += 4; 
+                else 
+                    col++;
+                i++;
+            }
+            if(i >= line.size()) 
+                break;
+            if(line[i] == '/' && i + 1 < line.size() && line[i + 1] == '/') 
+                break;
+            auto start = i;
+            auto start_col = col;
+            auto prefix = string{""};
             if(line[i] == '"') {
                 i++;
                 col++;
@@ -150,26 +159,27 @@ shared_ptr<Import> tokenize(const string& path) {
                     i++;
                 }
                 //if(i >= line.size()) ERROR("String segments can only span one line\n"+tokens[tokens.size()-1].show());
-                if(i >= line.size()) tokens.emplace_back("String segments can only span one line", line_num, start_col, main_file);
+                if(i >= line.size()) 
+                    tokens.emplace_back("String segments can only span one line", line_num, start_col, main_file);
                 i++; // skip closing quote
                 col++;
                 string current_str_token = (prefix + line.substr(start, i - start));
                 // Merge with previous string token if possible
-                if(!tokens.empty() && 
-                    !tokens.back().name.empty() && 
-                    tokens.back().name.front() == '"' && 
-                    tokens.back().name.back() == '"' &&
-                    !current_str_token.empty() && 
-                    current_str_token.front() == '"' && 
-                    current_str_token.back() == '"') 
-                {
+                if(!tokens.empty() 
+                    && !tokens.back().name.empty()
+                    && tokens.back().name.front() == '"' 
+                    && tokens.back().name.back() == '"' 
+                    && !current_str_token.empty()
+                    && current_str_token.front() == '"' 
+                    && current_str_token.back() == '"'
+                ) {
                     // Merge: remove the ending quote from previous and starting quote from current, then join
                     tokens.back().name = 
-                        tokens.back().name.substr(0, tokens.back().name.size() - 1) + 
-                        current_str_token.substr(1);
-                } else {
+                        tokens.back().name.substr(0, tokens.back().name.size() - 1) 
+                        + current_str_token.substr(1);
+                } 
+                else 
                     tokens.emplace_back(current_str_token, line_num, start_col, main_file);
-                }
             }
             else if(!in_brackets && line[i]=='+') {
                 tokens.emplace_back(".", line_num, col, main_file);
@@ -183,117 +193,137 @@ shared_ptr<Import> tokenize(const string& path) {
                 tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("sub", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
-                i++; col++;
+                i++; 
+                col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='*') {
                 tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("mul", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
-                i++; col++;
+                i++; 
+                col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='/') {
-                tokens.emplace_back("", line_num, col, main_file);
+                tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("div", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
-                i++; col++;
+                i++; 
+                col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='%') {
                 tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("mod", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
-                i++; col++;
+                i++;
+                col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='>' && i<line.size()-1 && line[i+1]=='=') {
                 tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("geq", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
-                i+=2; col+=2;
+                i += 2; 
+                col += 2;
                 continue;
             }
             else if(!in_brackets && line[i]=='<' && i<line.size()-1 && line[i+1]=='=') {
                 tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("leq", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
-                i+=2; col+=2;
+                i += 2; 
+                col += 2;
                 continue;
             }
             else if(!in_brackets && line[i]=='<') {
                 tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("lt", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
-                i++; col++;
+                i++; 
+                col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='>' && i && line[i-1]!='-' && line[i-1]!='>') {
                 tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("gt", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
-                i++; col++;
+                i++; 
+                col++;
                 continue;
             }
             else if(!in_brackets && line[i]=='=' && i<line.size()-1 && line[i+1]=='=') {
                 tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("eq", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
-                i+=2; col+=2;
+                i += 2; 
+                col += 2;
                 continue;
             }
             else if(!in_brackets && line[i]=='!' && i<line.size()-1 && line[i+1]=='=') {
                 tokens.emplace_back(".", line_num, col, main_file);
                 tokens.emplace_back("neq", line_num, col, main_file);
                 tokens.emplace_back("__consume", line_num, col, main_file);
-                i+=2; col+=2;
+                i += 2; 
+                col += 2;
                 continue;
             }
             else if(is_symbol(line[i])) {
                 if(line[i]=='{') in_brackets++;
                 else if(line[i]=='}' && in_brackets) in_brackets--;
                 tokens.emplace_back(string(1, line[i]), line_num, col, main_file);
-                i++; col++;
+                i++; 
+                col++;
                 continue;
             }
             else if(isdigit(line[i]) || (line[i] == '.' && i + 1 < line.size() && isdigit(line[i + 1]))) {
-                size_t number_start = i;
-                size_t number_col = col;
+                auto number_start = i;
+                auto number_col = col;
                 // Handle hex, octal, binary literals
                 if(line[i] == '0' && i + 1 < line.size()) {
                     if(line[i + 1] == 'x' || line[i + 1] == 'X') {
-                        i += 2; col += 2;
-                        size_t hex_start = i;
+                        i += 2; 
+                        col += 2;
+                        auto hex_start = i;
                         while(i < line.size() && isxdigit(line[i])) { i++; col++; }
                         if(hex_start == i)
                             tokens.emplace_back("Invalid hexadecimal number", line_num, number_col, main_file);
                             //ERROR("Invalid hexadecimal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
                         // <<<<<< ADD THIS >>>>>
-                        size_t suffix_end = parse_integer_suffix(line, i);
+                        auto suffix_end = parse_integer_suffix(line, i);
                         col += (suffix_end - i);
                         i = suffix_end;
                         tokens.emplace_back(line.substr(number_start, i - number_start), line_num, number_col, main_file);
                         continue;
                     } else if(line[i + 1] == 'b' || line[i + 1] == 'B') {
-                        i += 2; col += 2;
-                        size_t bin_start = i;
-                        while(i < line.size() && (line[i] == '0' || line[i] == '1')) { i++; col++; }
+                        i += 2; 
+                        col += 2;
+                        auto bin_start = i;
+                        while(i < line.size() && (line[i] == '0' || line[i] == '1')) { 
+                            i++;
+                            col++;
+                        }
                         if(bin_start == i)
                             tokens.emplace_back("Invalid binary number", line_num, number_col, main_file);
                             //ERROR("Invalid binary number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
-                        size_t suffix_end = parse_integer_suffix(line, i);
+                        auto suffix_end = parse_integer_suffix(line, i);
                         col += (suffix_end - i);
                         i = suffix_end;
                         tokens.emplace_back(line.substr(number_start, i - number_start), line_num, number_col, main_file);
                         continue;
                     } else if(line[i + 1] == 'o' || line[i + 1] == 'O') {
-                        i += 2; col += 2;
-                        size_t oct_start = i;
-                        while(i < line.size() && (line[i] >= '0' && line[i] <= '7')) { i++; col++; }
+                        i += 2; 
+                        col += 2;
+                        auto oct_start = i;
+                        while(i < line.size() && (line[i] >= '0' && line[i] <= '7')) {
+                            i++;
+                            col++;
+                        }
                         if(oct_start == i)
                             tokens.emplace_back("Invalid octal number", line_num, number_col, main_file);
                             //ERROR("Invalid octal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
-                        size_t suffix_end = parse_integer_suffix(line, i);
+                        auto suffix_end = parse_integer_suffix(line, i);
                         col += (suffix_end - i);
                         i = suffix_end;
                         tokens.emplace_back(line.substr(number_start, i - number_start), line_num, number_col, main_file);
@@ -301,14 +331,15 @@ shared_ptr<Import> tokenize(const string& path) {
                     }
                 }
                 // Decimal/floating point
-                bool has_dot = false;
-                if(line[i] == '.') has_dot = true;
+                auto has_dot = line[i] == '.';
                 while(i < line.size() && (isdigit(line[i]) || (line[i] == '.' && !has_dot))) {
-                    if(line[i] == '.') has_dot = true;
-                    i++; col++;
+                    if(line[i] == '.') 
+                        has_dot = true;
+                    i++; 
+                    col++;
                 }
                 // Accept integer suffixes (not for floats, but safe to include for now)
-                size_t suffix_end = parse_integer_suffix(line, i);
+                auto suffix_end = parse_integer_suffix(line, i);
                 col += (suffix_end - i);
                 i = suffix_end;
                 tokens.emplace_back(line.substr(number_start, i - number_start), line_num, number_col, main_file);
@@ -320,7 +351,7 @@ shared_ptr<Import> tokenize(const string& path) {
                     col++;
                 }
                 if(start < i) {
-                    string substr = line.substr(start, i - start);
+                    auto substr = line.substr(start, i - start);
                     if(substr=="end") {
                         tokens.emplace_back("-", line_num, col, main_file);
                         tokens.emplace_back("-", line_num, col + 1, main_file);
