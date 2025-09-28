@@ -88,8 +88,15 @@ void *__runtime_stack_bottom(void)
 
 #elif defined(__linux__)
 /* ----------------- Linux ------------------ */
+#ifdef __cplusplus
+extern "C" {
+#endif
+int pthread_getattr_np(pthread_t thread, pthread_attr_t *attr) __THROW; // prevents implicit declaration from tcc
+#ifdef __cplusplus
+}
+#endif 
 #include <pthread.h>
-#include <unistd.h>   /* for sysconf */
+#include <unistd.h>
 
 void *__runtime_stack_bottom(void)
 {

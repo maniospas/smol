@@ -50,9 +50,9 @@
 
 
 #if SMOLAMBDA_SERVICES > 1
-#define SMOLAMBDA_RUNTIME_MESSAGE(num_threads) printf("smoλ - https://github.com/maniospas/smol\nCoroutine threads: %d\n", num_threads);
+#define SMOLAMBDA_RUNTIME_MESSAGE(num_threads) printf("\033[30;44m smoλ \033[0m https://github.com/maniospas/smol\n\033[30;44m smoλ \033[0m %d co-routine threads by --runtime auto\n", num_threads);
 #include "threads.h"
 #else
-#define SMOLAMBDA_RUNTIME_MESSAGE(num_threads) printf("smoλ - https://github.com/maniospas/smol\nSingle threaded\n");
+#define SMOLAMBDA_RUNTIME_MESSAGE(num_threads) printf("\033[30;44m smoλ \033[0m https://github.com/maniospas/smol\n\033[30;44m smoλ \033[0m single threaded by --runtime auto\n");
 #include "eager.h"
 #endif

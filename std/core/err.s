@@ -32,7 +32,9 @@
 def assert_ok(errcode error)
     @body{bool isuser = (error==__USER__ERROR);}
     @body{bool isbuffer = (error==__BUFFER__ERROR);}
-    @body{bool iserror = (error==__BUFFER__ERROR);}
+    @body{bool isstack = (error==__STACK__ERROR);}
+    @body{bool iserror = (error);}
+    @body{bool isstack = (error==__STACK__ERROR);}
     @body{bool isunhandled = (error==__UNHANDLED__ERROR);}
     if isuser 
         @fail{printf("User error\n");} 
@@ -42,6 +44,9 @@ def assert_ok(errcode error)
         end
     if isunhandled 
         @fail{printf("Unhandled error\n");}
+        end
+    if isstack 
+        @fail{printf("Stack error\n");}
         end
     if iserror 
         @fail{printf("Unknown error\n");}
@@ -72,6 +77,8 @@ def print(errcode error)
             printf("Buffer error\n"); 
         else if(error==__UNHANDLED__ERROR)
             printf("Unhandled error\n"); 
+        else if(error==__STACK__ERROR)
+            printf("Stack error\n"); 
         else if(error)
             printf("Unknown error\n");
         else 

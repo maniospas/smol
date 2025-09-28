@@ -29,6 +29,7 @@ extern unordered_set<string> status_progress;
 extern queue<string> g_imports;
 extern mutex g_importMutex;
 
+string progress_bar(size_t done, size_t total, int width);
 void handle_def_or_service(
     const shared_ptr<Import>& imp,
     size_t& p,

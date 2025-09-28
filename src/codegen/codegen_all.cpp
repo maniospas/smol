@@ -12,6 +12,37 @@
 // limitations under the License.
 #include "../codegen.h"
 #include <chrono>  
+#include <cmath>
+
+#include <string>
+#include <cmath>
+
+
+string progress_bar(size_t done, size_t total, int width) {
+    if (total == 0) 
+        return string(width, ' ');
+    double frac = static_cast<double>(done) / (double)total;
+    int full_cells = static_cast<int>(std::floor(frac * width));
+    double remainder = frac * width - full_cells;
+    static const char* partials[] = {"", "▏", "▎", "▍", "▌", "▋", "▊", "▉"};
+    int eighths = static_cast<int>(std::floor(remainder * 8+0.0025)); // 0.0025 to just help with rounding errors
+    string bar;
+    bar.reserve(width * 3);
+    int cells = 0;
+    for (int i = 0; i < full_cells; ++i) {
+        bar += "█";
+        ++cells;
+    }
+    if (full_cells < width && eighths > 0) {
+        bar += partials[eighths];
+        ++cells;
+    }
+    while (cells < width) {
+        bar += ' ';
+        ++cells;
+    }
+    return bar;
+}
 
 bool codegen_all(
     map<string, shared_ptr<Types>>& files,
@@ -27,8 +58,14 @@ bool codegen_all(
         status_requested.insert(first_file);
     }
 
+    unsigned num_workers = max(1u, thread::hardware_concurrency());
+    if(!worker_limit)
+        num_workers = 1;
+    if (worker_limit && worker_limit < num_workers)
+        num_workers = worker_limit;
+
     atomic<bool> global_errors{false};
-    auto worker = [&global_errors, &files, &builtins, &selected_task, &task_report]() {
+    auto worker = [&global_errors, &files, &builtins, &selected_task, &task_report, num_workers, t_start]() {
         for (;;) {
             auto path = string{""};
             auto halted = string{""};
@@ -60,17 +97,20 @@ bool codegen_all(
                 status_requested.erase(path);
                 status_progress.erase(path);
                 status_done.insert(path);
+                // update progress only once we actually do something
+                auto done = status_done.size();
+                auto pending = status_requested.size() + status_progress.size();
+                auto total = done + pending;
+                cout << "\r\033[37;45m codegen \033[0m --workers "+to_string(num_workers)
+                        +"  "+progress_bar(done, total, 10)
+                        +" "+to_string(done)+"/"+to_string(total)
+                        +" files  "+to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms"
+                    << std::flush;
             }
         }
     };
-
-    unsigned num_workers = max(1u, thread::hardware_concurrency());
-    if(!worker_limit)
-        num_workers = 1;
-    if (worker_limit && worker_limit < num_workers)
-        num_workers = worker_limit;
-
-    cout << "Compiling on --workers " + to_string(num_workers) + "\n";
+    
+    cout << "\r\033[37;45m codegen \033[0m --workers " << num_workers << " "<<std::flush;
     if (num_workers == 1) 
         worker();
     else {
@@ -81,8 +121,6 @@ bool codegen_all(
         for (auto &t : workers)
             t.join();
     }
-    cout << "Finished in " +
-        to_string(chrono::duration_cast<chrono::milliseconds>(
-            chrono::steady_clock::now() - t_start).count()) + " ms\n";
+    cout << "\n";
     return global_errors.load();
 }

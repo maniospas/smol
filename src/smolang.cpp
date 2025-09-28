@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
         }
         return 1;
     }
-    if(files.size()==0) 
+    if(files.size()==0)
         files.push_back("main.s");
     string task_report;
     for(const string& file : files) {
@@ -333,6 +333,7 @@ int main(int argc, char* argv[]) {
                 "#define __USER__ERROR 1\n"
                 "#define __BUFFER__ERROR 2\n"
                 "#define __UNHANDLED__ERROR 3\n"
+                "#define __STACK__ERROR 4\n"
                 "#define __TRANSIENT(message)\n" // empty
                 "#define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)\n"
                 "#ifdef __cplusplus\n"
@@ -485,9 +486,11 @@ int main(int argc, char* argv[]) {
             //     it.second->vars.clear();
             //     it.second->options.clear();
             // }
-
+            auto t_start = chrono::steady_clock::now();
             if(selected_task == Task::Run) {
+                cout << "\r\033[37;45m compile \033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "");
+                cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status != 0) 
                     return run_status;
                 //cout << (EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str() << "\n";
@@ -496,7 +499,9 @@ int main(int argc, char* argv[]) {
                     return run_status;
             } 
             else if(selected_task == Task::Library) {
+                cout << "\r\033[37;45m compile \033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-shared -fPIC");
+                cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status) 
                     return run_status;
                 string py_filename = file.substr(0, file.size()-2) + ".py";
@@ -577,7 +582,9 @@ int main(int argc, char* argv[]) {
 
             } 
             else if(selected_task == Task::Assemble) {
+                cout << "\r\033[37;45m assemble \033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-S -masm=intel");
+                cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status) 
                     return run_status;
             } 
@@ -593,7 +600,7 @@ int main(int argc, char* argv[]) {
                 return 0;
             } 
             else {
-                int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-nodefaultlibs -lc");
+                int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-lc");
                 if(run_status) 
                     return run_status;
                 cout << "\033[30;42m ./ \033[0m " + file.substr(0, file.size()-2) + "\n";

@@ -408,7 +408,7 @@ Variable Def::call_type(
         Code impl;
         if(!Def::calls_on_heap){
             impl = Code(Variable("{char mark;if(__service_stack_floor+"), Variable(to_string(type->estimate_stack_size())), Variable(">=(char*)&mark) goto __service_stack_floor_handler;}"));
-            errors.insert(Code(Variable("__service_stack_floor_handler:\nprintf(\"Insufficient stack for safe service call (too much recursion or stack allocation)\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")));
+            errors.insert(Code(Variable("__service_stack_floor_handler:\nprintf(\"Insufficient stack for safe service call (too much recursion or stack allocation)\\n\");\n__result__errocode=__STACK__ERROR;\ngoto __failsafe;\n")));
     
             impl += Code(var+STATE_VAR, ASSIGN_VAR, Variable("(struct "+type->raw_signature_state_name()+"*)alloca(sizeof(struct "+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
             impl += Code(Variable("__smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results,"), var+STATE_VAR, RPAR_VAR, SEMICOLON_VAR);
@@ -425,7 +425,7 @@ Variable Def::call_type(
         }
         else {
             impl = Code(Variable("{char mark;if(__service_stack_floor+"), Variable(to_string(type->estimate_stack_size())), Variable(">=(char*)&mark) goto __service_stack_floor_handler;}"));
-            errors.insert(Code(Variable("__service_stack_floor_handler:\nprintf(\"Insufficient stack for safe service call (too much recursion or stack allocation)\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")));
+            errors.insert(Code(Variable("__service_stack_floor_handler:\nprintf(\"Insufficient stack for safe service call (too much recursion or stack allocation)\\n\");\n__result__errocode=__STACK__ERROR;\ngoto __failsafe;\n")));
             impl += Code(var+STATE_VAR, ASSIGN_VAR, Variable("(struct "+type->raw_signature_state_name()+"*)__runtime_calloc(sizeof(struct "+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
         
         }
