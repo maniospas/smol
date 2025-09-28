@@ -22,21 +22,21 @@ Variable Def::call_type(
     const Variable& first_token, 
     Types& types
 ) {
-    static const Variable token_if = Variable("if(");
-    static const Variable token_goto = Variable(")goto");
-    string overloading_errors("");
-    Variable var = create_temp();
-    Type successfullType = nullptr;
-    string multipleFound("");
-    int numberOfFound = 0;
-    int numberOfErrors = 0;
+    static const auto token_if = Variable("if(");
+    static const auto token_goto = Variable(")goto");
+    auto overloading_errors = string{""};
+    auto var = Variable{create_temp()};
+    auto successfullType = Type{nullptr};
+    auto multipleFound = string{""};
+    auto numberOfFound = 0;
+    auto numberOfErrors = 0;
     if(!type) 
         imp->error(first_token_pos, "Not found runtype: "
             +first_token.to_string()
             +recommend_runtype(types, first_token)
         );
-    Type previousType = type;
-    int highest_choice_power = 0;
+    auto previousType = type;
+    auto highest_choice_power = 0;
     for(size_t i=0;i<unpacks.size();++i) {
         if(!contains(unpacks[i])) 
             imp->error(p-1, "Not found: "
@@ -50,9 +50,9 @@ Variable Def::call_type(
             );
     }
     type->number_of_calls++;
-    size_t max_arg_progress = 0;
-    size_t arg_progress = 0;
-    for(const Type& type : previousType->get_options()) { // options encompases all overloads, in case of unions it may not have the base overloadv
+    auto max_arg_progress = size_t{0};
+    auto arg_progress = size_t{0};
+    for(const auto& type : previousType->get_options()) { // options encompases all overloads, in case of unions it may not have the base overloadv
         if(!type) 
             imp->error(--p, "Internal error: obained a null option for "
                 +previousType->name.to_string()
@@ -61,8 +61,9 @@ Variable Def::call_type(
             continue;
         try {
             //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
-            size_t type_args = type->not_primitive()?type->args.size():1;
-            if(unpacks.size()!=type_args) throw runtime_error(type->signature(types));
+            auto type_args = type->not_primitive()?type->args.size():1;
+            if(unpacks.size()!=type_args) 
+                throw runtime_error(type->signature(types));
             arg_progress = 0;
             for(size_t i=0;i<unpacks.size();++i) {
                 arg_progress++;
@@ -109,12 +110,10 @@ Variable Def::call_type(
                 numberOfFound = 0;
                 multipleFound = "";
             }
-            if(type->choice_power<highest_choice_power) continue;
+            if(type->choice_power<highest_choice_power) 
+                continue;
             successfullType = type;
-            if(lsp) 
-                multipleFound += "\n";
-            else 
-                multipleFound += "\n- ";
+            multipleFound += lsp?"\n":"\n- ";
             multipleFound += type->signature(types);
             numberOfFound++;
         }
@@ -123,23 +122,22 @@ Variable Def::call_type(
                 overloading_errors = "";
                 numberOfErrors = 0;
             }
-            if(lsp) 
-                overloading_errors += "\n";
-            else 
-                overloading_errors += "\n- ";
+            overloading_errors += lsp?"\n":"\n- ";
             overloading_errors += e.what();
             numberOfErrors++;
         }
     }
     type = successfullType;
-    string prev_errors("");
+    auto prev_errors = string{""};
     if(!type && active_context.exists()) { // 
         vector<Variable> new_unpacks;
         if(vars[active_context]->_is_primitive) 
             new_unpacks.push_back(active_context);
-        else for(const Variable& pack : vars[active_context]->packs) 
-            new_unpacks.push_back(active_context+pack);
-        for(const Variable& pack : unpacks) 
+        else 
+            for(const Variable& pack : vars[active_context]->packs) 
+                new_unpacks.push_back(active_context+pack);
+
+        for(const auto& pack : unpacks) 
             new_unpacks.push_back(pack);
         prev_errors = previousType->name.to_string()
             +signature_like(types, unpacks)
@@ -150,7 +148,7 @@ Variable Def::call_type(
         unpacks = new_unpacks;
 
         // COPY OF ABOVE CODE HERE TO RETRY
-        for(const Type& type : previousType->get_options()) { // options encompases all overloads, in case of unions it may not have the base overloadv
+        for(const auto& type : previousType->get_options()) { // options encompases all overloads, in case of unions it may not have the base overloadv
             if(!type) 
                 imp->error(--p, "Internal error: obained a null option for "
                     +previousType->name.to_string()
@@ -270,7 +268,7 @@ Variable Def::call_type(
         imp->error(pos, "Internal error: Runtype has not been compiled");
     
     // singleton resources should never be called twice in a program
-    for(const Variable& singleton : type->singletons) 
+    for(const auto& singleton : type->singletons) 
         if(singletons.find(singleton)==singletons.end())
             singletons.insert(singleton);
         else
@@ -281,7 +279,7 @@ Variable Def::call_type(
     
     // acquired resources should never be called twice by services because they require sequential execution
     if(type->is_service) {
-        for(const Variable& acq : type->acquired) 
+        for(const auto& acq : type->acquired) 
             if(acquired.find(acq)==acquired.end())
                 acquired.insert(acq);
             else
@@ -358,11 +356,11 @@ Variable Def::call_type(
     // TODO: reinstate this but improve inference
     //if(numberOfFound>1) imp->error(first_token_pos, "Ambiguous use of ["+to_string(unpacks.size())+"] structural arguments - they match "+to_string(numberOfFound)+" candidates"+(lsp?"\n```rust":"")+multipleFound+(lsp?"\n```\n":""));
 
-    for(const Variable& pack : type->packs) 
+    for(const auto& pack : type->packs) 
         type->coallesce_finals(pack);
     auto transfer_finals = type->finals;
     unordered_map<Variable, Code> transferring;
-    for(const Variable& pack : type->packs) 
+    for(const auto& pack : type->packs) 
         if(type->finals[pack].exists()) {
             type->coallesce_finals(pack);
             finals[var+pack] = finals[var+pack] + type->rebase(type->finals[pack], var);
@@ -386,7 +384,7 @@ Variable Def::call_type(
 
     // prevent memory leaks in loops
     if(uplifiting_is_loop.size() && uplifiting_is_loop.back() && type->finals.size()) {
-        string desc("");
+        auto desc = string{""};
         for(const auto& it : transferring) 
             if(it.first.exists() && it.second.exists()) 
                 desc += "\n- "+pretty_var(type->name.to_string()+"__"+it.first.to_string());
@@ -398,7 +396,7 @@ Variable Def::call_type(
             );
     }
 
-    for(const Variable& mut : type->mutables) 
+    for(const auto& mut : type->mutables) 
         mutables.insert(var+mut);
     mutables.insert(var); // MAKE ALL CALL OUTCOMES MUTABLE BY DEFAULT
 
@@ -410,7 +408,7 @@ Variable Def::call_type(
         Code impl;
         if(!Def::calls_on_heap){
             impl = Code(Variable("{char mark;if(__service_stack_floor+"), Variable(to_string(type->estimate_stack_size())), Variable(">=(char*)&mark) goto __service_stack_floor_handler;}"));
-            errors.insert(Code(Variable("__service_stack_floor_handler:\nprintf(\"Insufficient stack for safe service call\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")));
+            errors.insert(Code(Variable("__service_stack_floor_handler:\nprintf(\"Insufficient stack for safe service call (too much recursion or stack allocation)\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")));
     
             impl += Code(var+STATE_VAR, ASSIGN_VAR, Variable("(struct "+type->raw_signature_state_name()+"*)alloca(sizeof(struct "+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
             impl += Code(Variable("__smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results,"), var+STATE_VAR, RPAR_VAR, SEMICOLON_VAR);
@@ -427,7 +425,7 @@ Variable Def::call_type(
         }
         else {
             impl = Code(Variable("{char mark;if(__service_stack_floor+"), Variable(to_string(type->estimate_stack_size())), Variable(">=(char*)&mark) goto __service_stack_floor_handler;}"));
-            errors.insert(Code(Variable("__service_stack_floor_handler:\nprintf(\"Insufficient stack for safe service call\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")));
+            errors.insert(Code(Variable("__service_stack_floor_handler:\nprintf(\"Insufficient stack for safe service call (too much recursion or stack allocation)\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")));
             impl += Code(var+STATE_VAR, ASSIGN_VAR, Variable("(struct "+type->raw_signature_state_name()+"*)__runtime_calloc(sizeof(struct "+type->raw_signature_state_name()+"))"),SEMICOLON_VAR);
         
         }
@@ -459,7 +457,7 @@ Variable Def::call_type(
                 finals[unpacks[i]] = finals[unpacks[i]]+type->rename_var(type->finals[type->args[i].name], type->args[i].name, unpacks[i]);
             }
             else 
-                impl += Code(var+STATE_VAR, ARROW_VAR, type->args[i].name, ASSIGN_VAR, unpacks[i],SEMICOLON_VAR);
+                impl += Code(var+STATE_VAR, ARROW_VAR, type->args[i].name, ASSIGN_VAR, unpacks[i], SEMICOLON_VAR);
         }
         impl += Code(var+TASK_VAR, ASSIGN_VAR, Variable("__smolambda_add_task"),LPAR_VAR)
                 +Code(type->name+Variable(to_string(type->identifier)), COMMA_VAR, var+STATE_VAR)
@@ -471,14 +469,14 @@ Variable Def::call_type(
     }
     if(type->_is_primitive) {
         if(unpacks.size()!=1) imp->error(--p, "Primitive types only accept one argument");
-        size_t fp = first_token_pos;
+        auto fp = first_token_pos;
         assign_variable(type, var, unpacks[0], fp);
         return next_var(p, var, types);
     }
     for(const auto& it : type->alignments) if(it.second) alignments[var+it.first] = it.second; 
     Code immediate_finals;
     for(size_t i=0;i<unpacks.size();++i) {
-        size_t fp = first_token_pos;
+        auto fp = first_token_pos;
         assign_variable(type->args[i].type, var+type->args[i].name, unpacks[i], fp);
         if(type->args[i].mut) {
             immediate_finals = immediate_finals+Code(unpacks[i],ASSIGN_VAR,var+type->args[i].name,SEMICOLON_VAR);
@@ -493,9 +491,9 @@ Variable Def::call_type(
         immediate_finals = immediate_finals+type->rebase(final.second, var);
     vars[var] = type->alias_for.exists()?type->vars[type->alias_for]:type;
     implementation +=type->rebase(type->implementation, var)+immediate_finals;
-    for(const string& pre : type->preample) 
+    for(const auto& pre : type->preample) 
         add_preample(pre);
-    for(const string& pre : type->linker) 
+    for(const auto& pre : type->linker) 
         add_linker(pre);
     for(const auto& it : type->buffer_types) 
         buffer_types[var+it.first] = it.second;

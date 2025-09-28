@@ -14,6 +14,7 @@
 
 void Def::parse_return(size_t& p, Variable next, Types& types) {
     size_t uplifting = 0;
+    size_t return_p = p; // TODO: fix this when we fully migrate to "return" as a keyword instead of a macro for "->"
     static const Variable token_goto = Variable("goto");
     if(next=="|") {
         --p;
@@ -60,26 +61,27 @@ void Def::parse_return(size_t& p, Variable next, Types& types) {
 
     auto tentative = map_to_return(p, types, true);
 
-    if(is_service) {
-        auto cleaned_tentative = vector<Variable>{};
-        cleaned_tentative.reserve(tentative.size());
-        for(size_t i=0;i<packs.size();++i) if(i==0 || packs[i]!=ERR_VAR)
-            cleaned_tentative.push_back(tentative[i]); 
-        if(cleaned_tentative.size()!=tentative.size())
-           tentative = cleaned_tentative;
-    }
+    // if(is_service) {
+    //     auto cleaned_tentative = vector<Variable>{};
+    //     cleaned_tentative.reserve(tentative.size());
+    //     for(size_t i=0;i<tentative.size();++i) if(i==0 || tentative[i]!=ERR_VAR)
+    //         cleaned_tentative.push_back(tentative[i]); 
+    //     cout << name << " "<<tentative.size() << "\n";
+    //     if(cleaned_tentative.size()!=tentative.size())
+    //        tentative = cleaned_tentative;
+    // }
 
     if(!has_returned) 
         packs = tentative;
     else if(packs.size()!=tentative.size()) 
-        imp->error(--p, "Incompatible returns\nprevious "
+        imp->error(return_p, "Incompatible returns\nprevious "
             +signature_like(types, packs)
             +" vs last "+signature_like(types, tentative)
         );
     else 
         for(size_t i=0;i<packs.size();++i) {
             if(vars[packs[i]]!=vars[tentative[i]]) 
-                imp->error(--p, 
+                imp->error(return_p, 
                     "Incompatible returns\nprevious "
                     +signature_like(types, packs)
                     +" vs previous "+signature_like(types, tentative)

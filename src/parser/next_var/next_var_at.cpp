@@ -99,8 +99,7 @@ Variable Def::next_var_at(Variable next, size_t& p, Types& types) {
 
     if(active_calls[next].exists()) {
         if(active_calls[active_calls[next]].exists()) {
-            static const Variable token_print = Variable(":\nprintf(\"Runtime error from");
-            static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+            static const Variable token_print = Variable(":\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
             const Variable& call_var = active_calls[next];
             implementation += Code(
                 Variable("__smolambda_task_wait"),\
@@ -135,10 +134,7 @@ Variable Def::next_var_at(Variable next, size_t& p, Types& types) {
             );
             errors.insert(Code(
                 fail_var, 
-                token_print, 
-                vars[next]->name, 
-                call_var, 
-                token_failsafe
+                token_print
             ));
             add_preample("#include <stdio.h>");
         }
@@ -157,6 +153,6 @@ Variable Def::next_var_at(Variable next, size_t& p, Types& types) {
     string inherit_buffer = "";
     next = call_type(p, type, unpacks, p-1, method, types);
     if(imp->at(p++)!="]") 
-        imp->error(--p, "Expecting : or closing square bracket");
+        imp->error(--p, "Failed to close square brackets\nPerhaps the expression to allocate the buffer memory concluded early");
     return next;
 }

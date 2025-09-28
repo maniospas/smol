@@ -20,14 +20,13 @@ void Def::parse_directive_release(size_t& p, string next, Types& types) {
         const Variable& call_var = active_calls[next_var];
         static const Variable token_if = Variable("if(");
         static const Variable token_goto = Variable(")goto");
-        static const Variable token_print = Variable(":\nprintf(\"Runtime error from");
-        static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+        static const Variable token_print = Variable(":\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
         implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
         implementation += Code(call_var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
         Variable fail_var = create_temp();
         vars[fail_var] = types.vars[LABEL_VAR];
         implementation += Code(token_if,call_var+ERR_VAR,token_goto,fail_var, SEMICOLON_VAR);
-        errors.insert(Code(fail_var, token_print, vars[call_var]->name, call_var, token_failsafe));
+        errors.insert(Code(fail_var, token_print));
         add_preample("#include <stdio.h>");
         active_calls[call_var] = EMPTY_VAR;
         next_var = call_var;

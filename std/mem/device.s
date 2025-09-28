@@ -70,7 +70,7 @@ def allocate(@access Stack, u64 size, Primitive)
         ptr mem=(size_bytes+__service_stack_floor>=(char*)&size_bytes)?0:alloca(size_bytes);
     }
     if mem.bool().not() 
-        return fail("Cannot allocate Stack space")
+        return fail("Insufficient stack for allocation (too much recursion or stack allocatio, or zero size requested)")
     @noshare mem
     return nominal.ContiguousMemory(Stack, size, Primitive, mem, mem)
 

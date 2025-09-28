@@ -84,10 +84,9 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
                     call_var+ERR_VAR,
                     SEMICOLON_VAR
                 );
-                static const Variable token_err1 = Variable(":\nprintf(\"Runtime error from ");
-                static const Variable token_err2 = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+                static const Variable token_print = Variable(":\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
                 implementation += Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
-                errors.insert(Code(fail_var, token_err1, rhsType->name, call_var, token_err2));
+                errors.insert(Code(fail_var, token_print));
                 add_preample("#include <stdio.h>");
             }
             for(size_t i=1;i<rhsType->packs.size();++i)
