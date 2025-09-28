@@ -11,7 +11,7 @@ service main()
     if value.err.bool()
         print("We got an error message, so are entering this block")
         print(value.n)
-        print("This message should never appear - value.n evokes 'Unhandled error'")
+        print("This message should never appear - value.n creates 'Unhandled error'")
         end
     print(value.n)
     end
