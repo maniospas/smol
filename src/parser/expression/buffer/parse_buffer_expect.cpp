@@ -13,7 +13,7 @@
 #include "../../../def.h"
 
 
-Variable Def::parse_buffer_expect(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+Variable Def::parse_buffer_expect(size_t& p, Types& types, Variable curry, size_t first_token_pos) {
     Variable raw_var = curry;
     if(imp->at(p++)!="(") 
         imp->error(--p, "Expected opening parenthesis");
@@ -21,10 +21,10 @@ Variable Def::parse_buffer_expect(const shared_ptr<Import>& imp, size_t& p, cons
         imp->error(--p, "Cannot grow a non-mutable buffer");
     curry = curry+Variable("dynamic");
     if(buffer_types.find(curry)==buffer_types.end())
-        imp->error(--p, "Internal error: buffer has not been properly transferred to scope");
+        imp->error(first_token_pos, "Internal error: buffer has not been properly transferred to scope");
     auto prev_p = p;
     string next = imp->at(p++);
-    Variable amount = parse_expression(imp, p, next, types, EMPTY_VAR);
+    Variable amount = parse_expression(p, next, types, EMPTY_VAR);
     if(!amount.exists() || !vars[amount]) 
         imp->error(prev_p, "Expression does not yield a value within grow");
     if(vars[amount]->name != Variable("u64"))
@@ -128,5 +128,5 @@ Variable Def::parse_buffer_expect(const shared_ptr<Import>& imp, size_t& p, cons
     // finally, update size
     implementation += Code(Variable("((u64*)"), curry, Variable(")[1]"), ASSIGN_VAR, curry+Variable("__buffer_size"), PLUS_VAR, amount, SEMICOLON_VAR);
 
-    return next_var(imp, p, raw_var, types);
+    return next_var(p, raw_var, types);
 }

@@ -80,12 +80,12 @@ void codegen(
                 else if(imp->at(p)=="@" && imp->at(p+1)=="install")
                     handle_install(files, file, builtins, selected_task, task_report, imp, p, errors);
                 else if(imp->at(p)=="@" && imp->at(p+1)=="include") {
-                    handle_include(files, file, builtins, selected_task, task_report, imp, p, types, halted, errors);
+                    handle_include(files, file, imp, p, types, halted);
                     if(halted.size()) 
                         return;
                 }
                 else if(imp->at(p)=="def" || imp->at(p)=="service")
-                    handle_def_or_service(files, file, builtins, selected_task, task_report, imp, p, types, errors);
+                    handle_def_or_service(imp, p, types);
                 else if(imp->at(p)=="union")
                     handle_union(imp, p, types);
                 else

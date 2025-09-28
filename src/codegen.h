@@ -30,23 +30,17 @@ extern queue<string> g_imports;
 extern mutex g_importMutex;
 
 void handle_def_or_service(
-    map<string, shared_ptr<Types>>& files,
-    const string& file,
-    const Memory& builtins,
-    Task selected_task,
-    string& task_report,
     const shared_ptr<Import>& imp,
     size_t& p,
-    Types& types,
-    bool& errors
+    Types& types
 );
 void handle_include(
-    map<string, shared_ptr<Types>>& files, string file,
-    const Memory& builtins, Task selected_task,
-    string& task_report, const shared_ptr<Import>& imp, size_t& p,
+    map<string, shared_ptr<Types>>& files, 
+    string file,
+    const shared_ptr<Import>& imp, 
+    size_t& p,
     Types& types,
-    string& halted,
-    bool& errors
+    string& halted
 );
 void handle_install(
     map<string, shared_ptr<Types>>& files, 

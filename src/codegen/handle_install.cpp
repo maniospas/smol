@@ -37,10 +37,10 @@ void handle_install(
         cout << "\033[30;43m INSTALL \033[0m " << test_path << "\n";
         int run_status = system((EXEC_PREFIX + ("smol " + path + " --runtime eager")).c_str());
         if(run_status)
-            imp->error(p, "Failed to run installer: " + test_path);
+            imp->error(p, "Failed to run installer: " + test_path+"\nRequired by: "+file);
     } 
     else if(!filesystem::exists(path))
-        imp->error(p, "Missing installer: " + test_path);
+        imp->error(p, "Missing installer: " + test_path+"\nRequired by: "+file);
     else
         errors |= codegen_all(files, path, builtins, selected_task, task_report);
 }

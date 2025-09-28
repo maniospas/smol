@@ -15,10 +15,10 @@
 #define CHECK_RELEASE(next) if(released[next]) imp->error(--p, "Cannot use already released value: "+next.to_string());
 #define CHECK_ERRCODE(next) if(contains(next+ERR_VAR)) {implementation += Code(token_if, next+ERR_VAR, Variable(") goto "), Variable("__result_unhandled_error"), SEMICOLON_VAR); errors.insert(Code(Variable("__result_unhandled_error"), COLON_VAR, Variable("printf(\"Unhandled error\\n\")"),SEMICOLON_VAR, Variable("__result__errocode"), Variable("=__UNHANDLED__ERROR;\ngoto __failsafe"), SEMICOLON_VAR));}
 
-Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test) {
+Variable Def::next_var(size_t& p, const Variable& first_token, Types& types, bool test) {
     if(first_token.is_empty()) 
         return EMPTY_VAR;
-    auto n = i->size();
+    auto n = imp->size();
     CHECK_RELEASE(first_token);
     CHECK_ERRCODE(first_token);
     if(p>=n) 
@@ -32,7 +32,7 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
         for(const auto& pack : type->packs) {
             if(type->alignments[pack])
                 alignments[next+pack] = type->alignments[pack];
-            assign_variable(type->vars[pack], next+pack, ZERO_VAR, i, p);
+            assign_variable(type->vars[pack], next+pack, ZERO_VAR, p);
             mutables.insert(next+pack);
         }
     }
@@ -51,15 +51,15 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             || (imp->at(p)=="." && imp->at(p+1)=="while")) 
         ) {
             ++p;
-            next = parse_expression(i, p, imp->at(p++), types, next);
+            next = parse_expression(p, imp->at(p++), types, next);
         }
         else if(imp->at(p)=="and") 
-            next = next_var_and(next, imp, p, first_token, types, test);
+            next = next_var_and(next, p, types);
         else if(imp->at(p)=="or") 
-            next = next_var_or(next, imp, p, first_token, types, test);
+            next = next_var_or(next, p, types);
         else if(imp->at(p)==".") {
             bool skip = false;
-            next = next_var_field(next, imp, p, first_token, types, test, skip);
+            next = next_var_field(next, p, first_token, types, test, skip);
             if(skip)
                 continue;
         }
@@ -71,16 +71,16 @@ Variable Def::next_var(const shared_ptr<Import>& i, size_t& p, const Variable& f
             && vars[next]->vars[vars[next]->packs[1]]->name==BUFFER_VAR
         ) {
             imp->error(--p, "Internal error: deprecated branch");
-            //next = next_var_buffer_ret_at(next, imp, p, first_token, types, test);
+            //next = next_var_buffer_ret_at(next, p, first_token, types, test);
             continue;
         }
         else if(imp->at(p)=="[" 
             && contains(next) 
             && vars[next]->name==BUFFER_VAR
         ) 
-            next = next_var_buffer_at(next, imp, p, first_token, types, test);
+            next = next_var_buffer_at(next, p, types);
         else if(imp->at(p)=="[") 
-            next = next_var_at(next, imp, p, first_token, types, test);
+            next = next_var_at(next, p, types);
         else 
             break;
     }

@@ -1,17 +1,17 @@
 #include "../../../def.h"
 
 
-Variable Def::parse_on(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+Variable Def::parse_on(size_t& p, Types& types, Variable curry, size_t first_token_pos) {
     if(curry.exists()) 
         imp->error(p, "Cannot curry onto `on`");
     if(active_context.exists()) 
         imp->error(p, "There is already an active context in this implementation\nEnd its code block to enter a new context with `on`.");
     string next = imp->at(p++);
-    active_context = parse_expression(imp,p,next,types,curry);
+    active_context = parse_expression(p,next,types,curry);
     if(!active_context.exists() || !contains(active_context))
-        imp->error(--p, "Expression does not evaluate to a variable to use as `on` context");
+        imp->error(first_token_pos, "Expression does not evaluate to a variable to use as `on` context");
     if(vars[active_context]->noassign && !imp->allow_unsafe)
-        imp->error(--p, "Cannot use as en `on` context a variable marked as @noassign\nThis is considered unsafe behavior and can only be enabled with @unsafe");
+        imp->error(first_token_pos, "Cannot use `on` context a variable marked as @noassign\nThis is considered unsafe behavior and can only be enabled with @unsafe");
     Variable temp = create_temp();
     Variable finally_var = temp+Variable("on");
     vars[finally_var] = types.vars[LABEL_VAR];

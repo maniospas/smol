@@ -16,7 +16,6 @@ void Def::assign_variable(
     const Type& type, 
     const Variable& from, 
     const Variable& to, 
-    const shared_ptr<Import>& i, 
     size_t& p, 
     bool error_on_non_primitives, 
     bool check_mutables
@@ -45,7 +44,8 @@ void Def::assign_variable(
             +"\nMutables are prepended by `@amp` in their first definition AND must be fields"
             +"\nof free variables or fields of mutable variables"
         );
-    if(to.is_private() 
+    if(to.exists()
+        && !to.is_private() 
         && contains(to) 
         && vars[to]->noborrow 
         && mutables.find(to)!=mutables.end()
@@ -91,7 +91,7 @@ void Def::assign_variable(
                 it==type->vars.end()?nullptr:it->second, 
                 from+var, 
                 to+var, 
-                i, p, true, false);
+                p, true, false);
         }
         if(mutables.find(to)!=mutables.end()) 
             for(const Variable& mut : type->mutables) 

@@ -1,25 +1,25 @@
 #include "../../../def.h"
 
 
-Variable Def::parse_with(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_token_pos) {
     // TODO: this implementation does not account for nesting
-    Variable temp = create_temp();
-    Variable finally_var = temp+Variable("with");
-    size_t numberOfCandidates = 0;
-    string overloading_errors = "";
-    string competing = "";
-    int with_start = p-1;
+    auto temp = Variable{create_temp()};
+    auto finally_var = temp+Variable("with");
+    auto numberOfCandidates = 0;
+    auto overloading_errors = string{""};
+    auto competing = string{""};
+    auto with_start = p-1;
     uplifting_targets.push_back(finally_var);
     if(uplifiting_is_loop.size()) 
         uplifiting_is_loop.push_back(uplifiting_is_loop.back());
     else 
         uplifiting_is_loop.push_back(false);
     vars[finally_var] = types.vars[LABEL_VAR];
-    string next;
+    auto next = string{""};
     try {
         if(curry.exists()) 
-            imp->error(--p, "Cannot have a curry onto `with`.");
-        parse(imp, p, types, false);
+            imp->error(first_token_pos, "Cannot have a curry onto `with`.");
+        parse(nullptr, p, types, false);
         p++;
         next = imp->at(p++);
         numberOfCandidates++;
@@ -37,7 +37,7 @@ Variable Def::parse_with(const shared_ptr<Import>& imp, size_t& p, const Variabl
             overloading_errors += "\n";
         else overloading_errors += "\n- ";
         overloading_errors += what;
-        end_block(imp, p);
+        end_block(p);
         next = imp->at(p++);
         if(next!="else") 
             imp->error(with_start, "`with` with no `else`\nCan guard parametric types but is a code smell otherwise\nHere it is redundant as enclosed code always succeeds");
@@ -46,7 +46,7 @@ Variable Def::parse_with(const shared_ptr<Import>& imp, size_t& p, const Variabl
         if(!numberOfCandidates) {
             try {
                 size_t else_start = p-1;
-                parse(imp, p, types, false);
+                parse(nullptr, p, types, false);
                 numberOfCandidates++;
                 implementation += Code(Variable("goto"), finally_var, SEMICOLON_VAR);
                 ++p;
@@ -62,11 +62,11 @@ Variable Def::parse_with(const shared_ptr<Import>& imp, size_t& p, const Variabl
                 else 
                     overloading_errors += "\n- ";
                 overloading_errors += what;
-                end_block(imp, p);
+                end_block(p);
             }
         }
         else 
-            end_block(imp, p);
+            end_block(p);
         next = p<imp->size()?imp->at(p):"";
         p++;
     }

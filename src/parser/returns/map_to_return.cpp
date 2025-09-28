@@ -13,7 +13,7 @@
 #include "../../def.h"
 #include <ranges>
 
-vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types, bool is_zero_level) {
+vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level) {
     vector<Variable> packs;
     Variable next = imp->at(p++);
     bool hasComma = false;
@@ -64,7 +64,7 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
     --p;
     // we are starting parenthesis
     while(true) {
-        next = parse_expression(imp, p, imp->at(p++), types);
+        next = parse_expression(p, imp->at(p++), types);
         if(!contains(next)) 
             break;
         if(released[next]) 
@@ -132,7 +132,6 @@ vector<Variable> Def::map_to_return(const shared_ptr<Import>& imp, size_t& p, Ty
                         vars[next]->vars[pack], 
                         pack, 
                         next+pack, 
-                        imp,
                         p,
                         false, 
                         false

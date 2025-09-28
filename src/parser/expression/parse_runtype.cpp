@@ -13,7 +13,7 @@
 #include "../../def.h"
 
 
-Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
     auto type = types.contains(first_token)?types.vars.find(first_token)->second:(first_token==name?shared_from_this():nullptr);
     if(!type)
         imp->error(--p, "Unknown type: "
@@ -29,7 +29,7 @@ Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Vari
     }
     if(p<imp->size()-1 && imp->at(p)=="[" && !curry.exists()) {
         p++;
-        return parse_buffer_create(imp, p, first_token, types, curry, first_token_pos, type);
+        return parse_buffer_create(p, first_token, types, curry, first_token_pos, type);
     }
     vector<Variable> unpacks;
     if(p>=imp->size()-1) {
@@ -58,7 +58,7 @@ Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Vari
             unpacks.push_back(curry);
         p++;
         string next = imp->at(p++);
-        Variable rhs = parse_expression(imp, p, next, types);
+        Variable rhs = parse_expression(p, next, types);
         if(!contains(rhs)) 
             imp->error(--p, "Failed to parse the right-hand-side of "+first_token.to_string());
         const auto& rhsType = vars.find(rhs)->second;
@@ -132,7 +132,7 @@ Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Vari
         if(parametric_types.find(type->name)!=parametric_types.end()) 
             type = parametric_types[type->name];
         string candidates("");
-        for(const auto& option : type->get_options(types)) {
+        for(const auto& option : type->get_options()) {
             if(option->choice_power>highest_choice_power) {
                 highest_choice_power = option->choice_power;
                 num_choices = 0;
@@ -173,7 +173,7 @@ Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Vari
                 Variable var = create_temp();
                 if(p<imp->size()-1 && imp->at(p+1)=="&") 
                     mutables.insert(var);
-                assign_variable(type->args[i].type, var+type->args[i].name, ZERO_VAR, imp, first_token_pos, true);
+                assign_variable(type->args[i].type, var+type->args[i].name, ZERO_VAR, first_token_pos, true);
                 type_trackers.insert(var);
                 unpacks.push_back(var+type->args[i].name);
             }
@@ -181,7 +181,7 @@ Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Vari
             string var = create_temp();
             if(p<imp->size()-1 && imp->at(p+1)=="&") 
                 mutables.insert(var);
-            assign_variable(type, var, ZERO_VAR, imp, first_token_pos, true);
+            assign_variable(type, var, ZERO_VAR, first_token_pos, true);
             type_trackers.insert(var);
             unpacks.push_back(var);
         }
@@ -203,7 +203,7 @@ Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Vari
         int num_choices = 0;
         int highest_choice_power = 0;
         string candidates("");
-        for(const auto& option : type->get_options(types)) {
+        for(const auto& option : type->get_options()) {
             if(option->choice_power>highest_choice_power) {
                 highest_choice_power = option->choice_power;
                 num_choices = 0;
@@ -254,17 +254,17 @@ Variable Def::parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Vari
         if(p<imp->size()-1 && imp->at(p+1)=="&") 
             mutables.insert(var);
         for(const Variable& pack : type->packs) 
-            assign_variable(type->vars[pack], var+pack, ZERO_VAR, imp, first_token_pos);
+            assign_variable(type->vars[pack], var+pack, ZERO_VAR, first_token_pos);
         if(type->args.size() && type->args[0].type->name==NOM_VAR) 
             alignments[var+type->args[0].name] = types.alignment_labels[type.get()];
-        return next_var(imp, p, var, types);
+        return next_var(p, var, types);
     }
     else {
         if(imp->at(p++)!="(") 
             imp->error(--p, "Expecting opening parenthesis");
-        unpacks = gather_tuple(imp, p, types, curry);
+        unpacks = gather_tuple(p, types, curry);
         if(imp->at(p++)!=")") 
             imp->error(--p, "Expecting closing parenthesis");
     }
-    return call_type(imp, p, type, unpacks, first_token_pos, first_token, types);
+    return call_type(p, type, unpacks, first_token_pos, first_token, types);
 }

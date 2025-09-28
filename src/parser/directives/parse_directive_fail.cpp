@@ -12,7 +12,7 @@
 // limitations under the License.
 #include "../../def.h"
 
-void Def::parse_directive_fail(const shared_ptr<Import>& imp, size_t& p, string next, Types& types) {
+void Def::parse_directive_fail(size_t& p, string next, Types& types) {
     if(!imp->allow_unsafe) 
         imp->error(--p, "@fail is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     Variable fail_label = create_temp();

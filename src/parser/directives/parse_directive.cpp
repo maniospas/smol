@@ -12,12 +12,12 @@
 // limitations under the License.
 #include "../../def.h"
 
-void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types) {
+void Def::parse_directive(size_t& p, string next, Types& types) {
     next = imp->at(p++);
     if(next=="body")  // do this first for speedup (it's the most frequent kind)
-        parse_directive_body(imp, p, next, types);
+        parse_directive_body(p, next, types);
     else if(next=="head") 
-        parse_directive_head(imp, p, next, types);
+        parse_directive_head(p, next);
     else if(next=="noborrow") 
         noborrow = true;
     else if(next=="noassign") 
@@ -43,7 +43,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         if(next.size()<2 || next[0]!='"' || next[next.size()-1]!='"')
             imp->error(--p, "A cstr is required to indicate a resource family id");
         Variable next_query = next;
-        if(acquired.find(next_query)!=singletons.end())
+        if(acquired.find(next_query)!=acquired.end())
             imp->error(--p, "This resource family "
                 +next
                 +" has @acquire in a previous call"
@@ -60,7 +60,7 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
         );
     }
     else if(next=="link") 
-        parse_directive_link(imp, p, next, types);
+        parse_directive_link(p, next);
     else if(next=="buffer") {
         if(!imp->allow_unsafe) 
             imp->error(--p, "@body is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
@@ -75,11 +75,11 @@ void Def::parse_directive(const shared_ptr<Import>& imp, size_t& p, string next,
             imp->error(--p, "Expecting ptr for buffer release pointer interpretation");
     }
     else if(next=="finally") 
-        parse_directive_finally(imp, p, next, types);
+        parse_directive_finally(p, next, types);
     else if(next=="fail") 
-        parse_directive_fail(imp, p, next, types);
+        parse_directive_fail(p, next, types);
     else if(next=="release") 
-        parse_directive_release(imp, p, next, types);
+        parse_directive_release(p, next, types);
     else
         imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally, @noshare, @release, @noborrow are allowed here.");
 }

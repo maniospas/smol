@@ -13,7 +13,7 @@
 #include "../../../def.h"
 
 
-Variable Def::parse_buffer_push(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t first_token_pos) {
     if(imp->at(p++)!="(") 
         imp->error(--p, "Expected opening parenthesis");
     if(mutables.find(curry)==mutables.end()) 
@@ -21,10 +21,10 @@ Variable Def::parse_buffer_push(const shared_ptr<Import>& imp, size_t& p, const 
     Variable raw_var = curry;
     curry = curry+Variable("dynamic");
     if(buffer_types.find(curry)==buffer_types.end())
-        imp->error(--p, "Internal error: buffer has not been properly transferred to scope");
+        imp->error(first_token_pos, "Internal error: buffer has not been properly transferred to scope");
     auto prev_p = p;
     string next = imp->at(p++);
-    Variable var = parse_expression(imp, p, next, types, EMPTY_VAR);
+    Variable var = parse_expression(p, next, types, EMPTY_VAR);
     if(!var.exists() || !vars[var]) 
         imp->error(prev_p, "Expression does not yield a value within push");
     if(vars[var].get() != buffer_types[curry].get())
@@ -133,5 +133,5 @@ Variable Def::parse_buffer_push(const shared_ptr<Import>& imp, size_t& p, const 
             pack_index++;
         }
     }
-    return next_var(imp, p, raw_var, types);
+    return next_var(p, raw_var, types);
 }

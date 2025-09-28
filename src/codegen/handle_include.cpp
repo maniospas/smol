@@ -15,14 +15,10 @@
 void handle_include(
     map<string, shared_ptr<Types>>& files, 
     string file,
-    const Memory& builtins, 
-    Task selected_task,
-    string& task_report, 
     const shared_ptr<Import>& imp, 
     size_t& p,
     Types& types,
-    string& halted,
-    bool& errors
+    string& halted
 ) {
     auto prev_progress = p;
     auto path = imp->at(p+=2);
@@ -125,7 +121,7 @@ void handle_include(
             def->name = name;
             types.vars[def->name]->pos = p;
             types.vars[name] = def;
-            def->assert_options_validity(imp, p);
+            def->assert_options_validity(p);
         }
     }
 

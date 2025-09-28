@@ -13,18 +13,18 @@
 #include "../../../def.h"
 
 
-Variable Def::parse_buffer_put(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+Variable Def::parse_buffer_put(size_t& p, Types& types, Variable curry, size_t first_token_pos) {
     Variable raw_var = curry;
     if(imp->at(p++)!="(") 
-        imp->error(--p, "Expected opening parenthesis");
+        imp->error(first_token_pos, "Expected opening parenthesis");
     if(mutables.find(curry)==mutables.end()) 
-        imp->error(--p, "Cannot put into a non-mutable buffer");
+        imp->error(first_token_pos, "Cannot put into a non-mutable buffer");
     curry = curry+Variable("dynamic");
     if(buffer_types.find(curry)==buffer_types.end()) 
         imp->error(--p, "Internal error: buffer has not been properly transferred to scope: "+curry.to_string());
     size_t prev_p = p;
     string next_tok = imp->at(p++);
-    Variable idx = parse_expression(imp, p, next_tok, types, EMPTY_VAR);
+    Variable idx = parse_expression(p, next_tok, types, EMPTY_VAR);
     if(!idx.exists() || !contains(idx) || vars[idx]->name!=U64_VAR)
         imp->error(prev_p, "First argument to put must be u64 but got "
             + (contains(idx)?vars[idx]->name.to_string():"nothing")
@@ -34,7 +34,7 @@ Variable Def::parse_buffer_put(const shared_ptr<Import>& imp, size_t& p, const V
 
     prev_p = p;
     next_tok = imp->at(p++);
-    Variable val = parse_expression(imp, p, next_tok, types, EMPTY_VAR);
+    Variable val = parse_expression(p, next_tok, types, EMPTY_VAR);
     if(!val.exists() || !contains(val)) 
         imp->error(prev_p, "Expression does not yield a value within put");
     if(vars[val].get() != buffer_types[curry].get())
@@ -88,5 +88,5 @@ Variable Def::parse_buffer_put(const shared_ptr<Import>& imp, size_t& p, const V
         }
     }
 
-    return next_var(imp, p, raw_var, types);
+    return next_var(p, raw_var, types);
 }

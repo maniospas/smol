@@ -20,7 +20,7 @@ void Def::add_linker(const string& pre) {
     if(linker.find(pre)==linker.end()) 
         linker.insert(pre);
 }
-void Def::assert_options_validity(const shared_ptr<Import>& imp, size_t& p) {
+void Def::assert_options_validity(size_t& p) {
     size_t count_nom = 0;
     size_t count_nonnom = 0;
     for(const auto& it : options) {

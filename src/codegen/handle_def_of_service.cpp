@@ -13,15 +13,9 @@
 #include "../codegen.h"
 
 void handle_def_or_service(
-    map<string, shared_ptr<Types>>& files,
-    const std::string& file,
-    const Memory& builtins,
-    Task selected_task,
-    std::string& task_report,
     const shared_ptr<Import>& imp,
     size_t& p,
-    Types& types,
-    bool& errors
+    Types& types
 ) {
     auto start_p = p;
     auto brackets = std::stack<std::pair<std::string, int>>{};
@@ -113,5 +107,5 @@ void handle_def_or_service(
     } else {
         types.vars[def->name]->options.push_back(def);
     }
-    def->assert_options_validity(imp, p);
+    def->assert_options_validity(p);
 }

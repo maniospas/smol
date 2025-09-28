@@ -4,6 +4,7 @@ union Type
     i64 
     f64 
     u64
+    end
 
 def Point(Type _x, Type _y)
     @mut x = _x
@@ -13,11 +14,12 @@ def Point(Type _x, Type _y)
 def inc(@access @mut Point p)
     p.x = p.x+Point.Type(1)
     p.y = p.y+Point.Type(1)
+    end
 
 service main()
     //print("Give a value: ")
     //&value = f64:read
-    value = 1:f64
+    value = f64(1)
     @access p = Point(value, value)
-    p:inc()
+    p.inc()
     print(p.x)

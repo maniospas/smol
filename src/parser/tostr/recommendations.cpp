@@ -13,18 +13,18 @@
 #include "../../def.h"
 
 string Def::recommend_runtype(const Types& types, const Variable& candidate) {
-    int min_distance = numeric_limits<int>::max();
-    string recommendation = "";
+    auto min_distance = numeric_limits<size_t>::max();
+    auto recommendation = string{""};
     for(const auto& it : types.vars) {
         if(it.first == candidate) 
             continue; // don't recommend itself
-        string it_first = it.first.to_string();
+        auto it_first = it.first.to_string();
         if(it_first.size()>=2 && it_first[0]=='_' && it_first[1]=='_')
             continue;
         if(it_first.find("____") != std::string::npos)
             continue;
-        int distance = 4*sellersMinimumEditDistance(candidate.to_string(), it_first)
-                           +sellersMinimumEditDistance(it_first, candidate.to_string());
+        auto distance = 4*sellersMinimumEditDistance(candidate.to_string(), it_first)
+                        + sellersMinimumEditDistance(it_first, candidate.to_string());
         if(distance<min_distance) {
             min_distance = distance;
             recommendation = it.first.to_string();
@@ -36,23 +36,25 @@ string Def::recommend_runtype(const Types& types, const Variable& candidate) {
 }
 
 string Def::recommend_variable(const Types& types, const Variable& candidate) {
-    int min_distance = numeric_limits<int>::max();
-    string recommendation = "";
+    auto min_distance = numeric_limits<size_t>::max();
+    auto recommendation = string{""};
     for(const auto& it : vars) 
-        if(!released[it.first] && it.first!=candidate) {
-            string it_first = it.first.to_string();
+        if(!released[it.first] && it.first!=candidate && !it.first.is_private()) {
+            auto it_first = it.first.to_string();
             if(it_first.size()>=2 && it_first[0]=='_' && it_first[1]=='_')
                 continue;
-            if(it_first.find("____") != std::string::npos)
+            if(it_first.find("____") != string::npos)
                 continue;
-            int distance = 4*sellersMinimumEditDistance(candidate.to_string(), it_first)
-                           +sellersMinimumEditDistance(it_first, candidate.to_string()); // it_first can have extra trailing characters at small cost (our current writing may just be incomplete)
+            auto distance = 4*sellersMinimumEditDistance(candidate.to_string(), it_first)
+                          + sellersMinimumEditDistance(it_first, candidate.to_string()); // it_first can have extra trailing characters at small cost (our current writing may just be incomplete)
             if(distance<min_distance) {
                 min_distance = distance;
                 recommendation = it_first;
             }
         }
-    if(!recommendation.size()) // need at least two characters to gain some sense 
-        return "";
+    if(!recommendation.size())
+        return recommend_runtype(types, candidate);
+    // if(!recommendation.size()) // need at least two characters to gain some sense 
+    //     return "";
     return "\nDo you mean `"+pretty_var(recommendation)+"`?";
 }

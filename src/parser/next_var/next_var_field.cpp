@@ -12,7 +12,7 @@
 // limitations under the License.
 #include "../../def.h"
 
-Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test, bool& skip) {
+Variable Def::next_var_field(Variable next, size_t& p, const Variable& first_token, Types& types, bool test, bool& skip) {
     ++p;
     const string& next_token = imp->at(p++);
     Variable var = Variable(next);
@@ -107,14 +107,14 @@ Variable Def::next_var_field(Variable next, const shared_ptr<Import>& i, size_t&
         next = create_temp();
         if(type->not_primitive()) {
             for(size_t i=0;i<type->args.size();++i) {
-                assign_variable(type->args[i].type, next+type->args[i].name, ZERO_VAR, imp, p, true);
+                assign_variable(type->args[i].type, next+type->args[i].name, ZERO_VAR, p, true);
                 if(type->args[i].type->name==NOM_VAR) 
                     alignments[next+type->args[i].name] = types.alignment_labels[type.get()];
             }
             vars[next] = type;
         }
         else 
-            assign_variable(type, next, ZERO_VAR, imp, p, true);
+            assign_variable(type, next, ZERO_VAR, p, true);
         type_trackers.insert(next);
         if(!imp->allow_unsafe && contains(next) && vars[next]->name==NOM_VAR)
             imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");

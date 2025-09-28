@@ -14,7 +14,7 @@
 
 
 Variable Def::call_type(
-    const shared_ptr<Import>& imp, 
+    
     size_t& p, 
     Type& type, 
     vector<Variable>& unpacks, 
@@ -52,7 +52,7 @@ Variable Def::call_type(
     type->number_of_calls++;
     size_t max_arg_progress = 0;
     size_t arg_progress = 0;
-    for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
+    for(const Type& type : previousType->get_options()) { // options encompases all overloads, in case of unions it may not have the base overloadv
         if(!type) 
             imp->error(--p, "Internal error: obained a null option for "
                 +previousType->name.to_string()
@@ -150,7 +150,7 @@ Variable Def::call_type(
         unpacks = new_unpacks;
 
         // COPY OF ABOVE CODE HERE TO RETRY
-        for(const Type& type : previousType->get_options(types)) { // options encompases all overloads, in case of unions it may not have the base overloadv
+        for(const Type& type : previousType->get_options()) { // options encompases all overloads, in case of unions it may not have the base overloadv
             if(!type) 
                 imp->error(--p, "Internal error: obained a null option for "
                     +previousType->name.to_string()
@@ -436,7 +436,7 @@ Variable Def::call_type(
             const Variable& ret = type->packs[i];
             size_t fp = first_token_pos;
             Variable arg = var+ret;
-            assign_variable(type->vars[ret], arg, ZERO_VAR, imp, fp);
+            assign_variable(type->vars[ret], arg, ZERO_VAR, fp);
             mutables.insert(arg);
             impl += Code(var+STATE_VAR, ARROW_VAR, ret+RET_VAR, ASSIGN_VAR, REF_VAR, arg, SEMICOLON_VAR);
             //type->coallesce_finals(ret);
@@ -460,19 +460,19 @@ Variable Def::call_type(
         impl += Code(Variable("__smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks,"), var+TASK_VAR, RPAR_VAR, SEMICOLON_VAR);
         implementation +=impl;
         vars[var] = type->alias_for.exists()?type->vars[type->alias_for]:type;
-        return next_var(imp, p, var, types);
+        return next_var(p, var, types);
     }
     if(type->_is_primitive) {
         if(unpacks.size()!=1) imp->error(--p, "Primitive types only accept one argument");
         size_t fp = first_token_pos;
-        assign_variable(type, var, unpacks[0], imp, fp);
-        return next_var(imp, p, var, types);
+        assign_variable(type, var, unpacks[0], fp);
+        return next_var(p, var, types);
     }
     for(const auto& it : type->alignments) if(it.second) alignments[var+it.first] = it.second; 
     Code immediate_finals;
     for(size_t i=0;i<unpacks.size();++i) {
         size_t fp = first_token_pos;
-        assign_variable(type->args[i].type, var+type->args[i].name, unpacks[i], imp, fp);
+        assign_variable(type->args[i].type, var+type->args[i].name, unpacks[i], fp);
         if(type->args[i].mut) {
             immediate_finals = immediate_finals+Code(unpacks[i],ASSIGN_VAR,var+type->args[i].name,SEMICOLON_VAR);
             current_renaming[unpacks[i]] = var.to_string()+"__"+type->args[i].name.to_string();
@@ -509,6 +509,6 @@ Variable Def::call_type(
         }
     //finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
     if(type->packs.size()==1) 
-        return next_var(imp, p, var+type->packs[0], types);
-    return next_var(imp, p, var, types);
+        return next_var(p, var+type->packs[0], types);
+    return next_var(p, var, types);
 }

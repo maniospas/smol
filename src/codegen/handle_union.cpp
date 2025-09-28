@@ -52,5 +52,5 @@ void handle_union(const shared_ptr<Import>& imp, size_t& p, Types& types) {
             );
     }
 
-    def->assert_options_validity(imp, --p);
+    def->assert_options_validity(--p);
 }

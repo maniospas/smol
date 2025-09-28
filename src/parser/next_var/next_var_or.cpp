@@ -12,7 +12,7 @@
 // limitations under the License.
 #include "../../def.h"
 
-Variable Def::next_var_or(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test) {
+Variable Def::next_var_or(Variable next, size_t& p, Types& types) {
     if(!contains(next)) 
         imp->error(--p, "Unknown symbol "+pretty_var(next.to_string()));
     if(vars[next]!=types.vars[BOOL_VAR]) 
@@ -31,7 +31,7 @@ Variable Def::next_var_or(Variable next, const shared_ptr<Import>& i, size_t& p,
         tmp, 
         SEMICOLON_VAR
     );
-    next = parse_expression(i, p, imp->at(p++), types);
+    next = parse_expression(p, imp->at(p++), types);
     if(!contains(next)) 
         imp->error(--p, "Unknown symbol "+pretty_var(next.to_string()));
     if(vars[next]!=types.vars[BOOL_VAR])

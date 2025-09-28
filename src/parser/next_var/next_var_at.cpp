@@ -12,14 +12,14 @@
 // limitations under the License.
 #include "../../def.h"
 
-Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test) {
+Variable Def::next_var_at(Variable next, size_t& p, Types& types) {
     if(!contains(next)) 
         imp->error(--p, "Not found: "
             +pretty_var(next.to_string())
             +recommend_variable(types, next)
         );
     ++p;
-    Variable arg = parse_expression(i, p, imp->at(p++), types);
+    Variable arg = parse_expression(p, imp->at(p++), types);
     if(!contains(arg)) 
         imp->error(--p, "Not found: "
             +pretty_var(arg.to_string())
@@ -30,7 +30,7 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
     if(imp->at(p)=="to") {
         p++;
         method = "slice";
-        end = parse_expression(i, p, imp->at(p++), types).to_string();
+        end = parse_expression(p, imp->at(p++), types).to_string();
         if(!contains(end)) 
             imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
     }
@@ -43,7 +43,7 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
                 +" `to` ranges [pos to end] for non-u64 pos."
             );
         p++;
-        end = parse_expression(i, p, imp->at(p++), types).to_string();
+        end = parse_expression(p, imp->at(p++), types).to_string();
         if(!contains(end)) 
             imp->error(--p, "Not found: "+pretty_var(end)+recommend_variable(types, next));
         if(vars[end]->name!=U64_VAR) 
@@ -54,8 +54,8 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
                 +" bounds for other end index runtypes."
             );
         method = "slice";
-        string tmp = create_temp();
-        assign_variable(vars[end], tmp, end, imp, p);
+        auto tmp = create_temp();
+        assign_variable(vars[end], tmp, end, p);
         implementation += Code(
             tmp,
             ASSIGN_VAR,
@@ -74,7 +74,7 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
                 +" ranges [pos to end] for non-u64 pos."
             );
         p++;
-        end = parse_expression(i, p, imp->at(p++), types).to_string();
+        end = parse_expression(p, imp->at(p++), types).to_string();
         if(!contains(end)) 
             imp->error(--p, "Not found: "
                 +pretty_var(end)
@@ -88,7 +88,7 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
             );
         method = "slice";
         Variable tmp = create_temp();
-        assign_variable(vars[end], tmp, end, imp, p);
+        assign_variable(vars[end], tmp, end, p);
         implementation += Code(tmp,ASSIGN_VAR,tmp,PLUS_VAR,arg,SEMICOLON_VAR);
         end = tmp.to_string();
     }
@@ -155,7 +155,7 @@ Variable Def::next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p,
     if(end.size()) 
         unpacks.push_back(end);
     string inherit_buffer = "";
-    next = call_type(i, p, type, unpacks, p-1, method, types);
+    next = call_type(p, type, unpacks, p-1, method, types);
     if(imp->at(p++)!="]") 
         imp->error(--p, "Expecting : or closing square bracket");
     return next;

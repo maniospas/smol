@@ -13,7 +13,7 @@
 #include "../../../def.h"
 
 
-Variable Def::parse_buffer_len(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+Variable Def::parse_buffer_len(size_t& p, Types& types, Variable curry) {
     curry = curry+Variable("dynamic");
     vars[Variable("__buffer_size")] = types.vars[Variable("u64")];
     implementation += Code(
@@ -29,6 +29,6 @@ Variable Def::parse_buffer_len(const shared_ptr<Import>& imp, size_t& p, const V
     if(imp->at(p++)!="(")
         imp->error(--p, "Expected opening parenthesis");
     if(imp->at(p++)!=")")
-        imp->error(--p, "Expected closign parenthesis");
-    return next_var(imp, p, Variable("__buffer_size"), types);
+        imp->error(--p, "Expected closing parenthesis");
+    return next_var(p, Variable("__buffer_size"), types);
 }

@@ -1,19 +1,19 @@
 #include "../../../def.h"
 
 
-Variable Def::parse_if(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_token_pos) {
     Variable temp = create_temp();
     Variable finally_var = temp+IF_VAR;
     Variable closeif_var = temp+FI_VAR;
     uplifting_targets.push_back(finally_var);
-    if(uplifiting_is_loop.size()) 
+    if(uplifiting_is_loop.size())
         uplifiting_is_loop.push_back(uplifiting_is_loop.back());
     else 
         uplifiting_is_loop.push_back(false);
     vars[finally_var] = types.vars[LABEL_VAR];
     vars[closeif_var] = types.vars[LABEL_VAR];
     string next = imp->at(p++);
-    Variable var = parse_expression(imp, p, next, types, curry);
+    Variable var = parse_expression(p, next, types, curry);
     if(!contains(var)) 
         imp->error(--p, "Expression did not evaluate to anything");
     if(vars.find(var)->second!=types.vars[BOOL_VAR]) 
@@ -59,7 +59,6 @@ Variable Def::parse_if(const shared_ptr<Import>& imp, size_t& p, const Variable&
                 vars[rfinally_var], 
                 rfinally_var, 
                 relse_var, 
-                imp, 
                 first_token_pos, 
                 false, 
                 false

@@ -12,7 +12,7 @@
 // limitations under the License.
 #include "../../def.h"
 
-void Def::parse_directive_link(const shared_ptr<Import>& imp, size_t& p, string next, Types& types) {
+void Def::parse_directive_link(size_t& p, string next) {
     if(!imp->allow_unsafe) 
         imp->error(--p, "@link is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     next = imp->at(p++);

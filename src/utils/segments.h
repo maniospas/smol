@@ -92,11 +92,11 @@ private:
 
 class SegmentedString {
 public:
-    unsigned int size; // number of segments, including the first one
-    unsigned int first_segment;
+    size_t size; // number of segments, including the first one
     unsigned int* segments;
-    SegmentedString() : size(0), first_segment(0), segments(nullptr) {}
-    SegmentedString(const string& input) : size(0), first_segment(0), segments(nullptr) {
+    unsigned int first_segment;
+    SegmentedString() : size(0), segments(nullptr), first_segment(0) {}
+    SegmentedString(const string& input) : size(0), segments(nullptr), first_segment(0) {
         if(input.empty()) 
             return;
         // Count segments
@@ -129,13 +129,13 @@ public:
             }
         }
     }
-    SegmentedString(const SegmentedString& other): size(other.size), first_segment(other.first_segment), segments(nullptr) {
+    SegmentedString(const SegmentedString& other): size(other.size), segments(nullptr), first_segment(other.first_segment) {
         if(size > 1) {
             segments = (unsigned int*)malloc(sizeof(unsigned int) * (size - 1));
             std::copy(other.segments, other.segments + (size - 1), segments);
         }
     }
-    SegmentedString(SegmentedString&& other) noexcept: size(other.size), first_segment(other.first_segment), segments(other.segments) {
+    SegmentedString(SegmentedString&& other) noexcept: size(other.size), segments(other.segments), first_segment(other.first_segment) {
         other.segments = nullptr;
         other.size = 0;
     }
@@ -165,8 +165,8 @@ public:
         return *this;
     }
     ~SegmentedString() {if(size>1) free(segments);}
-    explicit SegmentedString(unsigned int* segments, unsigned int size, unsigned int first_segment)
-        : size(size), first_segment(first_segment), segments(segments) {}
+    explicit SegmentedString(unsigned int* segments, size_t size, unsigned int first_segment)
+        : size(size), segments(segments), first_segment(first_segment) {}
     inline bool is_empty() const { 
         return size == 0; 
     }
@@ -174,7 +174,7 @@ public:
         return size != 0; 
     }
     inline bool is_private() const { 
-        return size && SegmentMap::instance().get_segment(first_segment).size(); 
+        return size && !SegmentMap::instance().get_segment(first_segment).size(); 
     }
     inline string to_string() const {
         std::ostringstream oss;

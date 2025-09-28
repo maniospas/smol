@@ -147,47 +147,47 @@ class Def : public enable_shared_from_this<Def> {
     bool start_option_resolution(const Types& _types);
 
     // helpers to perform variable assignment and gather tuples
-    void assign_variable(const Type& type, const Variable& from, const Variable& to, const shared_ptr<Import>& i, size_t& p, bool error_on_non_primitives=false, bool check_mutables=true);
-    vector<Variable> gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, const Variable& curry);
+    void assign_variable(const Type& type, const Variable& from, const Variable& to, size_t& p, bool error_on_non_primitives=false, bool check_mutables=true);
+    vector<Variable> gather_tuple(size_t& p, Types& types, const Variable& curry);
 
     // gather return arguments and parse return statements (includes nested returns)
-    vector<Variable> map_to_return(const shared_ptr<Import>& imp, size_t& p, Types& types, bool is_zero_level);
-    void parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, Types& types);
+    vector<Variable> map_to_return(size_t& p, Types& types, bool is_zero_level);
+    void parse_return(size_t& p, Variable next, Types& types);
 
     // parse expression
-    Variable parse_if(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
-    Variable parse_while(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
-    Variable parse_on(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
-    Variable parse_with(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
-    Variable parse_buffer_create(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos, Type type);
-    Variable parse_buffer_expect(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
-    Variable parse_buffer_len(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
-    Variable parse_buffer_push(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
-    Variable parse_buffer_put(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_if(size_t& p, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_while(size_t& p, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_on(size_t& p, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_with(size_t& p, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_buffer_create(size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos, Type type);
+    Variable parse_buffer_expect(size_t& p, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_buffer_len(size_t& p, Types& types, Variable curry);
+    Variable parse_buffer_push(size_t& p, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_buffer_put(size_t& p, Types& types, Variable curry, size_t first_token_pos);
     
-    Variable parse_primitive(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
-    Variable parse_runtype(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
-    Variable parse_expression(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, const Variable &curry=EMPTY_VAR);
-    Variable parse_expression_no_par(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry=EMPTY_VAR);
-    Variable call_type(const shared_ptr<Import>& imp, size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, Types& types);
+    Variable parse_primitive(size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_runtype(size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_expression(size_t& p, const Variable& first_token, Types& types, const Variable &curry=EMPTY_VAR);
+    Variable parse_expression_no_par(size_t& p, const Variable& first_token, Types& types, Variable curry=EMPTY_VAR);
+    Variable call_type(size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, Types& types);
 
     // parse directives inlined in code (@head, @link, @body, @finally, @fail, @release, @noborrow, @noshare, @buffer)
-    void parse_directive(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
-    void parse_directive_head(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
-    void parse_directive_link(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
-    void parse_directive_body(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
-    void parse_directive_finally(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
-    void parse_directive_fail(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
-    void parse_directive_release(const shared_ptr<Import>& imp, size_t& p, string next, Types& types);
+    void parse_directive(size_t& p, string next, Types& types);
+    void parse_directive_head(size_t& p, string next);
+    void parse_directive_link(size_t& p, string next);
+    void parse_directive_body(size_t& p, string next, Types& types);
+    void parse_directive_finally(size_t& p, string next, Types& types);
+    void parse_directive_fail(size_t& p, string next, Types& types);
+    void parse_directive_release(size_t& p, string next, Types& types);
 
     // parse expressions that identify the next variable (through dot notation for fields, indexed access, and, or, etc)
-    Variable next_var(const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test=true);
-    Variable next_var_and(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
-    Variable next_var_or(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
-    Variable next_var_field(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test, bool& skip);
-    Variable next_var_buffer_ret_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
-    Variable next_var_buffer_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
-    Variable next_var_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test);
+    Variable next_var(size_t& p, const Variable& first_token, Types& types, bool test=true);
+    Variable next_var_and(Variable next, size_t& p, Types& types);
+    Variable next_var_or(Variable next, size_t& p, Types& types);
+    Variable next_var_field(Variable next, size_t& p, const Variable& first_token, Types& types, bool test, bool& skip);
+    Variable next_var_buffer_ret_at(Variable next, size_t& p, Types& types);
+    Variable next_var_buffer_at(Variable next, size_t& p, Types& types);
+    Variable next_var_at(Variable next, size_t& p, Types& types);
 public:
     void simplify();
     static bool calls_on_heap;
@@ -242,7 +242,7 @@ public:
     unordered_set<Variable> mutables;
     vector<Variable> uplifting_targets;
     vector<bool> uplifiting_is_loop;
-    vector<Type>& get_options(const Types& types);
+    vector<Type>& get_options();
     vector<Type> get_lazy_options(Types& types);
     unordered_set<Variable> type_trackers;
     bool has_returned;
@@ -289,7 +289,7 @@ public:
     // property managers for finals, errors, mutability, service calls, etc
     void add_preample(const string& pre);
     void add_linker(const string& pre);
-    void assert_options_validity(const shared_ptr<Import>& imp, size_t& p);
+    void assert_options_validity(size_t& p);
     void coallesce_finals(const Variable& original);
     void notify_release(const Variable& original);
     void notify_service_arg(const Variable& original);
@@ -307,16 +307,16 @@ public:
             return vars[alias_for]->canonic_type();
         return this;
     }
-    void end_block(const shared_ptr<Import>& i, size_t& p);
+    void end_block(size_t& p);
 
     // code converters
     Code rebase(const Code& impl, const Variable& var);
     Code rename_var(const Code& impl, const Variable& from, const Variable& to);
     Code rename_var(const Code& impl, const Variable& from, const Code& to);
     void parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
-    void parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types);
+    void parse_signature(size_t& p, Types& types);
     void parse_implementation(size_t& p, bool with_signature);
-    void parse_no_implementation(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool with_signature=true);
+    void parse_no_implementation(size_t& p, Types& types, bool with_signature=true);
 };
 
 #endif // DEF_H

@@ -12,7 +12,7 @@
 // limitations under the License.
 #include "../../def.h"
 
-void Def::parse_directive_finally(const shared_ptr<Import>& imp, size_t& p, string next, Types& types) {
+void Def::parse_directive_finally(size_t& p, string next, Types& types) {
     if(!imp->allow_unsafe) 
         imp->error(--p, "@finally is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     Code finals;

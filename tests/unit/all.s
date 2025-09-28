@@ -27,7 +27,7 @@ service std_test(String name)
 
 service all()
     // services are asynchronous co-routines
-    std_test("buffers")
+    std_test("buffer")
     std_test("bbuffer")
     std_test("bufferconst")
     std_test("buffergrow")
@@ -40,6 +40,7 @@ service all()
     std_test("nom")
     //std_test("unsafe")
     std_test("mem")
+    std_test("union")
     std_test("memtest")
     std_test("mutpoint")
     std_test("range_test")
@@ -48,7 +49,7 @@ service all()
     std_test("vec")
     std_test("virtfile")
     std_test("accessvar")
-    //std_test("release") // THIS IS AN ERROR
+    std_test("release") // THIS IS AN ERROR
     end
 
 service main()

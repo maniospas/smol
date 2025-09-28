@@ -12,7 +12,7 @@
 // limitations under the License.
 #include "../../def.h"
 
-Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, size_t& p, const Variable& first_token, Types& types, bool test) {
+Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
     Variable buffer_var = next;
     next = next+Variable("dynamic");
     if(buffer_types.find(next)==buffer_types.end())
@@ -20,7 +20,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
             +next.to_string()
         );
     ++p;
-    Variable idx = parse_expression(i, p, imp->at(p++), types);
+    Variable idx = parse_expression(p, imp->at(p++), types);
     if(!contains(idx) || vars[idx]->name!=U64_VAR)
         imp->error(--p, "Buffer index must be u64 but got "
             +(contains(idx)?vars[idx]->name.to_string():"nothing")
@@ -103,7 +103,6 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
             buffer_types[next],
             elem,
             tmp,
-            i, 
             p
         );
     }
@@ -125,7 +124,6 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
                         buffer_types[next]->vars[pack],
                         elem+pack,
                         tmp,
-                        i, 
                         p
                     );
                 }
@@ -160,7 +158,6 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
                         buffer_types[next]->vars[pack],
                         elem+pack,
                         tmp,
-                        i, 
                         p
                     );
                 }
@@ -187,7 +184,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         for(const auto& it : buffer_types[next]->packs) 
             mutables.insert(elem+it);
         Variable first_element = imp->at(p++);
-        Variable ret = parse_expression(imp, p, first_element, types, elem);
+        Variable ret = parse_expression(p, first_element, types, elem);
         pack_index = 0;
         for(const auto& pack : buffer_types[next]->packs) {
             if(!buffer_types[next]->contains(pack)) 
@@ -230,7 +227,7 @@ Variable Def::next_var_buffer_at(Variable next, const shared_ptr<Import>& i, siz
         // parse value to assign
         size_t prev_p = p;
         string next_tok = imp->at(p++);
-        Variable val = parse_expression(imp, p, next_tok, types, EMPTY_VAR);
+        Variable val = parse_expression(p, next_tok, types, EMPTY_VAR);
         if(!val.exists() || !contains(val))
             imp->error(prev_p, "Expression does not yield a value for buffer assignment");
         if(vars[val].get() != buffer_types[next].get())

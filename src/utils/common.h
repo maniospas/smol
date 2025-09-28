@@ -39,9 +39,9 @@ string ansi_to_html(const string& input);
 string pretty_var(const string& name);
 string pretty_runtype(const string& name);
 
-int min2(int a, int b);
-int min3(int a, int b, int c);
-int sellersMinimumEditDistance(const string& pattern, const string& text);
+size_t min2(size_t a, size_t b);
+size_t min3(size_t a, size_t b, size_t c);
+size_t sellersMinimumEditDistance(const string& pattern, const string& text);
 
 bool is_primitive(const string& name);
 string type_primitive(const string& name);

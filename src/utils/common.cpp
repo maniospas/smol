@@ -65,32 +65,32 @@ string pretty_runtype(const string& name) {
     return "\033[36m" + name + "\033[0m";
 }
 
-int min2(int a, int b) {
+size_t min2(size_t a, size_t b) {
     return (a < b) ? a : b;
 }
-int min3(int a, int b, int c) {
+size_t min3(size_t a, size_t b, size_t c) {
     return min2(min2(a, b), c);
 }
 
-int sellersMinimumEditDistance(const string& pattern, const string& text) {
-    int m = pattern.size();
-    int n = text.size();
-    vector<vector<int>> E(m + 1, vector<int>(n + 1));
-    for(int j = 0; j <= n; ++j) 
+size_t sellersMinimumEditDistance(const string& pattern, const string& text) {
+    size_t m = pattern.size();
+    size_t n = text.size();
+    vector<vector<size_t>> E(m + 1, vector<size_t>(n + 1));
+    for(size_t j = 0; j <= n; ++j) 
         E[0][j] = 0;
-    for(int i = 1; i <= m; ++i) 
+    for(size_t i = 1; i <= m; ++i) 
         E[i][0] = i;
-    for(int i = 1; i <= m; ++i) 
-        for(int j = 1; j <= n; ++j) {
-            int cost = (pattern[i - 1] == text[j - 1]) ? 0 : 1;
+    for(size_t i = 1; i <= m; ++i) 
+        for(size_t j = 1; j <= n; ++j) {
+            size_t cost = (pattern[i - 1] == text[j - 1]) ? 0 : 1;
             E[i][j] = min3(
                 E[i - 1][j] + 1, 
                 E[i][j - 1] + 1, 
                 E[i - 1][j - 1] + cost
             );
         }
-    int minDist = numeric_limits<int>::max();
-    for(int j = 0; j <= n; ++j) minDist = min2(minDist, E[m][j]);
+    size_t minDist = numeric_limits<int>::max();
+    for(size_t j = 0; j <= n; ++j) minDist = min2(minDist, E[m][j]);
     return minDist;
 }
 

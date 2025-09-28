@@ -13,15 +13,17 @@
 #include "../../../def.h"
 
 
-Variable Def::parse_buffer_create(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos, Type type) {
-    Variable surface = EMPTY_VAR;
+Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos, Type type) {
+    auto surface = curry;
     if(imp->at(p)!="]") {
-        string next = imp->at(p);
+        if(surface.exists())
+            imp->error(first_token_pos, "Cannot declare a buffer context through both curry and [context]: "+pretty_var(first_token.to_string())+"\nEither use [] or remove the curry");
+        auto next = imp->at(p);
         p++;
-        surface = parse_expression(imp, p, next, types, EMPTY_VAR);
+        surface = parse_expression(p, next, types, EMPTY_VAR);
         if(!contains(surface) || !vars[surface]->buffer_ptr.exists())
-            imp->error(--p, "Given that "
-                +first_token.to_string()
+            imp->error(first_token_pos, "Given that "
+                +pretty_var(first_token.to_string())
                 +" is a runtype (not a local variable), [] is expected to declare a buffer here"
                 +" or a @buffer runtype must be returned to serve as the buffer's allocation"
             );
@@ -108,7 +110,7 @@ Variable Def::parse_buffer_create(const shared_ptr<Import>& imp, size_t& p, cons
             types.vars[PTR_VAR], 
             surface_var, 
             surface+vars[surface]->buffer_release, 
-            imp, 
+            
             p
         );
 
@@ -126,7 +128,6 @@ Variable Def::parse_buffer_create(const shared_ptr<Import>& imp, size_t& p, cons
             types.vars[PTR_VAR], 
             surface_var,
             ZERO_VAR, 
-            imp, 
             p
         );
         finals[var] += Code(
@@ -136,5 +137,5 @@ Variable Def::parse_buffer_create(const shared_ptr<Import>& imp, size_t& p, cons
             var,ASSIGN_VAR,ZERO_VAR,SEMICOLON_VAR,
             Variable("}"));
     }
-    return next_var(imp, p, raw_var, types);
+    return next_var(p, raw_var, types);
 }

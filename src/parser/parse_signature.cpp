@@ -13,7 +13,7 @@
 #include "../def.h"
 
 int Def::log_depth = 0;
-void Def::parse_signature(const shared_ptr<Import>& imp, size_t& p, Types& types) {
+void Def::parse_signature(size_t& p, Types& types) {
     auto is_as = false;
     if(p>=imp->size()) 
         ERROR("Internal error: parsing "+name.to_string()+" has misjudged end of file");
@@ -260,7 +260,7 @@ void Def::print_depth() {
         cout<<"| "; 
 }
 
-vector<Type>& Def::get_options(const Types& types) {
+vector<Type>& Def::get_options() {
     return options;
 }
 
@@ -273,7 +273,7 @@ void Def::signature_until_position(vector<unordered_map<Variable, Type>>& result
     Variable parametric_name = parametric_names[i];
     if(current.find(parametric_name)!=current.end()) 
         return signature_until_position(results, parametric_names, i+1, current, types);
-    auto& arg_options = types.vars.find(parametric_name)->second->get_options(types);
+    auto& arg_options = types.vars.find(parametric_name)->second->get_options();
     bool progressed = false;
     for(const Type& option : arg_options) {
         if(option->alias_for.exists()
@@ -321,7 +321,7 @@ bool Def::start_option_resolution(const Types& _types) {
     log_depth += 1;
     size_t p = pos;
     try {
-        parse_signature(imp, p, types);
+        parse_signature(p, types);
     }
     catch(const runtime_error& e) {
         string what = e.what();

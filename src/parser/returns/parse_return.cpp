@@ -12,7 +12,7 @@
 // limitations under the License.
 #include "../../def.h"
 
-void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, Types& types) {
+void Def::parse_return(size_t& p, Variable next, Types& types) {
     size_t uplifting = 0;
     static const Variable token_goto = Variable("goto");
     if(next=="|") {
@@ -51,14 +51,14 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, 
                 +to_string(uplifting_targets.size()-1)+" nested blocks in."
             );
         next = imp->at(p++);
-        next = parse_expression(imp, p, next, types);
+        next = parse_expression(p, next, types);
         if(contains(next)) 
-            assign_variable(vars[next], uplifting_targets[uplifting_targets.size()-uplifting-1]+Variable("r"), next, imp, p);
+            assign_variable(vars[next], uplifting_targets[uplifting_targets.size()-uplifting-1]+Variable("r"), next, p);
         implementation +=Code(token_goto,uplifting_targets[uplifting_targets.size()-uplifting-1],SEMICOLON_VAR);
         return;
     }
 
-    auto tentative = map_to_return(imp, p, types, true);
+    auto tentative = map_to_return(p, types, true);
 
     if(is_service) {
         auto cleaned_tentative = vector<Variable>{};
@@ -91,7 +91,7 @@ void Def::parse_return(const shared_ptr<Import>& imp, size_t& p, Variable next, 
             //         +pretty_var(tentative[i].to_string())
             //         +"\nThis would create ambiguity on what field access looks like"
             //     );
-            assign_variable(vars[packs[i]], packs[i], tentative[i], imp, p, false, false);
+            assign_variable(vars[packs[i]], packs[i], tentative[i], p, false, false);
         }
     implementation += Code(token_goto,uplifting_targets[0],SEMICOLON_VAR);
     has_returned = true;

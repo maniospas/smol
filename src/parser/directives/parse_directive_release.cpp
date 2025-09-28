@@ -12,7 +12,7 @@
 // limitations under the License.
 #include "../../def.h"
 
-void Def::parse_directive_release(const shared_ptr<Import>& imp, size_t& p, string next, Types& types) {
+void Def::parse_directive_release(size_t& p, string next, Types& types) {
     next = imp->at(p++);
     Variable next_var = Variable(next);//parse_expression(imp, p, Variable(next), types, Variable(""));
     bool resolved_call = false;

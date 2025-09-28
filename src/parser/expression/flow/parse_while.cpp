@@ -1,7 +1,7 @@
 #include "../../../def.h"
 
 
-Variable Def::parse_while(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+Variable Def::parse_while(size_t& p, Types& types, Variable curry, size_t first_token_pos) {
     Variable temp = create_temp();
     Variable finally_var = temp+WHILE_VAR;
     uplifting_targets.push_back(finally_var);
@@ -11,9 +11,9 @@ Variable Def::parse_while(const shared_ptr<Import>& imp, size_t& p, const Variab
     vars[finally_var] = types.vars[LABEL_VAR];
     implementation +=Code(start_var,COLON_VAR);
     Variable next = imp->at(p++);
-    Variable var = parse_expression(imp, p, next, types, curry);
+    Variable var = parse_expression(p, next, types, curry);
     if(!contains(var)) 
-        imp->error(--p, "Expression did not evaluate to anything");
+        imp->error(first_token_pos, "Expression did not evaluate to anything");
     if(vars.find(var)->second!=types.vars[BOOL_VAR]) 
         imp->error(--p, "While expects bool condition but got "
             +vars.find(var)->second->name.to_string()

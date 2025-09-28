@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++23 -Wall -m64
+CXXFLAGS := -std=c++23 -Wall -m64 -Wall -Wextra -Wpedantic -Wconversion
 TARGET := smol
 
 SRC := $(shell find src -type f -name '*.cpp')
@@ -11,9 +11,8 @@ all: release
 release: CXXFLAGS += -O3
 release: $(TARGET)
 
-debug: CXXFLAGS += -g -O0 -rdynamic -DDEBUG -fsanitize=address,undefined
+debug: CXXFLAGS += -g -O0 -rdynamic -DDEBUG -fsanitize=address,undefined -D_GLIBCXX_DEBUG
 debug: LDFLAGS += -fsanitize=address,undefined -rdynamic
-debug: export ASAN_OPTIONS = detect_leaks=1
 debug: $(TARGET)
 
 # ---- Profile target ----

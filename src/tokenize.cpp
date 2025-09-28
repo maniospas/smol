@@ -40,16 +40,12 @@ Import::Import(const string& p)
     : path(p), pair(0), parse_progress(0), forward_p(0), allow_unsafe(false) {}
 
 string& Import::at(size_t pos) {
-    if(pos < 0) 
-        ERROR("Tried to read before the beginning of file: " + path);
     if(pos >= tokens.size()) 
         ERROR("Premature end of file: " + path + "\n" + tokens[pos - 1].show());
     return tokens[pos].name;
 }
 
 void Import::error(size_t pos, const string& message) {
-    if(pos < 0) 
-        ERROR("Tried to read before the beginning of file: " + path);
     if(pos >= tokens.size()) 
         ERROR("Premature end of file: " + path + "\n" + tokens[pos - 1].show());
     ERROR(message + "\n" + tokens[pos].show());

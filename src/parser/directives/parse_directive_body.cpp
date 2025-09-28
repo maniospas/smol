@@ -12,7 +12,7 @@
 // limitations under the License.
 #include "../../def.h"
 
-void Def::parse_directive_body(const shared_ptr<Import>& imp, size_t& p, string next, Types& types) {
+void Def::parse_directive_body(size_t& p, string next, Types& types) {
     if(!imp->allow_unsafe) 
         imp->error(--p, "@body is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     next = imp->at(p++);

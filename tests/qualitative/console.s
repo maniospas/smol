@@ -3,11 +3,11 @@
 @include std.mem
 
 service main()
-    @mut console = WriteFile:console()
-    console:print("hello world!\n")
+    @mut cons = WriteFile.console()
+    cons.print("hello world!\n")
     printin("Press enter here to close the open console...")
-    Stack:arena(2):read
-    @release console // safely close the resource preemptively
+    Stack.arena(2).read()
+    @release cons // safely close the resource preemptively
     print("We are done. Press enter again...")
-    Stack:arena(2):read
-    --
+    Stack.arena(2).read()
+    end

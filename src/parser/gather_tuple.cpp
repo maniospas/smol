@@ -13,7 +13,7 @@
 #include "../def.h"
 
 
-vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Types& types, const Variable& curry) {
+vector<Variable> Def::gather_tuple(size_t& p, Types& types, const Variable& curry) {
     static const Variable token_print = Variable(":\nprintf(\"Runtime error from");
     static const Variable token_failsafe = Variable("\\n\");\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
 
@@ -66,13 +66,13 @@ vector<Variable> Def::gather_tuple(const shared_ptr<Import>& imp, size_t& p, Typ
             return ret;
     }
     while(true) {
-        int expression_start = p;
+        size_t expression_start = p;
         string next = imp->at(p++);
         if(next==")") {
             --p;
             break;
         }
-        Variable var = parse_expression(imp, p, next, types);
+        Variable var = parse_expression(p, next, types);
         if(!contains(var)) 
             imp->error(expression_start, "Failed to parse expression");
         const auto& type = vars[var];

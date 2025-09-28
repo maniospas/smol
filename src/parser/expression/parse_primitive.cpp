@@ -13,7 +13,7 @@
 #include "../../def.h"
 
 
-Variable Def::parse_primitive(const shared_ptr<Import>& imp, size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
+Variable Def::parse_primitive(size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
     if(curry.exists())
         imp->error(p-1, "Primitive is not callable.");
     string vartype = type_primitive(first_token.to_string());
@@ -21,8 +21,9 @@ Variable Def::parse_primitive(const shared_ptr<Import>& imp, size_t& p, const Va
     if(p<imp->size() && imp->at(p)=="@" && imp->at(p+1)=="else") {
         defval = imp->at(p+2);
         p += 3;
-        if(type_primitive(defval)!=vartype) 
-            imp->error(p-1, "Required "+vartype+" primitive");
+        auto found_type = type_primitive(defval);
+        if(vartype!=vartype) 
+            imp->error(first_token_pos, "Required "+vartype+" primitive but found "+vartype);
     }
     string var = create_temp();
     if(!types.contains(vartype)) 
@@ -31,5 +32,5 @@ Variable Def::parse_primitive(const shared_ptr<Import>& imp, size_t& p, const Va
     // vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
     implementation += Code(var,ASSIGN_VAR,first_token.to_string(),SEMICOLON_VAR);
     //mutables.insert(var);
-    return next_var(imp, p, var, types);
+    return next_var(p, var, types);
 }
