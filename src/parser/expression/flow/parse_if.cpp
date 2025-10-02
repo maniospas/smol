@@ -14,9 +14,9 @@
 
 
 Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_token_pos) {
-    Variable temp = create_temp();
-    Variable finally_var = temp+IF_VAR;
-    Variable closeif_var = temp+FI_VAR;
+    auto temp = Variable{create_temp()};
+    auto finally_var = temp+IF_VAR;
+    auto closeif_var = temp+FI_VAR;
     uplifting_targets.push_back(finally_var);
     if(uplifiting_is_loop.size())
         uplifiting_is_loop.push_back(uplifiting_is_loop.back());
@@ -24,8 +24,8 @@ Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_tok
         uplifiting_is_loop.push_back(false);
     vars[finally_var] = types.vars[LABEL_VAR];
     vars[closeif_var] = types.vars[LABEL_VAR];
-    string next = imp->at(p++);
-    Variable var = parse_expression(p, next, types, curry);
+    auto next = imp->at(p++);
+    auto var = parse_expression(p, next, types, curry);
     if(!contains(var)) 
         imp->error(--p, "Expression did not evaluate to anything");
     if(vars.find(var)->second!=types.vars[BOOL_VAR]) 
@@ -36,14 +36,14 @@ Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_tok
     implementation += Code(token_ifnot,var,token_goto,closeif_var,SEMICOLON_VAR);
     parse(imp, p, types, false);
     p++; // offset p-- after parse_return above
-    Variable else_var = EMPTY_VAR;
-    Variable rfinally_var = finally_var+Variable("r");
+    auto else_var = EMPTY_VAR;
+    auto rfinally_var = finally_var+Variable("r");
     if(p<imp->size()-1 && imp->at(p)=="else") {
         p++;
         else_var = temp+LE_VAR;
-        Variable relse_var = else_var+Variable("r");
+        auto relse_var = else_var+Variable("r");
         vars[else_var] = types.vars[LABEL_VAR];
-        Variable else_skip = temp+EL_VAR;
+        auto else_skip = temp+EL_VAR;
         vars[else_skip] = types.vars[LABEL_VAR];
         uplifting_targets.pop_back();
         uplifting_targets.push_back(else_var);

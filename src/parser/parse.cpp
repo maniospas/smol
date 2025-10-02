@@ -214,8 +214,8 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         else if(is_mutable_assignment) 
             imp->error(p, "Expecting assignment to variable after `@mut`");
         else {
-            //if(next=="(")
-            //    imp->error(p-1, "Opening parenthesis not allowed here\nYou are not allowed to start a function body expression with a parenthesis; this is often an errorneous attempt to call a function after the previous expression has ended.");
+            if(next=="(")
+                imp->error(p-1, "Opening parenthesis not allowed here\nYou are not allowed to start a function body expression with a parenthesis; this is often an errorneous attempt to call a function after the previous expression has ended.");
             parse_expression(p, next, types);
         }
     }

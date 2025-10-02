@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
     builtins.vars[Variable("char")] = make_shared<Def>("char");
     builtins.vars[NOM_VAR] = make_shared<Def>("nominal");
     builtins.vars[LABEL_VAR] = make_shared<Def>("__label");
-    builtins.vars[Variable("symbol")] = make_shared<Def>("symbol");
+    builtins.vars[Variable("tag")] = make_shared<Def>("tag");
     
     builtins.vars[BUFFER_VAR] = make_shared<Def>("__buffer");
     builtins.vars[BUFFER_VAR]->packs.push_back(Variable("dynamic"));// order matters
@@ -336,6 +336,7 @@ int main(int argc, char* argv[]) {
                 "#define __BUFFER__ERROR 2\n"
                 "#define __UNHANDLED__ERROR 3\n"
                 "#define __STACK__ERROR 4\n"
+                "#define __DYNAMIC__ERROR 5\n"
                 "#define __TRANSIENT(message)\n" // empty
                 "#define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)\n"
                 "#ifdef __cplusplus\n"
@@ -357,7 +358,7 @@ int main(int argc, char* argv[]) {
                 "typedef void* ptr;\n"
                 "typedef int errcode;\n"
                 "typedef const char* cstr;\n"
-                "typedef uint64_t symbol;\n"
+                "typedef uint64_t tag;\n"
                 "typedef uint64_t u64;\n"
                 "typedef long i64;\n"
                 "typedef uint64_t nominal;\n"

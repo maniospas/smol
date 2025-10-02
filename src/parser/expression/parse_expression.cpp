@@ -23,7 +23,76 @@ Variable Def::parse_expression(size_t& p, const Variable& first_token, Types& ty
 }
 
 Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Types& types, Variable curry) {
-    size_t first_token_pos = p-1;
+    auto first_token_pos = p-1;
+    if(first_token=="@") {
+        if(imp->at(p++)!="dynamic")
+            imp->error(--p, "Unexpected symbol\nCannot have a preprocessor directive other than `@dynamic` in the middle of an expression.");
+        auto options = vector<Variable>{};
+        if(imp->at(p++)!="(")
+            imp->error(--p, "Expected opening parenthesis after `@dynamic` to determine options");
+        if(curry.exists())
+            imp->error(--p, "Cannot curry into `@dynamic`");
+        auto next = imp->at(p++);
+        while(next!=")") {
+            if(!types.contains(next))
+                imp->error(--p, "Function name is still unknown at this point");
+            options.push_back(next);
+            next = imp->at(p++);
+            if(next!=")" && next!=",")
+                imp->error(--p, "Expected closing parenthesis or comma");
+            if(next==",")
+                next = imp->at(p++);
+        }   
+        if(!options.size())
+            imp->error(--p, "There are no options in `@dynamic()`\nAdd comma-separated function names of allowed alternatives in the parenthesis");
+        
+        next = imp->at(p++);
+        auto caller = next_var(p, next, types);
+        if(!contains(caller))
+            imp->error(--p, "Missing variable: "+pretty_var(caller.to_string()));
+        bool has_tag = false;
+        if(vars[caller]->name==Variable("tag"))
+            has_tag = true;
+        if(vars[caller]->packs.size() && vars[caller]->vars[vars[caller]->packs[0]]->name==Variable("tag"))
+            has_tag = true;
+        if(!has_tag)
+            imp->error(--p, "`@dynamic` can only be applied to a `tag` variable, but found: "+pretty_runtype(vars[caller]->name.to_string()));
+
+        auto return_var = EMPTY_VAR;
+        auto end_var = Variable(create_temp());
+        vars[end_var] = types.vars[LABEL_VAR];
+        if(imp->at(p++)!="(")
+            imp->error(--p, "Expecting opening parenthesis");
+        auto unpacks = gather_tuple(p, types, EMPTY_VAR);
+        if(imp->at(p++)!=")")
+            imp->error(--p, "Expecting closing parenthesis");
+
+        for(size_t pos=1;pos<vars[caller]->packs.size();++pos) 
+            unpacks.insert(unpacks.begin()+(pos-1), caller+vars[caller]->packs[1]);
+        if(vars[caller]->packs.size())
+            caller = caller+vars[caller]->packs[0];
+
+        for(const auto& option : options) {
+            auto skip_var = Variable(create_temp());
+            vars[skip_var] = types.vars[LABEL_VAR];
+            implementation += Code(token_if, caller, Variable("!="), Variable(to_string(Def::get_symbol(option))), token_goto, skip_var, SEMICOLON_VAR);
+            auto outcome = call_type(p, types.vars[option], unpacks, first_token_pos, option, types);
+            if(outcome.exists() && contains(outcome)) {
+                if(!return_var.exists()) {
+                    return_var = Variable{create_temp()};
+                    mutables.insert(return_var);
+                }
+                assign_variable(types.vars[option], return_var, outcome, p);
+            }
+            implementation += Code(Variable("goto"), end_var, SEMICOLON_VAR);
+            implementation += Code(skip_var, COLON_VAR);
+        }
+        implementation += Code(Variable("printf(\"An unforeseen dynamic option was encountered\\n\");\n__result__errocode=__DYNAMIC__ERROR;\ngoto __failsafe;\n"));
+        implementation += Code(end_var, COLON_VAR);
+        
+        return return_var;
+    }
+
     if(first_token==DOT_VAR 
         || first_token==CURRY_VAR
         || first_token==LBRACKET_VAR 
@@ -65,12 +134,12 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
     if(is_primitive(first_token.to_string())) 
         return parse_primitive(p, first_token, types, curry, first_token_pos);
 
-    if(first_token==Variable("symbol")) {
+    if(first_token==Variable("tag")) {
         if(imp->at(p++)!=".")
             imp->error(--p, "Expecting syntax symbol.name in function bodies");
         auto symbol = imp->at(p++);
         auto var = Variable{create_temp()};
-        vars[var] = types.vars[Variable("symbol")];
+        vars[var] = types.vars[Variable("tag")];
         // vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
         implementation += Code(var,ASSIGN_VAR,to_string(get_symbol(symbol)),SEMICOLON_VAR);
         return next_var(p, var, types);
@@ -103,7 +172,7 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
     //     && curry.exists()
     //     && first_token.exists() 
     //     && contains(curry+first_token) 
-    //     && vars[curry+first_token]->name=="symbol"
+    //     && vars[curry+first_token]->name=="tag"
     // ) {
     //     imp->error(--p, "Not implemented yet");
     // }
