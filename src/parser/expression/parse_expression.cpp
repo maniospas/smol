@@ -94,7 +94,6 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
     }
 
     if(first_token==DOT_VAR 
-        || first_token==CURRY_VAR
         || first_token==LBRACKET_VAR 
         || first_token==RBRACKET_VAR 
         || first_token==ASSIGN_VAR
@@ -134,9 +133,9 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
     if(is_primitive(first_token.to_string())) 
         return parse_primitive(p, first_token, types, curry, first_token_pos);
 
-    if(first_token==Variable("tag")) {
-        if(imp->at(p++)!=".")
-            imp->error(--p, "Expecting syntax symbol.name in function bodies");
+    if(first_token==Variable(":")) {
+        // if(imp->at(p++)!=".")
+        //     imp->error(--p, "Expecting syntax tag.name in function bodies");
         auto symbol = imp->at(p++);
         auto var = Variable{create_temp()};
         vars[var] = types.vars[Variable("tag")];

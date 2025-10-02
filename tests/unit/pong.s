@@ -6,17 +6,17 @@ def lambda(tag func, u64 n)
 def ping(u64 n, cstr message)
     printin(message)
     print("ping")
-    return tag.pong.lambda(n)
+    return :pong.lambda(n)
 
 def pong(u64 n, cstr message)
     if n == 0
-        |return tag.done.lambda(u64)
+        |return :done.lambda(u64)
     printin(message)
     print("pong")
-    return tag.ping.lambda(n-1)
+    return :ping.lambda(n-1)
 
 service main()
-    @mut pending = tag.ping.lambda(2)
-    while pending.func!=tag.done
+    @mut pending = :ping.lambda(2)
+    while pending.func!= :done
         pending = @dynamic(ping,pong) pending("next - ")
     end end 
