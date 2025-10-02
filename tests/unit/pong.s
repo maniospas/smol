@@ -1,14 +1,14 @@
 @include std.core
 
-def lambda(tag func, u64 n)
+def lambda(tag func, u64 n) 
     return @args
 
-def ping(u64 n, cstr message)
+def ping(u64 n, cstr message
     printin(message)
     print("ping")
     return :pong.lambda(n)
 
-def pong(u64 n, cstr message)
+def pong(u64 n, cstr message
     if n == 0
         |return :done.lambda(u64)
     printin(message)
@@ -16,7 +16,9 @@ def pong(u64 n, cstr message)
     return :ping.lambda(n-1)
 
 service main()
-    @mut pending = :ping.lambda(2)
-    while pending.func!= :done
-        pending = @dynamic(ping,pong) pending("next - ")
+    @mut pending = :pong.lambda(2)
+    while :done!=pending.func
+        pending = 
+            @dynamic(ping,pong)
+            pending("next - ")
     end end 

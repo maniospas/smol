@@ -14,5 +14,6 @@ module.exports = {
   "release": "free all used resources",
   "args": "returns all input arguments",
   "about": "defines documentation",
-  "fail": "inline C/C++ code and fail"
+  "fail": "inline C/C++ code and fail",
+  "dynamic": "converts tag to call"
 };

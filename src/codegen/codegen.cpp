@@ -115,7 +115,7 @@ void codegen(
         }
 
     for(const auto& err : types.all_errors) {
-        cerr << err.first;
+        cerr << "\033[2K\r"<< err.first;
         if(types.suppressed.find(err.first) != types.suppressed.end())
             cerr << "\033[33m -- " << types.suppressed[err.first] << " similar errors in this file\033[0m";
         if(!Def::lsp)
