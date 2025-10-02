@@ -234,3 +234,11 @@ def negative(@access f64 x)
 def div(@access f64 x, f64 y) 
     @body{f64 z=x/y;} 
     return z
+
+def eq(@access symbol x, symbol y)
+    @body{bool z=(x==y);}
+    return z
+
+def neq(@access symbol x, symbol y)
+    @body{bool z=(x!=y);}
+    return z

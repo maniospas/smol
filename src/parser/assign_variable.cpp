@@ -26,8 +26,8 @@ void Def::assign_variable(
             buffer_types[from] = buffer_types[to];
         else if(buffer_types[from].get()!=buffer_types[to].get()) 
             imp->error(--p, "Mismatched buffer assignment.\nExpected:"
-                +buffer_types[from]->name.to_string()
-                +" but got "+buffer_types[to]->name.to_string()
+                +pretty_runtype(buffer_types[from]->name.to_string())
+                +" but got "+pretty_runtype(buffer_types[to]->name.to_string())
             );
     }
     current_renaming[from] = to;
@@ -114,7 +114,9 @@ void Def::assign_variable(
     else if(it==vars.end()) 
         vars[from] = type;
     else if(it->second!=type) 
-        imp->error(--p, "Cannot assign to "+it->second->name.to_string()+" "+pretty_var(from.to_string())+" from "+type->name.to_string()+" "+pretty_var(to.to_string()));
+        imp->error(--p, "Mismatching types\nCannot assign to "
+            +it->second->name.to_string()+" `"+pretty_var(from.to_string())
+            +"` from "+type->name.to_string()+" `"+pretty_var(to.to_string())+"`");
     if(type->name==NOM_VAR && to!=ZERO_VAR) {
         if(!alignments[to]) 
             alignments[to] = alignments[from];

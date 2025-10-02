@@ -65,6 +65,17 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
     if(is_primitive(first_token.to_string())) 
         return parse_primitive(p, first_token, types, curry, first_token_pos);
 
+    if(first_token==Variable("symbol")) {
+        if(imp->at(p++)!=".")
+            imp->error(--p, "Expecting syntax symbol.name in function bodies");
+        auto symbol = imp->at(p++);
+        auto var = Variable{create_temp()};
+        vars[var] = types.vars[Variable("symbol")];
+        // vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks
+        implementation += Code(var,ASSIGN_VAR,to_string(get_symbol(symbol)),SEMICOLON_VAR);
+        return next_var(p, var, types);
+    }
+
     if(contains(first_token)) {
         if(curry.exists()) 
             imp->error(p, "Expecting runtype but got variable: "
@@ -87,11 +98,23 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
     if(types.contains(first_token) || first_token==name) 
         return parse_runtype(p, first_token, types, curry, first_token_pos);
 
+    // parse symbol calls
+    // if(p<imp->size() && imp->at(p)=="(" 
+    //     && curry.exists()
+    //     && first_token.exists() 
+    //     && contains(curry+first_token) 
+    //     && vars[curry+first_token]->name=="symbol"
+    // ) {
+    //     imp->error(--p, "Not implemented yet");
+    // }
+
     // parse normal variables
-    if(curry.exists() || (p<imp->size() && (imp->at(p)=="(" || imp->at(p)=="__consume"))) 
-        imp->error(--p, "Missing runtype: "
-            +first_token.to_string()
-            +recommend_runtype(types, first_token)
-        );
+    // if(curry.exists() && (p<imp->size() && (imp->at(p)=="(" || imp->at(p)=="__consume"))) 
+    //     imp->error(--p, "Missing runtype: "
+    //         +first_token.to_string()
+    //         +recommend_runtype(types, first_token)
+    //     );
+    if(curry.exists())
+        return next_var(p, curry+first_token, types);
     return next_var(p, first_token, types);
 }

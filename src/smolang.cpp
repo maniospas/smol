@@ -50,6 +50,7 @@ int main(int argc, char* argv[]) {
     builtins.vars[Variable("char")] = make_shared<Def>("char");
     builtins.vars[NOM_VAR] = make_shared<Def>("nominal");
     builtins.vars[LABEL_VAR] = make_shared<Def>("__label");
+    builtins.vars[Variable("symbol")] = make_shared<Def>("symbol");
     
     builtins.vars[BUFFER_VAR] = make_shared<Def>("__buffer");
     builtins.vars[BUFFER_VAR]->packs.push_back(Variable("dynamic"));// order matters
@@ -69,22 +70,22 @@ int main(int argc, char* argv[]) {
         if(arg == "--log") log_type_resolution = true;
         else if(arg == "--workers") {
             if (i + 1 >= argc) {
-                cerr << "Error: --workers requires a number or zero" << endl;
+                cerr << "\033[31mERROR\033[0m --workers requires a number or zero" << endl;
                 return 1;
             }
             try {
                 worker_limit = stoi(argv[++i]);
             } catch (const invalid_argument&) {
-                cerr << "Error: --workers argument must be an integer" << endl;
+                cerr << "\033[31mERROR\033[0m --workers argument must be an integer" << endl;
                 return 1;
             } catch (const out_of_range&) {
-                cerr << "Error: --workers value out of range" << endl;
+                cerr << "\033[31mERROR\033[0m --workers value out of range" << endl;
                 return 1;
             }
         }
         else if(arg == "--runtime") {
             if(i + 1 >= argc) {
-                cerr << "Error: --runtime requires an argument. Provide an unknown name, like 'none', to see available runtimes" << endl;
+                cerr << "\033[31mERROR\033[0m --runtime requires an argument. Provide an unknown name, like 'none', to see available runtimes" << endl;
                 return 1;
             }
             runtime = argv[++i];
@@ -93,14 +94,14 @@ int main(int argc, char* argv[]) {
         }
         else if(arg == "--task") {
             if(i + 1 >= argc) {
-                cerr << "\033[30;41m ERROR \033[0m --task requires an argument (compile, verify, run, lsp)" << endl;
+                cerr << "\033[31mERROR\033[0m --task requires an argument (compile, verify, run, lsp)" << endl;
                 return 1;
             }
             try {
                 selected_task = parse_task(argv[++i]); 
             } 
             catch (const invalid_argument& e) {
-                cerr << "\033[30;41m ERROR \033[0m " << e.what() << endl; 
+                cerr << "\033[31mERROR\033[0m " << e.what() << endl; 
                 return 1;
             }
         } 
@@ -109,14 +110,14 @@ int main(int argc, char* argv[]) {
         }
         else if(arg == "--safe") {
             if(i + 1 >= argc) {
-                cerr << "\033[30;41m ERROR \033[0m --safe requires a string" << endl;
+                cerr << "\033[31mERROR\033[0m --safe requires a string" << endl;
                 return 1;
             }
             installation_permissions.emplace_back(argv[++i]);
         } 
         else if(arg == "--back") {
             if(i + 1 >= argc) {
-                cerr << "\033[30;41m ERROR \033[0m --back requires an argument (e.g., gcc, tcc, g++)" << endl;
+                cerr << "\033[31mERROR\033[0m --back requires an argument (e.g., gcc, tcc, g++)" << endl;
                 return 1;
             }
             compiler = argv[++i];
@@ -129,7 +130,7 @@ int main(int argc, char* argv[]) {
             files.push_back(arg);
     }
     if(!filesystem::exists(runtime)) {
-        cerr << "\033[30;41m ERROR \033[0m Runtime not found at: " << runtime << endl;
+        cerr << "\033[31mERROR\033[0m Runtime not found at: " << runtime << endl;
         cerr << "Provide either a valid path or a [name] matching std/runtime/[name].h:" << endl;
         try {
             for(const auto& entry : filesystem::directory_iterator("std/runtime")) 
@@ -137,7 +138,7 @@ int main(int argc, char* argv[]) {
                     cerr << "  --runtime " << entry.path().stem().filename().string() << endl;
         } 
         catch (const filesystem::filesystem_error& e) {
-            cerr << "Nothin - did not find std/runtime/: " << e.what() << endl;
+            cerr << "Nothing - did not find std/runtime/: " << e.what() << endl;
         }
         return 1;
     }
@@ -146,12 +147,12 @@ int main(int argc, char* argv[]) {
     string task_report;
     for(const string& file : files) {
         if(file.size()<2 || file.substr(file.size()-2) != ".s") {
-            cerr << "\033[30;41m ERROR \033[0m expecting '.s' extension but got file: " << file << endl; 
+            cerr << "\033[31mERROR\033[0m expecting '.s' extension but got file: " << file << endl; 
             goto return_errors;
         }
         try {
             if(!fs::is_regular_file(file)) {
-                cerr << "\033[30;41m ERROR \033[0m could not find file: " << file << endl; 
+                cerr << "\033[31mERROR\033[0m could not find file: " << file << endl; 
                 goto return_errors;
             }
             errors = codegen_all(included, file, builtins, selected_task, task_report);
@@ -263,7 +264,7 @@ int main(int argc, char* argv[]) {
                 "  'keyword': [\n"
                 "    { pattern: /\\b(?:smo|service|if|else|elif|with|include|while|on|union|to|upto|lento|len|and|or|end|return)\\b/, greedy: true },\n"
                 "  ],\n"
-                "  'builtin': /\\b(?:i64|u64|f64|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\\b/,\n"
+                "  'builtin': /\\b(?:i64|u64|f64|symbol|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\\b/,\n"
                 "  'punctuation': /[{}();,\\[\\]]/,\n"
                 "  'number': /\\b\\d+\\b/,\n"
                 "  'string': { pattern: /\"(?:\\\\.|[^\"\\\\])*\"/, greedy: true }\n"
@@ -324,6 +325,7 @@ int main(int argc, char* argv[]) {
                 "#define __IS_cstr 7\n"
                 "#define __IS_bool 8\n"
                 "#define __IS_nominal 9\n"
+                "#define __IS_symbol 10\n"
                 "#ifdef __cplusplus\n"
                 "#define __NULL nullptr\n"
                 "#else\n"
@@ -355,6 +357,7 @@ int main(int argc, char* argv[]) {
                 "typedef void* ptr;\n"
                 "typedef int errcode;\n"
                 "typedef const char* cstr;\n"
+                "typedef uint64_t symbol;\n"
                 "typedef uint64_t u64;\n"
                 "typedef long i64;\n"
                 "typedef uint64_t nominal;\n"
@@ -488,19 +491,19 @@ int main(int argc, char* argv[]) {
             // }
             auto t_start = chrono::steady_clock::now();
             if(selected_task == Task::Run) {
-                cout << "\033[37;45m compile \033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
+                cout << "\033[36msmoλ \033[35mcompile\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "");
                 cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status != 0) 
                     return run_status;
                 //cout << (EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str() << "\n";
-                cout << "\033[37;42m running \033[0m " + file.substr(0, file.size()-2) + "\n\n";
+                cout << "\033[36msmoλ \033[32mrunning\033[0m " + file.substr(0, file.size()-2) + "\n\n";
                 run_status = system((EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str());
                 if(run_status) 
                     return run_status;
             } 
             else if(selected_task == Task::Library) {
-                cout << "\033[37;45m compile \033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
+                cout << "\033[36msmoλ \033[35mcompile\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-shared -fPIC");
                 cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status) 
@@ -580,15 +583,15 @@ int main(int argc, char* argv[]) {
                 for(const auto& service : added_services) {
                     py_out << service->name << " = " << service->raw_signature_state_name() << "()\n";
                 }
-                cout << "\033[37;42m created \033[0m " + file.substr(0, file.size()-2) + ".py\n";
+                cout << "\033[36msmoλ \033[32mcreated\033[0m " + file.substr(0, file.size()-2) + ".py\n";
             } 
             else if(selected_task == Task::Assemble) {
-                cout << "\033[37;45m assemble \033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
+                cout << "\033[36msmoλ \033[35massemble\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-S -masm=intel");
                 cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status) 
                     return run_status;
-                cout << "\033[37;42m created \033[0m " + file.substr(0, file.size()-2) + "\n";
+                cout << "\033[36msmoλ \033[32mcreated\033[0m " + file.substr(0, file.size()-2) + "\n";
             } 
             else if(selected_task == Task::Transpile) {
                 // Save to .c file
@@ -599,23 +602,23 @@ int main(int argc, char* argv[]) {
                     goto return_errors;
                 }
                 c_out << out.str();
-                cout << "\033[37;42m created \033[0m " + file.substr(0, file.size()-2) + ".c\n";
+                cout << "\033[36msmoλ \033[37;42mcreated\033[0m " + file.substr(0, file.size()-2) + ".c\n";
                 return 0;
             } 
             else {
                 // Task::Compile
-                cout << "\033[37;45m compile \033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
+                cout << "\033[36msmoλ \033[35mcompile\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-lc");
                 cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status) 
                     return run_status;
-                cout << "\033[37;42m created \033[0m " + file.substr(0, file.size()-2) + "\n";
+                cout << "\033[36msmoλ \033[32mcreated\033[0m " + file.substr(0, file.size()-2) + "\n";
             }
 
         }
         catch(const runtime_error& e) {
             if(selected_task!=Task::Run) 
-                cout << "\033[30;41m ERROR \033[0m " << file << "\n";
+                cout << "\033[31mERROR\033[0m " << file << "\n";
             cerr << e.what() << endl;
         }
         

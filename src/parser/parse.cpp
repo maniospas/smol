@@ -213,8 +213,11 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             imp->error(p, "Expecting assignment to variable after @next");
         else if(is_mutable_assignment) 
             imp->error(p, "Expecting assignment to variable after `@mut`");
-        else 
+        else {
+            //if(next=="(")
+            //    imp->error(p-1, "Opening parenthesis not allowed here\nYou are not allowed to start a function body expression with a parenthesis; this is often an errorneous attempt to call a function after the previous expression has ended.");
             parse_expression(p, next, types);
+        }
     }
     for(const Variable& var : next_assignments) 
         assign_variable(vars[NEXT_VAR+var], var, NEXT_VAR+var.to_string(), p);

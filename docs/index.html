@@ -89,8 +89,7 @@ def combine(Segment[] segments)
         .while next(@mut u64 i)
             // convert from null-terminated nstr result to str
             s = str(s+segments[i].value+" ")
-            end
-        end
+        end end
     return combined
 
 service main()

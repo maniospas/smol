@@ -11,6 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include "../codegen.h"
+#include <mutex>
+#include <unordered_set>
+
+namespace {
+    mutex install_mutex;
+    unordered_set<std::string> installed_paths;
+}
 
 void handle_install(
     map<string, shared_ptr<Types>>& files, 
@@ -24,24 +31,29 @@ void handle_install(
 ) {
     auto path = imp->at(p+=2);
     auto test_path = path;
-    while(p<imp->size()-1 && imp->at(p+1) == ".") {
+    while (p < imp->size() - 1 && imp->at(p+1) == ".") {
         path += "/" + imp->at(p+=2);
         test_path += "." + imp->at(p);
     }
     path += ".s";
-
-    if(selected_task==Task::Compile || selected_task==Task::Run || selected_task==Task::Transpile) {
-        if(ranges::none_of(installation_permissions, [&](const string& perm){ return test_path.starts_with(perm); }))
-            imp->error(p, "Missing permissions to @install " + test_path +
-                          "\nFor example, add this to the compiler: --safe " + test_path);
-        cout << "\033[30;43m INSTALL \033[0m " << test_path << "\n";
-        int run_status = system((EXEC_PREFIX + ("smol " + path + " --runtime eager")).c_str());
-        if(run_status)
-            imp->error(p, "Failed to run installer: " + test_path+"\nRequired by: "+file);
+    if (selected_task == Task::Compile 
+        || selected_task == Task::Run 
+        || selected_task == Task::Transpile
+    ) {
+        if (ranges::none_of(installation_permissions, [&](const string& perm){ return test_path.starts_with(perm);})) 
+            imp->error(p, "Missing permissions to @install " + test_path + "\nFor example, add this to the compiler: --safe " + test_path);
+        lock_guard<std::mutex> lock(install_mutex);
+        if (installed_paths.contains(test_path)) 
+            return;
+        installed_paths.insert(test_path);
+        cout << "\r\033[36msmoλ \033[33minstall\033[0m " << test_path << "                                      \n";
+        int run_status = system((EXEC_PREFIX + ("smol " + path + " --runtime eager --workers 1")).c_str());
+        cout << "\n";
+        if (run_status) 
+            imp->error(p, "Failed to run installer: " + test_path + "\nRequired by: " + file);
     } 
-    else if(!filesystem::exists(path))
-        imp->error(p, "Missing installer: " + test_path+"\nRequired by: "+file);
-    else
+    else if (!filesystem::exists(path)) 
+        imp->error(p, "Missing installer: " + test_path + "\nRequired by: " + file);
+    else 
         errors |= codegen_all(files, path, builtins, selected_task, task_report);
 }
-

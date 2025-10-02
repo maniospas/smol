@@ -74,3 +74,17 @@ const Variable token_if = Variable("if(");
 const Variable token_ifnot = Variable("if(!");
 const Variable token_goto = Variable(")goto");
 const Variable token_plus_one = Variable("+1");
+
+size_t Def::symbol = 0;
+unordered_map<Variable, size_t> Def::symbol_values;
+mutex Def::symbol_access;
+
+size_t Def::get_symbol(const Variable& v) {
+    lock_guard<mutex> lock(symbol_access);
+    auto it = symbol_values.find(v);
+    if (it != symbol_values.end()) 
+        return it->second;
+    auto new_symbol = ++symbol; // no zero symbol allowed
+    symbol_values[v] = new_symbol;
+    return new_symbol;
+}

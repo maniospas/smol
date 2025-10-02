@@ -17,7 +17,6 @@
 #include <string>
 #include <cmath>
 
-
 string progress_bar(size_t done, size_t total, int width) {
     if (total == 0) 
         return string(width, ' ');
@@ -101,16 +100,16 @@ bool codegen_all(
                 auto done = status_done.size();
                 auto pending = status_requested.size() + status_progress.size();
                 auto total = done + pending;
-                cout << "\r\033[37;45m codegen \033[0m --workers "+to_string(num_workers)
-                        +"  "+progress_bar(done, total, 10)
-                        +" "+to_string(done)+"/"+to_string(total)
+                cout << "\r\033[36msmoλ \033[35mcodegen\033[0m --workers "+to_string(num_workers)
+                        +" \033[36m"+progress_bar(done, total, 10)
+                        +"\033[0m "+to_string(done)+"/"+to_string(total)
                         +" files  "+to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms"
                     << std::flush;
             }
         }
     };
     
-    cout << "\r\033[37;45m codegen \033[0m --workers " << num_workers << " "<<std::flush;
+    cout << "\r\033[36msmoλ \033[35mcodegen\033[0m --workers " << num_workers << " "<<std::flush;
     if (num_workers == 1) 
         worker();
     else {

@@ -49,7 +49,7 @@ def file_reader(String path, @mut Memory memory) // define for all String variat
     @mut stat_chars = 0
     @mut file = ReadFile.open(path) // the ReadFile type as the first argument to open
     endl = "\n".str().first
-    on memory:arena(1024)
+    on memory.arena(1024)
         file
         .while next_line(@mut str line)
             printin("| ")
@@ -57,7 +57,7 @@ def file_reader(String path, @mut Memory memory) // define for all String variat
             stat_lines = stat_lines + 1
             stat_chars = stat_chars + line:len
         end end
-    return nominal:Stats(stat_lines, stat_chars)
+    return nominal.Stats(stat_lines, stat_chars)
 
 service main()
     @mut memory = Stack.arena(1048576) // 1MB
