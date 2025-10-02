@@ -2,8 +2,8 @@
 
 service samples()
     buf = u64[]
-    :push(42)
-    :push(10)
+    .push(42)
+    .push(10)
     return buf // return statement
 
 service main()

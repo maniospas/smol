@@ -61,7 +61,8 @@
     }
 
     .container {max-width: 800px;margin: 40px auto;padding: 0 20px;}
-    h1, h2, h3 {color: #222;}
+    h1 {color: #73181d;}
+    h2, h3 {color: #222;}
     table {width: 100%;border-collapse: collapse;margin-bottom: 2em;background-color: white;}
     th, td {border: 1px solid #ccc;padding: 10px;text-align: left;vertical-align: top;}
     th {background-color: #eee;}
@@ -86,6 +87,14 @@
       transition: transform 0.2s ease, color 0.2s ease; /* smooth animation */
     }
 
+    details {margin:1.2em 0;padding:0.75em 1em;border-radius:10px;background:#fffefa;border:1px solid #ddd;box-shadow:0 2px 6px rgba(0,0,0,0.05);transition:all 0.25s ease;}
+    details[open] {background:#fdf7e3;border-color:#d4b871;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
+    details summary {cursor:pointer;font-weight:bold;font-size:1.05em;color:#177042;outline:none;list-style:none;display:flex;align-items:center;}
+    details summary::-webkit-details-marker {display:none;}
+    details summary::before {content:"▶";margin-right:8px;font-size:0.9em;transition:transform 0.25s ease;color:#73181d;}
+    details[open] summary::before {transform:rotate(90deg);}
+    details p,details pre,details ul {margin-top:0.7em;}
+
 
     @media (max-width: 768px) {
       .sidebar {transform: translateX(-100%); }
@@ -105,7 +114,7 @@
 
 <div class="sidebar">
   <div class="sidebar-section">
-    <div class="sidebar-title"><span class="sidebar-name">Get started</span></div>
+    <a class="sidebar-title" href="#get-started"><span class="sidebar-name">Get started</span></a>
     <div class="sidebar-sub">
       <a href="#hello-world">Hello world</a><br>
       <a href="#variables">Variables</a>
@@ -113,7 +122,7 @@
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-title"><span class="sidebar-name">Flow</span></div>
+    <a class="sidebar-title" href="#flow"><span class="sidebar-name">Flow</span></a>
     <div class="sidebar-sub">
       <a href="#conditions">Conditions</a><br>
       <a href="#loops">Loops</a><br>
@@ -122,20 +131,32 @@
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-title"><span class="sidebar-name">Functions</span></div>
+    <a class="sidebar-title" href="#functions"><span class="sidebar-name">Functions</span></a>
     <div class="sidebar-sub">
       <a href="#arguments">Arguments</a><br>
-      <a href="#currying">Currying</a><br>
-      <a href="#returns">Returns</a><br>
-      <a href="#fields">Fields</a><br>
-      <a href="#errors">Error handling</a>
+      <a href="#returns">Returns (named tuples)</a><br>
+      <a href="#errors">Error handling</a><br>
+      <a href="#recursion">Recursion</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="sidebar-title" href="#advanced"><span class="sidebar-name">Advanced</span></a>
+    <div class="sidebar-sub">
+      <a href="#unions">Unions</a><br>
+      <a href="#memory">Memory</a><br>
+      <a href="#strings">Strings</a><br>
+      <a href="#buffers">Buffers</a><br>
+      <a href="#recursion">Recursion</a>
     </div>
   </div>
 </div>
 
 <div class="container">
 
-<h1 id="hello-world">Hello world <a href="#hello-world" class="anchor-link">🔗</a></h1>
+<h1 id="get-started">Get started <a href="#get-started" class="anchor-link">🔗</a></h1>
+
+<h2 id="hello-world">Hello world <a href="#hello-world" class="anchor-link">🔗</a></h2>
 
 <p>
 Let's take our first steps into programming with <i>smoλ</i> 
@@ -173,7 +194,53 @@ adds basic functionality, like <code class="language-smolambda">print</code>. Th
 Finally, the line with <code class="language-smolambda">end</code> marks its completion.
 </p>
 
-<h1 id="variables">Variables <a href="#variables" class="anchor-link">🔗</a></h1>
+<details>
+<summary>Advanced compilation options.</summary>
+
+There are several options you can add to smoλ's compilation,
+most of which can be seen in the above result. Some of these
+concepts can be understood only after reading the rest of this tutorial:
+
+<ul>
+  <li><code>--back [compiler]</code> The compiler backend that is used to compile an intermediate
+  C code representation produced by <i>smoλ</i>. Default is 
+  the highly robust <i>gcc</i>, but for example you may want to use another compile installed in
+  your system, or something like <i>tcc</i> (tinycc) for very fast compilation during prototyping.
+  You can also use a C++ compiler to allow unsafe injection of code from that language too; everything
+  has been configured to work with both C99 or later and C++11 or later.</li>
+  <li><code>--runtime [name]</code> Determines how the compilation outcome will make
+  use of the target platform's capabilities. This may change, for example, the memory allocation
+  strategy for embedded devices, some of which require custom implementations of heap allocation 
+  or require custom management of one huge preallocated memory segment. Such changes are controlled
+  via runtime files, which are then picked by the standard library or other <i>smoλ</i> code.
+  Another affected characteristic is whether services are treated as parallel co-routines or
+  eagerly executed. The runtime's name path to a <i>.h</i> file or the name of such a file
+  in the <i>std/runtime/</i> directory. Default name is <i>auto</i>, corresponding to
+  <i>std/runtime/auto.h</i> that chooses between an eager and co-routine implementation 
+  of services depending on their number. There are two more runtimes provided out-of-the-box,
+  <i>threads</i> that contains a co-routine implementaiton of services and <i>eager</i>
+  that contains an eager calling of services.</li>
+  <li><code>--task [name]</code> Controls whet the compiler actually does with the input code.
+  The default task is <i>run</i>, which produces and runs an executable. You can set the following options:
+  <ul>
+    <li><i>compile</i> to only produce the executable but not run it.</li>
+    <li><i>transpile</i> to produce a <i>.c</i> file
+    containing an intermediate largely unreadable but still compile-able C transpilation of your program.</li>
+    <li><i>assemble</i> to run the combination process but emmit readable assembly, <i>verify</i> to run
+    a verification of correctness and print warning about sources of unsafety without producing any
+    other outcome.</li>
+    <li><i>lsp</i> to run the same verification process with markdown output that is what is leveraged 
+    by the language's language server provider.</li>
+    <li><i>doc</i> to produce an html file holding documentation of all functions available in the target file.</li>
+  </ul>
+  </li>
+  <li><code>--workers [number]</code> The number of threads that can be involved in
+ the type system resolution. This only affects compilation. Default is a single worker.</li>
+</ul>
+
+</details>
+
+<h2 id="variables">Variables <a href="#variables" class="anchor-link">🔗</a></h2>
 
 <p>
 A variable is a named box that holds a value. You give it a name, then 
@@ -214,7 +281,7 @@ That is, unsigned integers can represent numbers <code class="language-smolambda
 but signed ones can represent numbers <code class="language-smolambda">-2^64 upto 2^64-1</code>.
 Floats follow the IEEE 754 standard, which is typically accurate to 15-17 significant digits.
 </p>
-<p><b>Invalid operations:</b>
+<p>
 For safety, you cannot mix operations between different types of numbers. For example, you cannot subtract 
 a float from <code class="language-smolambda">0</code> but only from <code class="language-smolambda">0.0</code>.
 However, you can convert between number formats with <code class="language-smolambda">value.type()</code>.
@@ -262,7 +329,10 @@ Ada
 Lovelace
 </pre>
 
-<h1 id="conditions">Conditions <a href="#conditions" class="anchor-link">🔗</a></h1>
+
+<h1 id="flow">Flow <a href="#flow" class="anchor-link">🔗</a></h1>
+
+<h2 id="conditions">Conditions <a href="#conditions" class="anchor-link">🔗</a></h2>
 
 <p>
 Sometimes we only want certain lines to run if a tested condition is true.  
@@ -310,8 +380,7 @@ For example, <code class="language-smolambda">2 &lt; 3</code> checks whether two
 service main()
     if 2&lt;3
         print("yes, two is smaller")
-        end
-    end
+    end end
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -386,7 +455,7 @@ negative
 </pre>
 
 
-<h1 id="loops">Loops <a href="#loops" class="anchor-link">🔗</a></h1>
+<h2 id="loops">Loops <a href="#loops" class="anchor-link">🔗</a></h2>
 
 <p>A loop repeats a block while a condition is true. Syntactically, it
 starts with <code class="language-smolambda">while</code> followed by a condition 
@@ -439,7 +508,7 @@ service main()
 </code></pre>
 
 
-<h1 id="uplifting">Uplifting <a href="#uplifting" class="anchor-link">🔗</a></h1>
+<h2 id="uplifting">Uplifting <a href="#uplifting" class="anchor-link">🔗</a></h2>
 
 <p>
 Sometimes you want to stop not just the current block, but also its parent blocks
@@ -463,25 +532,31 @@ service main()
      end end
 </code></pre>
 
-<h1 id="arguments">Arguments <a href="#arguments" class="anchor-link">🔗</a></h1>
+
+<h1 id="functions">Functions <a href="#functions" class="anchor-link">🔗</a></h1>
+
+
+<h2 id="arguments">Arguments <a href="#arguments" class="anchor-link">🔗</a></h2>
 
 <p>
-You can name a block of code and call it with inputs. These are called arguments.
-There are two kinds of named blocks:
+You can name a block of code and call it with inputs to obtain none, one, or multiple outputs. 
+The named block is called a function and its inputs are called arguments. There are two kinds functions:
 </p>
 <ul>
-  <li><code class="language-smolambda">def</code> — a lightweight function that returns one or more values. It delegates error and resource handling to whichever services call it.</li>
-  <li><code class="language-smolambda">service</code> — a safer function that safely handles errors and resources, including resource freeing on failure.</li>
+  <li><code class="language-smolambda">def</code> — A function with no calling cost. Delegates error and resource handling to its caller.</li>
+  <li><code class="language-smolambda">service</code> — Safely handles errors and resources, including resource freeing on failure.</li>
 </ul>
 
-<p>For most simple programs, you will mostly declare functions with <code class="language-smolambda">def</code>
+<p>In simple programs you will mostly declare <code class="language-smolambda">def</code> functions
 and let them freely fail. <i>Smoλ</i>'s philosophy is to not try to hopelessly recover from every failure state, 
-but exit gracefully a bunch of dependent computations and try again. This is to strike a balance between having error handling
-code poluting your codebase and being able to recover from failure. Services are more complex in that they run
+but exit gracefully a bunch of dependent computations and try again. This is to strike a balance between error handling
+code that polutes the codebase and recovering from impactful failures. Services are more complex in that they run
 independently to each other.</p>
-<p>Regardless of the type of function, you can declare necessary inputs -called <i>arguments</i>- 
-as comma-separated variable types and names. Types are needed so that the service can know what inputs to expect. 
+<p>Regardless of the type of function, you can declare arguments
+as comma-separated variable types and names (each type corresponds to a name, separated by space). 
+Types are needed so that the service can know what inputs to expect. 
 For example, <code class="language-smolambda">f64 x</code> denotes an argument that is a float named <code>x</code>.
+There may be some additional notation before types, described below.
 </p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -526,7 +601,7 @@ nothing changes.
 </p>
 
 <p>
-<b>Function arguments:</b> 
+<b>Functions as arguments:</b> 
 You can use functions as arguments to help disambiguate between similarly-named alternatives.
 In that case, simply skip the the variable name. This is useful for choosing a behavior 
 without passing a dummy value.
@@ -548,10 +623,10 @@ service main()
     end
 </code></pre>
 
-<h1 id="currying">Currying <a href="#currying" class="anchor-link">🔗</a></h1>
-
 <p>
-The dot <code class="language-smolambda">.</code> sends the value on the left as the first argument of a function.  
+<b>Currying:</b> 
+The dot noration <code class="language-smolambda">first_argument.function_call(other_arguments)</code> 
+sends the value on the left as the first argument of a function.  
 This reads left-to-right and can be chained. Here is an example:
 </p>
 
@@ -572,7 +647,7 @@ service main()
 The same colon also works with loops provided by the standard library (like <code class="language-smolambda">range</code>) so you can write readable iterations.
 </p>
 
-<h1 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h1>
+<h2 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h2>
 
 <p>
 A block can return a value using <code class="language-smolambda">return</code>, or end with no value using <code class="language-smolambda">end</code>.  
@@ -592,13 +667,15 @@ service main()
     end
 </code></pre>
 
-<h1 id="fields">Fields <a href="#fields" class="anchor-link">🔗</a></h1>
-
 <p>
-You can return several named values at once and then access them as fields.  
-<code class="language-smolambda">@args</code> is a shorthand that returns all inputs,
-and accessing fiels is also done with the dot notation. This is visually different from currying
-in that there is no function call parenthesis.
+You can return several named values at once and then access them by their variable's name with a 
+dot notation. For example, if the outcome returning with <code class="language-smolambda">return x,y</code>
+is stored into a variable <code>p</code>, individual values can be accessed via <code>p.x</code> or <code>p.y</code>.
+This is visually different from currying in that there is no function call parenthesis. But returned values would not
+be retrievable from <code class="language-smolambda">return x+1,y+1</code>, as the additions have not been stored
+in a named variable. This is also fine, and you may do it for convenience in some scenarios.
+Finally, <code class="language-smolambda">@args</code> is a shorthand that returns all inputs
+and accessing fiels is also done with the dot notation. Below is an example.
 </p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -657,7 +734,7 @@ service main()
 </code></pre>
 
 
-<h1 id="errors">Error handling <a href="#errors" class="anchor-link">🔗</a></h1>
+<h2 id="errors">Error handling <a href="#errors" class="anchor-link">🔗</a></h2>
 
 <p>
 Now is the right time to talk about services and their philosophy: they are basically
@@ -684,7 +761,7 @@ service divide(f64 x, f64 y)
 
 service main()
     r = divide(1.0, 0.0)
-    if r.err:bool
+    if r.err.bool()
         print("Could not compute.")
         end
     else
@@ -698,10 +775,407 @@ Could not compute.
 </pre>
 
 <p>
-This approach keeps the main path simple. You try the thing. If it fails, you decide what the next step is (ask again, use a default, stop).
+This approach keeps the happy path simple; you try running the service and, if it fails, decide what the next step is (ask again, use a default, stop).
 </p>
 
+
+<h1 id="advanced">Advanced <a href="#advanced" class="anchor-link">🔗</a></h1>
+
+<h2 id="unions">Unions <a href="#unions" class="anchor-link">🔗</a></h2>
+
+<p>
+Sometimes you want to treat several different types as if they were “the same kind of thing.”  
+For example, an integer, a float, and a signed integer are all numbers, and you often want 
+to use them with the same operations. In <i>smoλ</i>, you can do this with a 
+<b>union</b>.
+</p>
+
+<p>
+A <code>union</code> groups together several types under a single name.  
+Any value of those types can then be stored in the union, and you can define 
+functions that work with the union instead of each type separately.
+</p>
+
+<pre><code class="language-smolambda">union Number
+    u64
+    f64
+    i64
+    end
+</code></pre>
+
+<p>
+This definition means that <code>Number</code> can hold an <code>u64</code>, 
+<code>f64</code>, or <code>i64</code>. Once the union is defined, you can write 
+functions that take a <code>Number</code> and automatically work with whichever 
+form it has. For example, the standard library has printing and arithmetic operator overloads: 
+so you can call <code>print</code> on a <code>Number</code> and it “just works.”
+Unions are lexically scoped within functions; the same name always represents the same type.
+Thus in the example below both numbers must be of the same type. 
+But you can add a union as part of another one to transfer all types under a different name.
+</p>
+
+<pre><code class="language-smolambda">@include std.core // defines Number
+
+def add1mul(Number a, Number b)
+    // convert 1 to the Number correct primitive
+    one = 1.Number()
+    return (a+one)*(b+one)
+
+service main()
+    print(add1mul(1,2))      // prints 6
+    print(add1mul(1.0, 2.0)) // prints 6.0
+    end
+</code></pre>
+
+
+<p>
+Behind the scenes, <i>smoλ</i> makes sure that union usage is safe and the right code runs 
+depending on which variant you are using; new functions immediately
+check if they can work for all variations of union members to report errors early.
+</p>
+
+<details>
+<summary>Why unions are useful</summary>
+<p>
+  Unions let use overload function names (like <code>print</code>) by dynamically
+  adapting them on the type. However, only the declared member types are allowed.
+  They further quickly create zero-cost overloaded variations of functions with the same code.
+</p>
+
+<p>
+Think of unions as a way to say:  
+<i>“I don’t care if this is an <code>i64</code> or an <code>f64</code> — 
+as long as it’s a <code>Number</code>, I can use the overloaded operations
+to write the same code conceptually.”</i>
+</p>
+
+</details>
+
+
+<h2 id="memory">Memory <a href="#memory" class="anchor-link">🔗</a></h2>
+
+<p>
+At this point, you may be wondering how can <i>smoλ</i> run operations that consume an indeterminate 
+amount of memory, such as combining strings or managing lists of arbitrary sizes. This is where buffers and the
+<code class="language-smolambda">std.mem</code> import come. Here, we start from touching on concepts
+from the import, to give a general picture. Broadly, there are two memory
+devices; the <code>Stack</code> and <code>Heap</code>, corresponding to the small but fast
+memory your operating system uses to run your program, and the full extend of availabel memory.
+These provide memory allocation capabilities, but also grant you the ability to allocate more
+memory either dynamically or as arenas at the respective device.</p>
+
+<p>Memory follows the same pattern as
+all resources that <i>smoλ</i> uses; it is freed only when not in use by any of your program's data.
+This is achieved with some minor restrictions that the compiler will let you know occasionally. For example,
+you need to declare the surfaces of memory management (the <code class="language-smolambda">on</code>
+statements mentioned below) outside of loops that would leak the memory in each execution. However, the
+benefit is that there is no running overhead or bottlenceck for testing when memory is no longer needed
+and freeing it. Instead, memory is released back to the operating system at function ends that are
+determined during compilation. That is, memory management is a zero-cost abstraction.
+</p>
+
+<p>
+<b>Arenas:</b> Of the aforementiond types of memory, arenas are pre-allocated memory regions that cannot grow. 
+They are typically made to consume more than needed speed
+to ensure that programs can successfully run. However, new allocations on them are very 
+lightweight (simple additions) so they are very fast to execute. If arenas
+run out of space, they cause services to fail, which is always done safely and without leaking
+resources. Here is how to work with arenas, where the <code class="language-smolambda">on</code>
+block automatically adds the arena to operations that need it inside. 
+</p>
+
+<pre><code class="language-smolambda">@include std.core
+@include std.mem
+@include std.vec
+
+service main()
+    // allocate a stack arena of 1024 bytes
+    @mut memory = Stack.arena(1024)
+
+    on memory
+        v = vector(5) // calls vector(memory,5)
+        print(v.len())
+    end end
+</code></pre>
+
+<p>
+If you switch to <code>Heap</code> instead of <code>Stack</code>, the same code 
+would allocate on your random access memory, though the exact details of how heap 
+memory is manageed may be modified under the hood for different systems by passing 
+a different runtime configuration to the compiler.
+</p>
+
+
+<p>In the above segment, mutability is needed to allow modification of memory contents.
+However, variables not assigned to any symbol are by default mutable. You can also return a
+value from that block, therefore making the following equivalent syntax possible. 
+Remember that the arena's consumed memory is not released at the end of the 
+<code class="language-smolambda">on</code> block, but only when the vector is no longer needed. 
+</p>
+
+<pre><code class="language-smolambda">@include std.core
+@include std.mem
+@include std.vec
+
+service main()
+    v = on Stack.arena(1024) return vector(5)
+    print(v.len())
+    end
+</code></pre>
+
+
+<p><b>Dynamic memory:</b>
+You can also choose to maintain a collection of dynamically allocated memory segments,
+for example by calling <code class="language-smolambda">on Heap.dynamic()</code> instead
+of creating an arena. If multiple if of those segments are attached to the same dynamic
+allocation, they are also released together, which means that they remain allocated as 
+long as any is in use. However, you can also retain one allocation per dynamic memory.
+</p>
+
+
+<i>For more types of memory and operations, refer to the standard library's
+  documentation <a href="std.html">here</a>. The implemented model
+  deep and allows parameterization of functions by being able to allocate
+  on segments of already allocated memory.
+</i>
+
+
+<h2 id="strings">Strings <a href="#strings" class="anchor-link">🔗</a></h2>
+
+<p>
+<i>Smoλ</i> provides three main string types: 
+<code class="language-smolambda">cstr</code> (a constant string enclosed in quotations during compilation, zero-terminated), 
+<code class="language-smolambda">nstr</code> (zero-terminated with length information), and 
+<code class="language-smolambda">str</code> (a string segment). For most purposes, you can use and convert results to
+<code class="language-smolambda">str</code>.
+</p>
+
+<p>
+Most operations on strings are zero-cost abstractions over simple arithmetics, as happens 
+for example when retrieving substrings. The most heavyweight operations are copying and
+concatenation, both of which require an arena or dynamic memory to store the result. Below
+is an example, where it is important to note that concatenation yilds a <code class="language-smolambda">nstr</code>
+by default, which can be directly reduced to a simpler <code class="language-smolambda">str</code> if needed.
+Similarly, conversion of <code class="language-smolambda">cstr</code> to the other types is lightweight.
+</p>
+
+
+<pre><code class="language-smolambda">@include std.core
+@include std.mem
+
+def Segment(nominal, str value)
+    // return all inputs 
+    // function returns are tuples of named elements
+    return @args
+
+def Segment(String _value)
+    // convert from many string types
+    value = _value.str()
+    return nominal.Segment(value)
+
+def combine(Segment[] segments)
+    @mut combined = "".str()  // mutable string with known size
+    on Stack.arena(1024)    // automatically use as argument if needed (for string operations)
+        segments
+        .len()
+        .range()
+        .while next(@mut u64 i) 
+            combined = str(combined+segments[i].value+" ")
+        end end
+    return combined
+
+service main()
+    segments = Segment[] // buffer
+    .push("I think.".Segment())
+    .push("Therefore I am.".Segment())
+    segments.combine().print()
+    end
+</code></pre>
+
+
+<h2 id="buffers">Buffers <a href="#buffers" class="anchor-link">🔗</a></h2>
+
+<p>
+Buffers represent collections of data that grow dynamically.  
+The simplest syntax is <code>type[]</code>, which produces 
+a resizable array of that type.
+</p>
+
+<pre><code class="language-smolambda">@include std.core
+
+def data(u64 id, u64[] values) 
+    return @args
+
+service main()
+    @mut vals = u64[]
+    .push(1)
+    .push(2)
+
+    p = data[]
+    .push(data(10, vals))
+
+    print(p[0].id)        // 10
+    print(p[0].values[0]) // 1
+    print(vals[0])        // 1
+    end
+</code></pre>
+
+<p>
+By default, buffers use dynamically sized Heap memory to store their data. However, you can
+also create them on memory allocations created from the standard library; all types of memory
+accept an ,<code>allocate(size)</code> function for setting aside a fixed-size region, within
+which buffers can grow. Below is an example. Do note that data can be pushed onto buffers during
+their creation, while they are temporary variables -and hence mutable- and the result can be 
+assigned to an immutable variable.
+</p>
+
+
+
+<pre><code class="language-smolambda">@include std.core
+
+service main()
+    vals = u64[Heap.allocate(1024)] // 1024 max buffer size
+    .push(1)
+    .push(2)
+
+    print(vals[0])
+    end
+</code></pre>
+
+
+
+<p>
+Buffers preserve mutability rules: 
+if a buffer itself is mutable, its contents can be changed or extended.
+Strings can also be stored in buffers or arrays <b>given that they reside
+in the same memory surface</b>.
+Below is an example.
+</p>
+
+<pre><code class="language-smolambda">@include std.core
+@include std.mem
+
+service main()
+    boxes = str[]
+    .push("buffer start".str())
+    .push("buffer end".str())
+
+    b = boxes[0]
+    print(b)
+    end
+</code></pre>
+
+<p>
+Here we pushed two strings into a string array. 
+Notice the explicit conversion to the correct string version using <code>.str()</code>.
+</p>
+
+<details>
+<summary>Returning buffers from services</summary>
+
+<pre><code class="language-smolambda">@include std.core
+
+service samples()
+    buf = u64[]
+    .push(42)
+    .push(10)
+    return buf
+
+service main()
+    buf = samples()
+    print(buf[0]) // prints 42
+end
+</code></pre>
+
+<p>
+Here <code>samples</code> constructs and returns a buffer.  
+The caller can then access its elements with <code>buf[index]</code>.
+</p>
+</details>
+
+<h2 id="recursion">Recursion <a href="#recursion" class="anchor-link">🔗</a></h2>
+
+<p>
+In most languages, <i>recursion</i> means that a function calls itself, or that 
+it calls another function that eventually calls itself.
+This is useful, but it usually comes at a cost: every call stacks on top of the previous one, 
+and if you recurse too deeply, you might run out of memory (a “stack overflow”).
+<i>Smoλ</i> functions can only look at previously declared or imported functions
+in an effort to protect such unconstrained behavior. But the same recursive computations
+are still possible.
+</p>
+
+<p>
+In particular, instead of creating dependent calls, the language uses a trick called <b>trampolining</b>.  
+Think of it like a ball bouncing back and forth between two or more functions: 
+each one decides what the next step is, and we loop until the process finishes.  
+This way, recursion does not pile up memory; it just reuses a single loop.
+</p>
+
+<p>
+Below is an example that demonstrates how to do this using a <code class="language-smolambda">tag</code> primitive that 
+we have not addressed so far. That consists of writing 
+<code class="language-smolambda">;name</code> and behaves like a number with a given value.
+Importatly, tag values, can overlap with function names, which a <code class="language-smolambda">@dynamic</code>
+instruction uses to its advantage to execut dfferent functions given different tag values.
+</p>
+
+<p>Below is a concrete example of how this can work in practice. 
+There, the <code class="language-smolambda">tag</code> primitive type lets us reference <code>:ping</code> or <code>:pong</code> anywhere,
+even before those are being defined. Then, the <code>@dynamic</code> instruction chooses to call a function
+among various options (<code>ping</code> or <code>pong</code> here) depending on the next tag value. Additional
+tag values are added as first arguments.
+If something unexpected happens, such as another tag was found, the service just fails safely, without memory leaks or crashes.
+At the same time, types are safe and are checked during compilation.</p>
+
+<pre><code class="language-smolambda">@include std.core
+
+def lambda(tag func, u64 n) 
+    return @args
+
+def ping(u64 n, cstr message)
+    printin(message)
+    print("ping")
+    return :pong.lambda(n)
+
+def pong(u64 n, cstr message)
+    if n == 0
+        |return :done.lambda(u64)
+    printin(message)
+    print("pong")
+    return :ping.lambda(n-1)
+
+service main()
+    @mut pending = :pong.lambda(2)
+    while :done!=pending.func
+        pending = 
+            @dynamic(ping,pong)
+            pending("next - ")
+    end end
+</code></pre>
+
+<p>
+To sum up, in the example above <code>ping</code> and <code>pong</code> call each other back and forth.
+Instead of diving deeper into the stack, they just return a next state marked with a tag
+(<code class="language-smolambda">:ping</code>, <code class="language-smolambda">:pong</code>, or <code class="language-smolambda">:done</code>). 
+The main loop keeps track of which step is next, and runs it until it reaches the <code>:done</code> tag.</li>
+</ul>
+
+<p>
+So whenever you would normally write a recursive function, you can instead write it 
+as a loop with tags. It feels a bit like building a tiny “interpreter” 
+for your recursive logic that is safe and efficient, and performant. Do note that 
+<code class="language-smolambda">@dynamic</code> may inject code from all functions it
+handles, so do not overuse it to avoid creating exceptionally large executables.
+</p>
+
+
+
+
 </div>
+
+
+
 
 <script src="vendor/prism/prism.min.js"></script>
 <script>
@@ -711,13 +1185,17 @@ Prism.languages.smolambda = {
     pattern: /@\w+/,
     alias: 'important'
   },
+  'constant': {
+    pattern: /\:\w+/,
+    alias: 'important'
+  },
   'keyword': [
     {
-      pattern: /\b(?:def|service|if|return|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|end)\b/,
+      pattern: /\b(?:def|service|if|return|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|end|on)\b/,
       greedy: true
     },
     {
-      pattern: /(?:\|\|\|->|\|\|->|\|\|end|\|->|\|end|->|end|:|=)/,
+      pattern: /(\.|\||\:)/,
       greedy: true
     }
   ],
@@ -725,7 +1203,7 @@ Prism.languages.smolambda = {
     pattern: /&/,
     alias: 'operator' // optional, gives Prism’s operator style too
   },
-  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\b/,
+  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal|tag)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {
