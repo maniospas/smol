@@ -30,20 +30,11 @@
 def Stack(nominal) 
     return @args 
 
-def Heap(nominal) 
+def Heap(nominal)  
     return @args
-
-union MemoryDevice
-    Stack
-    Heap
-    end
-
-union Primitive
-    char
-    u64
-    f64
-    i64
-    end
+    
+union MemoryDevice = Stack or Heap
+union Primitive    = char or u64 or f64 or i64
 
 def ContiguousMemory (
         nominal, 

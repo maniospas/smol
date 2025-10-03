@@ -26,10 +26,13 @@ void handle_union(const shared_ptr<Import>& imp, size_t& p, Types& types) {
     types.vars[name] = def;
     p++;
 
+
+    auto next = imp->at(p++);
+    if(next!="=")
+        imp->error(--p, "Expecting `=` after union name");
+
     while(true) {
-        auto next = imp->at(p++);
-        if(next == "-" && imp->at(p++) == "-")
-            break;
+        next = imp->at(p++);
             
         const auto& found_type = types.vars.find(next);
         if(found_type == types.vars.end())
@@ -50,6 +53,12 @@ void handle_union(const shared_ptr<Import>& imp, size_t& p, Types& types) {
             imp->error(--p, "Missing nominal variation"
                 "\nCannot create a runtype union that includes non-nominal types (those would be ignored)"
             );
+        
+        next = imp->at(p++);
+        if(next!="or") {
+            --p;
+            break;
+        }
     }
 
     def->assert_options_validity(--p);

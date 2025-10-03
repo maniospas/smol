@@ -91,10 +91,7 @@ def WriteFile(nominal, ptr contents)
     @noborrow
     return @args
 
-union File
-    ReadFile
-    WriteFile
-    end
+union File = ReadFile or WriteFile
 
 def open(@access @mut ReadFile, String _path) 
     path = _path.str()

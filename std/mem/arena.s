@@ -44,10 +44,7 @@ def controlled_corrupt(@access @mut Volatile self)
     @body{self__length=0;}
     end
 
-union DerivedMemory
-    Arena
-    Volatile
-    end
+union DerivedMemory = Arena or Volatile
 
 def len(@access @mut DerivedMemory self) 
     return self.contents.size
@@ -176,16 +173,8 @@ def read(@access @mut Arena self)
         return fail("Error: Tried to read more elements than remaining Arena size or read failed")
     return nominal.str(_contents, length, first, self__contents__mem)
 
-union Memory
-    MemoryDevice
-    DerivedMemory
-    Dynamic
-    end
-
-union BoundedMemory
-    Arena
-    Volatile
-    end
+union Memory = MemoryDevice or DerivedMemory or Dynamic
+union BoundedMemory = Arena or Volatile
 
 def is(@access @mut Memory self, @mut Memory) 
     return self

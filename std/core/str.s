@@ -68,20 +68,9 @@ def nstr (
     )  
     return @args
 
-union String
-    cstr
-    str
-    nstr
-    --
-
-union IndependentString 
-    String
-    --
-
-union CString 
-    cstr
-    nstr
-    --
+union CString = cstr or nstr
+union String  = CString or str
+union IndependentString = String
 
 def is(String self, String) 
     return self

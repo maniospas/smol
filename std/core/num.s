@@ -37,11 +37,7 @@
 @about negative "Returns the additive inverse (negation) of an i64 or f64. Does NOT overload any operation.  Having u64 as the default type helps avoid many spurious negation errors, especially when memory handling is concerned.<br><br>Both examples below print -1. <pre>print(0.i64-1.i64)\nprint(1.i64.negative)</pre>"
 @about Number  "One of u64, f64, i64"
 
-union Number 
-    u64
-    f64
-    i64
-    end
+union Number = u64 or f64 or i64
 
 def print(@access f64 message)
     @head{#include <stdio.h>}
