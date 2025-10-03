@@ -214,18 +214,18 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
             candidates += "\n"+option->signature(types);
         }
         if(num_choices==0) 
-            imp->error(--p, "Overloaded or union runtype has no alternative");
+            imp->error(--p, "Function has no alternative");
         if(num_choices!=1) {
             if(!highest_choice_power) 
-                imp->error(--p, "Overloaded or union runtype names are ambiguous."
+                imp->error(--p, "Type names are ambiguous."
                     "\nConsider defining exactly one of them as nominal (with nom first argument)"
-                    "\nto break the priority stalemate."
-                    "\nCandidates:"+candidates
+                    " to break the priority stalemate."
+                    " Candidates:"+candidates
                 );
             else 
-                imp->error(--p, "Overloaded or union runtype names are ambiguous."
-                    "\nYou have already defined several of those as nominal (with nom first argument)."
-                    "\nCandidates:"+candidates
+                imp->error(--p, "Type names are ambiguous."
+                    " You have already defined several of those as nominal (with nom first argument)."
+                    " Candidates:"+candidates
                 );
         } 
         if(type->not_primitive()) 
@@ -242,8 +242,9 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
     }
     else if(imp->at(p)!="(") {
         if(type->nozero && !imp->allow_unsafe)
-            imp->error(--p, "Cannot create empty runtype marked as @nozero"
-                "\nThe runtype definition is marked as @nozero or contains such data."
+            imp->error(--p, "Cannot create empty type for: "
+                +pretty_runtype(type->name.to_string())
+                +"\nThe type's function definition is marked as `@nozero` or returns such data."
                 " That annotation makes empty ('zero') initialization to be considered unsafe."
                 " Mark this file @unsafe to enable this option."
             );

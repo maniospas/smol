@@ -48,8 +48,9 @@ Variable Def::parse_buffer_expect(size_t& p, Types& types, Variable curry, size_
     );
 
     if(buffer_types[curry]->nozero && !imp->allow_unsafe)
-        imp->error(--p, "Cannot :expect when buffer type is @nozero"
-            "\nThe runtype definition is marked as @nozero or contains such data."
+        imp->error(--p, "Cannot `.expect` more elements when buffer type is @nozero: "
+            +pretty_runtype(buffer_types[curry]->name.to_string())+"[]"
+            "\nThe type's function definition is marked as @nozero or contains such data."
             " That annotation makes empty ('zero') initialization to be considered unsafe."
             " Mark this file @unsafe to enable this option."
         );

@@ -13,10 +13,11 @@
 #include "../../def.h"
 
 Variable Def::parse_expression(size_t& p, const Variable& first_token, Types& types, const Variable& curry) {
+    auto first_token_pos = p-1;
     if(first_token=="(") {
         Variable ret = parse_expression(p, imp->at(p++), types, curry);
         if(imp->at(p++)!=")") 
-            imp->error(--p, "Expecting closing parenthesis");
+            imp->error(first_token_pos, "Expecting closing parenthesis");
         return next_var(p, ret, types);
     }
     return parse_expression_no_par(p, first_token, types, curry);
@@ -25,14 +26,23 @@ Variable Def::parse_expression(size_t& p, const Variable& first_token, Types& ty
 Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Types& types, Variable curry) {
     auto first_token_pos = p-1;
     if(first_token=="@") {
-        if(imp->at(p++)!="dynamic")
+        auto next = imp->at(p++);
+        if(next=="mut") {
+            next = imp->at(p++);
+            auto ret = parse_expression_no_par(p, next, types, curry);
+            if(!ret.exists() || !contains(ret))
+                imp->error(first_token_pos+2, "`@mut` must refer to an existing type");
+            mutables.insert(ret);
+            return ret;
+        }
+        if(next!="dynamic")
             imp->error(--p, "Unexpected symbol\nCannot have a preprocessor directive other than `@dynamic` in the middle of an expression.");
         auto options = vector<Variable>{};
         if(imp->at(p++)!="(")
             imp->error(--p, "Expected opening parenthesis after `@dynamic` to determine options");
         if(curry.exists())
             imp->error(--p, "Cannot curry into `@dynamic`");
-        auto next = imp->at(p++);
+        next = imp->at(p++);
         while(next!=")") {
             if(!types.contains(next))
                 imp->error(--p, "Function name is still unknown at this point");

@@ -22,7 +22,7 @@ void Def::parse_signature(size_t& p, Types& types) {
     else if(imp->at(p)=="service") 
         is_service = true;
     else if(imp->at(p)!="def") 
-        imp->error(--p, "Missing `service` or `def` to declare runtype");
+        imp->error(--p, "Expecting `service` or `def` to declare a function");
     p++;
     if(!is_as) 
         name = imp->at(p++); 
@@ -33,7 +33,7 @@ void Def::parse_signature(size_t& p, Types& types) {
         if(!is_service && types.vars[name]->is_service) imp->error(--p, "A runtype cannot overload a service with the same name");
     }*/
     if(imp->at(p++)!="(") 
-        imp->error(--p, "Missing left parenthesis");
+        imp->error(--p, "Expecting left parenthesis");
     while(true) {
         auto autoconstruct = false;
         auto mut = false;
@@ -72,7 +72,7 @@ void Def::parse_signature(size_t& p, Types& types) {
         if(!accepted_var_name(next)) 
             imp->error(--p, "Not a valid name: "+next);
         if(types.vars.find(next)==types.vars.end()) 
-            imp->error(--p, "Missing runtype: "+next);
+            imp->error(--p, "Missing type: "+next);
 
         Variable arg_name = imp->at(p++);
         bool arg_is_buffer = false;
@@ -85,14 +85,14 @@ void Def::parse_signature(size_t& p, Types& types) {
         if(mut && is_service) 
             imp->error(p-2, "Services do not accept values by reference"
                 "\nThis ensures failsafe-compliant extensibility."
-                "\nDid you mean to declare a runtype instead?"
+                "\nDid you mean to declare a function instead?"
             );
         
         if(!types.contains(next)) 
-            imp->error(--p, "Missing runtype: "+next);
+            imp->error(--p, "Missing type: "+next);
         if(next==NOM_VAR && args.size()) 
-            imp->error(--p, "Misplaced align\nCan only be the first argument of a runtype"
-                "\nor the argument of dependent runtypes"
+            imp->error(--p, "Misplaced align\nCan only be the first argument of a type"
+                "\nor the argument of dependent types"
             );
         if(next==NOM_VAR && mut) 
             imp->error(p-2, "Cannot have a @mut nominal argument");
@@ -104,7 +104,7 @@ void Def::parse_signature(size_t& p, Types& types) {
         if(!accepted_var_name(arg_name.to_string()))
             imp->error(--p, "Not a valid name");
         if(types.vars.find(arg_name)!=types.vars.end()) 
-            imp->error(--p, "Invalid variable name\nIt is a previous runtype or union");
+            imp->error(--p, "Invalid variable name: "+pretty_runtype(arg_name.to_string())+"\nAlready declared or imported as a function.");
         if(can_access_mutables)
             can_access_mutable_fields.insert(arg_name);
         if(argType->lazy_compile) {

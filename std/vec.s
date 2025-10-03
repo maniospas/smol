@@ -71,7 +71,7 @@ def Vec(nominal, ptr contents, u64 size, ptr surface)
 def vector(@mut Memory memory, u64 size)
     mem = memory.allocate(size,f64)
     range(size)
-    .while next(u64& i)
+    .while next(@mut u64 i)
         @body{((f64*)mem__mem)[i] = 0;}
         end
     return nominal.Vec(mem.mem, size, mem.mem)
@@ -91,7 +91,7 @@ def slice(@access Vec v, u64 from, u64 to)
 def vector(@mut Memory memory, @mut Rand rand, u64 size)
     mem = memory.allocate(size,f64)
     range(size)
-    .while next(u64& i)
+    .while next(@mut u64 i)
         value = rand.next()
         @body{((f64*)mem__mem)[i] = value;}
         end
@@ -253,7 +253,7 @@ def print(@access Vec v)
             return v.size
     printin("[")
     range(size)
-    .while next(u64& pos)
+    .while next(@mut u64 pos)
         if pos.bool()
             printin(" ")
             end

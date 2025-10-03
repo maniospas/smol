@@ -32,7 +32,7 @@ def file_reader(
             stat_chars = stat_chars + line.len()
             end
         end
-    return nominal:file_stats(stat_lines, stat_chars)
+    return nominal.file_stats(stat_lines, stat_chars)
 
 service main()
     @mut memory = Stack.arena(1048576) // 1MB

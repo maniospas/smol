@@ -1,6 +1,6 @@
 // This file uses the smol compiler's types as a proof verifier.
 //
-// - This is not a proof assistant. Which rule, i.e., def runtype
+// - This is not a proof assistant. Which rule, i.e., def function
 //   applies on each step is deterministic based on argument types.
 // - Only nominal typing is applied to ensure that distinct properties
 //   keep track of their nature.

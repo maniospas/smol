@@ -24,8 +24,8 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
         if(!contains(surface) || !vars[surface]->buffer_ptr.exists())
             imp->error(first_token_pos, "Given that "
                 +pretty_var(first_token.to_string())
-                +" is a runtype (not a local variable), [] is expected to declare a buffer here"
-                +" or a @buffer runtype must be returned to serve as the buffer's allocation"
+                +" is a function (not a local variable), [] is expected to declare a buffer of its defined type here"
+                +" or a @buffer type must be returned to serve as the buffer's allocation"
             );
         if(!can_mutate(surface, p) && !imp->allow_unsafe)
             imp->error(--p, "Buffer surface is not mutable: "+pretty_var(surface.to_string())+"\nIt might have been used elsewhere. Mark this file as @unsafe to allow a union view.");
@@ -34,11 +34,11 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
     if(type->options.size()==0) 
         imp->error(--p, "No options to determine buffer elements "
             +type->name.to_string()
-            +"\nAdding before the argument's type may resolve this issue"
-            +"\nby forcing usage of the a runtype with ->in its return"
-            +"\namong those overloaded with the same name/union."
-            +"\nThis annoation directly interleaves the type in the definition"
-            +"\nand removes its lexical scoping."
+            +"\nAdding `nominal` as first argument in the type's function definition"
+            +" and returning that (e.g., with @args) may fix this issue; this would"
+            +" enforce a specific selection among variations overloaded with the same name/union."
+            +" This annoation directly interleaves the type in the definition"
+            +" nand removes its lexical scoping."
         );
     double option_power = -1;
     int conflicts = 0;

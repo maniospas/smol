@@ -538,7 +538,9 @@ function runCompilerAndSendDiagnostics(document) {
       .replace(/\x1b\[35m/g, '')
       .replace(/\x1b\[36m/g, '')
       .replace(/\x1b\[38m/g, '')
-      .replace(/\x1b\[0m/g, '');
+      .replace(/\x1b\[2K/g, '')
+      .replace(/\x1b\[0m/g, '')
+      .replace(/^\s+|\s+$/g, '');
   }
 }
 

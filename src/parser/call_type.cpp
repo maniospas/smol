@@ -258,14 +258,14 @@ Variable Def::call_type(
             +(lsp?"\n```\n":"")
         );
     if(!type) 
-        imp->error(first_token_pos, "Not found runtype version: "
+        imp->error(first_token_pos, "Not found function: "
             +first_token.to_string()+" among "
             +to_string(previousType->options.size())
             +" candidates of "
             +previousType->signature(types)
         );
     if(type->lazy_compile) 
-        imp->error(pos, "Internal error: Runtype has not been compiled");
+        imp->error(pos, "Internal error: Function has not been compiled");
     
     // singleton resources should never be called twice in a program
     for(const auto& singleton : type->singletons) 
@@ -299,7 +299,7 @@ Variable Def::call_type(
             );
         if(!contains(unpacks[i])) 
             throw runtime_error(type->signature(types)
-                +": No runtype for "
+                +": No type for "
                 +pretty_var(unpacks[i].to_string())
             );
         if(type->not_primitive() 

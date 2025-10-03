@@ -19,8 +19,8 @@
 // - __runtime_apply_linked
 
 // ----------------------- ABOUT ------------------------------------------
-// This runtime eagerly executes runtype (that is, def function) calls
-// using a single thread. You can explicitly set it by compiling
+// This runtime eagerly executes services calls using a single thread. 
+// You can explicitly set it by compiling
 //     smol main.s --runtime eager
 
 // ----------------------- LICENSE ------------------------------------------
