@@ -15,13 +15,15 @@ service run(String command)
     end
 
 service std_test(String name)
-    command = on Heap.dynamic() return "./smol tests/unit/"+name+".s --workers 1 --runtime eager 2>&1"
+    on Heap.dynamic() 
+        command = "./smol tests/unit/"+name+".s --workers 1 --runtime eager 2>&1"
+        end
     // new memory surface because the previous one was made immutable 
     // by feeding into a service call
     on Heap.dynamic()
         if run(command).err.bool()
             print("[ \033[31mERROR\033[0m ] "+name+".s")
-        end else
+        else
             print("[ \033[32mOK\033[0m ] "+name+".s")
     end end end
 
@@ -60,7 +62,7 @@ service all()
 
 service main()
     tic = time()
-    all().err // force synchronize by waiting to see if ther's an error code
+    all().err // force synchronize by waiting for the error code
     printin("Completed in ")
     printin(time()-tic)
     print(" sec")

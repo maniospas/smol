@@ -40,19 +40,20 @@ Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_tok
     auto else_var = EMPTY_VAR;
     auto rfinally_var = finally_var+Variable("r");
     if(p<imp->size()-1 && imp->at(p)=="else") {
+        if(uplifting.size() && uplifting[uplifting.size()-1].has_returned && contains(uplifting[uplifting.size()-1].target+Variable("r")))
+            imp->error(p, "You have already returned from `if`, so an `else` block is redundant here");
         p++;
         else_var = temp+LE_VAR;
         auto relse_var = else_var+Variable("r");
         vars[else_var] = types.vars[LABEL_VAR];
         auto else_skip = temp+EL_VAR;
         vars[else_skip] = types.vars[LABEL_VAR];
-        //uplifting_targets.pop_back();
-        //uplifting_targets.push_back(else_var);
-        uplifting.back().target = else_var;
+        uplifting.pop_back();
+        uplifting.emplace_back(else_var, uplifting.size(), false, uplifting.size() && uplifting.back().is_loop);
         implementation += Code(finally_var,COLON_VAR,Variable("goto"), else_skip, SEMICOLON_VAR, closeif_var, COLON_VAR);
         parse(imp, p, types, false);
-        implementation += Code(else_var,COLON_VAR);
         p++; // offset p-- after parse_return above
+        implementation += Code(else_var,COLON_VAR);
         if(contains(relse_var) && !contains(rfinally_var)) 
             imp->error(first_token_pos, "There was a non-empty return "
                 +vars[relse_var]->name.to_string()

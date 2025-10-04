@@ -23,7 +23,7 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
     if(type.get()==this && options.size()==0) {
         if(!is_service)
             imp->error(--p, "def definition cannot return itself\nConsider converting it to a service or use a previous runtype.");
-        if(!has_returned)
+        if(!uplifting[0].has_returned)
             imp->error(--p, "Service has not yet returned\nFor a runtype to call itself, a previous return needs to have determined its format");
         options.push_back(shared_from_this());
     }

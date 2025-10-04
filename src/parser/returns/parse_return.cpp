@@ -13,88 +13,56 @@
 #include "../../def.h"
 
 void Def::parse_return(size_t& p, Variable next, Types& types) {
-    size_t uplifting = 0;
+    size_t return_to = uplifting.size()-1;
     size_t return_p = p; // TODO: fix this when we fully migrate to "return" as a keyword instead of a macro for "->"
     static const Variable token_goto = Variable("goto");
-    if(next=="|") {
-        --p;
-        while(p+uplifting<imp->size() && imp->at(p+uplifting)=="|") 
-            ++uplifting;
-        p += uplifting;
-        if(imp->at(p++)!="-") 
-            imp->error(--p, "Expecting `--` or `->` after uplifting operator `|`");
-    }
-    if(imp->at(p)=="-") {
-        ++p;
-        if(uplifting) 
-            implementation += Code(token_goto,this->uplifting[0].target,SEMICOLON_VAR);
+    if(next=="end" || next=="else") {
+        implementation += Code(token_goto,this->uplifting[return_to].target,SEMICOLON_VAR);
+        if(uplifting[0].has_returned) {
+            if(!return_to && packs.size())
+                imp->error(p-1, "Cannot mix `end` with a previous function return");
+            else if(contains(uplifting[return_to].target+Variable("r")))
+                imp->error(p-1, "Cannot mix `end` with a previous capture return");
+        }
+        uplifting[return_to].has_returned = true;
         return;
     }
-    if(imp->at(p++)!=">") 
-        imp->error(p-2, "Expecting return.\nUse `->` to return a value or `--` (or end of file) to return without a value for expressions starting with `-`");
-    if(uplifting>=this->uplifting.size()) 
-        imp->error(p-3, "Too many levels of uplifting.\nYou are currently on "
-            +to_string(this->uplifting.size()-1)
-            +" nested blocks in."
-        );
-    if(p<imp->size() && imp->at(p)=="-") {
-        p++;
-        implementation += Code(token_goto,this->uplifting[this->uplifting.size()-uplifting-1].target,SEMICOLON_VAR);
-        if(has_returned && this->uplifting.size()-uplifting==1 && packs.size()) 
-            imp->error(p-1, "Cannot mix a no-return and a return");
-        if(this->uplifting.size()==1+uplifting) 
-            has_returned = true;
-        return;
+    // "return" statement from hereon - find capture
+    while(return_to && !uplifting[return_to].mandate_return) {
+        uplifting[return_to].has_returned = true;
+        --return_to;
     }
-    if(this->uplifting.size()>1+uplifting) {
-        if(uplifting>=this->uplifting.size()) 
-            imp->error(p-3, "Too many levels of uplifting.\nYou are currently on "
-                +to_string(this->uplifting.size()-1)+" nested blocks in."
-            );
+    
+    // return to intermediate capture
+    if(return_to) {
         next = imp->at(p++);
         next = parse_expression(p, next, types);
-        if(contains(next)) 
-            assign_variable(vars[next], this->uplifting[this->uplifting.size()-uplifting-1].target+Variable("r"), next, p);
-        implementation +=Code(token_goto,this->uplifting[this->uplifting.size()-uplifting-1].target,SEMICOLON_VAR);
+        if(contains(next)) {
+            assign_variable(vars[next], uplifting[return_to].target+Variable("r"), next, p);
+            mutables.insert(uplifting[return_to].target+Variable("r"));
+        }
+        implementation += Code(token_goto,uplifting[return_to].target,SEMICOLON_VAR);
         return;
     }
 
+    // return from function
     auto tentative = map_to_return(p, types, true);
-
-    // if(is_service) {
-    //     auto cleaned_tentative = vector<Variable>{};
-    //     cleaned_tentative.reserve(tentative.size());
-    //     for(size_t i=0;i<tentative.size();++i) if(i==0 || tentative[i]!=ERR_VAR)
-    //         cleaned_tentative.push_back(tentative[i]); 
-    //     cout << name << " "<<tentative.size() << "\n";
-    //     if(cleaned_tentative.size()!=tentative.size())
-    //        tentative = cleaned_tentative;
-    // }
-
-    if(!has_returned) 
+    if(!uplifting[0].has_returned) 
         packs = tentative;
     else if(packs.size()!=tentative.size()) 
         imp->error(return_p, "Incompatible returns\nprevious "
             +signature_like(types, packs)
             +" vs last "+signature_like(types, tentative)
         );
-    else 
-        for(size_t i=0;i<packs.size();++i) {
-            if(vars[packs[i]]!=vars[tentative[i]]) 
-                imp->error(return_p, 
-                    "Incompatible returns\nprevious "
-                    +signature_like(types, packs)
-                    +" vs previous "+signature_like(types, tentative)
-                );
-            // if(packs[i]!=tentative[i] && !tentative[i].is_private() && !packs[i].is_private() && packs.size()>=(is_service?2:1))
-            //     imp->error(--p, "You are returning a differently named value : "
-            //         +pretty_var(packs[i].to_string())
-            //         +" vs previous "
-            //         +pretty_var(tentative[i].to_string())
-            //         +"\nThis would create ambiguity on what field access looks like"
-            //     );
-            assign_variable(vars[packs[i]], packs[i], tentative[i], p, false, false);
-        }
+    else for(size_t i=0;i<packs.size();++i) {
+        if(vars[packs[i]]!=vars[tentative[i]]) 
+            imp->error(return_p, 
+                "Incompatible returns\nprevious "
+                +signature_like(types, packs)
+                +" vs previous "+signature_like(types, tentative)
+            );
+        assign_variable(vars[packs[i]], packs[i], tentative[i], p, false, false);
+    }
     implementation += Code(token_goto,this->uplifting[0].target,SEMICOLON_VAR);
-    has_returned = true;
+    uplifting[0].has_returned = true;
 }

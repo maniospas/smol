@@ -39,6 +39,8 @@
 
 union Number = u64 or f64 or i64
 
+def nothing() end
+
 def print(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f\n", message);}
@@ -89,7 +91,7 @@ def printin(@access char message)
     @body{printf("%c", message);}
     end
 
-def le(@access Number x, Number y)  
+def le(@access Number x, Number y)
     @body{bool z=x<=y;}   
     return z
 

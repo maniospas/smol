@@ -101,15 +101,23 @@ def nstr(@access cstr raw)
 def str(@access bool value) 
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
-    if value @body{cstr _contents=__truestr;} --
-    else @body{cstr _contents=__falsestr;} --
+    if value 
+        @body{cstr _contents=__truestr;} 
+        end
+    else
+        @body{cstr _contents=__falsestr;}
+        end
     return str(_contents)
 
 def nstr(@access bool value)
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
-    if value @body{cstr _contents=__truestr;} --
-    else @body{cstr _contents=__falsestr;} --
+    if value 
+        @body{cstr _contents=__truestr;} 
+        end
+    else 
+        @body{cstr _contents=__falsestr;}
+        end
     return nstr(_contents)
 
 def print(@access cstr message)

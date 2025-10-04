@@ -395,7 +395,8 @@ def console(@access @mut WriteFile)
         if(!has_gui && isatty(STDIN_FILENO)) has_gui = false;
     }
     if has_gui.not()
-        return fail("Cannot open a console in the current environment")
+        fail("Cannot open a console in the current environment")
+        end
     @body{
         ptr f = 0;
         SMOLAMBDA_CONSOLE(f)

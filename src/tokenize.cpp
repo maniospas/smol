@@ -352,18 +352,8 @@ shared_ptr<Import> tokenize(const string& path) {
                 }
                 if(start < i) {
                     auto substr = line.substr(start, i - start);
-                    if(substr=="end") {
-                        tokens.emplace_back("-", line_num, col, main_file);
-                        tokens.emplace_back("-", line_num, col + 1, main_file);
-                    }
-                    else if(substr=="return") {
-                        tokens.emplace_back("-", line_num, col, main_file);
-                        tokens.emplace_back(">", line_num, col + 1, main_file);
-                    }
-                    else if(substr=="elif") {
+                    if(substr=="elif") {
                         tokens.emplace_back("else", line_num, start_col, main_file);
-                        tokens.emplace_back("-", line_num, start_col, main_file);
-                        tokens.emplace_back(">", line_num, start_col, main_file);
                         tokens.emplace_back("if", line_num, start_col, main_file);
                     }
                     else tokens.emplace_back(substr, line_num, start_col, main_file);

@@ -61,18 +61,21 @@ def allocate(@access Stack, u64 size, Primitive)
         ptr mem=(size_bytes+__service_stack_floor>=(char*)&size_bytes)?0:alloca(size_bytes);
     }
     if mem.bool().not() 
-        return fail("Insufficient stack for allocation (too much recursion or stack allocatio, or zero size requested)")
+        fail("Insufficient stack for allocation (too much recursion or stack allocatio, or zero size requested)")
+        end
     @noshare mem
     return nominal.ContiguousMemory(Stack, size, Primitive, mem, mem)
 
 def allocate(@access Heap, u64 size, Primitive)
     if size==0 
-        return fail("Cannot allocate zero size")
+        fail("Cannot allocate zero size")
+        end
     @head{#include <stdlib.h>}
     primitive = Primitive
     @body{ptr mem=__runtime_alloc(size*sizeof(primitive));}
     if mem.bool().not() 
-        return fail("Failed a Heap allocation")
+        fail("Failed a Heap allocation")
+        end
     @finally mem {
         if(mem)
             __runtime_free(mem);
@@ -85,19 +88,17 @@ def allocate(@access MemoryDevice, u64 size)
 
 def at(@access ContiguousMemory v, u64 pos) 
     if pos>=v.size 
-        return fail("ContiguousMemory out of bounds")
+        fail("ContiguousMemory out of bounds")
+        end
     with 
         v.Primitive.is(u64) 
         @body{u64 value = ((u64*)v__mem)[pos];}
-        end
     else
         v.Primitive.is(i64) 
         @body{i64 value = ((i64*)v__mem)[pos];}
-        end 
     else
         v.Primitive.is(f64) 
         @body{f64 value = ((f64*)v__mem)[pos];}
-        end 
     else 
         v.Primitive.is(char) 
         @body{char value = ((char*)v__mem)[pos];}
@@ -109,17 +110,20 @@ def __unsafe_put(@access ContiguousMemory v, u64 pos, Primitive value)
         v.Primitive.is(Primitive) 
         end
     if pos>=v.size 
-        return fail("ContiguousMemory out of bounds")
-    with value.is(u64) 
+        fail("ContiguousMemory out of bounds")
+        end
+    with 
+        value.is(u64) 
         @body{((u64*)v__mem)[pos] = value;}
-        end
-    else value.is(i64) 
+    else 
+        value.is(i64) 
         @body{((i64*)v__mem)[pos] = value;}
-        end
-    else value.is(f64) 
+    else 
+        value.is(f64) 
         @body{((f64*)v__mem)[pos] = value;} 
-        end
-    else value.is(char) 
+    else 
+        value.is(char) 
         @body{((char*)v__mem)[pos] = value;}
         end
     return v
+    

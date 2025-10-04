@@ -10,7 +10,7 @@ def ping(u64 n, cstr message)
 
 def pong(u64 n, cstr message)
     if n == 0
-        |return :done.lambda(u64)
+        return :done.lambda(u64)
     printin(message)
     print("pong")
     return :ping.lambda(n-1)

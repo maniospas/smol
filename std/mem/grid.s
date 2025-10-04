@@ -15,51 +15,51 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@include std.mem.arena
-@unsafe
+// @include std.mem.arena
+// @unsafe
 
-def MemoryGrid (
-        nominal type,
-        @mut Memory memory,
-        Primitive,
-        u64 size, 
-        u64 squares
-    )
-    surface = memory.allocate(size*squares, Primitive)
-    return type, surface, size, squares
+// def MemoryGrid (
+//         nominal type,
+//         @mut Memory memory,
+//         Primitive,
+//         u64 size, 
+//         u64 squares
+//     )
+//     surface = memory.allocate(size*squares, Primitive)
+//     return type, surface, size, squares
 
-def GridEntry (
-        nominal,
-        @mut MemoryGrid grid,
-        u64 id
-    ) 
-    return @args
+// def GridEntry (
+//         nominal,
+//         @mut MemoryGrid grid,
+//         u64 id
+//     ) 
+//     return @args
 
-def at(@mut MemoryGrid self, u64 id) 
-    return nominal.GridEntry(self, id)
+// def at(@mut MemoryGrid self, u64 id) 
+//     return nominal.GridEntry(self, id)
 
-def at(@access GridEntry self, u64 pos) 
-    true_pos = pos
-    .mul(self.grid.squares)
-    .add(self.id)
-    return self.grid.surface[true_pos]
+// def at(@access GridEntry self, u64 pos) 
+//     true_pos = pos
+//     .mul(self.grid.squares)
+//     .add(self.id)
+//     return self.grid.surface[true_pos]
 
-def put(
-        @access @mut GridEntry self, 
-        u64 pos, 
-        Primitive value
-    )
-    with 
-        value.is(self.MemoryGrid.Primitive) 
-        end
-    true_pos = pos
-    .mul(self.grid.squares)
-    .add(self.id)
-    self.grid.surface.__unsafe_put(true_pos, value)
-    end
+// def put(
+//         @access @mut GridEntry self, 
+//         u64 pos, 
+//         Primitive value
+//     )
+//     with 
+//         value.is(self.MemoryGrid.Primitive) 
+//         end
+//     true_pos = pos
+//     .mul(self.grid.squares)
+//     .add(self.id)
+//     self.grid.surface.__unsafe_put(true_pos, value)
+//     end
 
-def len(@access GridEntry self) 
-    return self.grid.size
+// def len(@access GridEntry self) 
+//     return self.grid.size
 
-def grid(@mut Memory memory, u64 size, u64 squares, Primitive)
-    return nominal.MemoryGrid(memory, Primitive, size, squares)
+// def grid(@mut Memory memory, u64 size, u64 squares, Primitive)
+//     return nominal.MemoryGrid(memory, Primitive, size, squares)

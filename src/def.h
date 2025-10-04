@@ -140,8 +140,9 @@ public:
     size_t depth;
     bool mandate_return;
     bool is_loop;
+    bool has_returned;
     UpliftingStatus(const Variable& target, size_t depth, bool mandate_return, bool is_loop): 
-        target(target), depth(depth), mandate_return(mandate_return), is_loop(is_loop) {}
+        target(target), depth(depth), mandate_return(mandate_return), is_loop(is_loop), has_returned(false) {}
     ~UpliftingStatus() = default;
 };
 
@@ -264,12 +265,11 @@ public:
     vector<Type>& get_options();
     vector<Type> get_lazy_options(Types& types);
     unordered_set<Variable> type_trackers;
-    bool has_returned;
     string raw_signature_state_name() const;
 
     // constructors
-    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(builtin), number_of_calls(0), has_returned(false) {}
-    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(""), number_of_calls(0), has_returned(false) {
+    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(builtin), number_of_calls(0) {}
+    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(""), number_of_calls(0) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;

@@ -3,20 +3,7 @@
 @include std.mem
 
 def one_hot(@mut Memory memory, u64 pos, u64 size)
-    // Create intermediate (imd) vector as 
-    // context and use it as first argument 
-    // when needed. Intermediate values not
-    // assigned to variables can be passed
-    // as mutable arguments by design.
-    return on memory.vector(size)
-        // `:` is curries the left hand side
-        // into the next call's first argument.
-        // But we also have the vector context,
-        // so `set(Vec&, u64, f64)` is called.
-        // The latter returns the intermediate 
-        // vector and we return that from `on` 
-        // whose outcome is in turn returned 
-        // by `one_hot`.
+    on memory.vector(size)
         return pos.put(1.0)
 
 service main() 

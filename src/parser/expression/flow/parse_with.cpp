@@ -26,7 +26,7 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
     //     uplifiting_is_loop.push_back(uplifiting_is_loop.back());
     // else 
     //     uplifiting_is_loop.push_back(false);
-    uplifting.emplace_back(finally_var, uplifting.size(), false, uplifting.back().is_loop);
+    uplifting.emplace_back(finally_var, uplifting.size(), false, uplifting.size() && uplifting.back().is_loop);
     vars[finally_var] = types.vars[LABEL_VAR];
     auto next = string{""};
     try {
@@ -80,6 +80,7 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
         }
         else 
             end_block(p);
+        p++;
         next = p<imp->size()?imp->at(p):"";
         p++;
     }

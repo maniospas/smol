@@ -33,7 +33,7 @@ Variable Def::parse_on(size_t& p, Types& types, Variable curry, size_t first_tok
     //     uplifiting_is_loop.push_back(uplifiting_is_loop.back());
     // else 
     //     uplifiting_is_loop.push_back(false);
-    uplifting.emplace_back(finally_var, uplifting.size(), false, uplifting.back().is_loop);
+    uplifting.emplace_back(finally_var, uplifting.size(), false, uplifting.size() && uplifting.back().is_loop);
     parse(imp, p, types, false);
     // uplifting_targets.pop_back();
     // uplifiting_is_loop.pop_back();

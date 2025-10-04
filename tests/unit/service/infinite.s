@@ -2,7 +2,7 @@
 
 service test(u64 n, u64 last)
     if n==last
-        |return @args
+        return @args
     ret = test(n+1, last)
     return ret.n, ret.last
 

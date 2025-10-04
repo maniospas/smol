@@ -20,12 +20,12 @@ void Def::end_block(size_t& p) {
             ++depth;
         if(next=="def" || next=="service") 
             imp->error(p, "Unexpected end of definition");
-        if(next=="-" && p<imp->size()-1) {
-            ++p; next = imp->at(p);
-            //if(next=="-" && imp->at(p-2)=="|") {}
-            if(next=="-") {if(depth==0){++p;break;} --depth;}
-            //else if(next==">" && imp->at(p-2)=="|") {}
-            else if(next==">") imp->error(p, "Currently unimplemented nesting that ends in symbol other than `--`");
+        if(next=="return" && depth==0) 
+            imp->error(p, "`with` or their `else` blocks statements can only end  at `else` or `end`");
+        if(next=="end" || next=="else") {
+            if(depth==0) 
+                break;
+            --depth;
         }
         ++p;
     }
@@ -41,7 +41,7 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
         parse_signature(p, types);
     }
     if(!uplifting.size()) 
-        uplifting.emplace_back(Variable("__end"), 0, false, false);
+        uplifting.emplace_back(Variable("__end"), 0, true, false);
     saved_types = types;
     start = p;
     parse_implementation(p, with_signature);
@@ -78,24 +78,13 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         return;
     auto& types = saved_types;
     auto next_assignments = unordered_set<Variable>{};
-    auto single_statement = false;
     while(p<imp->size()) {
-        // if(p<imp->size() && imp->at(p)=="do") {
-        //     p++;
-        //     single_statement = true;
-        // }
-        // else if(single_statement) { // 'else if' to allow chaining of 'do's 
-        //     --p;
-        //     break;
-        // }
+        if(uplifting.size() && uplifting[uplifting.size()-1].has_returned) 
+            break;
         bool is_next_assignment = false;
         bool is_access_assignment = false;
         bool is_mutable_assignment = false;
         string next = imp->at(p++);
-        // if(next=="def" || next=="union" || next=="service") {
-        //     p -= 2;
-        //     break;
-        // }
         if(next=="@") {
             if(p<imp->size() && imp->at(p)=="next"){
                 is_next_assignment=true;
@@ -124,35 +113,20 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                 continue;
             }
         }
-        /*if(next=="&") {
-            next = imp->at(p++);
-            is_mutable_assignment=true;
-        }*/
-        if(next=="|") {
-            if(single_statement)
-                imp->error(p-2, "Cannot accept `do` before a `return` statement"
-                    "\n- `do` marks a block end after the next expression (does not yield a value)"
-                    "\n- `return` ends the block while returning a value"
-                );
+        if(next=="return" || next=="end" || (next=="else"&&uplifting.size()>1)) {
+            bool is_else = next=="else";
             parse_return(p, next, types);
-            end = p--;
-            break;
+            if(is_else)
+                end = (p-=2);
+            else
+                end = --p;
+            continue;
         }
-        if(next=="-") {
-            if(single_statement)
-                imp->error(p-2, "Cannot accept `do` before a `return` statement"
-                    "\n- `do` marks a block end after the next expression (does not yield a value)"
-                    "\n- `return` ends the block while returning a value"
-                );
-            parse_return(p, next, types);
-            end = p--;
-            break;
-        }
-        if(next=="else") {
-            --p;
-            end = p--; 
-            break;
-        }
+        // if(next=="else") {
+        //     --p;
+        //     end = p--; 
+        //     break;
+        // }
         Variable var = imp->at(p);
         if(var=="=" && p<imp->size()-1 && imp->at(p+1)=="=") 
             var = EMPTY_VAR;
@@ -227,6 +201,6 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         implementation += Code(endvar, COLON_VAR);
         simplify();
         if(p<imp->size()-1 && imp->at(p+1)!="@" && imp->at(p+1)!="def" && imp->at(p+1)!="service" && imp->at(p+1)!="union")
-            imp->error(p+1, "Unparsed code\nThe functio has already ended, so it can only be followed by def, srevice, union, or @ directives");
+            imp->error(p+1, "Unparsed code\nThe function has already ended, so it can only be followed by def, service, union, or @ directives");
     }
 }

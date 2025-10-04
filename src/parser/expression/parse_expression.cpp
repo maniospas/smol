@@ -126,6 +126,19 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
         return parse_on(p, types, curry, first_token_pos);
     if(first_token=="with") 
         return parse_with(p, types, curry, first_token_pos);
+    if(first_token=="capture") {
+        if(curry.exists())
+            imp->error(--p, "Cannot curry into `capture`");
+        auto temp = Variable{create_temp()};
+        auto finally_var = temp;
+        vars[finally_var] = types.vars[LABEL_VAR];
+        uplifting.emplace_back(finally_var, uplifting.size(), true, uplifting.size() && uplifting.back().is_loop);
+        parse_implementation(p, false);
+        p++; // offset p-- after parse_return above
+        implementation += Code(finally_var,COLON_VAR);
+        uplifting.pop_back();
+        return finally_var+Variable("r");
+    }
     if(curry.exists() 
         && contains(curry) 
         && vars[curry]->name==BUFFER_VAR

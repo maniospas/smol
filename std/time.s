@@ -41,8 +41,8 @@ def sleep(f64 duration)
     end
 
 def exact_sleep(f64 duration)
-    if duration<=0.0 
-        |--
+    if duration<=0.0
+        return nothing
     @head{#include "std/oscommon.h"}
     @body{__smo_exact_sleep(duration);}
     end
