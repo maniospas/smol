@@ -24,10 +24,10 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
     if(next==AT_VAR) {
         next = imp->at(p++);
         if(next!=ARGS_VAR) 
-            imp->error(--p, "Use `->@args`");
+            imp->error(--p, "Use `return @args`");
         //choice_power += 4; 
         if(is_service 
-            && !uplifting_targets.size() 
+            && !uplifting.size() 
             && !ranges::contains(packs, ERR_VAR)
         ){
             packs.push_back(ERR_VAR);
@@ -85,7 +85,7 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                     +pretty_var(next.to_string())
                     +"\nAdd an align first variable to the signature and return that instead"
                 );
-            if(is_service && !uplifting_targets.size()) {
+            if(is_service && !uplifting.size()) {
                 implementation += Code(VALUE_VAR,ASSIGN_VAR,next,SEMICOLON_VAR);
                 if(contains(VALUE_VAR) && vars[VALUE_VAR]!=vars[next]) 
                     imp->error(--p, "Returning single value of multiple types "

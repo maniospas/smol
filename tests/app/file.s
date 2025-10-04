@@ -1,6 +1,6 @@
 @include std.core
 @include std.mem return Memory, arena
-@include std.file
+@include std.file return File
 
 def file_stats(
         nominal, 
@@ -30,8 +30,7 @@ def file_reader(
             print(line)
             stat_lines = stat_lines + 1
             stat_chars = stat_chars + line.len()
-            end
-        end
+        end end
     return nominal.file_stats(stat_lines, stat_chars)
 
 service main()

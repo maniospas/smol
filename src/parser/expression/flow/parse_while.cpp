@@ -14,10 +14,11 @@
 
 
 Variable Def::parse_while(size_t& p, Types& types, Variable curry, size_t first_token_pos) {
-    Variable temp = create_temp();
-    Variable finally_var = temp+WHILE_VAR;
-    uplifting_targets.push_back(finally_var);
-    uplifiting_is_loop.push_back(true);
+    auto temp = Variable{create_temp()};
+    auto finally_var = temp+WHILE_VAR;
+    uplifting.emplace_back(finally_var, uplifting.size(), false, true);
+    // uplifting_targets.push_back(finally_var);
+    // uplifiting_is_loop.push_back(true);
     Variable start_var = temp+LOOP_VAR;
     vars[start_var] = types.vars[LABEL_VAR];
     vars[finally_var] = types.vars[LABEL_VAR];
@@ -35,7 +36,8 @@ Variable Def::parse_while(size_t& p, Types& types, Variable curry, size_t first_
     parse(imp, p, types, false);
     p++; // offset p-- after parse_return above
     implementation += Code(Variable("goto"),start_var,SEMICOLON_VAR,finally_var,COLON_VAR);
-    uplifting_targets.pop_back();
-    uplifiting_is_loop.pop_back();
+    uplifting.pop_back();
+    // uplifting_targets.pop_back();
+    // uplifiting_is_loop.pop_back();
     return EMPTY_VAR;
 }

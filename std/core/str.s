@@ -72,10 +72,10 @@ union CString = cstr or nstr
 union String  = CString or str
 union IndependentString = String
 
-def is(String self, String) 
+def is(@access String self, String) 
     return self
 
-def str(nstr other)
+def str(@access nstr other)
     return nominal.str(other.contents, other.length, other.first, other.memory)
 
 def str(@access cstr raw)
@@ -115,32 +115,32 @@ def nstr(@access bool value)
 def print(@access cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", message);}
-    --
+    end
 
 def print(@access nstr message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", (char*)message__contents);}
-    --
+    end
 
 def print(@access str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
-    --
+    end
 
 def printin(@access cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s", message);}
-    --
+    end
 
 def printin(@access nstr message)
     @head{#include <stdio.h>}
     @body{printf("%s", (char*)message__contents);}
-    --
+    end
 
 def printin(@access str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s", (int)message__length, (char*)message__contents);}
-    --
+    end
 
 def eq(@access char x, char y)  
     @body{bool z=(x==y);} 
@@ -154,10 +154,10 @@ def slice(@access String self, u64 from, u64 to)
     s = self.str()
     if to<from 
         @fail{printf("String slice cannot end before it starts\n");} 
-        --
+        end
     if to>s.length 
         @fail{printf("String slice must end at most at the length of the base string\n");} 
-        --
+        end
     @body{
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from==to?0:((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
@@ -251,9 +251,12 @@ def next(
         prev = self.pos
         while(searching==true) and (self.pos<self.query.len()-self.sep.len())
             if self.sep==self.query[self.pos to self.pos+self.sep.len()] 
-                if self.pos>prev value = self.query[prev to self.pos] searching = false --
+                if self.pos>prev 
+                    value = self.query[prev to self.pos] 
+                    searching = false
+                    end
                 self.pos = self.pos+self.sep.len()
-                -- 
+                end 
             else 
                 self.pos = self.pos+1
             end end

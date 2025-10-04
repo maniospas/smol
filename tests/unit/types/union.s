@@ -1,10 +1,6 @@
 @include std.core
 
-union Type
-    i64 
-    f64 
-    u64
-    end
+union Type = i64 or u64 or f64
 
 def Point(Type _x, Type _y)
     @mut x = _x

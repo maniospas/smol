@@ -21,11 +21,12 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
     auto overloading_errors = string{""};
     auto competing = string{""};
     auto with_start = p-1;
-    uplifting_targets.push_back(finally_var);
-    if(uplifiting_is_loop.size()) 
-        uplifiting_is_loop.push_back(uplifiting_is_loop.back());
-    else 
-        uplifiting_is_loop.push_back(false);
+    // uplifting_targets.push_back(finally_var);
+    // if(uplifiting_is_loop.size()) 
+    //     uplifiting_is_loop.push_back(uplifiting_is_loop.back());
+    // else 
+    //     uplifiting_is_loop.push_back(false);
+    uplifting.emplace_back(finally_var, uplifting.size(), false, uplifting.back().is_loop);
     vars[finally_var] = types.vars[LABEL_VAR];
     auto next = string{""};
     try {
@@ -89,8 +90,9 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
         imp->error(with_start, "No valid branch of `with`"+string(Def::lsp?"\n```rust":"")+overloading_errors+(Def::lsp?"\n```\n":""));
 
     implementation += Code(finally_var,COLON_VAR);
-    uplifting_targets.pop_back();
-    uplifiting_is_loop.pop_back();
+    uplifting.pop_back();
+    // uplifting_targets.pop_back();
+    // uplifiting_is_loop.pop_back();
     return EMPTY_VAR;
 
 }

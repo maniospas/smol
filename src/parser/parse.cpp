@@ -40,8 +40,8 @@ void Def::parse(const shared_ptr<Import>& _imp, size_t& p, Types& types, bool wi
         pos = p;
         parse_signature(p, types);
     }
-    if(!uplifting_targets.size()) 
-        uplifting_targets.push_back(Variable("__end"));
+    if(!uplifting.size()) 
+        uplifting.emplace_back(Variable("__end"), 0, false, false);
     saved_types = types;
     start = p;
     parse_implementation(p, with_signature);
@@ -54,8 +54,8 @@ void Def::parse_no_implementation(size_t& p, Types& types, bool with_signature) 
         pos = p;
         parse_signature(p, types);
     }
-    if(!uplifting_targets.size()) 
-        uplifting_targets.push_back(Variable("__end"));
+    if(!uplifting.size()) 
+        uplifting.emplace_back(Variable("__end"), 0, false, false);
 
     saved_types.vars.reserve(types.vars.size());
     saved_types.alignment_labels.reserve(types.alignment_labels.size());

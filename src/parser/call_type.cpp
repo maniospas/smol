@@ -383,7 +383,7 @@ Variable Def::call_type(
             active_calls[var+it.first] = var+it.second;
 
     // prevent memory leaks in loops
-    if(uplifiting_is_loop.size() && uplifiting_is_loop.back() && type->finals.size()) {
+    if(uplifting.size() && uplifting.back().is_loop && type->finals.size()) {
         auto desc = string{""};
         for(const auto& it : transferring) 
             if(it.first.exists() && it.second.exists()) 

@@ -19,13 +19,10 @@ def area(Square self)
 
 // ----- Shape -----
 
-union Shape
-    Circle
-    Square
-    --
+union Shape = Circle or Square
 
 def volume(Shape base, f64 height)
-    return base:area*height
+    return base.area()*height
 
 def Shapes(nominal)
     @mut squares = Square[]
@@ -57,33 +54,33 @@ def at(@access Shapes shapes, u64 pos, Square)
     return shapes.squares[lookup]
 
 def push(@access @mut Shapes shapes, Square square)
-    shapes.lookups:push(shapes.squares:len)
-    shapes.types:push(0)
-    shapes.squares:push(square)
+    shapes.lookups.push(shapes.squares.len())
+    shapes.types.push(0)
+    shapes.squares.push(square)
     return shapes
 
 def push(@access @mut Shapes shapes, Circle circle)
-    shapes.lookups:push(shapes.circles:len)
-    shapes.types:push(1)
-    shapes.circles:push(circle)
+    shapes.lookups.push(shapes.circles.len())
+    shapes.types.push(1)
+    shapes.circles.push(circle)
     return shapes
 
 def len(@access Shapes shapes)
-    return shapes.types:len
+    return shapes.types.len()
 
 
 service main()
-    @mut shapes = nominal:Shapes
-    shapes:push(nominal:Square(1.0))
-    shapes:push(nominal:Circle(1.0))
+    @mut shapes = nominal.Shapes()
+    shapes.push(nominal.Square(1.0))
+    shapes.push(nominal.Circle(1.0))
 
     shapes
-    :len
-    :range
-    :while next(@mut u64 i) do
-        if shapes:is(i, Square) do
+    .len()
+    .range()
+    .while next(@mut u64 i) 
+        if shapes.is(i, Square)
             shapes
-            :at(i, Square)
-            :volume(1.0)
-            :print
-    end
+            .at(i, Square)
+            .volume(1.0)
+            .print()
+    end end end

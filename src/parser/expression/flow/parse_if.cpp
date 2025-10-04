@@ -17,11 +17,12 @@ Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_tok
     auto temp = Variable{create_temp()};
     auto finally_var = temp+IF_VAR;
     auto closeif_var = temp+FI_VAR;
-    uplifting_targets.push_back(finally_var);
-    if(uplifiting_is_loop.size())
-        uplifiting_is_loop.push_back(uplifiting_is_loop.back());
-    else 
-        uplifiting_is_loop.push_back(false);
+    // uplifting_targets.push_back(finally_var);
+    // if(uplifiting_is_loop.size())
+    //     uplifiting_is_loop.push_back(uplifiting_is_loop.back());
+    // else 
+    //     uplifiting_is_loop.push_back(false);
+    uplifting.emplace_back(finally_var, uplifting.size(), false, uplifting.size() && uplifting.back().is_loop);
     vars[finally_var] = types.vars[LABEL_VAR];
     vars[closeif_var] = types.vars[LABEL_VAR];
     auto next = imp->at(p++);
@@ -45,8 +46,9 @@ Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_tok
         vars[else_var] = types.vars[LABEL_VAR];
         auto else_skip = temp+EL_VAR;
         vars[else_skip] = types.vars[LABEL_VAR];
-        uplifting_targets.pop_back();
-        uplifting_targets.push_back(else_var);
+        //uplifting_targets.pop_back();
+        //uplifting_targets.push_back(else_var);
+        uplifting.back().target = else_var;
         implementation += Code(finally_var,COLON_VAR,Variable("goto"), else_skip, SEMICOLON_VAR, closeif_var, COLON_VAR);
         parse(imp, p, types, false);
         implementation += Code(else_var,COLON_VAR);
@@ -80,8 +82,9 @@ Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_tok
     }
     else 
         implementation += Code(finally_var,COLON_VAR,closeif_var,COLON_VAR);
-    uplifting_targets.pop_back();
-    uplifiting_is_loop.pop_back();
+    // uplifting_targets.pop_back();
+    // uplifiting_is_loop.pop_back();
+    uplifting.pop_back();
     if(contains(rfinally_var)) {
         if(else_var.exists()==0) 
             imp->error(first_token_pos, "There was a non-empty return "

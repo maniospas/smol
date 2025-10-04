@@ -28,14 +28,16 @@ Variable Def::parse_on(size_t& p, Types& types, Variable curry, size_t first_tok
     Variable finally_var = temp+Variable("on");
     vars[finally_var] = types.vars[LABEL_VAR];
     //int on_start = p-1;
-    uplifting_targets.push_back(finally_var);
-    if(uplifiting_is_loop.size()) 
-        uplifiting_is_loop.push_back(uplifiting_is_loop.back());
-    else 
-        uplifiting_is_loop.push_back(false);
+    // uplifting_targets.push_back(finally_var);
+    // if(uplifiting_is_loop.size()) 
+    //     uplifiting_is_loop.push_back(uplifiting_is_loop.back());
+    // else 
+    //     uplifiting_is_loop.push_back(false);
+    uplifting.emplace_back(finally_var, uplifting.size(), false, uplifting.back().is_loop);
     parse(imp, p, types, false);
-    uplifting_targets.pop_back();
-    uplifiting_is_loop.pop_back();
+    // uplifting_targets.pop_back();
+    // uplifiting_is_loop.pop_back();
+    uplifting.pop_back();
     p++;
     Variable var = finally_var+Variable("r");
     if(!contains(var)) 

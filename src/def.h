@@ -134,6 +134,17 @@ public:
 extern bool log_type_resolution;
 extern vector<Type> all_types;
 
+class UpliftingStatus {
+public:
+    Variable target;
+    size_t depth;
+    bool mandate_return;
+    bool is_loop;
+    UpliftingStatus(const Variable& target, size_t depth, bool mandate_return, bool is_loop): 
+        target(target), depth(depth), mandate_return(mandate_return), is_loop(is_loop) {}
+    ~UpliftingStatus() = default;
+};
+
 class Def : public enable_shared_from_this<Def> {
     static atomic<int> temp;
     static string create_temp() {return "__"+numberToVar(++temp);}
@@ -246,8 +257,10 @@ public:
     unordered_map<Variable, Type> parametric_types;    // type name resolution in signature (all argument types - even those not overloaded)
     unordered_map<Variable, unsigned long> alignments; // the type id that `nom` vlues represent
     unordered_set<Variable> mutables;
-    vector<Variable> uplifting_targets;
-    vector<bool> uplifiting_is_loop;
+    vector<UpliftingStatus> uplifting;
+    
+    //vector<Variable> uplifting_targets;
+    //vector<bool> uplifiting_is_loop;
     vector<Type>& get_options();
     vector<Type> get_lazy_options(Types& types);
     unordered_set<Variable> type_trackers;
@@ -283,8 +296,9 @@ public:
         parametric_types.clear();
         alignments.clear(); 
         mutables.clear();
-        uplifting_targets.clear();
-        uplifiting_is_loop.clear();
+        uplifting.clear();
+        // uplifting_targets.clear();
+        // uplifiting_is_loop.clear();
         if(imp)
             imp->tokens.clear();
         imp = nullptr;

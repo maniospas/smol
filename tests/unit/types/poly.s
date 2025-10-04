@@ -10,5 +10,5 @@ def norm(vec2d v)
     return (v.x*v.x)+(v.y*v.y)
 
 service main()
-    v = nominal:vec3d(nominal:vec2d(1,2),3)
-    print(v.super:norm)
+    v = nominal.vec3d(nominal.vec2d(1,2),3)
+    print(v.super.norm())
