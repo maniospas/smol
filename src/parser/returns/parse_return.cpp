@@ -18,17 +18,24 @@ void Def::parse_return(size_t& p, Variable next, Types& types) {
     static const Variable token_goto = Variable("goto");
     if(next=="end" || next=="else") {
         implementation += Code(token_goto,this->uplifting[return_to].target,SEMICOLON_VAR);
-        if(uplifting[0].has_returned) {
+        if(uplifting[return_to].has_returned) {
             if(!return_to && packs.size())
-                imp->error(p-1, "Cannot mix `end` with a previous function return");
+                imp->error(p-1, "Cannot mix `end` with a previous function return: "
+                    +signature_like(types, packs)
+                );
             else if(contains(uplifting[return_to].target+Variable("r")))
-                imp->error(p-1, "Cannot mix `end` with a previous capture return");
+                imp->error(p-1, "Cannot mix `end` with a previous `algorithm` return: "
+                    +vars[uplifting[return_to].target+Variable("r")]->signature(types)
+                );
         }
         uplifting[return_to].has_returned = true;
         return;
     }
     // "return" statement from hereon - find capture
     while(return_to && !uplifting[return_to].mandate_return) {
+        //uplifting[return_to].has_exited = true;
+        if(uplifting[return_to].has_returned && !contains(uplifting[return_to].target+Variable("var")))
+            imp->error(p, "Ending a code block that is epecting a returned value");
         uplifting[return_to].has_returned = true;
         --return_to;
     }
@@ -37,11 +44,19 @@ void Def::parse_return(size_t& p, Variable next, Types& types) {
     if(return_to) {
         next = imp->at(p++);
         next = parse_expression(p, next, types);
-        if(contains(next)) {
+        if(next.exists() && contains(next)) {
+            if(uplifting[return_to].has_returned && !contains(uplifting[return_to].target+Variable("r")))
+                imp->error(return_p, "Cannot mix `end` with a previous capture return: "
+                    +vars[uplifting[return_to].target+Variable("r")]->signature(types)
+                );
             assign_variable(vars[next], uplifting[return_to].target+Variable("r"), next, p);
             mutables.insert(uplifting[return_to].target+Variable("r"));
         }
+        else if(contains(uplifting[return_to].target+Variable("r")))
+            imp->error(return_p, "Cannot mix a capture return with a previously unset on");
         implementation += Code(token_goto,uplifting[return_to].target,SEMICOLON_VAR);
+        uplifting[return_to].has_returned = true;
+        --p;
         return;
     }
 

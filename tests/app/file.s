@@ -14,7 +14,7 @@ def print(file_stats stats)
     printin(" lines, ")
     printin(stats.chars)
     print(" bytes")
-    end
+    return nothing
 
 def file_reader(
         String path,
@@ -30,7 +30,8 @@ def file_reader(
             print(line)
             stat_lines = stat_lines + 1
             stat_chars = stat_chars + line.len()
-        end end
+            end
+        end
     return nominal.file_stats(stat_lines, stat_chars)
 
 service main()

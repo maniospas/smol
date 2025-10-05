@@ -31,7 +31,7 @@ Here's what smoλ programs look like.
 @include std.file
 
 def Stats(
-        nominal, // nominal type (prevents structural matching when used as argument)
+        nominal, // nominal type (prevents structural matching)
         u64 lines, 
         u64 chars
     )
@@ -44,19 +44,19 @@ def print(file_stats stats)
     print(" bytes")
     end
 
-def file_reader(String path, @mut Memory memory) // define for all String variations
+def file_reader(String path, @mut Memory memory) // for all String variations
     @mut stat_lines = 0
     @mut stat_chars = 0
-    @mut file = ReadFile.open(path) // the ReadFile type as the first argument to open
+    @mut file = ReadFile.open(path) // pass the ReadFile type as first argument
     endl = "\n".str().first
     on memory.arena(1024)
-        file
-        .while next_line(@mut str line)
-            printin("| ")
-            print(line)
-            stat_lines = stat_lines + 1
-            stat_chars = stat_chars + line:len
-        end end
+    file
+    .while next_line(@mut str line)
+        printin("| ")
+        print(line)
+        stat_lines = stat_lines + 1
+        stat_chars = stat_chars + line:len
+        end
     return nominal.Stats(stat_lines, stat_chars)
 
 service main()

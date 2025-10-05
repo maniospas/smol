@@ -37,7 +37,6 @@
             "time is provided. That can only be the start of a sequence, and marked as a leaking resource to prevent time-based randomization (which is not random)."
             "Example:<pre>@mut rnd = splitmix64()\nrange(10)\n:while next(@mut u64 i)\n    print(rnd:splitmix64) // rnd is the state, the result is f64\n    end</pre>"
 
-
 def __rotl(u64 x, u64 k)
     @body{u64 z = (x << k) | (x >> (64 - k));}
     return z

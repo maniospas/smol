@@ -20,6 +20,6 @@ service main()
     @mut b = boxes[0]
     // the line bellow is fancier than b:put("overwritten element")
     on b 
-        "overwritten element".put()
-        end
+    "overwritten element".put()
+    
     print(b:str)

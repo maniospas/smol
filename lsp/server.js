@@ -244,7 +244,7 @@ connection.onHover((params) => {
     "cstr": "**cstr** — a constant c-style string enclosed in \"quotations\".",
     "ptr": "**ptr** — a pointer to a memory address. Manual pointer handling is inherently unsafe and usually requires the file to be set as <code>@unsafe</code>.",
     "char": "**char** — a single byte character. Aligned to 64 bits in buffers.",
-    "capture": "**capture** — intercepts internal returns.",
+    "algorithm": "**algorithm** — code block that intercepts returns.",
   };
   if (keywordDocs[word]) contents += keywordDocs[word];
 

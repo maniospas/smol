@@ -2,23 +2,23 @@
 
 def test_sgn()
     x = 1.0
-    s = capture 
-        if x>0.0 return "positive" 
-        return "negative"
+    s = algorithm
+        if x>0.0 return "positive"
+        return "negative" 
     print(s)
     end
 
 def test_while()
-    value = capture 
-        range(10)
-        .while next(@mut u64 i)
-            if i==5 return i
+    algorithm
+        range(10).while next(@mut u64 i)
+            if i==5 
+                return true
             print(i)
-        end end
-    print(value)
+            end 
+        return false
     end
 
 service main()
-    test_sgn()
+    test_sgn()  
     test_while()
     end

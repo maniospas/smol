@@ -4,10 +4,9 @@
 
 def test(@mut File file)
     on Heap.volatile(32)
-        file
-        .while next_chunk(@mut str chunk) 
-            printin(chunk)
-        end end
+    while file.next_chunk(@mut str chunk) 
+        printin(chunk)
+        end
     print("")
     end
 

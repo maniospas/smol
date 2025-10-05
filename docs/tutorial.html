@@ -126,7 +126,7 @@
     <div class="sidebar-sub">
       <a href="#conditions">Conditions</a><br>
       <a href="#loops">Loops</a><br>
-      <a href="#uplifting">Uplifting</a>
+      <a href="#algorithms">Algorithms</a>
     </div>
   </div>
 
@@ -402,7 +402,8 @@ There are several comparison operators you can use - some of these are defined f
 <p>
 We can also use <code class="language-smolambda">elif</code> (else if) 
 and <code class="language-smolambda">else</code> branches to cover alternatves.  
-Each branch is tried in order, until one runs. The rest are skipped. Here is an example:
+Each branch is tried in order, until one runs. The rest are skipped. Here is an example; 
+note that <code class="language-smolambda">end</code> is needed only at the last branch:
 </p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -411,49 +412,15 @@ service main()
     x = 5
     if x&gt;0
         print("positive")
-        end
     elif x&lt;0
         print("negative")
-        end
     else
         print("zero")
-        end
-    end
+    end end
 </code></pre>
 <pre style="background-color: #222; color: white;">> smol main.s
 positive
 </pre>
-
-<p><b>Conditional values:</b> Sometimes, you may want to conditionally assign a value to
-a variable. One option that reuses what we have learned so far is to have an assignment within 
-each branch. However, this runs
-the risk that, as you modify your code, there can be a branch that fails
-to compute a value. To avoid this issue, you can instead return
-a value from each branch per <code class="language-smolambda">return value</code>. 
-Whichever branch runs determines the outcome of the conditional statement
-and can be assigned to a variable. Below is an example, where each branch returns 
-a different string. All branches must return either the exact same type of values, 
-or nothing by ending at <code class="language-smolambda">end</code>.  </p>
-
-<pre><code class="language-smolambda">@include std.core
-
-service main()
-    x = 0.0-2.0
-    sign = 
-        if x&gt;0.0 
-            return "positive"
-        elif x&lt;0.0 
-            return "negative"
-        else
-            return "zero"
-
-    print(sign)
-    end
-</code></pre>
-<pre style="background-color: #222; color: white;">> smol main.s
-negative
-</pre>
-
 
 <h2 id="loops">Loops <a href="#loops" class="anchor-link">🔗</a></h2>
 
@@ -501,35 +468,67 @@ from fles.
 @include std.core
 
 service main()
-    range(0, 5)
-    .while next(@mut u64 i) 
+    range(0, 5).while next(@mut u64 i) 
         print(i)
     end end
 </code></pre>
 
 
-<h2 id="uplifting">Uplifting <a href="#uplifting" class="anchor-link">🔗</a></h2>
+<h2 id="algorithms">Algorithms <a href="#algorithms" class="anchor-link">🔗</a></h2>
+
+
+<p><b>Returning values:</b> Sometimes, you may want to conditionally assign a value to
+a variable. If the variable is mutable, you can place a different assignment within 
+each branch, though this requires the mutability -which is not as safe as immutable assignments-
+and a priorly set default value. As an alternative, <i>smoλ</i> provides 
+an <code class="language-smolambda">algorithm</code> control flow that starts a code block and
+captures values obtained from internal statements of the form <code class="language-smolambda">return value</code>. 
+Returns immediately end the code block, even if they occur within internally defined blocks.
 
 <p>
-Sometimes you want to stop not just the current block, but also its parent blocks
-up to a certain level. In those cases, 
-put a vertical bar <code class="language-smolambda">|</code> before the end symbol 
-for each level you want to “jump up”. For example,
-<code class="language-smolambda">|end</code> ends the current block and its parent. 
-Similarly, <code class="language-smolambda">|return value</code> returns a value to the parent.  
-Two bars (<code class="language-smolambda">||</code>) jump two levels/parents upwards, and so on.
+Below is an example, which evaluates to several possibilities.
+All returns must provide the same type of values. Do note that the return statement
+also ends blocks in place of <code class="language-smolambda">end</code>. But, even if
+there are nested conditions, all returns yield back a value to the <code class="language-smolambda">algorithm</code>.</p>
+
+<pre><code class="language-smolambda">@include std.core
+
+service main()
+    x = 0.0-2.0
+    sign = algorithm
+        if x&gt;0.0 
+            return "positive"
+        if x&lt;0.0 
+            return "negative"
+        return "zero"
+
+    print(sign)
+    end
+</code></pre>
+<pre style="background-color: #222; color: white;">> smol main.s
+negative
+</pre>
+
+<p><b>Breaking away from loops:</b>
+The <code class="language-smolambda">algorithm</code> structure can be used as a means from
+breaking away from loops. Below is an example, where some commands are merged in the same line
+for conciseness. Having an explicit <code class="language-smolambda">return</code> statement 
+in all situations is necessary - the language would complain otherwise. The example returns
+a boolean value indicating success or failure, but could also return the
+<code class="language-smolambda">nothing</code> type from the included core.
 </p>
 
 <pre><code class="language-smolambda">@include std.core
 
 service main()
     @mut i = 0
-    while true
+    algorithm while true
         print(i)
         if i==5 
-            |end // end loop early
+            return true
         i = i+1
-     end end
+        end return false
+    end
 </code></pre>
 
 
@@ -650,8 +649,7 @@ The same colon also works with loops provided by the standard library (like <cod
 <h2 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h2>
 
 <p>
-A block can return a value using <code class="language-smolambda">return</code>, or end with no value using <code class="language-smolambda">end</code>.  
-Use uplifting if you need to jump out multiple levels when returning.
+A block can return a value using <code class="language-smolambda">return</code>, or end with no value using <code class="language-smolambda">end</code>.
 </p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -784,28 +782,23 @@ This approach keeps the happy path simple; you try running the service and, if i
 <h2 id="unions">Unions <a href="#unions" class="anchor-link">🔗</a></h2>
 
 <p>
-Sometimes you want to treat several different types as if they were “the same kind of thing.”  
-For example, an integer, a float, and a signed integer are all numbers, and you often want 
-to use them with the same operations. In <i>smoλ</i>, you can do this with a 
-<b>union</b>.
+Sometimes we want to treat several different types as if they were “the same kind of thing.”  
+For example, an integer, a float, and a signed integer are all numbers with similar operation defined;
+thus we can write code that reads largely the same for all of those. 
+In <i>smoλ</i>, you can avoid repeating that code by defining a <code class="language-smolambda">union</code>.
+The latter groups together several types under a single name and you can define 
+functions that work with the union instead of each type separately. Its definition looks like
+an assignment, where the right-hand-side types are separated by <code class="language-smolambda">or</code>.
 </p>
 
-<p>
-A <code>union</code> groups together several types under a single name.  
-Any value of those types can then be stored in the union, and you can define 
-functions that work with the union instead of each type separately.
-</p>
-
-<pre><code class="language-smolambda">union Number
-    u64
-    f64
-    i64
-    end
+<pre><code class="language-smolambda">union Number = f64 or u64 or i64 
 </code></pre>
 
 <p>
-This definition means that <code>Number</code> can hold an <code>u64</code>, 
-<code>f64</code>, or <code>i64</code>. Once the union is defined, you can write 
+This definition means that <code class="language-smolambda">Number</code> can represent 
+<code>u64 class="language-smolambda"</code>, 
+<code class="language-smolambda">f64</code>, or <code class="language-smolambda">i64</code>. 
+Once the union is defined, you can write 
 functions that take a <code>Number</code> and automatically work with whichever 
 form it has. For example, the standard library has printing and arithmetic operator overloads: 
 so you can call <code>print</code> on a <code>Number</code> and it “just works.”
@@ -893,9 +886,9 @@ service main()
     @mut memory = Stack.arena(1024)
 
     on memory
-        v = vector(5) // calls vector(memory,5)
-        print(v.len())
-    end end
+    v = vector(5) // calls vector(memory,5)
+    print(v.len())
+    end
 </code></pre>
 
 <p>
@@ -918,7 +911,10 @@ Remember that the arena's consumed memory is not released at the end of the
 @include std.vec
 
 service main()
-    v = on Stack.arena(1024) return vector(5)
+    on Stack.arena(1024) 
+    v = vector(5)
+
+    on nothing
     print(v.len())
     end
 </code></pre>
@@ -975,13 +971,10 @@ def Segment(String _value)
 
 def combine(Segment[] segments)
     @mut combined = "".str()  // mutable string with known size
-    on Stack.arena(1024)    // automatically use as argument if needed (for string operations)
-        segments
-        .len()
-        .range()
-        .while next(@mut u64 i) 
-            combined = str(combined+segments[i].value+" ")
-        end end
+    on Stack.arena(1024)      // automatically use as argument if needed (for string operations)
+    segments.len().range().while next(@mut u64 i) 
+        combined = str(combined+segments[i].value+" ")
+        end
     return combined
 
 service main()
@@ -1140,7 +1133,7 @@ def ping(u64 n, cstr message)
 
 def pong(u64 n, cstr message)
     if n == 0
-        |return :done.lambda(u64)
+        return :done.lambda(u64)
     printin(message)
     print("pong")
     return :ping.lambda(n-1)
@@ -1191,7 +1184,7 @@ Prism.languages.smolambda = {
   },
   'keyword': [
     {
-      pattern: /\b(?:def|service|if|return|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|end|on)\b/,
+      pattern: /\b(?:def|service|if|return|else|elif|with|include|algorithm|while|union|to|upto|lento|len|and|or|end|on)\b/,
       greedy: true
     },
     {

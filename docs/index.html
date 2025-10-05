@@ -77,19 +77,15 @@ def Segment(nominal, str value)
     return @args // return all inputs
 
 def Segment(String _value)
-    value = _value.str() // convert all String types
+    value = _value.str() // convert from all String types
     return nominal.Segment(value)
 
 def combine(Segment[] segments)
-    @mut s = str("") // convert "" to mutable str
-    on Stack.arena(1024)
-        segments
-        .len()
-        .range()
-        .while next(@mut u64 i)
-            // convert from null-terminated nstr result to str
-            s = str(s+segments[i].value+" ")
-        end end
+    @mut s = str("")     // convert "" to mutable str
+    on Stack.arena(1024) // automatic use when needed
+    segments.len().range().while next(@mut u64 i)
+        s = str(s+segments[i].value+" ")
+        end
     return combined
 
 service main()

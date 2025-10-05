@@ -42,14 +42,16 @@ def is(@access Shapes self, u64 pos, Square)
 def at(@access Shapes self, u64 pos, Circle)
     type = self.types[pos]
     if type != 0
-        return fail("Trying to access a non-circle")
+        fail("Trying to access a non-circle")
+        end
     lookup = self.lookups[pos]
     return self.circles[lookup]
 
 def at(@access Shapes shapes, u64 pos, Square)
     type = shapes.types[pos]
     if type != 1 
-        return fail("Trying to access a non-square")
+        fail("Trying to access a non-square")
+        end
     lookup = shapes.lookups[pos]
     return shapes.squares[lookup]
 

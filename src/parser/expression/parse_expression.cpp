@@ -126,9 +126,9 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
         return parse_on(p, types, curry, first_token_pos);
     if(first_token=="with") 
         return parse_with(p, types, curry, first_token_pos);
-    if(first_token=="capture") {
+    if(first_token=="algorithm") {
         if(curry.exists())
-            imp->error(--p, "Cannot curry into `capture`");
+            imp->error(--p, "Cannot curry into `algorithm`");
         auto temp = Variable{create_temp()};
         auto finally_var = temp;
         vars[finally_var] = types.vars[LABEL_VAR];
@@ -137,6 +137,8 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
         p++; // offset p-- after parse_return above
         implementation += Code(finally_var,COLON_VAR);
         uplifting.pop_back();
+        if(!contains(finally_var+Variable("r")))
+            return EMPTY_VAR;
         return finally_var+Variable("r");
     }
     if(curry.exists() 

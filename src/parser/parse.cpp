@@ -79,12 +79,20 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
     auto& types = saved_types;
     auto next_assignments = unordered_set<Variable>{};
     while(p<imp->size()) {
-        if(uplifting.size() && uplifting[uplifting.size()-1].has_returned) 
+        if(uplifting.size() && uplifting[uplifting.size()-1].has_exited) {
+            if(uplifting[uplifting.size()-1].has_returned && contains(uplifting[uplifting.size()-1].target+Variable("var")))
+                imp->error(p, "Ending a code block that is epecting a returned value");
+            uplifting[uplifting.size()-1].has_returned = true;
             break;
+        }
         bool is_next_assignment = false;
         bool is_access_assignment = false;
         bool is_mutable_assignment = false;
         string next = imp->at(p++);
+
+        if(next=="def" || next=="service" || next=="union")
+           imp->error(p-1, "Missing end or return\nThe previous function needs to end before this declaration");
+
         if(next=="@") {
             if(p<imp->size() && imp->at(p)=="next"){
                 is_next_assignment=true;
@@ -114,9 +122,10 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             }
         }
         if(next=="return" || next=="end" || (next=="else"&&uplifting.size()>1)) {
-            bool is_else = next=="else";
             parse_return(p, next, types);
-            if(is_else)
+            if(uplifting.size()) 
+                uplifting[uplifting.size()-1].has_exited = true;
+            if(next=="else")
                 end = (p-=2);
             else
                 end = --p;

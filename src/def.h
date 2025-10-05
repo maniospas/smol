@@ -141,8 +141,9 @@ public:
     bool mandate_return;
     bool is_loop;
     bool has_returned;
+    bool has_exited;
     UpliftingStatus(const Variable& target, size_t depth, bool mandate_return, bool is_loop): 
-        target(target), depth(depth), mandate_return(mandate_return), is_loop(is_loop), has_returned(false) {}
+        target(target), depth(depth), mandate_return(mandate_return), is_loop(is_loop), has_returned(false), has_exited(false) {}
     ~UpliftingStatus() = default;
 };
 
