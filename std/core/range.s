@@ -23,8 +23,7 @@
              "The function sets the next value, progresses the range's state, and returns whether the iteration eneded. The first retrieved value is the starting element of the range. Example:"
              "\n<pre>range(10)"
              "\n.while next(@mut u64 i)"
-             "\n    print(i)"
-             "\n    end</pre>"
+             "\n    then print(i)</pre>"
 
 def range(u64 start, u64 sup, u64 step) 
     @mut pos = start 

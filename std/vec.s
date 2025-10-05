@@ -117,9 +117,7 @@ def put(@access @mut Vec v, u64 pos, f64 value)
     return v
 
 def dot(@access Vec x1, @access Vec x2)
-    if x1.size!=x2.size 
-        fail("Incompatible Vec sizes")
-        end
+    if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @mut sum = 0.0
     @mut i=0 
     while i<x1.size 
@@ -128,25 +126,20 @@ def dot(@access Vec x1, @access Vec x2)
         .at(i)
         .mul(x2.at(i))
         .add(sum)
-        end
+        then nothing
     return sum 
 
 def put(@access @mut Vec x1, @access Vec x2)
-    if x1.size!=x2.size 
-        fail("Incompatible Vec sizes")
-        end
+    if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     @body{
         for(u64 i=0;i<size;++i) 
             ((f64*)x1__contents)[i] = ((f64*)x2__contents)[i];
     }
-    end
 
 def add(@mut Memory memory, @access Vec x1, @access Vec x2)
-    if x1.size!=x2.size 
-        fail("Incompatible Vec sizes")
-        end
+    if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = memory.allocate(size,f64)
@@ -157,9 +150,7 @@ def add(@mut Memory memory, @access Vec x1, @access Vec x2)
     return nominal.Vec(mem.mem, size, mem.mem)
 
 def sub(@mut Memory memory, @access Vec x1, @access Vec x2)
-    if x1.size!=x2.size 
-        fail("Incompatible Vec sizes")
-        end
+    if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = memory.allocate(size,f64)
@@ -170,9 +161,7 @@ def sub(@mut Memory memory, @access Vec x1, @access Vec x2)
     return nominal.Vec(mem.mem, size, mem.mem)
 
 def mul(@mut Memory memory, @access Vec x1, @access Vec x2)
-    if x1.size!=x2.size 
-        fail("Incompatible Vec sizes")
-        end
+    if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = memory.allocate(size,f64)
@@ -183,9 +172,7 @@ def mul(@mut Memory memory, @access Vec x1, @access Vec x2)
     return nominal.Vec(mem.mem, size, mem.mem)
 
 def div(@mut Memory memory, @access Vec x1, @access Vec x2)
-    if x1.size!=x2.size 
-        fail("Incompatible Vec sizes")
-        end
+    if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = memory.allocate(size,f64)
@@ -196,12 +183,8 @@ def div(@mut Memory memory, @access Vec x1, @access Vec x2)
     return nominal.Vec(mem.mem, size, mem.mem)
 
 def add(@access @mut Vec result, @access Vec x1, @access Vec x2)
-    if result.size!=x1.size 
-        fail("Incompatible Vec sizes")
-        end
-    if x1.size!=x2.size 
-        fail("Incompatible Vec sizes")
-        end
+    if result.size!=x1.size then fail("Incompatible Vec sizes")
+    if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(result__size==x1__size);}
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
@@ -213,12 +196,8 @@ def add(@access @mut Vec result, @access Vec x1, @access Vec x2)
     return result
 
 def sub(@access @mut Vec result, @access Vec x1, @access Vec x2)
-    if result.size!=x1.size 
-        fail("Incompatible Vec sizes")
-        end
-    if x1.size!=x2.size 
-        fail("Incompatible Vec sizes")
-        end
+    if result.size!=x1.size then fail("Incompatible Vec sizes")
+    if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(result__size==x1__size);}
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
@@ -230,12 +209,9 @@ def sub(@access @mut Vec result, @access Vec x1, @access Vec x2)
     return result
 
 def mul(@access @mut Vec result, @access Vec x1, @access Vec x2)
-    if result.size!=x1.size 
-        fail("Incompatible Vec sizes")
-        end
-    if x1.size!=x2.size 
-        fail("Incompatible Vec sizes")
-        end
+    if result.size!=x1.size then fail("Incompatible Vec sizes")
+    if x1.size!=x2.size then fail("Incompatible Vec sizes")
+        
     @body{__builtin_assume(result__size==x1__size);}
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
@@ -247,12 +223,8 @@ def mul(@access @mut Vec result, @access Vec x1, @access Vec x2)
     return result
 
 def div(@access @mut Vec result, @access Vec x1, @access Vec x2)
-    if result.size!=x1.size 
-        fail("Incompatible Vec sizes")
-        end
-    if x1.size!=x2.size 
-        fail("Incompatible Vec sizes")
-        end
+    if result.size!=x1.size then fail("Incompatible Vec sizes")
+    if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(result__size==x1__size);}
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
@@ -264,20 +236,13 @@ def div(@access @mut Vec result, @access Vec x1, @access Vec x2)
     return result
 
 def print(@access Vec v)
-    @mut size = v.size
-    if size>10
-        size = 10
-        end
+    @mut size = algorithm 
+        if v.size>10 return 10
+        return v.size
     printin("[")
     range(size)
     .while next(@mut u64 pos)
-        if pos.bool()
-            printin(" ")
-            end
-        printin(v[pos])
-        end
-    if size!=v.size 
-        printin(" ...")
-        end
+        if pos.bool() then printin(" ")
+        then printin(v[pos])
+    if size!=v.size then printin(" ...")
     print("]")
-    end

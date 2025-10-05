@@ -10,7 +10,6 @@ def Point(Type _x, Type _y)
 def inc(@access @mut Point p)
     p.x = p.x+Point.Type(1)
     p.y = p.y+Point.Type(1)
-    end
 
 service main()
     //print("Give a value: ")

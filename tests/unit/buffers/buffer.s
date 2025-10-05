@@ -17,4 +17,3 @@ service main()
 
     print(p[0].point2().x) // 1.0
     print(p[1].y)          // -1.8
-    end

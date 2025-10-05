@@ -2,9 +2,7 @@
 @include std.mem
 
 def StrDSL(nominal, str[] elements)
-    if elements.len()>=8
-        fail("Up to 8 base strings are allowed")
-        end
+    if elements.len()>=8 then fail("Up to 8 base strings are allowed")
     return @args
 
 def Map(nominal, StrDSL dsl)
@@ -12,9 +10,7 @@ def Map(nominal, StrDSL dsl)
     return @args, values
 
 def StrDSLString(nominal, StrDSL dsl, u64[] indexes)
-    if indexes.len()>=4
-        fail("String too complicated")
-        end
+    if indexes.len()>=4 then fail("String too complicated")
     return @args
 
 def str(StrDSL dsl, u64[] indexes)
@@ -26,11 +22,8 @@ def print(StrDSLString s)
     .len()
     .range()
     .while next(@mut u64 i)
-        printin(s.dsl.elements[s.indexes[i]])
-        end
+        then printin(s.dsl.elements[s.indexes[i]])
     print("")
-    end
-
 
 service main()
     dsl = nominal.StrDSL(str[]
@@ -46,5 +39,3 @@ service main()
 
     s = dsl.str(u64[].push(0).push(1).push(2).push(4))
     print(s.indexes.len())
-
-    end

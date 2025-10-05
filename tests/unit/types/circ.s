@@ -12,14 +12,12 @@ def print(point p)
     printin(",")
     printin(p.y)
     print(")")
-    end
 
 def print(circle c)
     printin("circle radious ")
     printin(c.r)
     printin(" centered at ")
     print(c.center)
-    end
 
 def add(point a, point b) 
     return point(a.x+b.x, a.y+b.y)
@@ -34,4 +32,3 @@ service main()
     c2 = circle(p2, 10.0)
     print(add(p1,p2))
     print(add(c1,c2))
-    end

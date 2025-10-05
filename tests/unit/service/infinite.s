@@ -12,6 +12,7 @@ service main()
         print("We got an error message, so are entering this block")
         print(value.n)
         print("This message should never appear - value.n creates 'Unhandled error'")
-        end
+        then nothing
     print(value.n)
-    end
+    
+    

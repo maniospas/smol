@@ -25,7 +25,7 @@ void Def::parse_directive(size_t& p, string next, Types& types) {
     else if(next=="nozero") 
         nozero = true;
     else if(next=="invalid") 
-        imp->error(p-1, imp->at(p+1));
+        imp->error(p-1, imp->at(p));
     else if(next=="noother") {
         next = imp->at(p++);
         if(next.size()<2 || next[0]!='"' || next[next.size()-1]!='"')

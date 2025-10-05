@@ -39,15 +39,20 @@ size_t parse_integer_suffix(const string& line, size_t i) {
 Import::Import(const string& p)
     : path(p), pair(0), parse_progress(0), forward_p(0), allow_unsafe(false) {}
 
-string& Import::at(size_t pos) {
+
+auto premature_end = string{"Premature end of file\n"};
+const string& Import::at(size_t pos) {
     if(pos >= tokens.size()) 
-        ERROR("Premature end of file: " + path + "\n" + tokens[pos - 1].show());
+        return premature_end;//path;
+        //return "Premature end of file: " + path;  
+    //ERROR("Premature end of file: " + path + "\n" + tokens[pos - 1].show());
     return tokens[pos].name;
 }
 
 void Import::error(size_t pos, const string& message) {
     if(pos >= tokens.size()) 
-        ERROR("Premature end of file: " + path + "\n" + tokens[pos - 1].show());
+        pos = tokens.size()-1;
+        //ERROR("Premature end of file: " + path + "\n" + tokens[pos - 1].show());
     ERROR(message + "\n" + tokens[pos].show());
 }
 
@@ -352,8 +357,11 @@ shared_ptr<Import> tokenize(const string& path) {
                 }
                 if(start < i) {
                     auto substr = line.substr(start, i - start);
-                    if(substr=="elif") {
+                    if(substr=="yield") 
+                        tokens.emplace_back("end", line_num, start_col, main_file);
+                    else if(substr=="elif") {
                         tokens.emplace_back("else", line_num, start_col, main_file);
+                        tokens.emplace_back("then", line_num, start_col, main_file);
                         tokens.emplace_back("if", line_num, start_col, main_file);
                     }
                     else tokens.emplace_back(substr, line_num, start_col, main_file);

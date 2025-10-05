@@ -17,4 +17,3 @@ service test()
 
 service main()
     test()
-    end

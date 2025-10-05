@@ -10,4 +10,3 @@ service main()
     @release cons // safely close the resource preemptively
     print("We are done. Press enter again...")
     Stack.arena(2).read()
-    end

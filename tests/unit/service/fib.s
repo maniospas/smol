@@ -13,4 +13,3 @@ service main()
     tic = time()
     fib(5).print()
     print(time()-tic)
-    end

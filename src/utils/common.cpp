@@ -122,15 +122,14 @@ string type_primitive(const string& name) {
     return "";
 }
 
-
 bool accepted_var_name(const string& name) {
     return !(name=="(" || name==")" || name=="{" || name=="}" ||
              name=="[" || name=="]" ||
              name=="|" || name==":" || name=="&" || name=="=" ||
-             name=="-" || name=="," || name=="." ||
+             name=="-" || name=="," || name=="." || 
              name=="def" || name=="service" || name=="union" ||
              name=="if" || name=="while" || name=="elif" || name=="err" ||
-             name=="algorithm" || 
+             name=="algorithm" || name=="then" || name=="on" ||
              name=="with" || name=="else" || name=="@");
 }
 

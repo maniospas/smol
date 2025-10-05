@@ -38,7 +38,9 @@
 @about print   "Prints strings or bools to the console."
 @about printin "Prints strings or bools to the console without evoking a new line at the end."
 @about next    "Retrieves the next element over a Split string iteration. Example:"
-               "<pre>Split(\"I like bananas\", \" \")\n.while next(@mut str word)\n    print(word)\n    end</pre>"
+               "<pre>Split(\"I like bananas\", \" \")"
+               "\n.while next(@mut str word)"
+               "\n    then print(word)</pre>"
 @about Split   "Splits a String given a query String. Optionally, you may also provide a starting position, where the default is 0. "
                "The result of the split can be iterated through with <code>next</code>. This does not allocate memory in that a substring is retrieved, so you might consider copying the splits - or store them on data structures like maps that automatically copy data if needed."
 @about eq      "Checks for equality between String types when considering their contents. Implementation of this operation varies, "
@@ -101,54 +103,40 @@ def nstr(@access cstr raw)
 def str(@access bool value) 
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
-    if value 
-        @body{cstr _contents=__truestr;} 
-        end
-    else
-        @body{cstr _contents=__falsestr;}
-        end
+    if value @body{cstr _contents=__truestr;} 
+    else then @body{cstr _contents=__falsestr;}
     return str(_contents)
 
 def nstr(@access bool value)
     @head{cstr __truestr = "true";}
     @head{cstr __falsestr = "false";}
-    if value 
-        @body{cstr _contents=__truestr;} 
-        end
-    else 
-        @body{cstr _contents=__falsestr;}
-        end
+    if value @body{cstr _contents=__truestr;} 
+    else then @body{cstr _contents=__falsestr;}
     return nstr(_contents)
 
 def print(@access cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", message);}
-    end
 
 def print(@access nstr message)
     @head{#include <stdio.h>}
     @body{printf("%s\n", (char*)message__contents);}
-    end
 
 def print(@access str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
-    end
 
 def printin(@access cstr message)
     @head{#include <stdio.h>}
     @body{printf("%s", message);}
-    end
 
 def printin(@access nstr message)
     @head{#include <stdio.h>}
     @body{printf("%s", (char*)message__contents);}
-    end
 
 def printin(@access str message)
     @head{#include <stdio.h>}
     @body{printf("%.*s", (int)message__length, (char*)message__contents);}
-    end
 
 def eq(@access char x, char y)  
     @body{bool z=(x==y);} 
@@ -160,12 +148,8 @@ def neq(@access char x, char y)
 
 def slice(@access String self, u64 from, u64 to) 
     s = self.str()
-    if to<from 
-        @fail{printf("String slice cannot end before it starts\n");} 
-        end
-    if to>s.length 
-        @fail{printf("String slice must end at most at the length of the base string\n");} 
-        end
+    if to<from then @fail{printf("String slice cannot end before it starts\n");} 
+    if to>s.length then @fail{printf("String slice must end at most at the length of the base string\n");} 
     @body{
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from==to?0:((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
@@ -229,9 +213,7 @@ def len(@access cstr x)
     return z
 
 def at(@access str x, u64 pos) 
-    if x__length<=pos 
-        @fail{printf("String index out of bounds\n");} 
-        end
+    if x__length<=pos then @fail{printf("String index out of bounds\n");}
     // trying to help the compiler below, but maybe it's too clever and it can optimize that
     @body{char z= (__builtin_constant_p(pos) && pos == 0) ? x__first: ((char*)x__contents)[pos];} 
     return z
@@ -243,7 +225,7 @@ def Split(nominal,
         str query,
         str sep, 
         @mut u64 pos
-    ) 
+    )
     return @args
     
 def Split(@access String _query, @access IndependentString _sep) 
@@ -253,26 +235,22 @@ def next(
         @access @mut Split self, 
         @mut str value
     )
-    ret = self.pos<self.query.len()
-    if ret 
-        @mut searching = true
-        prev = self.pos
-        while(searching==true) and (self.pos<self.query.len()-self.sep.len())
-            if self.sep==self.query[self.pos to self.pos+self.sep.len()] 
-                if self.pos>prev 
-                    value = self.query[prev to self.pos] 
-                    searching = false
-                    end
-                self.pos = self.pos+self.sep.len()
-                end 
-            else 
-                self.pos = self.pos+1
-            end end
-        if searching
-            self.pos = self.query.len()
-            value = self.query[prev to self.pos] 
-        end end
-    return ret
+    if self.pos>=self.query.len() return false
+    @mut prev = self.pos
+    while self.pos<self.query.len()-self.sep.len()
+        then if self.sep!=self.query[self.pos to self.pos+self.sep.len()]
+            self.pos = self.pos + 1
+        elif self.pos<=prev
+            //TODO: first find is unoptimized but added in the loop here
+            self.pos = self.pos+self.sep.len()
+            prev = self.pos
+        else
+            value = self.query[prev to self.pos]
+            return true
+    // if found nothing, return the ending and make next call yield false
+    self.pos = self.query.len()
+    value = self.query[prev to self.pos]
+    return true
 
 
 def print(@access str[] messages)
@@ -281,4 +259,3 @@ def print(@access str[] messages)
     while i<n
         print(messages[i])
         i = i+1
-    end end

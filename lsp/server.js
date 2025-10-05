@@ -85,7 +85,7 @@ connection.onInitialize((params) => {
   return {
     capabilities: {
       textDocumentSync: documents.syncKind,
-      completionProvider: { triggerCharacters: [".", "@"] },
+      completionProvider: { triggerCharacters: [".", "@", ":"] },
       semanticTokensProvider: {
         legend: {
           tokenTypes: [
@@ -228,10 +228,11 @@ connection.onHover((params) => {
   const keywordDocs = {
     "def": "**def** — defines an inlined function. Its returned value is a named tuple.",
     "return": "**return** — returns a value from the current function or capture.",
-    "end": "**end** — ends the current block without returning.",
+    "end": "**end** — ends the current block",
     "service": "**service** — defines a new *runtype* that runs as a co-routine service with safe execution, even on internal failures.",
     "union": "**union** — defines a symbol that expands definitions to several type alternatives.",
     "if": "**if** — decides what to execute next based on a condition.",
+    "elif": "**elif** — an alternative brach to previous condition.",
     "while": "**while** — repeats a code block based on a condition.",
     "with": "**with** — decides what to execute next based on whether its block of context can be compiled (if not, an alternative or no compilation takes place).",
     "else": "**else** — marks an alternative branch of code.",
@@ -245,6 +246,8 @@ connection.onHover((params) => {
     "ptr": "**ptr** — a pointer to a memory address. Manual pointer handling is inherently unsafe and usually requires the file to be set as <code>@unsafe</code>.",
     "char": "**char** — a single byte character. Aligned to 64 bits in buffers.",
     "algorithm": "**algorithm** — code block that intercepts returns.",
+    "yield": "**yield** — ends the current block without returning.",
+    "then": "**then** — run the next expression and end the current block.",
   };
   if (keywordDocs[word]) contents += keywordDocs[word];
 
@@ -423,11 +426,21 @@ connection.languages.semanticTokens.on((params) => {
       // if (textLine.startsWith("end", pos)) {
       //   builder.push(line, pos, 3, 3, 0); pos += 3; continue;
       // }
-      if (textLine.startsWith("|", pos)) {
-        builder.push(line, pos, 1, 3, 0); pos += 1; continue;
-      }
+      // if (textLine.startsWith("|", pos)) {
+      //   builder.push(line, pos, 1, 3, 0); 
+      //   pos += 1; 
+      //   continue;
+      // }
       if (textLine[pos] === ':') {
-        builder.push(line, pos, 1, 3, 0); pos += 1; continue;
+        builder.push(line, pos, 1, 3, 0); 
+        pos += 1; 
+        continue;
+      }
+      const opMatch = textLine.slice(pos).match(/^(==|!=|<=|>=|[=+\-*/<>])/);
+      if (opMatch) {
+        builder.push(line, pos, opMatch[0].length, 7, 0);
+        pos += opMatch[0].length;
+        continue;
       }
 
       // identifiers WITHOUT '.' inside

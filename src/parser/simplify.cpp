@@ -21,7 +21,9 @@
 #include <memory>
 
 void Def::simplify() {
-    // TODO: & variable should not be optimized for equality anywhere
+    //return;
+    // TODO: mutables should not be optimized for equality anywhere
+    // TODO: BUG loop variables that are modified (replicate: in Split.next make @mut prev immutable, comment its mutable reassignment, and run tests/qualitative/banana.s)
     if(implementation.is_empty()) 
         return;
     unordered_map<Variable, size_t> usage;

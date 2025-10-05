@@ -25,14 +25,12 @@
                    "When the process is eventually released, services fail if there is pending "
                    "output or if the exit code is non-zero. Here is an example:"
                    "<pre>service run(String command)"
-                   "\n    @mut process = Process:open(command)"
-                   "\n    process:to_end"
+                   "\n    @mut process = Process.open(command)"
+                   "\n    process.to_end()"
                    "\n    @release process // explicitly release here"
-                   "\n    end"
                    "\n"
                    "\nservice main()"
-                   "\n    run(\"invalid command\").err:assert_ok // synchronize"
-                   "\n    end"
+                   "\n    run(\"invalid command\").err.assert_ok() // synchronize"
                    "</pre>"
 @about to_end      "Reads all remaining output from the process without storing it."
 @about next_chunk  "Reads the next chunk of process output into a provided buffer."
@@ -54,9 +52,7 @@ def open(@access @mut Process, CString _command)
         #endif
     }
     @body{ptr contents = (ptr)popen((cstr)command, "r");}
-    if contents.exists().not() 
-        @fail{printf("Error: Failed to start process\n");} 
-        end
+    if contents.exists().not() then @fail{printf("Error: Failed to start process\n");} 
     @finally contents { 
         i64 status = 0;
         if(contents) 
@@ -81,7 +77,6 @@ def to_end(@access @mut Process p)
             while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) {}
         }
     }
-    end
 
 def next_chunk(
         @mut DerivedMemory reader, 
@@ -137,12 +132,10 @@ def system(cstr command)
     @head{#include <stdlib.h>}
     @body{u64 result = system((char*)command);}
     if result!=0 
-        return fail("Error: System call failed")
-    end
+        fail("Error: System call failed")
 
 def system(str command) 
     system(Stack.copy(command).memory.cstr())
-    end
 
 def open(@access @mut Process, str command)
     mem = Stack.allocate(command.length+1, char)

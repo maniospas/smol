@@ -76,7 +76,6 @@ def Window(nominal, Size size, cstr title)
     return @args
 
 def close(@mut Window window)
-    --
 
 def is_open(@mut Window)
     @body{ bool ret = WindowShouldClose(); }

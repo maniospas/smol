@@ -41,17 +41,13 @@ def is(@access Shapes self, u64 pos, Square)
 
 def at(@access Shapes self, u64 pos, Circle)
     type = self.types[pos]
-    if type != 0
-        fail("Trying to access a non-circle")
-        end
+    if type != 0 then fail("Trying to access a non-circle")
     lookup = self.lookups[pos]
     return self.circles[lookup]
 
 def at(@access Shapes shapes, u64 pos, Square)
     type = shapes.types[pos]
-    if type != 1 
-        fail("Trying to access a non-square")
-        end
+    if type != 1 then fail("Trying to access a non-square")
     lookup = shapes.lookups[pos]
     return shapes.squares[lookup]
 
@@ -80,9 +76,9 @@ service main()
     .len()
     .range()
     .while next(@mut u64 i) 
-        if shapes.is(i, Square)
+        then if shapes.is(i, Square)
             shapes
             .at(i, Square)
             .volume(1.0)
             .print()
-    end end end
+    return nothing

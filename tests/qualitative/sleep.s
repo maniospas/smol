@@ -12,12 +12,11 @@ service test(f64 duration)
     sleep(duration)
     eta = time()-start
     on Heap.volatile(512)
-        print("sleep target "+duration.str()+" but actual is "+eta.str())
-    end end
+    print("sleep target "+duration.str()+" but actual is "+eta.str())
 
 service main()
     n = 30      // can comfortable go up to 100000
     range(n)    // more than the number of test machine threads
     .while next(u64& i)
         test((n-i).f64()/n.f64())
-    end end
+    

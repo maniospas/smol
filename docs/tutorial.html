@@ -515,7 +515,7 @@ breaking away from loops. Below is an example, where some commands are merged in
 for conciseness. Having an explicit <code class="language-smolambda">return</code> statement 
 in all situations is necessary - the language would complain otherwise. The example returns
 a boolean value indicating success or failure, but could also return the
-<code class="language-smolambda">nothing</code> type from the included core.
+<code class="language-smolambda">None</code> type from the included core.
 </p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -914,9 +914,8 @@ service main()
     on Stack.arena(1024) 
     v = vector(5)
 
-    on nothing
+    on None
     print(v.len())
-    end
 </code></pre>
 
 
@@ -1196,7 +1195,7 @@ Prism.languages.smolambda = {
     pattern: /&/,
     alias: 'operator' // optional, gives Prism’s operator style too
   },
-  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal|tag)\b/,
+  'builtin': /\b(?:i64|u64|f64|None|true|false|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal|tag)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

@@ -12,4 +12,3 @@ service main()
     a = one_hot(1, 10)
     b = one_hot(1, 10)
     print(a*b) // calls add(Memory&, Vec, Vec)
-    end

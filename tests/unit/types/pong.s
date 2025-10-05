@@ -21,4 +21,3 @@ service main()
         pending = 
             @dynamic(ping,pong)
             pending("next - ")
-    end end 

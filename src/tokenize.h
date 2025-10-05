@@ -38,7 +38,7 @@ public:
     bool allow_unsafe;
     Import(const string& p);
     vector<Token> tokens;
-    string& at(size_t pos);
+    const string& at(size_t pos);
     void error(size_t pos, const string& message);
     size_t size();
     ~Import() = default;

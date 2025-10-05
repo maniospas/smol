@@ -25,7 +25,7 @@ def Arena(nominal type, ContiguousMemory contents)
     size = contents.size
     with 
         contents.Primitive.is(char) 
-        end
+        yield
     return type, contents, length, size
 
 def Volatile(nominal type, ContiguousMemory contents)
@@ -34,15 +34,12 @@ def Volatile(nominal type, ContiguousMemory contents)
     cycles = 0
     with 
         contents.Primitive.is(char)
-        end
+        yield
     return type, contents, length, cycles
 
 def controlled_corrupt(@access @mut Volatile self)
-    if self.cycles.bool()
-        fail("Volatile corrupt detected that some data have already been corrupted by insufficient space instead.")
-        end
+    if self.cycles.bool() then fail("Volatile corrupt detected that some data have already been corrupted by insufficient space instead.")
     @body{self__length=0;}
-    end
 
 union DerivedMemory = Arena or Volatile
 
@@ -76,9 +73,7 @@ def dynamic(@access Stack)
 def allocate(@access @mut Dynamic self, u64 size, Primitive)
     @head{#include <stdlib.h>}
     primitive = Primitive
-    if self.acquired.bool().not()
-        fail("Did not initialize Dynamic")
-        end
+    if self.acquired.bool().not() then fail("Did not initialize Dynamic")
     @body{
         u64 next_size = self__size+1;
         bool success = true;
@@ -96,9 +91,7 @@ def allocate(@access @mut Dynamic self, u64 size, Primitive)
             } 
         }
     }
-    if success.not()
-        fail("Failed a Dynamic allocation")
-        end
+    if success.not() then fail("Failed a Dynamic allocation")
     return nominal.ContiguousMemory(Heap, size, Primitive, mem, self.acquired)
 
 def allocate(@access @mut Dynamic self, u64 size)
@@ -111,9 +104,7 @@ def used(@access @mut Volatile self)
     return 0
 
 def allocate(@access @mut Arena self, u64 size)
-    if(self.length+size)>self.contents.size 
-        fail("Failed an Arena allocation")
-        end
+    if(self.length+size)>self.contents.size then fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     return nominal.ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
@@ -121,17 +112,13 @@ def allocate(@access @mut Arena self, u64 size)
 def allocate(@access @mut Arena self, u64 _size, Primitive) 
     primitive = Primitive
     @body{u64 size = _size*sizeof(primitive);}
-    if(self.length+size)>self.contents.size 
-        fail("Failed an Arena allocation")
-        end
+    if(self.length+size)>self.contents.size then fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     return nominal.ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
 
 def allocate(@access @mut Volatile self, u64 size)
-    if size>self.contents.size 
-        fail("Failed an Volatile allocation")
-        end
+    if size>self.contents.size then fail("Failed an Volatile allocation")
     @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
@@ -140,8 +127,7 @@ def allocate(@access @mut Volatile self, u64 size)
 def allocate(@access @mut Volatile self, u64 _size, Primitive) 
     primitive = Primitive
     @body{u64 size = _size*sizeof(primitive);}
-    if size>self.contents.size 
-        end fail("Failed a Volatile allocation")
+    if size>self.contents.size then fail("Failed a Volatile allocation")
     @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length);}
     @body{self__length = self__length+size;}
@@ -175,9 +161,7 @@ def read(@access @mut Arena self)
             }
         }
     }
-    if _contents.exists().not() 
-        fail("Error: Tried to read more elements than remaining Arena size or read failed")
-        end
+    if _contents.exists().not() then fail("Error: Tried to read more elements than remaining Arena size or read failed")
     return nominal.str(_contents, length, first, self__contents__mem)
 
 union Memory = MemoryDevice or DerivedMemory or Dynamic

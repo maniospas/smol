@@ -11,4 +11,3 @@ service main()
     on Stack.volatile(1024)
     file.next_line(str& s)
     print(s)
-    end

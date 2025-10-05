@@ -5,13 +5,11 @@
 def test(@mut File file)
     on Heap.volatile(32)
     while file.next_chunk(@mut str chunk) 
-        printin(chunk)
-        end
+        then printin(chunk)
     print("")
-    end
 
 service main()
     ReadFile
     .open("README.md")
     .test()
-    end
+    return nothing

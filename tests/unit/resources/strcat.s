@@ -29,4 +29,3 @@ service main()
 
     on Heap.volatile(1024)
     print("Hi "+name+"!")
-    end

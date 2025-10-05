@@ -20,11 +20,22 @@ void Def::end_block(size_t& p) {
             ++depth;
         if(next=="def" || next=="service") 
             imp->error(p, "Unexpected end of definition");
-        if(next=="return" && depth==0) 
-            imp->error(p, "`with` or their `else` blocks statements can only end  at `else` or `end`");
-        if(next=="end" || next=="else") {
-            if(depth==0) 
+        // if(next=="return" && depth==0) 
+        //     imp->error(p, "`with` or their `else` blocks statements can only end  at `else` or `end`");
+        if(p<imp->size()-2 && imp->at(p)=="@" && imp->at(p+1)=="invalid") {
+            if(depth==0) {
+                p += 2;
                 break;
+            }
+            p +=2 ;
+            --depth;
+        }  
+        if(next=="end" || next=="else" || next=="return" || next=="then") {
+            if(depth==0) {
+                if(next=="return" || next=="then") 
+                    imp->error(p, "`with` or their `else` blocks statements can only end at `else`, or `@error`");
+                break;
+            }
             --depth;
         }
         ++p;
@@ -78,20 +89,36 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
         return;
     auto& types = saved_types;
     auto next_assignments = unordered_set<Variable>{};
+    auto imp_size = imp->size()+1;
     while(p<imp->size()) {
         if(uplifting.size() && uplifting[uplifting.size()-1].has_exited) {
             if(uplifting[uplifting.size()-1].has_returned && contains(uplifting[uplifting.size()-1].target+Variable("var")))
-                imp->error(p, "Ending a code block that is epecting a returned value");
+                imp->error(p, "Ending a code block that is expecting a returned value");
             uplifting[uplifting.size()-1].has_returned = true;
             break;
         }
+        if(p>=imp_size) {
+            --p;
+            break;
+        }
+        if(imp->at(p)=="then") {
+            p++;
+            imp_size = p;
+        }
+
         bool is_next_assignment = false;
         bool is_access_assignment = false;
         bool is_mutable_assignment = false;
         string next = imp->at(p++);
 
-        if(next=="def" || next=="service" || next=="union")
-           imp->error(p-1, "Missing end or return\nThe previous function needs to end before this declaration");
+        if(next=="def" || next=="service" || next=="union") {
+            --p;
+            //imp->error(p-1, "Missing end or return\nThe previous function needs to end before this declaration");
+            if(uplifting[uplifting.size()-1].has_returned && contains(uplifting[uplifting.size()-1].target+Variable("var")))
+                imp->error(p, "Here ends a code block that is expecting a returned value");
+            --p;
+            break;
+        }
 
         if(next=="@") {
             if(p<imp->size() && imp->at(p)=="next"){

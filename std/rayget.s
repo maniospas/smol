@@ -14,7 +14,5 @@ service main()
         remove_file("std/raylib/raylib-5.5_linux_amd64/lib/libraylib.so")
         remove_file("std/raylib/raylib-5.5_linux_amd64/lib/libraylib.so.5.5.0")
         remove_file("std/raylib/raylib-5.5_linux_amd64/lib/libraylib.so.550")
-        end
     else
         print("Using cached raylib at std/raylib/")
-    end end

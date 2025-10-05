@@ -10,7 +10,6 @@ service main()
     result = affine(a,b,c)
     if result.err.bool()
         print("We failed to execute the code") 
-        |end
+        return nothing
     printin("(a+b)/c=")
     print(result)
-    end

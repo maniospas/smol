@@ -30,8 +30,7 @@
                   "Files must be set as mutables to allow reads and writes. Otherwise, only a few operations become available."
                   "\n\nExample for overwriting a file:"
                   "<pre>if is_file(\"hi.txt\")"
-                  "\n    remove_file(\"hi.txt\")"
-                  "\n    end"
+                  "\n    then remove_file(\"hi.txt\")"
                   "\n@mut file = WriteFile.open(\"tmp.txt\")"
                   "\nfile:print(\"Hello world!\")"
                   "\n@release file // early release closes the file"
@@ -49,34 +48,29 @@
                   "file, with the contract that data cannot be recovered after termination. Some operating systems require manual deletion of "
                   "temporary file folders if systems are abruptly powered off. This type of file should be mostly used to store temporary data or for "
                   "testing purposes.\n\nExample usage:"
-                  "<pre>on Heap:dynamic // allocator for the file"
-                  "\n    @mut f = WrteFile.temp(1024)"
-                  "\n    end"
+                  "<pre>on Heap.dynamic() // allocator for the file"
+                  "\n@mut f = WrteFile.temp(1024)"
                   "\nf.print(\"hello from withing a temp file!\")"
                   "\nf.to_start()"
                   "\nf.next_line(@mut u64 line)"
-                  "\nprint(line)"
-                  "\n</pre>"
+                  "\nprint(line)</pre>"
 @about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
                   "Here is an example where volatile memory is used to avoid repeated or large allocations:"
                   "<pre>on Heap:volatile(1024)"
-                  "\n    ReadFile"
-                  "\n    .open(\"README.md\")"
-                  "\n    .while next_chunk(@mut str chunk)"
-                  "\n        print(chunk)"
-                  "\n    end end</pre>"
+                  "\nReadFile"
+                  "\n.open(\"README.md\")"
+                  "\n.while next_chunk(@mut str chunk)"
+                  "\n    then print(chunk)</pre>"
 @about next_line  "Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
                   "Here is an example where volatile memory is used to avoid repeated or large allocations:"
                   "<pre>endl=\"n\".str().first // optimized to just setting the new line character"
                   "\non Heap:volatile(1024)"
-                  "\n    ReadFile(\"README.md\")"
-                  "\n    .open(\"README.md\")"
-                  "\n    .while next_line(@mut str line)"
-                  "\n        if line[line:len-1]==endl"
-                  "\n             line = line[0 to line:len-1]"
-                  "\n             end"
-                  "\n        print(line)"
-                  "\n    end end</pre>"
+                  "\nReadFile(\"README.md\")"
+                  "\n.open(\"README.md\")"
+                  "\n.while next_line(@mut str line)"
+                  "\n    if line[line:len-1]==endl"
+                  "\n         then line = line[0 to line:len-1]"
+                  "\n    then print(line)</pre>"
 @about ended      "Checks if the ending of the file has been reached. This is normal to be true for WriteFile."
 @about is_file    "Checks if a String path is a file system file."
 @about is_dir     "Checks if a String path is a file system directory."
@@ -104,17 +98,12 @@ def open(@access @mut ReadFile, String _path)
             fclose((FILE*)contents);
         contents=0;
     }
-    if contents.exists().not()
-        @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);} 
-        end
+    if contents.exists().not() then @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);}
     return nominal.ReadFile(contents)
 
 def to_start(@access @mut File f) 
-    if f.contents.exists().not()
-        @fail{printf("Failed to move to start of closed file");} 
-        end
+    if f.contents.exists().not() then @fail{printf("Failed to move to start of closed file");}
     @body{fseek((FILE*)f__contents, 0, SEEK_SET);}
-    end
 
 def to_end(@access @mut WriteFile f) 
     // only useful for moving to the end of write files. For read files, @release them instead.
@@ -145,7 +134,7 @@ def print(@access @mut WriteFile f, String _s)
     s = _s.str()
     if f.contents.exists().not()
         @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
-        end
+        yield
     @head{#include <stdio.h>}
     @body{
         u64 bytes_written = fwrite((char*)s__contents, 1, s__length, (FILE*)f__contents);
@@ -153,7 +142,7 @@ def print(@access @mut WriteFile f, String _s)
     }
     if success.not()
         @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
-    end end
+        yield
 
 def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     // using temporary files can be exceptionall 
@@ -310,7 +299,6 @@ def remove_file(String _path)
     @body{u64 status = remove((char*)path__contents);}
     if status.bool() 
         @fail{printf("Failed to remove file - make sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
-    end end
 
 def open(@access @mut WriteFile, String _path)
     path = _path.str()
@@ -329,7 +317,7 @@ def open(@access @mut WriteFile, String _path)
     }
     if contents.exists().not()
         @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
-        end
+        yield
     return nominal.WriteFile(contents)
 
 def create_dir(String _path)
@@ -349,7 +337,6 @@ def create_dir(String _path)
     }
     if created.not()
         @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
-    end end
     
 def console(@access @mut WriteFile)
     @head{#include <stdio.h>}
@@ -396,7 +383,7 @@ def console(@access @mut WriteFile)
     }
     if has_gui.not()
         fail("Cannot open a console in the current environment")
-        end
+        yield
     @body{
         ptr f = 0;
         SMOLAMBDA_CONSOLE(f)

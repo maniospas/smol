@@ -38,35 +38,27 @@ def assert_ok(errcode error)
     @body{bool isunhandled = (error==__UNHANDLED__ERROR);}
     if isuser 
         @fail{printf("User error\n");} 
-        end
-    if isbuffer 
+    elif isbuffer 
         @fail{printf("Buffer error\n");} 
-        end
-    if isunhandled 
+    elif isunhandled 
         @fail{printf("Unhandled error\n");}
-        end
-    if isstack 
+    elif isstack 
         @fail{printf("Stack error\n");}
-        end
-    if iserror 
+    elif iserror 
         @fail{printf("Unknown error\n");}
-        end
-    end
+        then nothing
 
 def fail(cstr error)
     @head{#include <stdio.h>}
     @fail {printf("%s\n", error);}
-    end
 
 def fail(nstr error)
     @head{#include <stdio.h>}
     @fail {printf("%s\n", (char*)error__contents);}
-    end
 
 def fail(str error)
     @head{#include <stdio.h>}
     @fail {printf("%.*s\n", (int)error__length, (char*)error__contents);}
-    end
 
 def print(errcode error)
     @head{#include <stdio.h>}
@@ -84,10 +76,8 @@ def print(errcode error)
         else 
             printf("No error\n");
     }
-    end
 
 def assert(bool condition, cstr error)
     // prefer using this function as in the future constant evaluation of certain conditions will occur
     if condition.not()
         fail(error)
-    end end

@@ -5,54 +5,33 @@
 // - Only nominal typing is applied to ensure that distinct properties
 //   keep track of their nature.
 
-def x(nominal) 
-    return @args
-    
-def y(nominal) 
-    return @args
+def x(nominal) return @args
+def y(nominal) return @args
+def z(nominal) return @args
+def zero(nominal) return @args
 
-def z(nominal) 
-    return @args
+union Var = x or y or z
+union Number = Var or zero
+union Number2 = Number
 
-def zero(nominal) 
-    return @args
-
-union Var
-    x
-    y
-    z
-
-union Number
-    Var
-    zero
-
-union Number2
-    Number
-
-def neg(nominal,Var) 
-    return @args
-
-def neg(nominal,neg arg) 
-    return arg.Var
-
-def neg(nominal,zero) 
-    return nominal:zero
+def neg(nominal,Var) return @args
+def neg(nominal,neg arg) return arg.Var
+def neg(nominal,zero) return nominal.zero()
 
 def add(nominal,Var,neg) 
     with 
         @mut equals=Var 
         equals=neg.Var 
-        --
-    return nominal:zero
+    else @invalid "Failed to resolve type"
+    return nominal.zero()
 
-def add(nominal,Var,zero) 
-    return Var
+def add(nominal,Var,zero) return Var
+
 def sub(nominal,Number,Number2) 
-    with 
-        result = nominal:add(Number,nominal:neg(Number2)) 
-        --
+    with result = nominal.add(Number,nominal.neg(Number2)) 
+    else @invalid "Failed to resolve type"
     return result
 
 service main() 
-    @mut equals = nominal:sub(nominal:neg(nominal:neg(x)), zero) // (0-(0-x))-zero == x
-    equals = nominal:x // this would have an error if we used nominal:z
+    @mut equals = nominal.sub(nominal.neg(nominal.neg(x)), zero) // (0-(0-x))-zero == x
+    equals = nominal.x() // this would have an error if we used nominal.z

@@ -39,57 +39,47 @@
 
 union Number = u64 or f64 or i64
 
-def nothing() end
+def nothing()
 
 def print(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f\n", message);}
-    end
     
 def print(@access i64 message)
     @head{#include <stdio.h>}
     @body{printf("%ld\n", message);}
-    end
     
 def print(@access u64 message)
     @head{#include <stdio.h>}
     @body{printf("%lu\n", message);}
-    end
     
 def print(@access bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true\n"):printf("false\n");}
-    end
     
 def print(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c\n", message);}
-    end
     
 def printin(@access f64 message)
     @head{#include <stdio.h>}
     @body{printf("%.6f", message);}
-    end
     
 def printin(@access i64 message)
     @head{#include <stdio.h>}
     @body{printf("%ld", message);}
-    end
     
 def printin(@access u64 message)
     @head{#include <stdio.h>}
     @body{printf("%lu", message);}
-    end
     
 def printin(@access bool message)
     @head{#include <stdio.h>}
     @body{message?printf("true"):printf("false");}
-    end
     
 def printin(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c", message);}
-    end
 
 def le(@access Number x, Number y)
     @body{bool z=x<=y;}   
@@ -154,29 +144,23 @@ def add(@access u64 x, u64 y)
 def mul(@access u64 x, u64 y)
     @body{u64 z=x*y;}
     return z
-
+ 
 def div(@access u64 x, u64 y)
     @head{#include <stdio.h>}
-    if y==0 
-        @fail{printf("Error: division by zero\n");} 
-        end
+    if y==0 then @fail{printf("Error: division by zero\n");} 
     @head{#include <stdio.h>}
     @body{u64 z=x/y;}
     return z
 
 def sub(@access u64 x, u64 y)
     @head{#include <stdio.h>}
-    if y>x 
-        @fail{printf("Error: unsigned substraction yielded a negative\n");} 
-        end
+    if y>x then @fail{printf("Error: unsigned substraction yielded a negative\n");}
     @body{u64 z=x-y;}
     return z
 
 def mod(@access u64 x, u64 y) 
     @head{#include <stdio.h>}
-    if y==0
-        @fail{printf("Error: modulo by zero\n");}
-        end
+    if y==0 then @fail{printf("Error: modulo by zero\n");}
     @head{#include <stdio.h>}
     @body{u64 z=x%y;} 
     return z
@@ -187,9 +171,7 @@ def add(@access i64 x, i64 y)
 
 def mod(@access i64 x, i64 y)
     @head{#include <stdio.h>}
-    if y<=i64(0)
-        @fail{printf("Error: modulo by non-positive\n");} 
-        end
+    if y<=i64(0) then @fail{printf("Error: modulo by non-positive\n");}
     @head{#include <stdio.h>}
     @body{i64 z=x%y;}
     return z
@@ -207,9 +189,7 @@ def mul(@access i64 x, i64 y)
 
 def div(@access i64 x, i64 y)
     @head{#include <stdio.h>}
-    if y==i64(0)
-        @fail{printf("Error: division by zero\n");} 
-        end
+    if y==i64(0) then @fail{printf("Error: division by zero\n");}
     @head{#include <stdio.h>}
     @body{i64 z=x/y;}
     return z

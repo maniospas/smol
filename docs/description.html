@@ -238,7 +238,6 @@ service main()
     p = Point(3.0,5.0)
     f = nominal.Field(1.0,2.0,p)
     print(f.start.x + f.end.y) // 6
-    end
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -571,7 +570,6 @@ service main()
         else
             return 0:i64-1:i64
     print(sgn)
-    end
 </code></pre>
 
 <p>Finally, <i>smol</i> supports logical operators <code class="language-smolambda">and</code> and
@@ -593,7 +591,6 @@ service main()
     print("The rest are short-circuited away")
     false and test()
     true or test()
-    end
 </code></pre>
 
 
