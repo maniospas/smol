@@ -14,8 +14,8 @@
 #include <ranges>
 
 vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level) {
-    vector<Variable> packs;
-    Variable next = imp->at(p++);
+    auto packs = vector<Variable>{};
+    auto next = Variable{imp->at(p++)};
     bool hasComma = false;
     if(is_service && is_zero_level && !ranges::contains(packs, ERR_VAR)) {
         packs.push_back(ERR_VAR);
@@ -34,18 +34,22 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
             vars[ERR_VAR] = types.vars[ERRCODE_VAR];
         }
         for (const auto& arg : args) {
-            Variable next = arg.name;
+            auto next = arg.name;
             if(vars[next]->nozero)
                 nozero = true;
             if(vars[next]->_is_primitive) 
                 packs.push_back(next);
-            else for(const Variable& pack : vars[next]->packs) {
-                packs.push_back(next+pack);
-                if(contains(next+pack) && vars[next+pack]->name==NOM_VAR && !alignments[next+pack]) 
-                    imp->error(--p, "Returned an unset nominal value "
-                        +pretty_var(next.to_string()+"__"+pack.to_string())
-                        +"\nAdd a nominal variable as the first argument to the signature and return that instead."
-                    );
+            else {
+                for(const Variable& pack : vars[next]->packs) {
+                    packs.push_back(next+pack);
+                    if(contains(next+pack) && vars[next+pack]->name==NOM_VAR && !alignments[next+pack]) 
+                        imp->error(--p, "Returned an unset nominal value "
+                            +pretty_var(next.to_string()+"__"+pack.to_string())
+                            +"\nAdd a nominal variable as the first argument to the signature and return that instead."
+                        );
+                }
+                for(const auto& it : vars[next]->buffer_types) 
+                    buffer_types[next+it.first] = it.second;
             }
         }
         p++;
@@ -146,8 +150,6 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                             );
                     }
                     packs.push_back(pack);
-                    if(vars[next]->buffer_types.find(pack)!=vars[next]->buffer_types.end())
-                        vars[pack] = vars[next]->buffer_types[pack];
                     if(contains(pack) && vars[pack]->name==NOM_VAR && !alignments[pack]) 
                         imp->error(--p, "You are returning an unset align "
                             +pretty_var(pack.to_string())
@@ -159,6 +161,9 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                     mutables.insert(mut);
                 for(const auto& it : vars[next]->finals) 
                     finals[it.first] = finals[it.first]+it.second;
+                for(const auto& it : vars[next]->buffer_types) 
+                    buffer_types[it.first] = it.second;
+                    
             }
             else {
                 for(const Variable& pack : vars[next]->packs) {

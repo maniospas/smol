@@ -107,6 +107,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
         );
     }
     else {
+        // parse non-primitive
         vars[elem] = buffer_types[next];
         if(mutables.find(next)!=mutables.end()) 
             mutables.insert(elem);
@@ -131,7 +132,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
             else {
                if(packname.is_empty() || packname==pack) 
                {
-                    Variable tmp = create_temp();
+                    auto tmp = Variable{create_temp()};
                     if(mutables.find(next)!=mutables.end() 
                         && buffer_types[next]->mutables.find(pack)
                             !=buffer_types[next]->mutables.end()
@@ -172,13 +173,13 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
     for(const auto& it : buffer_types[next]->buffer_types)
         buffer_types[elem+it.first] = it.second;
 
-    // parse buff[element]::call(args)
-    if(p<imp->size()-2 && (/*(imp->at(p)==":" && imp->at(p+1)==":") ||*/ (imp->at(p)=="=" && imp->at(p+1)=="."))) {
+    // parse buff[element].=call(args)
+    if(p<imp->size()-2 && (/*(imp->at(p)==":" && imp->at(p+1)==":") ||*/ (imp->at(p)=="." && imp->at(p+1)=="="))) {
         p += 2;
         if(mutables.find(buffer_var)==mutables.end())
             imp->error(p, "Buffer is immutable: "
                 +pretty_var(buffer_var.to_string())
-                +"\nCannot apply :: to create a modifiable curry for an element of an immutable buffer."
+                +"\nCannot apply /= to create a modifiable curry for an element of an immutable buffer."
             );
         mutables.insert(elem);
         for(const auto& it : buffer_types[next]->packs) 

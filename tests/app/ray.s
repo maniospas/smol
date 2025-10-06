@@ -47,7 +47,7 @@ def process(@mut Sphere[] spheres, f64 dt)
     .len()
     .range()
     .while next(@mut u64 i)
-        spheres[i] =. process(dt)
+        spheres[i] .= process(dt)
     end end
 
 service test()

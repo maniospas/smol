@@ -62,15 +62,15 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
             +"\nMultiple options are available"
         );
 
-    Variable var = create_temp();
+    auto var = Variable{create_temp()};
     mutables.insert(var);
-    Variable dynamic_var = var+Variable("dynamic");
-    Variable surface_var = var+Variable("surface");
+    auto dynamic_var = var+Variable("dynamic");
+    auto surface_var = var+Variable("surface");
     buffer_types[dynamic_var] = type;
     vars[var] = types.vars[BUFFER_VAR];
     vars[dynamic_var] = types.vars[PTR_VAR];
     //vars[var+Variable("surface")] = types.vars[PTR_VAR];
-    Variable raw_var = var;
+    auto raw_var = var;
     var = dynamic_var;
     implementation += Code(
         var,
@@ -110,7 +110,6 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
             types.vars[PTR_VAR], 
             surface_var, 
             surface+vars[surface]->buffer_release, 
-            
             p
         );
 
