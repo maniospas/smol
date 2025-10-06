@@ -12,7 +12,6 @@ service run(String command)
     // Releasng checks for failure of incomplete
     // status or non-zero exit code.
     @release process
-    end
 
 service std_test(String name)
     on Heap.dynamic() 
@@ -23,9 +22,7 @@ service std_test(String name)
     on Heap.dynamic()
     if run(command).err.bool()
         print("[ \033[31mERROR\033[0m ] "+name+".s")
-    else
-        print("[ \033[32mOK\033[0m ] "+name+".s")
-    end end
+    else then print("[ \033[32mOK\033[0m ] "+name+".s")
 
 service all()
     // services are asynchronous co-routines
@@ -58,7 +55,6 @@ service all()
     std_test("types/pong")
     std_test("types/range_test")
     std_test("types/union")
-    end
 
 service main()
     tic = time()

@@ -23,18 +23,16 @@ def Arena(nominal type, ContiguousMemory contents)
     @noborrow
     length = 0
     size = contents.size
-    with 
-        contents.Primitive.is(char) 
-        yield
+    with contents.Primitive.is(char) 
+    else @invalid "Arena alignment can only be char-sized"
     return type, contents, length, size
 
 def Volatile(nominal type, ContiguousMemory contents)
     @noborrow  // we need this so that controlled_corrupt can properly analyze corruptions
     length = 0
     cycles = 0
-    with 
-        contents.Primitive.is(char)
-        yield
+    with contents.Primitive.is(char)
+    else @invalid "Arena alignment can only be char-sized"
     return type, contents, length, cycles
 
 def controlled_corrupt(@access @mut Volatile self)

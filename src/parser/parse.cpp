@@ -30,7 +30,7 @@ void Def::end_block(size_t& p) {
             p +=2 ;
             --depth;
         }  
-        if(next=="end" || next=="else" || next=="return" || next=="then") {
+        if(next=="else" || next=="return" || next=="then") {
             if(depth==0) {
                 if(next=="return" || next=="then") 
                     imp->error(p, "`with` or their `else` blocks statements can only end at `else`, or `@error`");
@@ -148,7 +148,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                 continue;
             }
         }
-        if(next=="return" || next=="end" || (next=="else"&&uplifting.size()>1)) {
+        if(next=="return" || (next=="else"&&uplifting.size()>1)) {
             parse_return(p, next, types);
             if(uplifting.size()) 
                 uplifting[uplifting.size()-1].has_exited = true;

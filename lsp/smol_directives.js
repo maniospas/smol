@@ -15,5 +15,6 @@ module.exports = {
   "args": "returns all input arguments",
   "about": "defines documentation",
   "fail": "inline C/C++ code and fail",
-  "dynamic": "converts tag to call"
+  "dynamic": "converts tag to call",
+  "invalid": "fails compilation with a message"
 };

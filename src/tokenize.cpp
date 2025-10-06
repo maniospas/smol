@@ -357,9 +357,7 @@ shared_ptr<Import> tokenize(const string& path) {
                 }
                 if(start < i) {
                     auto substr = line.substr(start, i - start);
-                    if(substr=="yield") 
-                        tokens.emplace_back("end", line_num, start_col, main_file);
-                    else if(substr=="elif") {
+                    if(substr=="elif") {
                         tokens.emplace_back("else", line_num, start_col, main_file);
                         tokens.emplace_back("then", line_num, start_col, main_file);
                         tokens.emplace_back("if", line_num, start_col, main_file);

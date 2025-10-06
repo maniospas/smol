@@ -132,17 +132,13 @@ def len(@access @mut File f)
 
 def print(@access @mut WriteFile f, String _s)
     s = _s.str()
-    if f.contents.exists().not()
-        @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
-        yield
+    if f.contents.exists().not() then @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
     @head{#include <stdio.h>}
     @body{
         u64 bytes_written = fwrite((char*)s__contents, 1, s__length, (FILE*)f__contents);
         bool success = (bytes_written == s__length);
     }
-    if success.not()
-        @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
-        yield
+    if success.not() then @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
 
 def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     // using temporary files can be exceptionall 
@@ -315,9 +311,7 @@ def open(@access @mut WriteFile, String _path)
         ptr contents = 0;
         __SMOLANG_CREATE_FILE(path__contents, contents);
     }
-    if contents.exists().not()
-        @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
-        yield
+    if contents.exists().not() then@fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
     return nominal.WriteFile(contents)
 
 def create_dir(String _path)
@@ -381,9 +375,7 @@ def console(@access @mut WriteFile)
             has_gui = false;
         if(!has_gui && isatty(STDIN_FILENO)) has_gui = false;
     }
-    if has_gui.not()
-        fail("Cannot open a console in the current environment")
-        yield
+    if has_gui.not() then fail("Cannot open a console in the current environment")
     @body{
         ptr f = 0;
         SMOLAMBDA_CONSOLE(f)

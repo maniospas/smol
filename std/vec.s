@@ -72,20 +72,15 @@ def vector(@mut Memory memory, u64 size)
     mem = memory.allocate(size,f64)
     range(size)
     .while next(@mut u64 i)
-        @body{((f64*)mem__mem)[i] = 0;}
-        end
+        then @body{((f64*)mem__mem)[i] = 0;}
     return nominal.Vec(mem.mem, size, mem.mem)
 
 def len(@access Vec v) 
     return v.size
 
 def slice(@access Vec v, u64 from, u64 to) 
-    if from >= to 
-        fail("Empty Vec slice")
-        end
-    if to > v.size
-        fail("Vec out of bounds")
-        end
+    if from >= to then fail("Empty Vec slice")
+    if to > v.size then fail("Vec out of bounds")
     // so we have 0<=from < to <= v.size
     @body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
     return nominal.Vec(contents, to-from, v.surface)
@@ -95,24 +90,19 @@ def vector(@mut Memory memory, @mut Rand rand, u64 size)
     range(size)
     .while next(@mut u64 i)
         value = rand.next()
-        @body{((f64*)mem__mem)[i] = value;}
-        end
+        then @body{((f64*)mem__mem)[i] = value;}
     return nominal.Vec(mem.mem, size, mem.mem)
 
 def vector(@mut Rand rand, @mut Memory memory, u64 size) 
     return vector(memory, rand, size)
 
 def at(@access Vec v, u64 pos) 
-    if pos>=v.size
-        fail("Vec out of bounds")
-        end
+    if pos>=v.size then fail("Vec out of bounds")
     @body{f64 value = ((f64*)v__contents)[pos];} 
     return value
 
 def put(@access @mut Vec v, u64 pos, f64 value)
-    if pos>=v.size
-        fail("Vec out of bounds")
-        end
+    if pos>=v.size then fail("Vec out of bounds")
     @body{((f64*)v__contents)[pos] = value;}
     return v
 
@@ -126,7 +116,7 @@ def dot(@access Vec x1, @access Vec x2)
         .at(i)
         .mul(x2.at(i))
         .add(sum)
-        then nothing
+        then:end
     return sum 
 
 def put(@access @mut Vec x1, @access Vec x2)

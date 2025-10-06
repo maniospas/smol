@@ -228,7 +228,6 @@ connection.onHover((params) => {
   const keywordDocs = {
     "def": "**def** — defines an inlined function. Its returned value is a named tuple.",
     "return": "**return** — returns a value from the current function or capture.",
-    "end": "**end** — ends the current block",
     "service": "**service** — defines a new *runtype* that runs as a co-routine service with safe execution, even on internal failures.",
     "union": "**union** — defines a symbol that expands definitions to several type alternatives.",
     "if": "**if** — decides what to execute next based on a condition.",

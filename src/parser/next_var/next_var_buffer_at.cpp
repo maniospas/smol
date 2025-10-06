@@ -174,7 +174,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
         buffer_types[elem+it.first] = it.second;
 
     // parse buff[element].=call(args)
-    if(p<imp->size()-2 && (/*(imp->at(p)==":" && imp->at(p+1)==":") ||*/ (imp->at(p)=="." && imp->at(p+1)=="="))) {
+    if(p<imp->size()-2 && imp->at(p)=="." && imp->at(p+1)=="=") {
         p += 2;
         if(mutables.find(buffer_var)==mutables.end())
             imp->error(p, "Buffer is immutable: "

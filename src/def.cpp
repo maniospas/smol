@@ -59,7 +59,6 @@ const Variable RET_VAR = Variable("__ret");
 const Variable AT_VAR = Variable("@");
 const Variable DOT_VAR = Variable(".");
 const Variable ARROW_VAR = Variable("->");
-const Variable CURRY_VAR = Variable(":");
 const Variable SEMICOLON_VAR = Variable(";\n");
 const Variable COLON_VAR = Variable(":\n");
 const Variable ENDL_VAR = Variable("\n");

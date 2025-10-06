@@ -75,7 +75,7 @@ def len(@access Shapes shapes)
     return shapes.types.len()
 
 service main()
-    @mut shapes = nominal.Shapes()
+    @mut shapes = nominal.Shapes(Heap.dynamic(), 1024)
     shapes.push(nominal.Square(1.0))
     shapes.push(nominal.Circle(1.0))
     shapes.push(nominal.Circle(2.0))
@@ -95,4 +95,4 @@ service main()
             .at(i, Circle)
             .volume(1.0)
             .print()
-            then nothing
+            then:end

@@ -16,15 +16,15 @@ void Def::parse_return(size_t& p, Variable next, Types& types) {
     size_t return_to = uplifting.size()-1;
     size_t return_p = p; // TODO: fix this when we fully migrate to "return" as a keyword instead of a macro for "->"
     static const Variable token_goto = Variable("goto");
-    if(next=="end" || next=="else") {
+    if(next=="else") {
         implementation += Code(token_goto,this->uplifting[return_to].target,SEMICOLON_VAR);
         if(uplifting[return_to].has_returned) {
             if(!return_to && packs.size())
-                imp->error(p-1, "Cannot mix `end` with a previous function return: "
+                imp->error(p-1, "Cannot end block with `else` given a previous function return: "
                     +signature_like(types, packs)
                 );
             else if(contains(uplifting[return_to].target+Variable("r")))
-                imp->error(p-1, "Cannot mix `end` with a previous `algorithm` return: "
+                imp->error(p-1, "Cannot end block with `else` given a previous `algorithm` return: "
                     +vars[uplifting[return_to].target+Variable("r")]->signature(types)
                 );
         }

@@ -84,7 +84,6 @@ const extern Variable VALUE_VAR;
 const extern Variable AT_VAR;
 const extern Variable DOT_VAR;
 const extern Variable ARROW_VAR;
-const extern Variable CURRY_VAR;
 const extern Variable SEMICOLON_VAR;
 const extern Variable COLON_VAR;
 const extern Variable ENDL_VAR;
