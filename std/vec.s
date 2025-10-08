@@ -112,11 +112,10 @@ def dot(@access Vec x1, @access Vec x2)
     @mut i=0 
     while i<x1.size 
         @next i = i+1
-        sum = x1
-        .at(i)
-        .mul(x2.at(i))
+        sum = x1[i]
+        .mul(x2[i])
         .add(sum)
-        then:end
+        then NA
     return sum 
 
 def put(@access @mut Vec x1, @access Vec x2)

@@ -28,7 +28,7 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
     if(!var.exists() || !vars[var]) 
         imp->error(prev_p, "Expression does not yield a value within push");
     if(vars[var].get() != buffer_types[curry].get())
-        imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching of the types is allowed.\nExpected " 
+        imp->error(prev_p, "Not found type on buffer\nTo prevent errors, no structural matching of the types is allowed.\nExpected " 
             + buffer_types[curry]->signature(types) 
             + " but got " 
             + vars[var]->signature(types)
@@ -104,7 +104,7 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
 
 
     //vars[fail_var] = types.vars[LABEL_VAR];
-    implementation += Code(token_if, Variable("!"), curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
+    implementation += Code(token_ifnot, curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
     errors.insert(Code(fail_var, token_print));
 
     implementation += Code(Variable("} else "));

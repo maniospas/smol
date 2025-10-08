@@ -130,7 +130,7 @@ bool accepted_var_name(const string& name) {
              name=="def" || name=="service" || name=="union" ||
              name=="if" || name=="while" || name=="elif" || name=="err" ||
              name=="algorithm" || name=="then" || name=="on" ||
-             name=="with" || name=="else" || name=="@");
+             name=="case" || name=="else" || name=="@");
 }
 
 bool is_symbol(const string& s) {

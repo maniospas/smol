@@ -13,32 +13,21 @@
 #include "../def.h"
 
 void Def::end_block(size_t& p) {
-    size_t depth = 0;
+    auto depth = size_t{0};
     while(p<imp->size()) {
-        string next = imp->at(p);
-        if(next=="if" || next=="else" || next=="while" || next=="with") 
-            ++depth;
-        if(next=="def" || next=="service") 
-            imp->error(p, "Unexpected end of definition");
-        // if(next=="return" && depth==0) 
-        //     imp->error(p, "`with` or their `else` blocks statements can only end  at `else` or `end`");
-        if(p<imp->size()-2 && imp->at(p)=="@" && imp->at(p+1)=="invalid") {
-            if(depth==0) {
-                p += 2;
-                break;
-            }
-            p +=2 ;
-            --depth;
-        }  
-        if(next=="else" || next=="return" || next=="then") {
-            if(depth==0) {
-                if(next=="return" || next=="then") 
-                    imp->error(p, "`with` or their `else` blocks statements can only end at `else`, or `@error`");
-                break;
-            }
-            --depth;
+        string next = imp->at(p++);
+        if(next=="if" || next=="while" || next=="algorithm")
+            depth++;
+        else if(next=="then" || next=="return") {
+            imp->error(--p, "Cannot end a `case` on `then` or `return` but only on qed");
+            depth--;
         }
-        ++p;
+        if(next=="def" || next=="service" || next=="union") 
+            imp->error(--p, "Unexpected end of `case`");
+        if(next=="qed" || next=="case") {
+            p--;
+            break;
+        }
     }
 }
 
@@ -102,6 +91,8 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             break;
         }
         if(imp->at(p)=="then") {
+            if(proving)
+                return;
             p++;
             imp_size = p;
         }
@@ -147,6 +138,10 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                 parse_directive(p, next, types);
                 continue;
             }
+        }
+        if((next=="case" && proving) || next=="qed") {
+            --p;
+            return; // abrupt return - we will re-enter from parse_with
         }
         if(next=="return" || (next=="else"&&uplifting.size()>1)) {
             parse_return(p, next, types);

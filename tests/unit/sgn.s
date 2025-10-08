@@ -11,9 +11,9 @@ def test_while()
     algorithm
         range(10)
         .while next(@mut u64 i)
-            if i==5 return nothing
+            if i==5 return NA
             then print(i)
-        return nothing
+        return NA
     print("ended")
 
 service main()

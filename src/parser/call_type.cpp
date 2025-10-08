@@ -22,8 +22,19 @@ Variable Def::call_type(
     const Variable& first_token, 
     Types& types
 ) {
-    static const auto token_if = Variable("if(");
-    static const auto token_goto = Variable(")goto");
+    // manually handle some primitive conversions to help with safety
+    // if(type->_is_primitive) {
+    //     if(type->name=="tag") { // convert whatever type into a tag
+    //         string symbol = "";
+    //         for(const auto& unpack : unpacks)
+    //             if(contains(unpack))
+    //                 symbol += vars[unpack]->name.to_string();
+    //         auto var = Variable{create_temp()};
+    //         vars[var] = types.vars[Variable("tag")];
+    //         implementation += Code(var,ASSIGN_VAR,to_string(get_symbol(symbol)),SEMICOLON_VAR);
+    //         return next_var(p, var, types);
+    //     }
+    // }
     auto overloading_errors = string{""};
     auto var = Variable{create_temp()};
     auto successfullType = Type{nullptr};

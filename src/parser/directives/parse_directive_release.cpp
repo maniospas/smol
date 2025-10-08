@@ -18,8 +18,6 @@ void Def::parse_directive_release(size_t& p, string next, Types& types) {
     bool resolved_call = false;
     if(active_calls[next_var].exists() && active_calls[active_calls[next_var]].exists()) {
         const Variable& call_var = active_calls[next_var];
-        static const Variable token_if = Variable("if(");
-        static const Variable token_goto = Variable(")goto");
         static const Variable token_print = Variable(":\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
         implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
         implementation += Code(call_var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);

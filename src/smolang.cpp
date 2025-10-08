@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
                 "  'comment': /\\/\\/.*/,\n"
                 "  'directive': { pattern: /@\\w+/, alias: 'important' },\n"
                 "  'keyword': [\n"
-                "    { pattern: /\\b(?:smo|service|if|else|elif|with|include|while|on|union|to|upto|lento|len|and|or|end|return)\\b/, greedy: true },\n"
+                "    { pattern: /\\b(?:smo|service|if|else|elif|with|case|qed|include|while|on|union|to|upto|lento|len|and|or|then|return)\\b/, greedy: true },\n"
                 "  ],\n"
                 "  'builtin': /\\b(?:i64|u64|f64|symbol|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\\b/,\n"
                 "  'punctuation': /[{}();,\\[\\]]/,\n"

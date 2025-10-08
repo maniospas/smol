@@ -54,694 +54,451 @@ typedef long i64;
 typedef uint64_t nominal;
 typedef double f64;
 
-#include<stdlib.h>
-
 #include<stdio.h>
 
-#include<math.h>
+struct main__882__state{errcode err;};
+__externc void main__882(void *__void__state);
 
-struct main__590__state{errcode err;};
-__externc void main__590(void *__void__state);
-
-void main__590(void *__void__state){
+void main__882(void *__void__state){
 errcode __result__errocode=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
-u64 __service_stack_size = 4756;
-struct main__590__state *__state=(struct main__590__state*)__void__state;
-f64 __Sv____On__z=0;
-f64 __Sv____Nn____Kn__z=0;
-f64 __Sv____Nn____Jn=0;
-f64 __Sv____Nn____Hn__z=0;
-f64 __Rv=0;
-u64 __Qv__self__circles__dynamic____buffer_size=0;
-u64 __Qv__self__lookups__dynamic____buffer_size=0;
-u64 __Qv__self__lookups__dynamic____buffer_alignment=0;
-bool __Qv____Ls__z=0;
-tag __Qv____Ks=0;
-f64 __Ov__radius=0;
-f64 __Kv=0;
-u64 __Jv__shapes__squares__dynamic____buffer_size=0;
-u64 __Jv__shapes__squares__dynamic____buffer_alignment=0;
-u64 __Jv__shapes__types__dynamic____buffer_alignment=0;
-tag __Fv____kq=0;
-u64 __Fv__self__types__dynamic____buffer_size=0;
-u64 __Fv__self__types__dynamic____buffer_alignment=0;
-f64 __Dv__side=0;
-bool __Av____1D__z=0;
-u64 __Av____zD=0;
-u64 __Av__value=0;
-u64 __Av__self__pos=0;
-u64 __Qv__self__circles__dynamic____buffer_alignment=0;
-u64 __8u__pos=0;
-u64 __8u__step=0;
-u64 __8u__start=0;
-u64 __8u__sup=0;
-nominal __6u__shapes__memory____zO=0;
-nominal __6u__shapes____Bp=0;
-u64 __6u__shapes__types__dynamic____buffer_capacity=0;
-u64 __6u__shapes__types__dynamic____buffer_size=0;
-ptr __6u__shapes__lookups__dynamic____buffer_contents=0;
-u64 __6u__shapes__lookups__dynamic____buffer_alignment=0;
-f64 __4u=0;
-nominal __1u__shapes____Bp=0;
-u64 __1u__shapes__circles__dynamic____buffer_size=0;
-u64 __1u__shapes__circles__dynamic____buffer_alignment=0;
-u64 __1u__shapes__types__dynamic____buffer_capacity=0;
-u64 __1u__shapes__types__dynamic____buffer_alignment=0;
-ptr __1u__shapes__lookups__dynamic____buffer_contents=0;
-u64 __1u__shapes__lookups__dynamic____buffer_capacity=0;
-u64 __1u__shapes__lookups__dynamic____buffer_alignment=0;
-nominal __wu__shapes____Bp=0;
-u64 __wu__shapes__circles__dynamic____buffer_size=0;
-u64 __wu__shapes__circles__dynamic____buffer_alignment=0;
-ptr __wu__shapes__types__dynamic____buffer_contents=0;
-bool __Fv____lq__z=0;
-u64 __wu__shapes__types__dynamic____buffer_alignment=0;
-ptr __wu__shapes__lookups__dynamic____buffer_contents=0;
-u64 __6u__shapes__squares__dynamic____buffer_size=0;
-u64 __wu____buffer_size=0;
-f64 __uu=0;
-ptr __1u__shapes__types__dynamic____buffer_contents=0;
-nominal shapes__memory____zO=0;
-nominal __ru__shapes____Bp=0;
-nominal shapes____Bp=0;
-ptr __ru__shapes__squares__dynamic____buffer_contents=0;
-u64 __ru__shapes__squares__dynamic____buffer_alignment=0;
-u64 __ru__shapes__types__dynamic____buffer_size=0;
-u64 __ru__shapes__types__dynamic____buffer_alignment=0;
-tag __ru____Ou=0;
-ptr __ru__shapes__lookups__dynamic____buffer_contents=0;
-f64 __Sv____Nn____In__z=0;
-u64 __ru__shapes__lookups__dynamic____buffer_capacity=0;
-u64 __ru__shapes__lookups__dynamic____buffer_alignment=0;
-u64 __ru____buffer_size=0;
-f64 __pu=0;
-ptr shapes__lookups__dynamic=0;
+u64 __service_stack_size = 2360;
+struct main__882__state *__state=(struct main__882__state*)__void__state;
+cstr __x0G=0;
+ptr __v0G=0;
+u64 __u0G=0;
+u64 __t0G=0;
+u64 __s0G=0;
+ptr __r0G=0;
+u64 __q0G=0;
+u64 __p0G=0;
+f64 __n0G=0;
+ptr __m0G=0;
+u64 __l0G=0;
+u64 __k0G=0;
+u64 __j0G=0;
+u64 __i0G=0;
+f64 __h0G=0;
+nominal __g0G=0;
+nominal shapes____anG=0;
+ptr __e0G=0;
+u64 __d0G=0;
+u64 __c0G=0;
+u64 __b0G=0;
+ptr shapes__squares__surface=0;
+u64 __Z0G=0;
+u64 __Y0G=0;
+u64 __X0G=0;
+tag __W0G=0;
+f64 __V0G=0;
+ptr __U0G=0;
+u64 __T0G=0;
+u64 __S0G=0;
+u64 __R0G=0;
+f64 __Q0G=0;
+nominal __P0G=0;
+u64 __O0G=0;
+u64 __N0G=0;
+u64 __M0G=0;
+ptr __L0G=0;
+u64 __K0G=0;
+u64 __J0G=0;
+tag __I0G=0;
+ptr __a0G=0;
+ptr shapes__squares__dynamic=0;
+f64 __H0G=0;
+ptr __G0G=0;
+u64 __F0G=0;
+u64 __E0G=0;
+u64 __D0G=0;
+u64 __C0G=0;
+u64 __B0G=0;
+f64 __A0G=0;
+nominal __9zG=0;
+u64 __8zG=0;
+ptr __6zG=0;
+u64 __5zG=0;
+u64 __4zG=0;
+u64 __2zG=0;
+u64 __1zG=0;
+u64 __0zG=0;
+tag __zzG=0;
+ptr __yzG=0;
+u64 __xzG=0;
+u64 __wzG=0;
+u64 __vzG=0;
+ptr __uzG=0;
+nominal __szG=0;
+ptr __pzG=0;
+u64 __rzG=0;
+ptr __8pG__types__dynamic=0;
+u64 __YzG=0;
+f64 __ayG=0;
+u64 __PyG=0;
 ptr shapes__types__surface=0;
 ptr shapes__types__dynamic=0;
-ptr shapes__squares__dynamic=0;
-u64 shapes__size=0;
-u64 shapes__memory__allocated=0;
-u64 shapes__memory__size=0;
-ptr __mu____Rp__dynamic=0;
-nominal __mu____Qp____NQ__self____zO=0;
-char __mu____Qp____NQ____SP____OF=0;
-u64 __mu____Qp____NQ____SP__bytesize=0;
-cstr __mu____Qp____NQ____KP=0;
-ptr __mu____Qp____NQ__mem=0;
-u64 __1u__shapes__circles__dynamic____buffer_capacity=0;
-ptr __mu____Qp____NQ__next_acquired=0;
-u64 __mu____Qp____NQ__self__allocated__prev=0;
-bool __mu____Qp____NQ__success=0;
-u64 __mu____Qp____NQ__next_size=0;
-bool __mu____Qp____NQ____EP=0;
-char __mu____Qp____LQ=0;
-ptr __mu____Np__dynamic=0;
-u64 __mu____Mp____NQ____SP__bytesize=0;
-bool __mu____Mp____NQ____JP__x=0;
-char __mu____Mp____NQ____CP=0;
-ptr __mu____Mp____NQ__next_acquired=0;
-u64 __mu____Mp____NQ__self__allocated__prev=0;
-bool __mu____Mp____NQ__success=0;
-u64 __mu____Mp____NQ__next_size=0;
-nominal __1u__shapes__memory____zO=0;
-char __mu____Mp____LQ=0;
-u64 __wu__shapes__types__dynamic____buffer_capacity=0;
-nominal __mu____Ip____NQ__self____zO=0;
-char __mu____Ip____NQ____SP____OF=0;
-u64 __mu____Ip____NQ____SP__bytesize=0;
-char __mu____Ip____NQ____QP=0;
-cstr __mu____Ip____NQ____KP=0;
-bool __mu____Ip____NQ____JP__z=0;
-u64 __mu____Ip____NQ__self__allocated__prev=0;
-u64 __mu____Hp__z=0;
-u64 __mu____Gp=0;
-ptr __mu____Fp__dynamic=0;
-tag __Qv____Is=0;
-u64 __6u__shapes__types__dynamic____buffer_alignment=0;
-nominal __mu____Ep____NQ__self____zO=0;
-char __mu____Ep____NQ____SP____OF=0;
-u64 __mu____Ep____NQ____SP__bytesize=0;
-char __mu____Ep____NQ____QP=0;
-cstr __mu____Ep____NQ____KP=0;
-bool __mu____Ep____NQ____JP__x=0;
-char __mu____Ep____NQ____CP=0;
-cstr __mu____Qp____NQ____GP=0;
-ptr __mu____Ep____NQ__next_acquired=0;
-u64 __mu____Ep____NQ__self__allocated__prev=0;
-cstr __mu____Ep____NQ____GP=0;
-bool __mu____Ep____NQ____EP=0;
-u64 __ru__shapes__squares__dynamic____buffer_capacity=0;
-u64 __mu____Cp=0;
-u64 __mu__memory____dynamic_entry=0;
-u64 __mu__memory__allocated=0;
-ptr __mu__memory__acquired=0;
-u64 __lu=0;
-u64 __ku____5O____dynamic_entry=0;
-u64 __ku__allocated=0;
-ptr __mu__circles__dynamic=0;
-tag __1u____eu=0;
-nominal __wu__shapes__memory____zO=0;
-u64 __Qv__self__types__dynamic____buffer_size=0;
-u64 __1u____buffer_size=0;
-u64 i=0;
-u64 __6u__shapes__squares__dynamic____buffer_capacity=0;
-u64 __mu__memory__size=0;
-u64 __ku____5O____1O=0;
-u64 __wu__shapes__lookups__dynamic____buffer_size=0;
-u64 __ku__size=0;
-cstr __Jv____3t=0;
-ptr shapes__circles__surface=0;
-bool __mu____Mp____NQ____FP__z=0;
-bool __mu____Mp____NQ____EP=0;
-u64 __7u____buffer_size=0;
-tag __wu____eu=0;
-u64 __mu____Pp__z=0;
-u64 __1u__shapes__types__dynamic____buffer_size=0;
-f64 __Qv____Ss=0;
-bool __mu____Ip____NQ____EP=0;
-ptr __mu__lookups__dynamic=0;
-u64 __ru__shapes__types__dynamic____buffer_capacity=0;
-cstr __Qv____Ms=0;
-tag __6u____Ou=0;
 ptr shapes__circles__dynamic=0;
-f64 __Jv____9t=0;
-char __mu____Mp____NQ____QP=0;
-bool __mu____Qp____NQ____JP__x=0;
-u64 __mu____Kp=0;
-u64 __ru__shapes__lookups__dynamic____buffer_size=0;
-f64 __Lv____Qn__z=0;
-ptr __mu__types__dynamic=0;
-u64 __1u__shapes__lookups__dynamic____buffer_size=0;
-bool __mu____Mp____NQ____JP__z=0;
-bool __mu____Ip____NQ__success=0;
-bool __Jv____2t__z=0;
-f64 __Hv__side=0;
-ptr __mu____Ep____NQ__mem=0;
-u64 __mu____Op=0;
-ptr __mu____Ip____NQ__next_acquired=0;
-ptr __wu__shapes__circles__dynamic____buffer_contents=0;
-bool __mu____Qp____NQ____JP__z=0;
-u64 __6u__shapes__squares__dynamic____buffer_alignment=0;
-u64 __Jv__shapes__types__dynamic____buffer_size=0;
-u64 __Qv__self__types__dynamic____buffer_alignment=0;
-bool __mu____Ep____NQ__success=0;
-u64 __6u__shapes__lookups__dynamic____buffer_size=0;
-cstr __mu____Mp____NQ____KP=0;
-ptr __mu__squares__dynamic=0;
-u64 __Jv____6t=0;
-u64 __mu____Lp__z=0;
-nominal __mu__memory____zO=0;
-bool __mu____Qp____NQ____FP__z=0;
-u64 __6u__shapes__lookups__dynamic____buffer_capacity=0;
-bool __mu____Ep____NQ____FP__z=0;
-ptr __mu____Ip____NQ__mem=0;
-u64 __mu____Dp__z=0;
-u64 __wu__shapes__circles__dynamic____buffer_capacity=0;
-ptr __1u__shapes__circles__dynamic____buffer_contents=0;
-cstr __mu____Mp____NQ____GP=0;
-bool __mu____Ep____NQ____JP__z=0;
-char __mu____Qp____NQ____CP=0;
-char __mu____Mp____NQ____SP____OF=0;
-bool __mu____Ip____NQ____JP__x=0;
-tag __Jv____zt=0;
-char __mu____Ip____NQ____CP=0;
-nominal __mu____Mp____NQ__self____zO=0;
-f64 __zu=0;
-ptr __mu____Jp__dynamic=0;
-u64 __ku____dynamic_entry=0;
-f64 __Lv____Pn____Mn__z=0;
-char __mu____Ep____LQ=0;
-u64 __ru__shapes__squares__dynamic____buffer_size=0;
-u64 __mu____Ep____NQ__next_size=0;
-nominal __ru__shapes__memory____zO=0;
-ptr __ru__shapes__types__dynamic____buffer_contents=0;
-bool __mu____Ip____NQ____FP__z=0;
-char __mu____Ip____LQ=0;
-ptr __ku____5O__acquired=0;
-u64 __Jv__shapes__lookups__dynamic____buffer_alignment=0;
-ptr __ku__acquired=0;
-u64 __8u____wD=0;
-char __mu____Qp____NQ____QP=0;
-ptr __6u__shapes__types__dynamic____buffer_contents=0;
-tag __Fv____jq=0;
-ptr shapes__squares__surface=0;
-u64 __mu____Ip____NQ__next_size=0;
-u64 __wu__shapes__lookups__dynamic____buffer_capacity=0;
+ptr shapes__circles__surface=0;
+ptr __qzG=0;
 ptr shapes__lookups__surface=0;
-ptr __6u__shapes__squares__dynamic____buffer_contents=0;
-u64 __6u____buffer_size=0;
-u64 __ku____5O____0O=0;
-tag __Jv____1t=0;
-u64 __Av____0D__z=0;
-ptr shapes__memory__acquired=0;
-u64 __8u____xD=0;
-u64 shapes__memory____dynamic_entry=0;
-ptr __mu____Mp____NQ__mem=0;
-u64 __Jv__shapes__lookups__dynamic____buffer_size=0;
-u64 __Qv____Ps=0;
-cstr __mu____Ip____NQ____GP=0;
-u64 __wu__shapes__lookups__dynamic____buffer_alignment=0;
-u64 __wu__shapes__types__dynamic____buffer_size=0;
+ptr __3zG=0;
+ptr shapes__lookups__dynamic=0;
+ptr __8pG__circles__dynamic=0;
+u64 i=0;
+tag __o0G=0;
+ptr __8pG__squares__dynamic=0;
+f64 __CxG=0;
+u64 __AxG=0;
+u64 __9wG=0;
+u64 __8wG=0;
+u64 __7wG=0;
+u64 __6wG=0;
+u64 __5wG=0;
+u64 __3wG=0;
+u64 __2wG=0;
+u64 __1wG=0;
+u64 __0wG=0;
+bool __ywG=0;
+f64 __vwG=0;
+u64 __uwG=0;
+u64 __twG=0;
+tag __swG=0;
+f64 __rwG=0;
+tag __qwG=0;
+bool __pwG=0;
+cstr __mwG=0;
+f64 __kwG=0;
+u64 __jwG=0;
+u64 __iwG=0;
+tag __hwG=0;
+f64 __gwG=0;
+tag __fwG=0;
+cstr __cwG=0;
+u64 __awG=0;
+u64 __ZwG=0;
+u64 __YwG=0;
+u64 __XwG=0;
+u64 __WwG=0;
+f64 __VwG=0;
+f64 __UwG=0;
+f64 __TwG=0;
+f64 __RwG=0;
+ptr __8pG__lookups__dynamic=0;
+cstr __NwG=0;
+f64 __LwG=0;
+bool __izG=0;
+u64 __KwG=0;
+u64 __hzG=0;
+u64 __JwG=0;
+tag __IwG=0;
+f64 __HwG=0;
+tag __GwG=0;
+bool __FwG=0;
+cstr __CwG=0;
+ptr __ozG=0;
+u64 __AwG=0;
+ptr __nzG=0;
+u64 __9vG=0;
+ptr __mzG=0;
+u64 __8vG=0;
+ptr __lzG=0;
+u64 __7vG=0;
+ptr __kzG=0;
+u64 __6vG=0;
+ptr __jzG=0;
+f64 __5vG=0;
+f64 __4vG=0;
+f64 __3vG=0;
+f64 __1vG=0;
 
 // IMPLEMENTATION
-__ku____5O__acquired = __runtime_alloc ( sizeof ( ptr **)); if ( __ku____5O__acquired )(( ptr **) __ku____5O__acquired )[0]=0; 
- __ku____5O____0O = 0 ;
- __ku____5O____1O = 0 ;
- __ku__acquired = __ku____5O__acquired ;
- __ku__size = __ku____5O____0O ;
- __ku__allocated = __ku____5O____1O ;
- __ku____dynamic_entry = __ku____5O____dynamic_entry ;
- __lu = 1024 ;
- __mu__memory__acquired = __ku__acquired ;
- __mu__memory__size = __ku__size ;
- __mu__memory__allocated = __ku__allocated ;
- __mu__memory____dynamic_entry = __ku____dynamic_entry ;
- __mu____Cp = 4 ;
- __mu____Dp__z = __lu * __mu____Cp ; 
- __mu____Dp____end :
- __mu____Ep____LQ = 0 ;
- __mu____Ep____NQ____EP = __mu__memory__acquired ;
- __mu____Ep____NQ____FP__z =(! __mu____Ep____NQ____EP ); 
- __mu____Ep____NQ____FP____end :
- if(! __mu____Ep____NQ____FP__z )goto __mu____Ep____NQ____DP__fi ;
- __mu____Ep____NQ____GP = "Did not initialize Dynamic" ;
- goto __mu____Ep____NQ____HP____oD ;
- __builtin_unreachable();
- __mu____Ep____NQ____DP__fi :
- __mu____Ep____NQ__next_size = __mu__memory__size +1; __mu____Ep____NQ__success = true ; __mu____Ep____NQ__self__allocated__prev = __mu__memory__allocated ; if ( __mu____Ep____NQ__next_size >= __mu__memory__allocated ) { __mu__memory__allocated = __mu__memory__allocated + __mu__memory__allocated /2+1; __mu____Ep____NQ__next_acquired =( ptr )((( ptr **) __mu__memory__acquired )[0]? __runtime_realloc ((( ptr **) __mu__memory__acquired )[0], __mu__memory__allocated * sizeof ( ptr ), __mu____Ep____NQ__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __mu__memory__allocated * sizeof ( ptr ))); if ( __mu____Ep____NQ__success = __mu____Ep____NQ__next_acquired )(( ptr **) __mu__memory__acquired )[0]=( ptr *) __mu____Ep____NQ__next_acquired ; } if ( __mu____Ep____NQ__success ) { __mu____Ep____NQ__mem =( ptr ) __runtime_alloc ( __mu____Dp__z * sizeof ( __mu____Ep____NQ____CP )); if ( __mu____Ep____NQ__success = __mu____Ep____NQ__mem ) {(( ptr **) __mu__memory__acquired )[0][ __mu__memory__size ]= __mu____Ep____NQ__mem ; __mu__memory__size = __mu____Ep____NQ__next_size ; } } 
- __mu____Ep____NQ____JP__x = __mu____Ep____NQ__success ;
- __mu____Ep____NQ____JP__z =(! __mu____Ep____NQ____JP__x ); 
- __mu____Ep____NQ____JP____end :
- if(! __mu____Ep____NQ____JP__z )goto __mu____Ep____NQ____IP__fi ;
- __mu____Ep____NQ____KP = "Failed a Dynamic allocation" ;
- goto __mu____Ep____NQ____LP____oD ;
- __builtin_unreachable();
- __mu____Ep____NQ____IP__fi :
- __mu____Ep____NQ____QP = 0 ;
- __mu____Ep____NQ____SP__bytesize = sizeof ( __mu____Ep____NQ____SP____OF )* __mu____Dp__z ; 
- __mu____Ep____NQ____SP____end :
- __mu__memory____zO = __mu____Ep____NQ__self____zO ;
- __mu____Fp__dynamic = __runtime_calloc(3*sizeof(u64)) ;
- ((u64*) __mu____Fp__dynamic )[0] = (u64)(u64*) __mu____Ep____NQ__mem ;
- ((u64*) __mu____Fp__dynamic )[2] = ( __mu____Ep____NQ____SP__bytesize /(sizeof(u64)*1)) | (1ULL <<63) ;
- __mu__squares__dynamic = __mu____Fp__dynamic ;
- __mu____Gp = 4 ;
- __mu____Hp__z = __lu * __mu____Gp ; 
- __mu____Hp____end :
- __mu____Ip____LQ = 0 ;
- __mu____Ip____NQ____EP = __mu__memory__acquired ;
- __mu____Ip____NQ____FP__z =(! __mu____Ip____NQ____EP ); 
- __mu____Ip____NQ____FP____end :
- if(! __mu____Ip____NQ____FP__z )goto __mu____Ip____NQ____DP__fi ;
- __mu____Ip____NQ____GP = "Did not initialize Dynamic" ;
- goto __mu____Ip____NQ____HP____oD ;
- __builtin_unreachable();
- __mu____Ip____NQ____DP__fi :
- __mu____Ip____NQ__next_size = __mu__memory__size +1; __mu____Ip____NQ__success = true ; __mu____Ip____NQ__self__allocated__prev = __mu__memory__allocated ; if ( __mu____Ip____NQ__next_size >= __mu__memory__allocated ) { __mu__memory__allocated = __mu__memory__allocated + __mu__memory__allocated /2+1; __mu____Ip____NQ__next_acquired =( ptr )((( ptr **) __mu__memory__acquired )[0]? __runtime_realloc ((( ptr **) __mu__memory__acquired )[0], __mu__memory__allocated * sizeof ( ptr ), __mu____Ip____NQ__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __mu__memory__allocated * sizeof ( ptr ))); if ( __mu____Ip____NQ__success = __mu____Ip____NQ__next_acquired )(( ptr **) __mu__memory__acquired )[0]=( ptr *) __mu____Ip____NQ__next_acquired ; } if ( __mu____Ip____NQ__success ) { __mu____Ip____NQ__mem =( ptr ) __runtime_alloc ( __mu____Hp__z * sizeof ( __mu____Ip____NQ____CP )); if ( __mu____Ip____NQ__success = __mu____Ip____NQ__mem ) {(( ptr **) __mu__memory__acquired )[0][ __mu__memory__size ]= __mu____Ip____NQ__mem ; __mu__memory__size = __mu____Ip____NQ__next_size ; } } 
- __mu____Ip____NQ____JP__x = __mu____Ip____NQ__success ;
- __mu____Ip____NQ____JP__z =(! __mu____Ip____NQ____JP__x ); 
- __mu____Ip____NQ____JP____end :
- if(! __mu____Ip____NQ____JP__z )goto __mu____Ip____NQ____IP__fi ;
- __mu____Ip____NQ____KP = "Failed a Dynamic allocation" ;
- goto __mu____Ip____NQ____LP____oD ;
- __builtin_unreachable();
- __mu____Ip____NQ____IP__fi :
- __mu____Ip____NQ____QP = 0 ;
- __mu____Ip____NQ____SP__bytesize = sizeof ( __mu____Ip____NQ____SP____OF )* __mu____Hp__z ; 
- __mu____Ip____NQ____SP____end :
- __mu__memory____zO = __mu____Ip____NQ__self____zO ;
- __mu____Jp__dynamic = __runtime_calloc(3*sizeof(u64)) ;
- ((u64*) __mu____Jp__dynamic )[0] = (u64)(u64*) __mu____Ip____NQ__mem ;
- ((u64*) __mu____Jp__dynamic )[2] = ( __mu____Ip____NQ____SP__bytesize /(sizeof(u64)*1)) | (1ULL <<63) ;
- __mu__circles__dynamic = __mu____Jp__dynamic ;
- __mu____Kp = 8 ;
- __mu____Lp__z = __lu * __mu____Kp ; 
- __mu____Lp____end :
- __mu____Mp____LQ = 0 ;
- __mu____Mp____NQ____EP = __mu__memory__acquired ;
- __mu____Mp____NQ____FP__z =(! __mu____Mp____NQ____EP ); 
- __mu____Mp____NQ____FP____end :
- if(! __mu____Mp____NQ____FP__z )goto __mu____Mp____NQ____DP__fi ;
- __mu____Mp____NQ____GP = "Did not initialize Dynamic" ;
- goto __mu____Mp____NQ____HP____oD ;
- __builtin_unreachable();
- __mu____Mp____NQ____DP__fi :
- __mu____Mp____NQ__next_size = __mu__memory__size +1; __mu____Mp____NQ__success = true ; __mu____Mp____NQ__self__allocated__prev = __mu__memory__allocated ; if ( __mu____Mp____NQ__next_size >= __mu__memory__allocated ) { __mu__memory__allocated = __mu__memory__allocated + __mu__memory__allocated /2+1; __mu____Mp____NQ__next_acquired =( ptr )((( ptr **) __mu__memory__acquired )[0]? __runtime_realloc ((( ptr **) __mu__memory__acquired )[0], __mu__memory__allocated * sizeof ( ptr ), __mu____Mp____NQ__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __mu__memory__allocated * sizeof ( ptr ))); if ( __mu____Mp____NQ__success = __mu____Mp____NQ__next_acquired )(( ptr **) __mu__memory__acquired )[0]=( ptr *) __mu____Mp____NQ__next_acquired ; } if ( __mu____Mp____NQ__success ) { __mu____Mp____NQ__mem =( ptr ) __runtime_alloc ( __mu____Lp__z * sizeof ( __mu____Mp____NQ____CP )); if ( __mu____Mp____NQ__success = __mu____Mp____NQ__mem ) {(( ptr **) __mu__memory__acquired )[0][ __mu__memory__size ]= __mu____Mp____NQ__mem ; __mu__memory__size = __mu____Mp____NQ__next_size ; } } 
- __mu____Mp____NQ____JP__x = __mu____Mp____NQ__success ;
- __mu____Mp____NQ____JP__z =(! __mu____Mp____NQ____JP__x ); 
- __mu____Mp____NQ____JP____end :
- if(! __mu____Mp____NQ____JP__z )goto __mu____Mp____NQ____IP__fi ;
- __mu____Mp____NQ____KP = "Failed a Dynamic allocation" ;
- goto __mu____Mp____NQ____LP____oD ;
- __builtin_unreachable();
- __mu____Mp____NQ____IP__fi :
- __mu____Mp____NQ____QP = 0 ;
- __mu____Mp____NQ____SP__bytesize = sizeof ( __mu____Mp____NQ____SP____OF )* __mu____Lp__z ; 
- __mu____Mp____NQ____SP____end :
- __mu__memory____zO = __mu____Mp____NQ__self____zO ;
- __mu____Np__dynamic = __runtime_calloc(3*sizeof(u64)) ;
- ((u64*) __mu____Np__dynamic )[0] = (u64)(u64*) __mu____Mp____NQ__mem ;
- ((u64*) __mu____Np__dynamic )[2] = ( __mu____Mp____NQ____SP__bytesize /(sizeof(u64)*1)) | (1ULL <<63) ;
- __mu__types__dynamic = __mu____Np__dynamic ;
- __mu____Op = 8 ;
- __mu____Pp__z = __lu * __mu____Op ; 
- __mu____Pp____end :
- __mu____Qp____LQ = 0 ;
- __mu____Qp____NQ____EP = __mu__memory__acquired ;
- __mu____Qp____NQ____FP__z =(! __mu____Qp____NQ____EP ); 
- __mu____Qp____NQ____FP____end :
- if(! __mu____Qp____NQ____FP__z )goto __mu____Qp____NQ____DP__fi ;
- __mu____Qp____NQ____GP = "Did not initialize Dynamic" ;
- goto __mu____Qp____NQ____HP____oD ;
- __builtin_unreachable();
- __mu____Qp____NQ____DP__fi :
- __mu____Qp____NQ__next_size = __mu__memory__size +1; __mu____Qp____NQ__success = true ; __mu____Qp____NQ__self__allocated__prev = __mu__memory__allocated ; if ( __mu____Qp____NQ__next_size >= __mu__memory__allocated ) { __mu__memory__allocated = __mu__memory__allocated + __mu__memory__allocated /2+1; __mu____Qp____NQ__next_acquired =( ptr )((( ptr **) __mu__memory__acquired )[0]? __runtime_realloc ((( ptr **) __mu__memory__acquired )[0], __mu__memory__allocated * sizeof ( ptr ), __mu____Qp____NQ__self__allocated__prev * sizeof ( ptr )): __runtime_alloc ( __mu__memory__allocated * sizeof ( ptr ))); if ( __mu____Qp____NQ__success = __mu____Qp____NQ__next_acquired )(( ptr **) __mu__memory__acquired )[0]=( ptr *) __mu____Qp____NQ__next_acquired ; } if ( __mu____Qp____NQ__success ) { __mu____Qp____NQ__mem =( ptr ) __runtime_alloc ( __mu____Pp__z * sizeof ( __mu____Qp____NQ____CP )); if ( __mu____Qp____NQ__success = __mu____Qp____NQ__mem ) {(( ptr **) __mu__memory__acquired )[0][ __mu__memory__size ]= __mu____Qp____NQ__mem ; __mu__memory__size = __mu____Qp____NQ__next_size ; } } 
- __mu____Qp____NQ____JP__x = __mu____Qp____NQ__success ;
- __mu____Qp____NQ____JP__z =(! __mu____Qp____NQ____JP__x ); 
- __mu____Qp____NQ____JP____end :
- if(! __mu____Qp____NQ____JP__z )goto __mu____Qp____NQ____IP__fi ;
- __mu____Qp____NQ____KP = "Failed a Dynamic allocation" ;
- goto __mu____Qp____NQ____LP____oD ;
- __builtin_unreachable();
- __mu____Qp____NQ____IP__fi :
- __mu____Qp____NQ____QP = 0 ;
- __mu____Qp____NQ____SP__bytesize = sizeof ( __mu____Qp____NQ____SP____OF )* __mu____Pp__z ; 
- __mu____Qp____NQ____SP____end :
- __mu__memory____zO = __mu____Qp____NQ__self____zO ;
- __mu____Rp__dynamic = __runtime_calloc(3*sizeof(u64)) ;
- ((u64*) __mu____Rp__dynamic )[0] = (u64)(u64*) __mu____Qp____NQ__mem ;
- ((u64*) __mu____Rp__dynamic )[2] = ( __mu____Qp____NQ____SP__bytesize /(sizeof(u64)*1)) | (1ULL <<63) ;
- __mu__lookups__dynamic = __mu____Rp__dynamic ;
- __ku__acquired = __mu__memory__acquired ;
- __ku__size = __mu__memory__size ;
- __ku__allocated = __mu__memory__allocated ;
- __ku____dynamic_entry = __mu__memory____dynamic_entry ;
- shapes__memory__acquired = __mu__memory__acquired ;
- shapes__memory__size = __mu__memory__size ;
- shapes__memory__allocated = __mu__memory__allocated ;
- shapes__memory____dynamic_entry = __mu__memory____dynamic_entry ;
- shapes__size = __lu ;
- shapes__squares__dynamic = __mu__squares__dynamic ;
- shapes__squares__surface = __mu__memory__acquired ;
- shapes__circles__dynamic = __mu__circles__dynamic ;
- shapes__circles__surface = __mu__memory__acquired ;
- shapes__types__dynamic = __mu__types__dynamic ;
- shapes__types__surface = __mu__memory__acquired ;
- shapes__lookups__dynamic = __mu__lookups__dynamic ;
- shapes__lookups__surface = __mu__memory__acquired ;
- __pu = 1.0 ;
- __ru____buffer_size = shapes__squares__dynamic ? ((u64*) shapes__squares__dynamic )[1]:0 ;
+__jzG = __runtime_calloc(3*sizeof(u64)) ;
+ __kzG = 0 ;
+ __8pG__squares__dynamic = __jzG ;
+ __lzG = __runtime_calloc(3*sizeof(u64)) ;
+ __mzG = 0 ;
+ __8pG__circles__dynamic = __lzG ;
+ __nzG = __runtime_calloc(3*sizeof(u64)) ;
+ __ozG = 0 ;
+ __8pG__types__dynamic = __nzG ;
+ __pzG = __runtime_calloc(3*sizeof(u64)) ;
+ __qzG = 0 ;
+ __8pG__lookups__dynamic = __pzG ;
+ shapes__squares__dynamic = __8pG__squares__dynamic ;
+ shapes__squares__surface = __kzG ;
+ shapes__circles__dynamic = __8pG__circles__dynamic ;
+ shapes__circles__surface = __mzG ;
+ shapes__types__dynamic = __8pG__types__dynamic ;
+ shapes__types__surface = __ozG ;
+ shapes__lookups__dynamic = __8pG__lookups__dynamic ;
+ shapes__lookups__surface = __qzG ;
+ __CxG = 1.0 ;
+ __vzG = shapes__squares__dynamic ? ((u64*) shapes__squares__dynamic )[1]:0 ;
  if(! shapes__lookups__dynamic )goto __result__buffer_error ;
- __ru__shapes__lookups__dynamic____buffer_alignment = 1 ;
- __ru__shapes__lookups__dynamic____buffer_size = ((u64*) shapes__lookups__dynamic )[1] ;
- __ru__shapes__lookups__dynamic____buffer_capacity = ((u64*) shapes__lookups__dynamic )[2] & ~(1ULL << 63) ;
- if( __ru__shapes__lookups__dynamic____buffer_size >= __ru__shapes__lookups__dynamic____buffer_capacity ){ if( ((u64*) shapes__lookups__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __ru__shapes__lookups__dynamic____buffer_capacity = __ru__shapes__lookups__dynamic____buffer_capacity +( __ru__shapes__lookups__dynamic____buffer_capacity >>2)+1; if( __ru__shapes__lookups__dynamic____buffer_size ) ((void**) shapes__lookups__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__lookups__dynamic )[0],  __ru__shapes__lookups__dynamic____buffer_capacity * __ru__shapes__lookups__dynamic____buffer_alignment *sizeof(u64),  __ru__shapes__lookups__dynamic____buffer_capacity * __ru__shapes__lookups__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__lookups__dynamic )[0] = __runtime_alloc( __ru__shapes__lookups__dynamic____buffer_capacity * __ru__shapes__lookups__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__lookups__dynamic )[2] = __ru__shapes__lookups__dynamic____buffer_capacity ;
- __ru__shapes__lookups__dynamic____buffer_contents = (ptr)((void**) shapes__lookups__dynamic )[0] ;
- if( ! __ru__shapes__lookups__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __ru__shapes__lookups__dynamic____buffer_contents = (ptr)(((u64*) shapes__lookups__dynamic )[0]) ;
- ((u64*) shapes__lookups__dynamic )[1] = __ru__shapes__lookups__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __ru__shapes__lookups__dynamic____buffer_contents )[ __ru__shapes__lookups__dynamic____buffer_size * __ru__shapes__lookups__dynamic____buffer_alignment ], & __ru____buffer_size , sizeof(u64)); __ru____Ou = 3 ;
+ __wzG = 1 ;
+ __xzG = ((u64*) shapes__lookups__dynamic )[1] ;
+ __YzG = ((u64*) shapes__lookups__dynamic )[2] & ~(1ULL << 63) ;
+ if( __xzG >= __YzG ){ if( ((u64*) shapes__lookups__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __YzG = __YzG +( __YzG >>2)+1; if( __xzG ) ((void**) shapes__lookups__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__lookups__dynamic )[0],  __YzG * __wzG *sizeof(u64),  __YzG * __wzG *sizeof(u64)); else ((void**) shapes__lookups__dynamic )[0] = __runtime_alloc( __YzG * __wzG *sizeof(u64)); ((u64*) shapes__lookups__dynamic )[2] = __YzG ;
+ __yzG = (ptr)((void**) shapes__lookups__dynamic )[0] ;
+ if(! __yzG )goto __result__buffer_error ;
+ } else  __yzG = (ptr)(((u64*) shapes__lookups__dynamic )[0]) ;
+ ((u64*) shapes__lookups__dynamic )[1] = __xzG +1 ;
+ memcpy(&((u64*) __yzG )[ __xzG * __wzG ], & __vzG , sizeof(u64)); __ayG = __CxG ;
+ __zzG = 2 ;
  if(! shapes__types__dynamic )goto __result__buffer_error ;
- __ru__shapes__types__dynamic____buffer_alignment = 1 ;
- __ru__shapes__types__dynamic____buffer_size = ((u64*) shapes__types__dynamic )[1] ;
- __ru__shapes__types__dynamic____buffer_capacity = ((u64*) shapes__types__dynamic )[2] & ~(1ULL << 63) ;
- if( __ru__shapes__types__dynamic____buffer_size >= __ru__shapes__types__dynamic____buffer_capacity ){ if( ((u64*) shapes__types__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __ru__shapes__types__dynamic____buffer_capacity = __ru__shapes__types__dynamic____buffer_capacity +( __ru__shapes__types__dynamic____buffer_capacity >>2)+1; if( __ru__shapes__types__dynamic____buffer_size ) ((void**) shapes__types__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__types__dynamic )[0],  __ru__shapes__types__dynamic____buffer_capacity * __ru__shapes__types__dynamic____buffer_alignment *sizeof(u64),  __ru__shapes__types__dynamic____buffer_capacity * __ru__shapes__types__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__types__dynamic )[0] = __runtime_alloc( __ru__shapes__types__dynamic____buffer_capacity * __ru__shapes__types__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__types__dynamic )[2] = __ru__shapes__types__dynamic____buffer_capacity ;
- __ru__shapes__types__dynamic____buffer_contents = (ptr)((void**) shapes__types__dynamic )[0] ;
- if( ! __ru__shapes__types__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __ru__shapes__types__dynamic____buffer_contents = (ptr)(((u64*) shapes__types__dynamic )[0]) ;
- ((u64*) shapes__types__dynamic )[1] = __ru__shapes__types__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __ru__shapes__types__dynamic____buffer_contents )[ __ru__shapes__types__dynamic____buffer_size * __ru__shapes__types__dynamic____buffer_alignment ], & __ru____Ou , sizeof(u64)); if(! shapes__squares__dynamic )goto __result__buffer_error ;
- __ru__shapes__squares__dynamic____buffer_alignment = 1 ;
- __ru__shapes__squares__dynamic____buffer_size = ((u64*) shapes__squares__dynamic )[1] ;
- __ru__shapes__squares__dynamic____buffer_capacity = ((u64*) shapes__squares__dynamic )[2] & ~(1ULL << 63) ;
- if( __ru__shapes__squares__dynamic____buffer_size >= __ru__shapes__squares__dynamic____buffer_capacity ){ if( ((u64*) shapes__squares__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __ru__shapes__squares__dynamic____buffer_capacity = __ru__shapes__squares__dynamic____buffer_capacity +( __ru__shapes__squares__dynamic____buffer_capacity >>2)+1; if( __ru__shapes__squares__dynamic____buffer_size ) ((void**) shapes__squares__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__squares__dynamic )[0],  __ru__shapes__squares__dynamic____buffer_capacity * __ru__shapes__squares__dynamic____buffer_alignment *sizeof(u64),  __ru__shapes__squares__dynamic____buffer_capacity * __ru__shapes__squares__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__squares__dynamic )[0] = __runtime_alloc( __ru__shapes__squares__dynamic____buffer_capacity * __ru__shapes__squares__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__squares__dynamic )[2] = __ru__shapes__squares__dynamic____buffer_capacity ;
- __ru__shapes__squares__dynamic____buffer_contents = (ptr)((void**) shapes__squares__dynamic )[0] ;
- if( ! __ru__shapes__squares__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __ru__shapes__squares__dynamic____buffer_contents = (ptr)(((u64*) shapes__squares__dynamic )[0]) ;
- ((u64*) shapes__squares__dynamic )[1] = __ru__shapes__squares__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __ru__shapes__squares__dynamic____buffer_contents )[ __ru__shapes__squares__dynamic____buffer_size * __ru__shapes__squares__dynamic____buffer_alignment +0], & __pu , sizeof(f64)); __ru____end :
- shapes____Bp = __ru__shapes____Bp ;
- shapes__memory____zO = __ru__shapes__memory____zO ;
- __uu = 1.0 ;
- __wu____buffer_size = shapes__circles__dynamic ? ((u64*) shapes__circles__dynamic )[1]:0 ;
+ __0zG = 1 ;
+ __1zG = ((u64*) shapes__types__dynamic )[1] ;
+ __2zG = ((u64*) shapes__types__dynamic )[2] & ~(1ULL << 63) ;
+ if( __1zG >= __2zG ){ if( ((u64*) shapes__types__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __2zG = __2zG +( __2zG >>2)+1; if( __1zG ) ((void**) shapes__types__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__types__dynamic )[0],  __2zG * __0zG *sizeof(u64),  __2zG * __0zG *sizeof(u64)); else ((void**) shapes__types__dynamic )[0] = __runtime_alloc( __2zG * __0zG *sizeof(u64)); ((u64*) shapes__types__dynamic )[2] = __2zG ;
+ __3zG = (ptr)((void**) shapes__types__dynamic )[0] ;
+ if(! __3zG )goto __result__buffer_error ;
+ } else  __3zG = (ptr)(((u64*) shapes__types__dynamic )[0]) ;
+ ((u64*) shapes__types__dynamic )[1] = __1zG +1 ;
+ memcpy(&((u64*) __3zG )[ __1zG * __0zG ], & __zzG , sizeof(u64)); if(! shapes__squares__dynamic )goto __result__buffer_error ;
+ __4zG = 1 ;
+ __5zG = ((u64*) shapes__squares__dynamic )[1] ;
+ __rzG = ((u64*) shapes__squares__dynamic )[2] & ~(1ULL << 63) ;
+ if( __5zG >= __rzG ){ if( ((u64*) shapes__squares__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __rzG = __rzG +( __rzG >>2)+1; if( __5zG ) ((void**) shapes__squares__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__squares__dynamic )[0],  __rzG * __4zG *sizeof(u64),  __rzG * __4zG *sizeof(u64)); else ((void**) shapes__squares__dynamic )[0] = __runtime_alloc( __rzG * __4zG *sizeof(u64)); ((u64*) shapes__squares__dynamic )[2] = __rzG ;
+ __6zG = (ptr)((void**) shapes__squares__dynamic )[0] ;
+ if(! __6zG )goto __result__buffer_error ;
+ } else  __6zG = (ptr)(((u64*) shapes__squares__dynamic )[0]) ;
+ ((u64*) shapes__squares__dynamic )[1] = __5zG +1 ;
+ memcpy(&((u64*) __6zG )[ __5zG * __4zG +0], & __CxG , sizeof(f64)); __7zG :
+ shapes____anG = __9zG ;
+ __A0G = 1.0 ;
+ __B0G = shapes__squares__dynamic ? ((u64*) shapes__squares__dynamic )[1]:0 ;
  if(! shapes__lookups__dynamic )goto __result__buffer_error ;
- __wu__shapes__lookups__dynamic____buffer_alignment = 1 ;
- __wu__shapes__lookups__dynamic____buffer_size = ((u64*) shapes__lookups__dynamic )[1] ;
- __wu__shapes__lookups__dynamic____buffer_capacity = ((u64*) shapes__lookups__dynamic )[2] & ~(1ULL << 63) ;
- if( __wu__shapes__lookups__dynamic____buffer_size >= __wu__shapes__lookups__dynamic____buffer_capacity ){ if( ((u64*) shapes__lookups__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __wu__shapes__lookups__dynamic____buffer_capacity = __wu__shapes__lookups__dynamic____buffer_capacity +( __wu__shapes__lookups__dynamic____buffer_capacity >>2)+1; if( __wu__shapes__lookups__dynamic____buffer_size ) ((void**) shapes__lookups__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__lookups__dynamic )[0],  __wu__shapes__lookups__dynamic____buffer_capacity * __wu__shapes__lookups__dynamic____buffer_alignment *sizeof(u64),  __wu__shapes__lookups__dynamic____buffer_capacity * __wu__shapes__lookups__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__lookups__dynamic )[0] = __runtime_alloc( __wu__shapes__lookups__dynamic____buffer_capacity * __wu__shapes__lookups__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__lookups__dynamic )[2] = __wu__shapes__lookups__dynamic____buffer_capacity ;
- __wu__shapes__lookups__dynamic____buffer_contents = (ptr)((void**) shapes__lookups__dynamic )[0] ;
- if( ! __wu__shapes__lookups__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __wu__shapes__lookups__dynamic____buffer_contents = (ptr)(((u64*) shapes__lookups__dynamic )[0]) ;
- ((u64*) shapes__lookups__dynamic )[1] = __wu__shapes__lookups__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __wu__shapes__lookups__dynamic____buffer_contents )[ __wu__shapes__lookups__dynamic____buffer_size * __wu__shapes__lookups__dynamic____buffer_alignment ], & __wu____buffer_size , sizeof(u64)); __wu____eu = 2 ;
+ __C0G = 1 ;
+ __E0G = ((u64*) shapes__lookups__dynamic )[1] ;
+ __F0G = ((u64*) shapes__lookups__dynamic )[2] & ~(1ULL << 63) ;
+ if( __E0G >= __F0G ){ if( ((u64*) shapes__lookups__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __F0G = __F0G +( __F0G >>2)+1; if( __E0G ) ((void**) shapes__lookups__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__lookups__dynamic )[0],  __F0G * __C0G *sizeof(u64),  __F0G * __C0G *sizeof(u64)); else ((void**) shapes__lookups__dynamic )[0] = __runtime_alloc( __F0G * __C0G *sizeof(u64)); ((u64*) shapes__lookups__dynamic )[2] = __F0G ;
+ __G0G = (ptr)((void**) shapes__lookups__dynamic )[0] ;
+ if(! __G0G )goto __result__buffer_error ;
+ } else  __G0G = (ptr)(((u64*) shapes__lookups__dynamic )[0]) ;
+ ((u64*) shapes__lookups__dynamic )[1] = __E0G +1 ;
+ memcpy(&((u64*) __G0G )[ __E0G * __C0G ], & __B0G , sizeof(u64)); __H0G = __A0G ;
+ __I0G = 1 ;
  if(! shapes__types__dynamic )goto __result__buffer_error ;
- __wu__shapes__types__dynamic____buffer_alignment = 1 ;
- __wu__shapes__types__dynamic____buffer_size = ((u64*) shapes__types__dynamic )[1] ;
- __wu__shapes__types__dynamic____buffer_capacity = ((u64*) shapes__types__dynamic )[2] & ~(1ULL << 63) ;
- if( __wu__shapes__types__dynamic____buffer_size >= __wu__shapes__types__dynamic____buffer_capacity ){ if( ((u64*) shapes__types__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __wu__shapes__types__dynamic____buffer_capacity = __wu__shapes__types__dynamic____buffer_capacity +( __wu__shapes__types__dynamic____buffer_capacity >>2)+1; if( __wu__shapes__types__dynamic____buffer_size ) ((void**) shapes__types__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__types__dynamic )[0],  __wu__shapes__types__dynamic____buffer_capacity * __wu__shapes__types__dynamic____buffer_alignment *sizeof(u64),  __wu__shapes__types__dynamic____buffer_capacity * __wu__shapes__types__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__types__dynamic )[0] = __runtime_alloc( __wu__shapes__types__dynamic____buffer_capacity * __wu__shapes__types__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__types__dynamic )[2] = __wu__shapes__types__dynamic____buffer_capacity ;
- __wu__shapes__types__dynamic____buffer_contents = (ptr)((void**) shapes__types__dynamic )[0] ;
- if( ! __wu__shapes__types__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __wu__shapes__types__dynamic____buffer_contents = (ptr)(((u64*) shapes__types__dynamic )[0]) ;
- ((u64*) shapes__types__dynamic )[1] = __wu__shapes__types__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __wu__shapes__types__dynamic____buffer_contents )[ __wu__shapes__types__dynamic____buffer_size * __wu__shapes__types__dynamic____buffer_alignment ], & __wu____eu , sizeof(u64)); if(! shapes__circles__dynamic )goto __result__buffer_error ;
- __wu__shapes__circles__dynamic____buffer_alignment = 1 ;
- __wu__shapes__circles__dynamic____buffer_size = ((u64*) shapes__circles__dynamic )[1] ;
- __wu__shapes__circles__dynamic____buffer_capacity = ((u64*) shapes__circles__dynamic )[2] & ~(1ULL << 63) ;
- if( __wu__shapes__circles__dynamic____buffer_size >= __wu__shapes__circles__dynamic____buffer_capacity ){ if( ((u64*) shapes__circles__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __wu__shapes__circles__dynamic____buffer_capacity = __wu__shapes__circles__dynamic____buffer_capacity +( __wu__shapes__circles__dynamic____buffer_capacity >>2)+1; if( __wu__shapes__circles__dynamic____buffer_size ) ((void**) shapes__circles__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__circles__dynamic )[0],  __wu__shapes__circles__dynamic____buffer_capacity * __wu__shapes__circles__dynamic____buffer_alignment *sizeof(u64),  __wu__shapes__circles__dynamic____buffer_capacity * __wu__shapes__circles__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__circles__dynamic )[0] = __runtime_alloc( __wu__shapes__circles__dynamic____buffer_capacity * __wu__shapes__circles__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__circles__dynamic )[2] = __wu__shapes__circles__dynamic____buffer_capacity ;
- __wu__shapes__circles__dynamic____buffer_contents = (ptr)((void**) shapes__circles__dynamic )[0] ;
- if( ! __wu__shapes__circles__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __wu__shapes__circles__dynamic____buffer_contents = (ptr)(((u64*) shapes__circles__dynamic )[0]) ;
- ((u64*) shapes__circles__dynamic )[1] = __wu__shapes__circles__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __wu__shapes__circles__dynamic____buffer_contents )[ __wu__shapes__circles__dynamic____buffer_size * __wu__shapes__circles__dynamic____buffer_alignment +0], & __uu , sizeof(f64)); __wu____end :
- shapes____Bp = __wu__shapes____Bp ;
- shapes__memory____zO = __wu__shapes__memory____zO ;
- __zu = 2.0 ;
- __1u____buffer_size = shapes__circles__dynamic ? ((u64*) shapes__circles__dynamic )[1]:0 ;
+ __hzG = 1 ;
+ __J0G = ((u64*) shapes__types__dynamic )[1] ;
+ __K0G = ((u64*) shapes__types__dynamic )[2] & ~(1ULL << 63) ;
+ if( __J0G >= __K0G ){ if( ((u64*) shapes__types__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __K0G = __K0G +( __K0G >>2)+1; if( __J0G ) ((void**) shapes__types__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__types__dynamic )[0],  __K0G * __hzG *sizeof(u64),  __K0G * __hzG *sizeof(u64)); else ((void**) shapes__types__dynamic )[0] = __runtime_alloc( __K0G * __hzG *sizeof(u64)); ((u64*) shapes__types__dynamic )[2] = __K0G ;
+ __L0G = (ptr)((void**) shapes__types__dynamic )[0] ;
+ if(! __L0G )goto __result__buffer_error ;
+ } else  __L0G = (ptr)(((u64*) shapes__types__dynamic )[0]) ;
+ ((u64*) shapes__types__dynamic )[1] = __J0G +1 ;
+ memcpy(&((u64*) __L0G )[ __J0G * __hzG ], & __I0G , sizeof(u64)); if(! shapes__circles__dynamic )goto __result__buffer_error ;
+ __M0G = 1 ;
+ __N0G = ((u64*) shapes__circles__dynamic )[1] ;
+ __O0G = ((u64*) shapes__circles__dynamic )[2] & ~(1ULL << 63) ;
+ if( __N0G >= __O0G ){ if( ((u64*) shapes__circles__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __O0G = __O0G +( __O0G >>2)+1; if( __N0G ) ((void**) shapes__circles__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__circles__dynamic )[0],  __O0G * __M0G *sizeof(u64),  __O0G * __M0G *sizeof(u64)); else ((void**) shapes__circles__dynamic )[0] = __runtime_alloc( __O0G * __M0G *sizeof(u64)); ((u64*) shapes__circles__dynamic )[2] = __O0G ;
+ __uzG = (ptr)((void**) shapes__circles__dynamic )[0] ;
+ if(! __uzG )goto __result__buffer_error ;
+ } else  __uzG = (ptr)(((u64*) shapes__circles__dynamic )[0]) ;
+ ((u64*) shapes__circles__dynamic )[1] = __N0G +1 ;
+ memcpy(&((u64*) __uzG )[ __N0G * __M0G +0], & __A0G , sizeof(f64)); __tzG :
+ shapes____anG = __P0G ;
+ __Q0G = 2.0 ;
+ __PyG = shapes__squares__dynamic ? ((u64*) shapes__squares__dynamic )[1]:0 ;
  if(! shapes__lookups__dynamic )goto __result__buffer_error ;
- __1u__shapes__lookups__dynamic____buffer_alignment = 1 ;
- __1u__shapes__lookups__dynamic____buffer_size = ((u64*) shapes__lookups__dynamic )[1] ;
- __1u__shapes__lookups__dynamic____buffer_capacity = ((u64*) shapes__lookups__dynamic )[2] & ~(1ULL << 63) ;
- if( __1u__shapes__lookups__dynamic____buffer_size >= __1u__shapes__lookups__dynamic____buffer_capacity ){ if( ((u64*) shapes__lookups__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __1u__shapes__lookups__dynamic____buffer_capacity = __1u__shapes__lookups__dynamic____buffer_capacity +( __1u__shapes__lookups__dynamic____buffer_capacity >>2)+1; if( __1u__shapes__lookups__dynamic____buffer_size ) ((void**) shapes__lookups__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__lookups__dynamic )[0],  __1u__shapes__lookups__dynamic____buffer_capacity * __1u__shapes__lookups__dynamic____buffer_alignment *sizeof(u64),  __1u__shapes__lookups__dynamic____buffer_capacity * __1u__shapes__lookups__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__lookups__dynamic )[0] = __runtime_alloc( __1u__shapes__lookups__dynamic____buffer_capacity * __1u__shapes__lookups__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__lookups__dynamic )[2] = __1u__shapes__lookups__dynamic____buffer_capacity ;
- __1u__shapes__lookups__dynamic____buffer_contents = (ptr)((void**) shapes__lookups__dynamic )[0] ;
- if( ! __1u__shapes__lookups__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __1u__shapes__lookups__dynamic____buffer_contents = (ptr)(((u64*) shapes__lookups__dynamic )[0]) ;
- ((u64*) shapes__lookups__dynamic )[1] = __1u__shapes__lookups__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __1u__shapes__lookups__dynamic____buffer_contents )[ __1u__shapes__lookups__dynamic____buffer_size * __1u__shapes__lookups__dynamic____buffer_alignment ], & __1u____buffer_size , sizeof(u64)); __1u____eu = 2 ;
+ __R0G = 1 ;
+ __S0G = ((u64*) shapes__lookups__dynamic )[1] ;
+ __T0G = ((u64*) shapes__lookups__dynamic )[2] & ~(1ULL << 63) ;
+ if( __S0G >= __T0G ){ if( ((u64*) shapes__lookups__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __T0G = __T0G +( __T0G >>2)+1; if( __S0G ) ((void**) shapes__lookups__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__lookups__dynamic )[0],  __T0G * __R0G *sizeof(u64),  __T0G * __R0G *sizeof(u64)); else ((void**) shapes__lookups__dynamic )[0] = __runtime_alloc( __T0G * __R0G *sizeof(u64)); ((u64*) shapes__lookups__dynamic )[2] = __T0G ;
+ __U0G = (ptr)((void**) shapes__lookups__dynamic )[0] ;
+ if(! __U0G )goto __result__buffer_error ;
+ } else  __U0G = (ptr)(((u64*) shapes__lookups__dynamic )[0]) ;
+ ((u64*) shapes__lookups__dynamic )[1] = __S0G +1 ;
+ memcpy(&((u64*) __U0G )[ __S0G * __R0G ], & __PyG , sizeof(u64)); __V0G = __Q0G ;
+ __W0G = 1 ;
  if(! shapes__types__dynamic )goto __result__buffer_error ;
- __1u__shapes__types__dynamic____buffer_alignment = 1 ;
- __1u__shapes__types__dynamic____buffer_size = ((u64*) shapes__types__dynamic )[1] ;
- __1u__shapes__types__dynamic____buffer_capacity = ((u64*) shapes__types__dynamic )[2] & ~(1ULL << 63) ;
- if( __1u__shapes__types__dynamic____buffer_size >= __1u__shapes__types__dynamic____buffer_capacity ){ if( ((u64*) shapes__types__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __1u__shapes__types__dynamic____buffer_capacity = __1u__shapes__types__dynamic____buffer_capacity +( __1u__shapes__types__dynamic____buffer_capacity >>2)+1; if( __1u__shapes__types__dynamic____buffer_size ) ((void**) shapes__types__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__types__dynamic )[0],  __1u__shapes__types__dynamic____buffer_capacity * __1u__shapes__types__dynamic____buffer_alignment *sizeof(u64),  __1u__shapes__types__dynamic____buffer_capacity * __1u__shapes__types__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__types__dynamic )[0] = __runtime_alloc( __1u__shapes__types__dynamic____buffer_capacity * __1u__shapes__types__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__types__dynamic )[2] = __1u__shapes__types__dynamic____buffer_capacity ;
- __1u__shapes__types__dynamic____buffer_contents = (ptr)((void**) shapes__types__dynamic )[0] ;
- if( ! __1u__shapes__types__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __1u__shapes__types__dynamic____buffer_contents = (ptr)(((u64*) shapes__types__dynamic )[0]) ;
- ((u64*) shapes__types__dynamic )[1] = __1u__shapes__types__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __1u__shapes__types__dynamic____buffer_contents )[ __1u__shapes__types__dynamic____buffer_size * __1u__shapes__types__dynamic____buffer_alignment ], & __1u____eu , sizeof(u64)); if(! shapes__circles__dynamic )goto __result__buffer_error ;
- __1u__shapes__circles__dynamic____buffer_alignment = 1 ;
- __1u__shapes__circles__dynamic____buffer_size = ((u64*) shapes__circles__dynamic )[1] ;
- __1u__shapes__circles__dynamic____buffer_capacity = ((u64*) shapes__circles__dynamic )[2] & ~(1ULL << 63) ;
- if( __1u__shapes__circles__dynamic____buffer_size >= __1u__shapes__circles__dynamic____buffer_capacity ){ if( ((u64*) shapes__circles__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __1u__shapes__circles__dynamic____buffer_capacity = __1u__shapes__circles__dynamic____buffer_capacity +( __1u__shapes__circles__dynamic____buffer_capacity >>2)+1; if( __1u__shapes__circles__dynamic____buffer_size ) ((void**) shapes__circles__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__circles__dynamic )[0],  __1u__shapes__circles__dynamic____buffer_capacity * __1u__shapes__circles__dynamic____buffer_alignment *sizeof(u64),  __1u__shapes__circles__dynamic____buffer_capacity * __1u__shapes__circles__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__circles__dynamic )[0] = __runtime_alloc( __1u__shapes__circles__dynamic____buffer_capacity * __1u__shapes__circles__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__circles__dynamic )[2] = __1u__shapes__circles__dynamic____buffer_capacity ;
- __1u__shapes__circles__dynamic____buffer_contents = (ptr)((void**) shapes__circles__dynamic )[0] ;
- if( ! __1u__shapes__circles__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __1u__shapes__circles__dynamic____buffer_contents = (ptr)(((u64*) shapes__circles__dynamic )[0]) ;
- ((u64*) shapes__circles__dynamic )[1] = __1u__shapes__circles__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __1u__shapes__circles__dynamic____buffer_contents )[ __1u__shapes__circles__dynamic____buffer_size * __1u__shapes__circles__dynamic____buffer_alignment +0], & __zu , sizeof(f64)); __1u____end :
- shapes____Bp = __1u__shapes____Bp ;
- shapes__memory____zO = __1u__shapes__memory____zO ;
- __4u = 5.0 ;
- __6u____buffer_size = shapes__squares__dynamic ? ((u64*) shapes__squares__dynamic )[1]:0 ;
+ __X0G = 1 ;
+ __Y0G = ((u64*) shapes__types__dynamic )[1] ;
+ __Z0G = ((u64*) shapes__types__dynamic )[2] & ~(1ULL << 63) ;
+ if( __Y0G >= __Z0G ){ if( ((u64*) shapes__types__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __Z0G = __Z0G +( __Z0G >>2)+1; if( __Y0G ) ((void**) shapes__types__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__types__dynamic )[0],  __Z0G * __X0G *sizeof(u64),  __Z0G * __X0G *sizeof(u64)); else ((void**) shapes__types__dynamic )[0] = __runtime_alloc( __Z0G * __X0G *sizeof(u64)); ((u64*) shapes__types__dynamic )[2] = __Z0G ;
+ __a0G = (ptr)((void**) shapes__types__dynamic )[0] ;
+ if(! __a0G )goto __result__buffer_error ;
+ } else  __a0G = (ptr)(((u64*) shapes__types__dynamic )[0]) ;
+ ((u64*) shapes__types__dynamic )[1] = __Y0G +1 ;
+ memcpy(&((u64*) __a0G )[ __Y0G * __X0G ], & __W0G , sizeof(u64)); if(! shapes__circles__dynamic )goto __result__buffer_error ;
+ __b0G = 1 ;
+ __c0G = ((u64*) shapes__circles__dynamic )[1] ;
+ __d0G = ((u64*) shapes__circles__dynamic )[2] & ~(1ULL << 63) ;
+ if( __c0G >= __d0G ){ if( ((u64*) shapes__circles__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __d0G = __d0G +( __d0G >>2)+1; if( __c0G ) ((void**) shapes__circles__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__circles__dynamic )[0],  __d0G * __b0G *sizeof(u64),  __d0G * __b0G *sizeof(u64)); else ((void**) shapes__circles__dynamic )[0] = __runtime_alloc( __d0G * __b0G *sizeof(u64)); ((u64*) shapes__circles__dynamic )[2] = __d0G ;
+ __e0G = (ptr)((void**) shapes__circles__dynamic )[0] ;
+ if(! __e0G )goto __result__buffer_error ;
+ } else  __e0G = (ptr)(((u64*) shapes__circles__dynamic )[0]) ;
+ ((u64*) shapes__circles__dynamic )[1] = __c0G +1 ;
+ memcpy(&((u64*) __e0G )[ __c0G * __b0G +0], & __Q0G , sizeof(f64)); __f0G :
+ shapes____anG = __g0G ;
+ __h0G = 5.0 ;
+ __i0G = shapes__squares__dynamic ? ((u64*) shapes__squares__dynamic )[1]:0 ;
  if(! shapes__lookups__dynamic )goto __result__buffer_error ;
- __6u__shapes__lookups__dynamic____buffer_alignment = 1 ;
- __6u__shapes__lookups__dynamic____buffer_size = ((u64*) shapes__lookups__dynamic )[1] ;
- __6u__shapes__lookups__dynamic____buffer_capacity = ((u64*) shapes__lookups__dynamic )[2] & ~(1ULL << 63) ;
- if( __6u__shapes__lookups__dynamic____buffer_size >= __6u__shapes__lookups__dynamic____buffer_capacity ){ if( ((u64*) shapes__lookups__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __6u__shapes__lookups__dynamic____buffer_capacity = __6u__shapes__lookups__dynamic____buffer_capacity +( __6u__shapes__lookups__dynamic____buffer_capacity >>2)+1; if( __6u__shapes__lookups__dynamic____buffer_size ) ((void**) shapes__lookups__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__lookups__dynamic )[0],  __6u__shapes__lookups__dynamic____buffer_capacity * __6u__shapes__lookups__dynamic____buffer_alignment *sizeof(u64),  __6u__shapes__lookups__dynamic____buffer_capacity * __6u__shapes__lookups__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__lookups__dynamic )[0] = __runtime_alloc( __6u__shapes__lookups__dynamic____buffer_capacity * __6u__shapes__lookups__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__lookups__dynamic )[2] = __6u__shapes__lookups__dynamic____buffer_capacity ;
- __6u__shapes__lookups__dynamic____buffer_contents = (ptr)((void**) shapes__lookups__dynamic )[0] ;
- if( ! __6u__shapes__lookups__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __6u__shapes__lookups__dynamic____buffer_contents = (ptr)(((u64*) shapes__lookups__dynamic )[0]) ;
- ((u64*) shapes__lookups__dynamic )[1] = __6u__shapes__lookups__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __6u__shapes__lookups__dynamic____buffer_contents )[ __6u__shapes__lookups__dynamic____buffer_size * __6u__shapes__lookups__dynamic____buffer_alignment ], & __6u____buffer_size , sizeof(u64)); __6u____Ou = 3 ;
+ __j0G = 1 ;
+ __k0G = ((u64*) shapes__lookups__dynamic )[1] ;
+ __l0G = ((u64*) shapes__lookups__dynamic )[2] & ~(1ULL << 63) ;
+ if( __k0G >= __l0G ){ if( ((u64*) shapes__lookups__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __l0G = __l0G +( __l0G >>2)+1; if( __k0G ) ((void**) shapes__lookups__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__lookups__dynamic )[0],  __l0G * __j0G *sizeof(u64),  __l0G * __j0G *sizeof(u64)); else ((void**) shapes__lookups__dynamic )[0] = __runtime_alloc( __l0G * __j0G *sizeof(u64)); ((u64*) shapes__lookups__dynamic )[2] = __l0G ;
+ __m0G = (ptr)((void**) shapes__lookups__dynamic )[0] ;
+ if(! __m0G )goto __result__buffer_error ;
+ } else  __m0G = (ptr)(((u64*) shapes__lookups__dynamic )[0]) ;
+ ((u64*) shapes__lookups__dynamic )[1] = __k0G +1 ;
+ memcpy(&((u64*) __m0G )[ __k0G * __j0G ], & __i0G , sizeof(u64)); __n0G = __h0G ;
+ __o0G = 2 ;
  if(! shapes__types__dynamic )goto __result__buffer_error ;
- __6u__shapes__types__dynamic____buffer_alignment = 1 ;
- __6u__shapes__types__dynamic____buffer_size = ((u64*) shapes__types__dynamic )[1] ;
- __6u__shapes__types__dynamic____buffer_capacity = ((u64*) shapes__types__dynamic )[2] & ~(1ULL << 63) ;
- if( __6u__shapes__types__dynamic____buffer_size >= __6u__shapes__types__dynamic____buffer_capacity ){ if( ((u64*) shapes__types__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __6u__shapes__types__dynamic____buffer_capacity = __6u__shapes__types__dynamic____buffer_capacity +( __6u__shapes__types__dynamic____buffer_capacity >>2)+1; if( __6u__shapes__types__dynamic____buffer_size ) ((void**) shapes__types__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__types__dynamic )[0],  __6u__shapes__types__dynamic____buffer_capacity * __6u__shapes__types__dynamic____buffer_alignment *sizeof(u64),  __6u__shapes__types__dynamic____buffer_capacity * __6u__shapes__types__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__types__dynamic )[0] = __runtime_alloc( __6u__shapes__types__dynamic____buffer_capacity * __6u__shapes__types__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__types__dynamic )[2] = __6u__shapes__types__dynamic____buffer_capacity ;
- __6u__shapes__types__dynamic____buffer_contents = (ptr)((void**) shapes__types__dynamic )[0] ;
- if( ! __6u__shapes__types__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __6u__shapes__types__dynamic____buffer_contents = (ptr)(((u64*) shapes__types__dynamic )[0]) ;
- ((u64*) shapes__types__dynamic )[1] = __6u__shapes__types__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __6u__shapes__types__dynamic____buffer_contents )[ __6u__shapes__types__dynamic____buffer_size * __6u__shapes__types__dynamic____buffer_alignment ], & __6u____Ou , sizeof(u64)); if(! shapes__squares__dynamic )goto __result__buffer_error ;
- __6u__shapes__squares__dynamic____buffer_alignment = 1 ;
- __6u__shapes__squares__dynamic____buffer_size = ((u64*) shapes__squares__dynamic )[1] ;
- __6u__shapes__squares__dynamic____buffer_capacity = ((u64*) shapes__squares__dynamic )[2] & ~(1ULL << 63) ;
- if( __6u__shapes__squares__dynamic____buffer_size >= __6u__shapes__squares__dynamic____buffer_capacity ){ if( ((u64*) shapes__squares__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __6u__shapes__squares__dynamic____buffer_capacity = __6u__shapes__squares__dynamic____buffer_capacity +( __6u__shapes__squares__dynamic____buffer_capacity >>2)+1; if( __6u__shapes__squares__dynamic____buffer_size ) ((void**) shapes__squares__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__squares__dynamic )[0],  __6u__shapes__squares__dynamic____buffer_capacity * __6u__shapes__squares__dynamic____buffer_alignment *sizeof(u64),  __6u__shapes__squares__dynamic____buffer_capacity * __6u__shapes__squares__dynamic____buffer_alignment *sizeof(u64)); else ((void**) shapes__squares__dynamic )[0] = __runtime_alloc( __6u__shapes__squares__dynamic____buffer_capacity * __6u__shapes__squares__dynamic____buffer_alignment *sizeof(u64)); ((u64*) shapes__squares__dynamic )[2] = __6u__shapes__squares__dynamic____buffer_capacity ;
- __6u__shapes__squares__dynamic____buffer_contents = (ptr)((void**) shapes__squares__dynamic )[0] ;
- if( ! __6u__shapes__squares__dynamic____buffer_contents )goto __result__buffer_error ;
- } else  __6u__shapes__squares__dynamic____buffer_contents = (ptr)(((u64*) shapes__squares__dynamic )[0]) ;
- ((u64*) shapes__squares__dynamic )[1] = __6u__shapes__squares__dynamic____buffer_size +1 ;
- memcpy(&((u64*) __6u__shapes__squares__dynamic____buffer_contents )[ __6u__shapes__squares__dynamic____buffer_size * __6u__shapes__squares__dynamic____buffer_alignment +0], & __4u , sizeof(f64)); __6u____end :
- shapes____Bp = __6u__shapes____Bp ;
- shapes__memory____zO = __6u__shapes__memory____zO ;
- __7u____buffer_size = shapes__types__dynamic ? ((u64*) shapes__types__dynamic )[1]:0 ;
- __8u__sup = __7u____buffer_size ;
- __8u____wD = 0 ;
- __8u____xD = 1 ;
- __8u__start = __8u____wD ;
- __8u__step = __8u____xD ;
- __8u__pos = __8u____wD ;
- __9u__loop :
- __Av__self__pos = __8u__pos ;
- __Av__value = i ;
- __Av__value = __Av__self__pos ;
- __Av____zD = 1 ;
- __Av____0D__z = __Av__self__pos + __Av____zD ; 
- __Av____0D____end :
- __Av__self__pos = __Av____0D__z ;
- __Av____1D__z = __Av__self__pos <= __8u__sup ; 
- __Av____1D____end :
- __8u__pos = __Av__self__pos ;
- if(! __Av____1D__z )goto __9u__while ;
- __Dv__side = 0 ;
+ __8zG = 1 ;
+ __p0G = ((u64*) shapes__types__dynamic )[1] ;
+ __q0G = ((u64*) shapes__types__dynamic )[2] & ~(1ULL << 63) ;
+ if( __p0G >= __q0G ){ if( ((u64*) shapes__types__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __q0G = __q0G +( __q0G >>2)+1; if( __p0G ) ((void**) shapes__types__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__types__dynamic )[0],  __q0G * __8zG *sizeof(u64),  __q0G * __8zG *sizeof(u64)); else ((void**) shapes__types__dynamic )[0] = __runtime_alloc( __q0G * __8zG *sizeof(u64)); ((u64*) shapes__types__dynamic )[2] = __q0G ;
+ __r0G = (ptr)((void**) shapes__types__dynamic )[0] ;
+ if(! __r0G )goto __result__buffer_error ;
+ } else  __r0G = (ptr)(((u64*) shapes__types__dynamic )[0]) ;
+ ((u64*) shapes__types__dynamic )[1] = __p0G +1 ;
+ memcpy(&((u64*) __r0G )[ __p0G * __8zG ], & __o0G , sizeof(u64)); if(! shapes__squares__dynamic )goto __result__buffer_error ;
+ __s0G = 1 ;
+ __t0G = ((u64*) shapes__squares__dynamic )[1] ;
+ __u0G = ((u64*) shapes__squares__dynamic )[2] & ~(1ULL << 63) ;
+ if( __t0G >= __u0G ){ if( ((u64*) shapes__squares__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ __u0G = __u0G +( __u0G >>2)+1; if( __t0G ) ((void**) shapes__squares__dynamic )[0] = __runtime_realloc((u64*)((void**) shapes__squares__dynamic )[0],  __u0G * __s0G *sizeof(u64),  __u0G * __s0G *sizeof(u64)); else ((void**) shapes__squares__dynamic )[0] = __runtime_alloc( __u0G * __s0G *sizeof(u64)); ((u64*) shapes__squares__dynamic )[2] = __u0G ;
+ __v0G = (ptr)((void**) shapes__squares__dynamic )[0] ;
+ if(! __v0G )goto __result__buffer_error ;
+ } else  __v0G = (ptr)(((u64*) shapes__squares__dynamic )[0]) ;
+ ((u64*) shapes__squares__dynamic )[1] = __t0G +1 ;
+ memcpy(&((u64*) __v0G )[ __t0G * __s0G +0], & __h0G , sizeof(f64)); __w0G :
+ shapes____anG = __szG ;
+ __x0G = "=== Volumes ===" ;
+ printf ( "%s\n" , __x0G ); 
+ __y0G :
+ __D0G = shapes__types__dynamic ? ((u64*) shapes__types__dynamic )[1]:0 ;
+ __AxG = __D0G ;
+ __9wG = 0 ;
+ __8wG = 1 ;
+ __7wG = __9wG ;
+ __6wG = __8wG ;
+ __5wG = __9wG ;
+ __4wG :
+ __3wG = __5wG ;
+ __2wG = i ;
+ __2wG = __3wG ;
+ __1wG = 1 ;
+ __0wG = __3wG + __1wG ; 
+ __zwG :
+ __3wG = __0wG ;
+ __ywG = __3wG <= __AxG ; 
+ __xwG :
+ __5wG = __3wG ;
+ if(! __ywG )goto __wwG ;
+ __vwG = 0 ;
  if(! shapes__types__dynamic )goto __result__buffer_error ;
- __Fv__self__types__dynamic____buffer_alignment = 1 ;
- __Fv__self__types__dynamic____buffer_size = ((u64*) shapes__types__dynamic )[1] ;
- if( __Av__value >= __Fv__self__types__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(& __Fv____jq , &((u64*)((u64*) shapes__types__dynamic )[0])[ __Av__value * __Fv__self__types__dynamic____buffer_alignment +0], sizeof( tag )) ;
- __Fv____kq = 3 ;
- __Fv____lq__z =( __Fv____jq == __Fv____kq ); 
- __Fv____lq____end :
- if(! __Fv____lq__z )goto __Bv__fi ;
- __Hv__side = 0 ;
+ __uwG = 1 ;
+ __twG = ((u64*) shapes__types__dynamic )[1] ;
+ if( __2wG >= __twG )goto __result__buffer_error ;
+ memcpy(& __swG , &((u64*)((u64*) shapes__types__dynamic )[0])[ __2wG * __uwG +0], sizeof( tag )) ;
+ __rwG = 0 ;
+ __qwG = 2 ;
+ __pwG =( __swG == __qwG ); 
+ __owG :
+ if(! __pwG )goto __nwG ;
+ __mwG = "Square: " ;
+ printf ( "%s" , __mwG ); 
+ __lwG :
+ __kwG = 0 ;
  if(! shapes__types__dynamic )goto __result__buffer_error ;
- __Jv__shapes__types__dynamic____buffer_alignment = 1 ;
- __Jv__shapes__types__dynamic____buffer_size = ((u64*) shapes__types__dynamic )[1] ;
- if( __Av__value >= __Jv__shapes__types__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(& __Jv____zt , &((u64*)((u64*) shapes__types__dynamic )[0])[ __Av__value * __Jv__shapes__types__dynamic____buffer_alignment +0], sizeof( tag )) ;
- __Jv____1t = 3 ;
- __Jv____2t__z =( __Jv____zt != __Jv____1t ); 
- __Jv____2t____end :
- if(! __Jv____2t__z )goto __Jv____0t__fi ;
- __Jv____3t = "Trying to access a non-square" ;
- goto __Jv____4t____oD ;
+ __jwG = 1 ;
+ __iwG = ((u64*) shapes__types__dynamic )[1] ;
+ if( __2wG >= __iwG )goto __result__buffer_error ;
+ memcpy(& __hwG , &((u64*)((u64*) shapes__types__dynamic )[0])[ __2wG * __jwG +0], sizeof( tag )) ;
+ __gwG = 0 ;
+ __fwG = 2 ;
+ __izG =( __hwG != __fwG ); 
+ __ewG :
+ if(! __izG )goto __dwG ;
+ __cwG = "Trying to access a different shape" ;
+ goto __bwG ;
  __builtin_unreachable();
- __Jv____0t__fi :
+ __dwG :
  if(! shapes__lookups__dynamic )goto __result__buffer_error ;
- __Jv__shapes__lookups__dynamic____buffer_alignment = 1 ;
- __Jv__shapes__lookups__dynamic____buffer_size = ((u64*) shapes__lookups__dynamic )[1] ;
- if( __Av__value >= __Jv__shapes__lookups__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(& __Jv____6t , &((u64*)((u64*) shapes__lookups__dynamic )[0])[ __Av__value * __Jv__shapes__lookups__dynamic____buffer_alignment +0], sizeof( u64 )) ;
+ __awG = 1 ;
+ __ZwG = ((u64*) shapes__lookups__dynamic )[1] ;
+ if( __2wG >= __ZwG )goto __result__buffer_error ;
+ memcpy(& __YwG , &((u64*)((u64*) shapes__lookups__dynamic )[0])[ __2wG * __awG +0], sizeof( u64 )) ;
  if(! shapes__squares__dynamic )goto __result__buffer_error ;
- __Jv__shapes__squares__dynamic____buffer_alignment = 1 ;
- __Jv__shapes__squares__dynamic____buffer_size = ((u64*) shapes__squares__dynamic )[1] ;
- if( __Jv____6t >= __Jv__shapes__squares__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(& __Jv____9t , &((u64*)((void**) shapes__squares__dynamic )[0])[ __Jv____6t * __Jv__shapes__squares__dynamic____buffer_alignment +0], sizeof( f64 )) ;
- __Kv = 1.0 ;
- __Lv____Pn____Mn__z = __Jv____9t * __Jv____9t ; 
- __Lv____Pn____Mn____end :
- __Lv____Qn__z = __Lv____Pn____Mn__z * __Kv ; 
- __Lv____Qn____end :
- printf ( "%.6f\n" , __Lv____Qn__z ); 
- __Mv____end :
- goto __Bv__el ;
- __Bv__fi :
- __Ov__radius = 0 ;
+ __XwG = 1 ;
+ __WwG = ((u64*) shapes__squares__dynamic )[1] ;
+ if( __YwG >= __WwG )goto __result__buffer_error ;
+ memcpy(& __VwG , &((u64*)((void**) shapes__squares__dynamic )[0])[ __YwG * __XwG +0], sizeof( f64 )) ;
+ __UwG = 1.0 ;
+ __TwG = __VwG * __VwG ; 
+ __SwG :
+ __RwG = __TwG * __UwG ; 
+ __QwG :
+ printf ( "%.6f\n" , __RwG ); 
+ __PwG :
+ goto __OwG ;
+ __nwG :
+ __NwG = "Circle: " ;
+ printf ( "%s" , __NwG ); 
+ __MwG :
+ __LwG = 0 ;
  if(! shapes__types__dynamic )goto __result__buffer_error ;
- __Qv__self__types__dynamic____buffer_alignment = 1 ;
- __Qv__self__types__dynamic____buffer_size = ((u64*) shapes__types__dynamic )[1] ;
- if( __Av__value >= __Qv__self__types__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(& __Qv____Is , &((u64*)((u64*) shapes__types__dynamic )[0])[ __Av__value * __Qv__self__types__dynamic____buffer_alignment +0], sizeof( tag )) ;
- __Qv____Ks = 2 ;
- __Qv____Ls__z =( __Qv____Is != __Qv____Ks ); 
- __Qv____Ls____end :
- if(! __Qv____Ls__z )goto __Qv____Js__fi ;
- __Qv____Ms = "Trying to access a non-circle" ;
- goto __Qv____Ns____oD ;
+ __KwG = 1 ;
+ __JwG = ((u64*) shapes__types__dynamic )[1] ;
+ if( __2wG >= __JwG )goto __result__buffer_error ;
+ memcpy(& __IwG , &((u64*)((u64*) shapes__types__dynamic )[0])[ __2wG * __KwG +0], sizeof( tag )) ;
+ __HwG = 0 ;
+ __GwG = 1 ;
+ __FwG =( __IwG != __GwG ); 
+ __EwG :
+ if(! __FwG )goto __DwG ;
+ __CwG = "Trying to access a different shape" ;
+ goto __BwG ;
  __builtin_unreachable();
- __Qv____Js__fi :
+ __DwG :
  if(! shapes__lookups__dynamic )goto __result__buffer_error ;
- __Qv__self__lookups__dynamic____buffer_alignment = 1 ;
- __Qv__self__lookups__dynamic____buffer_size = ((u64*) shapes__lookups__dynamic )[1] ;
- if( __Av__value >= __Qv__self__lookups__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(& __Qv____Ps , &((u64*)((u64*) shapes__lookups__dynamic )[0])[ __Av__value * __Qv__self__lookups__dynamic____buffer_alignment +0], sizeof( u64 )) ;
- if(! shapes__circles__dynamic )goto __result__buffer_error ;
- __Qv__self__circles__dynamic____buffer_alignment = 1 ;
- __Qv__self__circles__dynamic____buffer_size = ((u64*) shapes__circles__dynamic )[1] ;
- if( __Qv____Ps >= __Qv__self__circles__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(& __Qv____Ss , &((u64*)((void**) shapes__circles__dynamic )[0])[ __Qv____Ps * __Qv__self__circles__dynamic____buffer_alignment +0], sizeof( f64 )) ;
- __Rv = 1.0 ;
- __Sv____Nn____Hn__z = __Qv____Ss * __Qv____Ss ; 
- __Sv____Nn____Hn____end :
- __Sv____Nn____In__z = __Sv____Nn____Hn__z * M_PI ; 
- __Sv____Nn____In____end :
- __Sv____Nn____Jn = 2.0 ;
- __Sv____Nn____Kn__z = __Sv____Nn____In__z / __Sv____Nn____Jn ; 
- __Sv____Nn____Kn____end :
- __Sv____On__z = __Sv____Nn____Kn__z * __Rv ; 
- __Sv____On____end :
- printf ( "%.6f\n" , __Sv____On__z ); 
- __Tv____end :
- __Bv__el :
- goto __9u__loop ;
- __9u__while :
- __end :
+ __AwG = 1 ;
+ __9vG = ((u64*) shapes__lookups__dynamic )[1] ;
+ if( __2wG >= __9vG )goto __result__buffer_error ;
+ memcpy(& __8vG , &((u64*)((u64*) shapes__lookups__dynamic )[0])[ __2wG * __AwG +0], sizeof( u64 )) ;
+ if(! shapes__squares__dynamic )goto __result__buffer_error ;
+ __7vG = 1 ;
+ __6vG = ((u64*) shapes__squares__dynamic )[1] ;
+ if( __8vG >= __6vG )goto __result__buffer_error ;
+ memcpy(& __5vG , &((u64*)((void**) shapes__squares__dynamic )[0])[ __8vG * __7vG +0], sizeof( f64 )) ;
+ __4vG = 1.0 ;
+ __3vG = __5vG * __5vG ; 
+ __2vG :
+ __1vG = __3vG * __4vG ; 
+ __0vG :
+ printf ( "%.6f\n" , __1vG ); 
+ __zvG :
+ __OwG :
+ goto __4wG ;
+ __wwG :
+ __yvG :
 goto __return;
 
 // ERROR HANDLING
-__Qv____Ns____oD :
- printf ( "%s\n" , __Qv____Ms ); 
+__BwG :
+ printf ( "%s\n" , __CwG ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
-__Jv____4t____oD :
- printf ( "%s\n" , __Jv____3t ); 
+__bwG :
+ printf ( "%s\n" , __cwG ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
 __result__buffer_error :
 printf("Buffer error\n");
 __result__errocode=__BUFFER__ERROR;
-goto __failsafe;
-__mu____Qp____NQ____HP____oD :
- printf ( "%s\n" , __mu____Qp____NQ____GP ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__mu____Mp____NQ____LP____oD :
- printf ( "%s\n" , __mu____Mp____NQ____KP ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__mu____Ip____NQ____LP____oD :
- printf ( "%s\n" , __mu____Ip____NQ____KP ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__mu____Ip____NQ____HP____oD :
- printf ( "%s\n" , __mu____Ip____NQ____GP ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__mu____Qp____NQ____LP____oD :
- printf ( "%s\n" , __mu____Qp____NQ____KP ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__mu____Mp____NQ____HP____oD :
- printf ( "%s\n" , __mu____Mp____NQ____GP ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__mu____Ep____NQ____LP____oD :
- printf ( "%s\n" , __mu____Ep____NQ____KP ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__mu____Ep____NQ____HP____oD :
- printf ( "%s\n" , __mu____Ep____NQ____GP ); 
-__result__errocode=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -749,24 +506,26 @@ __failsafe:
 
 // HOTPATH SKIPS TO HERE
 __return:
-if( __mu__lookups__dynamic ) __runtime_free( __mu__lookups__dynamic ) ;
- __mu__lookups__dynamic = 0 ;
-if( __mu__circles__dynamic ) __runtime_free( __mu__circles__dynamic ) ;
- __mu__circles__dynamic = 0 ;
-if( __mu__types__dynamic ) __runtime_free( __mu__types__dynamic ) ;
- __mu__types__dynamic = 0 ;
-if( __mu__squares__dynamic ) __runtime_free( __mu__squares__dynamic ) ;
- __mu__squares__dynamic = 0 ;
-if ( __ku__acquired ) { for ( __ku____dynamic_entry =0; __ku____dynamic_entry < __ku__size ;++ __ku____dynamic_entry ) { __runtime_free ((( ptr **) __ku__acquired )[0][ __ku____dynamic_entry ]); } __runtime_free ( __ku__acquired ); __ku__acquired =0; __ku__size =0; __ku__allocated =0; } 
- if ( __ku__acquired ) { for ( __ku____5O____dynamic_entry =0; __ku____5O____dynamic_entry < __ku____5O____0O ;++ __ku____5O____dynamic_entry ) { __runtime_free ((( ptr **) __ku__acquired )[0][ __ku____5O____dynamic_entry ]); } __runtime_free ( __ku__acquired ); __ku__acquired =0; __ku____5O____0O =0; __ku____5O____1O =0; } 
-__state->err =  __result__errocode;
+if( __8pG__lookups__dynamic ){if((u64*)((u64*) __8pG__lookups__dynamic )[2]) __runtime_free((u64*)((u64*) __8pG__lookups__dynamic )[0]) ;
+ __runtime_free( __8pG__lookups__dynamic ) ;
+ __8pG__lookups__dynamic = 0 ;
+ }if( __8pG__types__dynamic ){if((u64*)((u64*) __8pG__types__dynamic )[2]) __runtime_free((u64*)((u64*) __8pG__types__dynamic )[0]) ;
+ __runtime_free( __8pG__types__dynamic ) ;
+ __8pG__types__dynamic = 0 ;
+ }if( __8pG__circles__dynamic ){if((u64*)((u64*) __8pG__circles__dynamic )[2]) __runtime_free((u64*)((u64*) __8pG__circles__dynamic )[0]) ;
+ __runtime_free( __8pG__circles__dynamic ) ;
+ __8pG__circles__dynamic = 0 ;
+ }if( __8pG__squares__dynamic ){if((u64*)((u64*) __8pG__squares__dynamic )[2]) __runtime_free((u64*)((u64*) __8pG__squares__dynamic )[0]) ;
+ __runtime_free( __8pG__squares__dynamic ) ;
+ __8pG__squares__dynamic = 0 ;
+ }__state->err =  __result__errocode;
 }
 
 
 
 int main() {
-struct main__590__state __main_args={0};
-__smolambda_initialize_service_tasks(main__590, &__main_args);
+struct main__882__state __main_args={0};
+__smolambda_initialize_service_tasks(main__882, &__main_args);
 return __main_args.err;
 }
 

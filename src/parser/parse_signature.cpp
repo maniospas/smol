@@ -326,7 +326,7 @@ bool Def::start_option_resolution(const Types& _types) {
     catch(const runtime_error& e) {
         string what = e.what();
         log_depth -= 1;
-        const string expected = "\033[33m`with` with no `else`";
+        const string expected = "\033[33m`with` with no alternative";
         if(what.compare(0, expected.size(), expected) != 0) 
             throw e;
         return false;
@@ -392,7 +392,7 @@ bool Def::complete_option_resolution(const Types& _types) {
     catch(const runtime_error& e) {
         string what = e.what();
         log_depth -= 1;
-        const string expected = "\033[33m`with` with no `else`";
+        const string expected = "\033[33m`with` with no alternative";
         if(what.compare(0, expected.size(), expected) != 0) 
             throw e;
         return false;
@@ -443,10 +443,10 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         all_types.push_back(def);
     }
     if(options.size()==0) 
-        imp->error(pos, "Failed to resolve to any valid version"
-            "\nCheck your `with` statements that have no `else`"
-            "\nor if you have runtypes that serve as constructors of"
-            "\nothers with the same name or in the same union"
+        imp->error(pos, "Failed to show that a valid version exists.\n"
+            "Check your `with` statements that have no alternatives"
+            " or if you have functions that either wrap namesake type"
+            " constructors or are in the same union."
         );
     return options;
 }

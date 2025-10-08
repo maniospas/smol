@@ -208,6 +208,8 @@ class Def : public enable_shared_from_this<Def> {
     Variable next_var_at(Variable next, size_t& p, Types& types);
 public:
     void simplify();
+    void prune();
+    void rename(std::unordered_map<Variable, Variable>& renaming);
     static bool calls_on_heap;
     unordered_set<Variable> can_access_mutable_fields;
     unordered_map<Variable, Type> vars;
@@ -231,6 +233,7 @@ public:
     bool unresolved_options;
     bool has_tried_to_resolve_before;
     bool noassign;
+    bool proving;
     static bool debug;
     static bool export_docs;
     vector<Type> options;
@@ -268,8 +271,8 @@ public:
     string raw_signature_state_name() const;
 
     // constructors
-    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(builtin), number_of_calls(0) {}
-    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(""), number_of_calls(0) {
+    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), proving(false), name(builtin), number_of_calls(0) {}
+    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), proving(false), name(""), number_of_calls(0) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;

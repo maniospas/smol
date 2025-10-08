@@ -120,7 +120,7 @@ Variable Def::parse_buffer_expect(size_t& p, Types& types, Variable curry, size_
     implementation += Code(curry+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), curry, Variable(")[0])"), SEMICOLON_VAR);
 
     //vars[fail_var] = types.vars[LABEL_VAR];
-    implementation += Code(token_if, Variable("!"), curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
+    implementation += Code(token_ifnot, curry+Variable("__buffer_contents"), token_goto, fail_var, SEMICOLON_VAR);
     errors.insert(Code(fail_var, token_print));
 
     implementation += Code(Variable("} else "));

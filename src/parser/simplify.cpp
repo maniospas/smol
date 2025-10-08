@@ -71,14 +71,13 @@ void Def::simplify() {
         }
     
 
-    unordered_map<Variable, Variable> renaming;
-    Code code;
+    auto renaming = unordered_map<Variable, Variable>{};
+    auto code = Code{};
     code.segments.reserve(implementation.segments.size()/8);
     for(size_t i=0;i<n;++i) {
         Variable var = implementation.segments[i];
-        if(renaming.find(var)!=renaming.end() && implementation.segments[i-1]!=ARROW_VAR) {
+        if(renaming.find(var)!=renaming.end() && implementation.segments[i-1]!=ARROW_VAR) 
             var = renaming[var];
-        }
         // rename assignments to variables that have been assigned to once, or which are private
         if(i<n-3 
             && (i==0 || implementation.segments[i-1]==SEMICOLON_VAR || implementation.segments[i-1]==COLON_VAR ) 
@@ -142,7 +141,7 @@ void Def::simplify() {
     // update errors and finals
     unordered_set<Code> new_errors;
     for(const auto& error : errors) {
-        Code new_error;
+        auto new_error = Code{};
         new_error.segments.reserve(error.segments.size()/8);
         for(size_t i=0;i<error.segments.size();++i) {
             Variable var = error.segments[i];
@@ -152,11 +151,11 @@ void Def::simplify() {
         }
         new_errors.insert(new_error);
     }
-    errors = new_errors;
+    errors = std::move(new_errors);
 
     // update finals
     for(auto& it : finals) {
-        Code new_finals;
+        auto new_finals = Code{};
         new_finals.segments.reserve(it.second.segments.size()/8);
         for(size_t i=0;i<it.second.segments.size();++i) {
             Variable& var = it.second.segments[i];
@@ -164,7 +163,7 @@ void Def::simplify() {
                 var = renaming[var];
             new_finals.segments.push_back(var);
         }
-        it.second = new_finals;
+        it.second = std::move(new_finals);
     }
 
     // now remove vars that previously existed but don't anymore
@@ -203,5 +202,138 @@ void Def::simplify() {
             if(contains(var))
                 existing_vars[var] = vars[var];
         }
-    vars = existing_vars;
+    vars=(existing_vars);
+
+    prune();
+}
+
+void Def::prune() {
+    // Create a mapping of private vars → renamed temporary vars
+    auto renaming = unordered_map<Variable, Variable>();
+    for (const auto& [var, type] : vars)
+        if (var.is_private() && contains(var) && finals.find(var)==finals.end()) // TODO: investigate we why need the exclusion of finals
+            renaming[var] = Variable(create_temp());
+    for(const auto& pack : packs) 
+        renaming.erase(pack);
+    if(is_service)
+        for(const auto& arg : args) 
+            renaming.erase(arg.name);
+    if(renaming.size())
+        rename(renaming);
+}
+
+
+void Def::rename(unordered_map<Variable, Variable>& renaming) {
+    auto apply_renaming = [&](Code& code) {
+        for (size_t i = 0; i < code.segments.size(); ++i) {
+            auto& var = code.segments[i];
+            if (renaming.find(var) != renaming.end())
+                var = renaming[var];
+        }
+    };
+    auto rename_set = [&](unordered_set<Variable>& s) {
+        auto new_set = unordered_set<Variable>{};
+        new_set.reserve(s.size());
+        for(const auto& v : s)
+            new_set.insert(renaming.find(v) != renaming.end() ? renaming[v] : v);
+        s=std::move(new_set);
+    };
+
+    auto rename_map_var_type = [&](unordered_map<Variable, Type>& m) {
+        auto new_m = unordered_map<Variable, Type>{};
+        new_m.reserve(m.size());
+        for(const auto& [k, v] : m)
+            new_m[renaming.find(k) != renaming.end() ? renaming[k] : k] = v;
+        m=std::move(new_m);
+    };
+
+    auto rename_map_var_var = [&](unordered_map<Variable, Variable>& m) {
+        auto new_m = unordered_map<Variable, Variable>{};
+        new_m.reserve(m.size());
+        for(const auto& [k, v] : m) {
+            auto nk = renaming.find(k) != renaming.end() ? renaming[k] : k;
+            auto nv = renaming.find(v) != renaming.end() ? renaming[v] : v;
+            new_m[nk] = nv;
+        }
+        m=std::move(new_m);
+    };
+    auto rename_map_var_bool = [&](unordered_map<Variable, bool>& m) {
+        auto new_m = unordered_map<Variable, bool>{};
+        for (auto& [k, v] : m)
+            new_m[renaming.find(k) != renaming.end() ? renaming[k] : k] = v;
+        m=std::move(new_m);
+    };
+    auto rename_var = [&](Variable& v) {
+        auto it = renaming.find(v); 
+        if(it != renaming.end())
+            v = it->second;
+    };
+
+    apply_renaming(implementation);
+    auto new_errors = unordered_set<Code>();
+    new_errors.reserve(errors.size());
+    for (auto error : errors) {
+        apply_renaming(error);
+        new_errors.insert((error));
+    }
+    errors=std::move(new_errors);
+    for (auto& [name, code] : finals) 
+        apply_renaming(code);
+    apply_renaming(vardecl);
+    auto new_vars = unordered_map<Variable, Type>();
+    new_vars.reserve(vars.size());
+    for (const auto& [var, type] : vars) {
+        if (renaming.find(var) != renaming.end())
+            new_vars[renaming[var]] = type;
+        else
+            new_vars[var] = type;
+    }
+    vars=std::move(new_vars);
+
+    for (auto& pack : packs)
+        if (renaming.find(pack) != renaming.end())
+            pack = renaming[pack];
+    for (auto& arg : args)
+        if (renaming.find(arg.name) != renaming.end())
+            arg.name = renaming[arg.name];
+    for (auto* v : {&buffer_ptr, &buffer_size, &buffer_release}) 
+        if (renaming.find(*v) != renaming.end())
+            *v = renaming[*v];
+
+    rename_set(acquired);
+    rename_set(singletons);
+    rename_set(mutables);
+    rename_set(type_trackers);
+    rename_set(can_access_mutable_fields);
+    rename_map_var_type(buffer_types);
+    rename_map_var_var(active_calls);
+    rename_map_var_var(original_calls);
+    rename_map_var_bool(released);
+    rename_map_var_bool(has_been_service_arg);
+    rename_map_var_bool(has_been_retrieved_as_immutable);
+    rename_map_var_type(parametric_types);
+    rename_var(alias_for);
+    rename_var(buffer_ptr);
+    rename_var(buffer_size);
+    rename_var(buffer_release);
+    rename_var(active_context);
+    rename_map_var_type(retrievable_parameters);
+
+    auto new_finals = unordered_map<Variable, Code>{};
+    new_finals.reserve(finals.size());
+    for (auto& [k, v] : finals) {
+        auto nk = renaming.count(k) ? renaming.at(k) : k;
+        apply_renaming(v);
+        new_finals[nk] = v;
+    }
+    finals=std::move(new_finals);
+
+    auto rename_map_var_ulong = [&](unordered_map<Variable, unsigned long>& m) {
+        auto new_m = unordered_map<Variable, unsigned long>{};
+        new_m.reserve(m.size());
+        for (const auto& [k, v] : m)
+            new_m[renaming.find(k) != renaming.end() ? renaming[k] : k] = v;
+        m=std::move(new_m);
+    };
+    rename_map_var_ulong(alignments);
 }

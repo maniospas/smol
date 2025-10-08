@@ -124,7 +124,7 @@ Prism.languages.smolambda = {
   'comment': /\/\/.*/,
   'directive': { pattern: /@\w+/, alias: 'important' },
   'keyword': [
-    { pattern: /\b(?:def|service|if|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|on|end|return)\b/, greedy: true },
+    { pattern: /\b(?:def|service|if|else|elif|with|case|qed|include|do|while|union|to|upto|lento|len|and|or|on|return)\b/, greedy: true },
     { pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/, greedy: true }
   ],
   'special-amp': { pattern: /&/, alias: 'operator' },

@@ -22,14 +22,15 @@ def add(nominal,Var,neg)
     with 
         @mut equals=Var 
         equals=neg.Var 
-    else @invalid "Failed to resolve type"
-    return nominal.zero()
+        qed
+    return nominal.zero() 
 
 def add(nominal,Var,zero) return Var
 
 def sub(nominal,Number,Number2) 
-    with result = nominal.add(Number,nominal.neg(Number2)) 
-    else @invalid "Failed to resolve type"
+    with 
+        result = nominal.add(Number,nominal.neg(Number2)) 
+        qed
     return result
 
 service main() 

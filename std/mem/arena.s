@@ -23,16 +23,18 @@ def Arena(nominal type, ContiguousMemory contents)
     @noborrow
     length = 0
     size = contents.size
-    with contents.Primitive.is(char) 
-    else @invalid "Arena alignment can only be char-sized"
+    // case 
+    //     contents.Primitive.is(char) 
+    //     qed
     return type, contents, length, size
 
 def Volatile(nominal type, ContiguousMemory contents)
     @noborrow  // we need this so that controlled_corrupt can properly analyze corruptions
     length = 0
     cycles = 0
-    with contents.Primitive.is(char)
-    else @invalid "Arena alignment can only be char-sized"
+    // case 
+    //     contents.Primitive.is(char)
+    //     qed
     return type, contents, length, cycles
 
 def controlled_corrupt(@access @mut Volatile self)
@@ -79,11 +81,11 @@ def allocate(@access @mut Dynamic self, u64 size, Primitive)
         if(next_size>=self__allocated) {
             self__allocated = self__allocated+self__allocated/2+1; // ~50% growth strategy
             ptr next_acquired = (ptr)(((ptr**)self__acquired)[0]?__runtime_realloc(((ptr**)self__acquired)[0], self__allocated*sizeof(ptr), self__allocated__prev*sizeof(ptr)):__runtime_alloc(self__allocated*sizeof(ptr)));
-            if(success=next_acquired) ((ptr**)self__acquired)[0] = (ptr*)next_acquired;
+            if((success=next_acquired)) ((ptr**)self__acquired)[0] = (ptr*)next_acquired;
         }
         if(success) {
             ptr mem=(ptr)__runtime_alloc(size*sizeof(primitive));
-            if(success=mem) {
+            if((success=mem)) {
                 ((ptr**)self__acquired)[0][self__size] = mem;
                 self__size = next_size;
             } 

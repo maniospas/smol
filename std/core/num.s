@@ -38,8 +38,7 @@
 @about Number  "One of u64, f64, i64"
 
 union Number = u64 or f64 or i64
-
-def nothing()
+def NA()
 
 def print(@access f64 message)
     @head{#include <stdio.h>}

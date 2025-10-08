@@ -30,20 +30,19 @@ void handle_union(const shared_ptr<Import>& imp, size_t& p, Types& types) {
     auto next = imp->at(p++);
     if(next!="=")
         imp->error(--p, "Expecting `=` after union name");
-
     while(true) {
         next = imp->at(p++);
             
         const auto& found_type = types.vars.find(next);
         if(found_type == types.vars.end())
-            imp->error(--p, "Undefined runtype: " + next);
+            imp->error(--p, "Undefined function: " + next);
 
         auto added = false;
         for(const Type& option : found_type->second->options) {
             if(!option->choice_power)
                 continue;
             if(option->lazy_compile)
-                imp->error(--p, "Internal error: failed to compile runtype " + option->signature(types));
+                imp->error(--p, "Internal error: failed to compile function " + option->signature(types));
             if(!ranges::contains(def->options, option)) {
                 def->options.push_back(option);
                 added = true;
@@ -51,7 +50,7 @@ void handle_union(const shared_ptr<Import>& imp, size_t& p, Types& types) {
         }
         if(!added)
             imp->error(--p, "Missing nominal variation"
-                "\nCannot create a runtype union that includes non-nominal types (those would be ignored)"
+                "\nCannot create a union that includes non-nominal types (those would be ignored)"
             );
         
         next = imp->at(p++);

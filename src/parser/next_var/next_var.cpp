@@ -43,8 +43,7 @@ Variable Def::next_var(size_t& p, const Variable& first_token, Types& types, boo
         }
         if(p>=n) 
             break;
-        if((/*imp->at(p)==":" 
-            ||*/ (imp->at(p)=="." && p<imp->size()-2 && imp->at(p+2)=="(")
+        if(( (imp->at(p)=="." && p<imp->size()-2 && imp->at(p+2)=="(")
             || (imp->at(p)=="." && p<imp->size()-2 && imp->at(p+2)=="__consume")
             || (imp->at(p)=="." && imp->at(p+1)=="if")
             || (imp->at(p)=="." && imp->at(p+1)=="on")

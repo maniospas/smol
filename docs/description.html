@@ -347,11 +347,6 @@ available in the standard library.
       <td>No return value, is an explicit terminator</td>
     </tr>
     <tr>
-      <td><code class="language-smolambda">|end</code></td>
-      <td>Uplift one level</td>
-      <td>Break from a loop or if-block</td>
-    </tr>
-    <tr>
       <td><code class="language-smolambda">|return</code></td>
       <td>Uplift return one level</td>
       <td>Break from nested blocks</td>
@@ -1674,7 +1669,7 @@ Prism.languages.smolambda = {
   },
   'keyword': [
     {
-      pattern: /\b(?:def|service|if|return|else|elif|with|include|do|while|union|to|upto|lento|len|and|or|end)\b/,
+      pattern: /\b(?:def|service|if|return|else|elif|with|case|qed|include|do|while|union|to|upto|lento|len|and|or)\b/,
       greedy: true
     },
     {

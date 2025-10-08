@@ -12,7 +12,7 @@
     },
     {
       "name": "keyword.control",
-      "match": "\\b(smo|service|if|else|elif|include|on|while|union|return|end)\\b"
+      "match": "\\b(smo|service|if|else|elif|include|on|while|union|return|then)\\b"
     },
     {
       "name": "keyword.operator",

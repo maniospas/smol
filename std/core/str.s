@@ -67,7 +67,7 @@ def nstr (
         u64 length, 
         char first, 
         ptr memory
-    )  
+    )
     return @args
 
 union CString = cstr or nstr

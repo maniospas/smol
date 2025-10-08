@@ -45,8 +45,7 @@ def assert_ok(errcode error)
     elif isstack 
         @fail{printf("Stack error\n");}
     elif iserror 
-        @fail{printf("Unknown error\n");}
-        then:end
+        then @fail{printf("Unknown error\n");}
 
 def fail(cstr error)
     @head{#include <stdio.h>}
