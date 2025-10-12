@@ -11,9 +11,9 @@ def test_while()
     algorithm
         range(10)
         .while next(@mut u64 i)
-            if i==5 return NA
+            if i==5 return nil
             then print(i)
-        return NA
+        return nil
     print("ended")
 
 service main()

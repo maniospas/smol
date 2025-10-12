@@ -26,7 +26,7 @@
 #define __BUFFER__ERROR 2
 #define __UNHANDLED__ERROR 3
 #define __STACK__ERROR 4
-#define __DYNAMIC__ERROR 5
+#define __DYnilMIC__ERROR 5
 #define __TRANSIENT(message)
 #define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)
 #ifdef __cplusplus
@@ -1392,7 +1392,7 @@ nominal __SAL=0;
 u64 __jCL=0;
 cstr __PAL=0;
 cstr __OAL=0;
-u64 __NAL=0;
+u64 __nilL=0;
 ptr __MAL=0;
 char __LAL=0;
 ptr __KAL=0;
@@ -1615,9 +1615,9 @@ __tEL = __runtime_alloc ( sizeof ( ptr **)); if ( __tEL )(( ptr **) __tEL )[0]=0
  __fBL :
  __PAL = "[ \033[32mOK\033[0m ] " ;
  __OAL = ".s" ;
- __NAL = strlen ( __OAL ); __MAL =( ptr ) __OAL ; __LAL = __OAL [0]; __KAL =( ptr ) __KAL ; 
+ __nilL = strlen ( __OAL ); __MAL =( ptr ) __OAL ; __LAL = __OAL [0]; __KAL =( ptr ) __KAL ; 
  __JAL = __MAL ;
- __IAL = name__length ; __HAL = __NAL ; __GAL = __IAL + __HAL ; __FAL = name__length ? name__first : __LAL ; 
+ __IAL = name__length ; __HAL = __nilL ; __GAL = __IAL + __HAL ; __FAL = name__length ? name__first : __LAL ; 
  __EAL = 1 ;
  __DAL = __GAL + __EAL ; 
  __CAL :

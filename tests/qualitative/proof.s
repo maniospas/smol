@@ -19,7 +19,7 @@ def neg(nominal,neg arg) return arg.Var
 def neg(nominal,zero) return nominal.zero()
 
 def add(nominal,Var,neg) 
-    with 
+    case 
         @mut equals=Var 
         equals=neg.Var 
         qed
@@ -28,7 +28,7 @@ def add(nominal,Var,neg)
 def add(nominal,Var,zero) return Var
 
 def sub(nominal,Number,Number2) 
-    with 
+    case 
         result = nominal.add(Number,nominal.neg(Number2)) 
         qed
     return result

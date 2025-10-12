@@ -316,7 +316,8 @@ void Def::rename(unordered_map<Variable, Variable>& renaming) {
     rename_var(buffer_ptr);
     rename_var(buffer_size);
     rename_var(buffer_release);
-    rename_var(active_context);
+    if(uplifting.size())
+        rename_var(uplifting[uplifting.size()-1].context);
     rename_map_var_type(retrievable_parameters);
 
     auto new_finals = unordered_map<Variable, Code>{};

@@ -141,8 +141,10 @@ public:
     bool is_loop;
     bool has_returned;
     bool has_exited;
+    bool proving;
+    Variable context;
     UpliftingStatus(const Variable& target, size_t depth, bool mandate_return, bool is_loop): 
-        target(target), depth(depth), mandate_return(mandate_return), is_loop(is_loop), has_returned(false), has_exited(false) {}
+        target(target), depth(depth), mandate_return(mandate_return), is_loop(is_loop), has_returned(false), has_exited(false), proving(false) {}
     ~UpliftingStatus() = default;
 };
 
@@ -233,7 +235,6 @@ public:
     bool unresolved_options;
     bool has_tried_to_resolve_before;
     bool noassign;
-    bool proving;
     static bool debug;
     static bool export_docs;
     vector<Type> options;
@@ -246,7 +247,6 @@ public:
     Code vardecl, implementation;
     unordered_set<Code> errors;
     size_t number_of_calls;
-    Variable active_context;
     set<string> preample;
     set<string> linker;
     unordered_set<Variable> singletons;
@@ -271,8 +271,8 @@ public:
     string raw_signature_state_name() const;
 
     // constructors
-    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), proving(false), name(builtin), number_of_calls(0) {}
-    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), proving(false), name(""), number_of_calls(0) {
+    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(builtin), number_of_calls(0) {}
+    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), name(""), number_of_calls(0) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;

@@ -24,7 +24,8 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
     //uplifting.emplace_back(finally_var, uplifting.size(), false, uplifting.size() && uplifting.back().is_loop);
     vars[finally_var] = types.vars[LABEL_VAR];
     auto next = string{""};
-    proving = true;
+    if(uplifting.size())
+        uplifting[uplifting.size()-1].proving = true;
     try {
         if(curry.exists()) 
             imp->error(first_token_pos, "Cannot have a curry onto `case`.");
@@ -36,8 +37,11 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
     }
     catch (const runtime_error& e) {
         auto what = string{e.what()};
-        if(!what.starts_with("\033[33mNot found")) 
+        if(!what.starts_with("\033[33mNot found")) {
+            if(uplifting.size())
+                uplifting[uplifting.size()-1].proving = false;
             throw e;
+        }
         if(Def::lsp) 
             overloading_errors += "\n";
         else overloading_errors += "\n- ";
@@ -45,14 +49,12 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
         end_block(p);
         next = imp->at(p++);
         if(next=="qed") 
-            imp->error(with_start, "`case` with no alternative always fails");
+            imp->error(with_start, "A `case` with no alternative always fails");
     }
     if(next=="qed" && numberOfCandidates) 
-        imp->error(with_start, "`case` with no alternative\nCan guard parametric types but is a code smell otherwise\nHere it is redundant as enclosed code always succeeds");
+        imp->error(with_start, "A `case` with no alternative\nCan guard parametric types but is a code smell otherwise\nHere it is redundant as enclosed code always succeeds");
     
     while(true) {
-        // cout << next << "\n";
-        // cout << numberOfCandidates << "\n";
         if(next=="qed") {
             p++;
             break;
@@ -71,8 +73,11 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
             }
             catch (const std::runtime_error& e) {
                 string what = e.what();
-                if(what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found") 
+                if(what.substr(0, string("\033[33mNot found").size())!="\033[33mNot found") {
+                    if(uplifting.size())
+                        uplifting[uplifting.size()-1].proving = false;
                     throw e;
+                }
                 overloading_errors += Def::lsp?"\n":"\n- ";
                 overloading_errors += what;
                 end_block(p);
@@ -88,10 +93,11 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
     if(numberOfCandidates>1) 
         ERROR("Competes with previous branch of `case`"+CODE_START()+competing+CODE_END());
     if(numberOfCandidates==0) 
-        imp->error(with_start, "No valid branch of `case`"+CODE_START()+overloading_errors+CODE_END());
+        imp->error(with_start, "Not found a branch of `case`"+CODE_START()+overloading_errors+CODE_END());
 
     implementation += Code(finally_var,COLON_VAR);
-    proving = false;
+    if(uplifting.size())
+        uplifting[uplifting.size()-1].proving = false;
     //uplifting.pop_back();
     return EMPTY_VAR;
 

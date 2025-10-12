@@ -241,6 +241,7 @@ connection.onHover((params) => {
     "u64": "**u64** — unsigned 64-bit integer.",
     "i64": "**i64** — signed 64-bit integers.",
     "f64": "**f64** — 64-bit precision number.",
+    "tag": "**tag** — a named value that can be dynamically converted to accessible functions.",
     "bool": "**bool** — a true/false value.",
     "cstr": "**cstr** — a constant c-style string enclosed in \"quotations\".",
     "ptr": "**ptr** — a pointer to a memory address. Manual pointer handling is inherently unsafe and usually requires the file to be set as <code>@unsafe</code>.",

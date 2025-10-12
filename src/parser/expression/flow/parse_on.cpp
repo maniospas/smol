@@ -19,11 +19,11 @@ Variable Def::parse_on(size_t& p, Types& types, Variable curry, size_t first_tok
     // if(active_context.exists()) 
     //     imp->error(p, "There is already an active `on` context\nEnclose this within a scope per `scope on ... end`.");
     string next = imp->at(p++);
-    active_context = EMPTY_VAR;
-    active_context = parse_expression(p,next,types,curry);
-    if(!active_context.exists() || !contains(active_context))
+
+    uplifting[uplifting.size()-1].context = parse_expression(p,next,types,curry);
+    if(!uplifting[uplifting.size()-1].context.exists() || !contains(uplifting[uplifting.size()-1].context))
         imp->error(first_token_pos, "Expression does not evaluate to a variable to use as `on` context");
-    if(vars[active_context]->noassign && !imp->allow_unsafe)
+    if(vars[uplifting[uplifting.size()-1].context]->noassign && !imp->allow_unsafe)
         imp->error(first_token_pos, "Cannot use `on` context a variable marked as @noassign\nThis is considered unsafe behavior and can only be enabled with @unsafe");
     // Variable temp = create_temp();
     // Variable finally_var = temp+Variable("on");
@@ -46,5 +46,5 @@ Variable Def::parse_on(size_t& p, Types& types, Variable curry, size_t first_tok
     // implementation +=Code(finally_var,COLON_VAR);
     // active_context = EMPTY_VAR;
     // return var;
-    return active_context;
+    return uplifting[uplifting.size()-1].context;
 }

@@ -15,7 +15,7 @@
 void Def::end_block(size_t& p) {
     auto depth = size_t{0};
     while(p<imp->size()) {
-        string next = imp->at(p++);
+        auto next = imp->at(p++);
         if(next=="if" || next=="while" || next=="algorithm")
             depth++;
         else if(next=="then" || next=="return") {
@@ -24,7 +24,7 @@ void Def::end_block(size_t& p) {
         }
         if(next=="def" || next=="service" || next=="union") 
             imp->error(--p, "Unexpected end of `case`");
-        if(next=="qed" || next=="case") {
+        if(depth==0&&(next=="qed" || next=="case")) {
             p--;
             break;
         }
@@ -82,7 +82,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
     while(p<imp->size()) {
         if(uplifting.size() && uplifting[uplifting.size()-1].has_exited) {
             if(uplifting[uplifting.size()-1].has_returned && contains(uplifting[uplifting.size()-1].target+Variable("var")))
-                imp->error(p, "Ending a code block that is expecting a returned value");
+                imp->error(p, "Ending a code block that is expecting a return value");
             uplifting[uplifting.size()-1].has_returned = true;
             break;
         }
@@ -91,7 +91,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             break;
         }
         if(imp->at(p)=="then") {
-            if(proving)
+            if(!uplifting.size() || uplifting[uplifting.size()-1].proving)
                 return;
             p++;
             imp_size = p;
@@ -139,10 +139,12 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                 continue;
             }
         }
-        if((next=="case" && proving) || next=="qed") {
+        if(uplifting.size() && uplifting[uplifting.size()-1].proving && (next=="case" || next=="qed")) {
             --p;
             return; // abrupt return - we will re-enter from parse_with
         }
+        if(next=="qed")
+            imp->error(--p, "Cannot have `qed` inside a block without an internal `case` statement");
         if(next=="return" || (next=="else"&&uplifting.size()>1)) {
             parse_return(p, next, types);
             if(uplifting.size()) 

@@ -12,4 +12,4 @@ service main()
     ReadFile
     .open("README.md")
     .test()
-    return NA
+    return nil

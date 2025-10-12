@@ -6,4 +6,4 @@ service main()
     .open("README.md")
     .len()
     .print()
-    return NA
+    return nil

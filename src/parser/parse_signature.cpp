@@ -326,8 +326,7 @@ bool Def::start_option_resolution(const Types& _types) {
     catch(const runtime_error& e) {
         string what = e.what();
         log_depth -= 1;
-        const string expected = "\033[33m`with` with no alternative";
-        if(what.compare(0, expected.size(), expected) != 0) 
+        if(!what.starts_with("\033[33m`case` with no alternative")) 
             throw e;
         return false;
     }
@@ -392,8 +391,7 @@ bool Def::complete_option_resolution(const Types& _types) {
     catch(const runtime_error& e) {
         string what = e.what();
         log_depth -= 1;
-        const string expected = "\033[33m`with` with no alternative";
-        if(what.compare(0, expected.size(), expected) != 0) 
+        if(!what.starts_with("\033[33m`case` with no alternative")) 
             throw e;
         return false;
     }
@@ -444,7 +442,7 @@ vector<Type> Def::get_lazy_options(Types& _types) {
     }
     if(options.size()==0) 
         imp->error(pos, "Failed to show that a valid version exists.\n"
-            "Check your `with` statements that have no alternatives"
+            "Check your `case` statements that have no alternatives"
             " or if you have functions that either wrap namesake type"
             " constructors or are in the same union."
         );

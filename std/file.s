@@ -340,7 +340,7 @@ def console(@access @mut WriteFile)
         #if defined(_WIN32) || defined(_WIN64)
             #include <windows.h>
             #include <io.h>
-            #define SMOLAMBDA_CONSOLE(f) AllocConsole(); {HANDLE hIn = CreateFileA("CONIN$", GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); HANDLE hOut = CreateFileA("CONOUT$", GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); if(hIn != INVALID_HANDLE_VALUE && hOut != INVALID_HANDLE_VALUE) {int fd = _open_osfhandle((intptr_t)hIn, 0); if(fd != -1) {(f) = (ptr)_fdopen(fd, "r+"); if((f)) {setvbuf((FILE*)(f), NULL, _IONBF, 0); DWORD mode; GetConsoleMode(hIn, &mode); mode &= ~ENABLE_ECHO_INPUT; SetConsoleMode(hIn, mode);}} int fdOut = _open_osfhandle((intptr_t)hOut, 0); if(fdOut != -1) dup2(fdOut, _fileno((FILE*)(f)));}}
+            #define SMOLAMBDA_CONSOLE(f) AllocConsole(); {HANDLE hIn = CreateFileA("CONIN$", GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); HANDLE hOut = CreateFileA("CONOUT$", GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL); if(hIn != INVALID_HANDLE_VALUE && hOut != INVALID_HANDLE_VALUE) {int fd = _open_osfhandle((intptr_t)hIn, 0); if(fd != -1) {(f) = (ptr)_fdopen(fd, "r+"); if((f)) {setvbuf((FILE*)(f), NULL, _IONBF, 0); DWORD mode; GetConsoleMode(hIn, &mode); mode &= ~EnilBLE_ECHO_INPUT; SetConsoleMode(hIn, mode);}} int fdOut = _open_osfhandle((intptr_t)hOut, 0); if(fdOut != -1) dup2(fdOut, _fileno((FILE*)(f)));}}
             #define SMOLAMBDA_CONSOLE_CLOSE(f) if(f)fclose((FILE*)(f)); FreeConsole();
         #else
             #include <stdlib.h>

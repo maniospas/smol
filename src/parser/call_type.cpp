@@ -140,6 +140,7 @@ Variable Def::call_type(
     }
     type = successfullType;
     auto prev_errors = string{""};
+    auto active_context = uplifting.size()?uplifting[uplifting.size()-1].context:EMPTY_VAR;
     if(!type && active_context.exists()) { // 
         vector<Variable> new_unpacks;
         if(vars[active_context]->_is_primitive) 

@@ -338,7 +338,7 @@ int main(int argc, char* argv[]) {
                 "#define __BUFFER__ERROR 2\n"
                 "#define __UNHANDLED__ERROR 3\n"
                 "#define __STACK__ERROR 4\n"
-                "#define __DYNAMIC__ERROR 5\n"
+                "#define __DYnilMIC__ERROR 5\n"
                 "#define __TRANSIENT(message)\n" // empty
                 "#define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)\n"
                 "#ifdef __cplusplus\n"
