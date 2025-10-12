@@ -20,6 +20,8 @@ Variable Def::parse_while(size_t& p, Types& types, Variable curry, size_t first_
     // uplifiting_is_loop.push_back(true);
     Variable start_var = temp+LOOP_VAR;
     uplifting.emplace_back(start_var, uplifting.size(), false, true);
+    if(uplifting.size()>=2)
+        uplifting[uplifting.size()-1].context = uplifting[uplifting.size()-2].context;
     vars[start_var] = types.vars[LABEL_VAR];
     vars[finally_var] = types.vars[LABEL_VAR];
     implementation +=Code(start_var,COLON_VAR);

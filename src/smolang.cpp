@@ -494,19 +494,19 @@ int main(int argc, char* argv[]) {
             // }
             auto t_start = chrono::steady_clock::now();
             if(selected_task == Task::Run) {
-                cout << "\033[36msmoλ \033[35mcompile\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
+                cout << "\033[35mcompile\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "");
                 cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status != 0) 
                     return run_status;
                 //cout << (EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str() << "\n";
-                cout << "\033[36msmoλ \033[32mrunning\033[0m " + file.substr(0, file.size()-2) + "\n\n";
+                cout << "\033[32mrunning\033[0m " + file.substr(0, file.size()-2) + "\n\n";
                 run_status = system((EXEC_PREFIX + file.substr(0, file.size()-2)+EXEC_EXT).c_str());
                 if(run_status) 
                     return run_status;
             } 
             else if(selected_task == Task::Library) {
-                cout << "\033[36msmoλ \033[35mcompile\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
+                cout << "\033[35mcompile\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-shared -fPIC");
                 cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status) 
@@ -586,15 +586,15 @@ int main(int argc, char* argv[]) {
                 for(const auto& service : added_services) {
                     py_out << service->name << " = " << service->raw_signature_state_name() << "()\n";
                 }
-                cout << "\033[36msmoλ \033[32mcreated\033[0m " + file.substr(0, file.size()-2) + ".py\n";
+                cout << "\033[32mcreated\033[0m " + file.substr(0, file.size()-2) + ".py\n";
             } 
             else if(selected_task == Task::Assemble) {
-                cout << "\033[36msmoλ \033[35massemble\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
+                cout << "\033[35massemble\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-S -masm=intel");
                 cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status) 
                     return run_status;
-                cout << "\033[36msmoλ \033[32mcreated\033[0m " + file.substr(0, file.size()-2) + "\n";
+                cout << "\033[32mcreated\033[0m " + file.substr(0, file.size()-2) + "\n";
             } 
             else if(selected_task == Task::Transpile) {
                 // Save to .c file
@@ -605,17 +605,17 @@ int main(int argc, char* argv[]) {
                     goto return_errors;
                 }
                 c_out << out.str();
-                cout << "\033[36msmoλ \033[37;42mcreated\033[0m " + file.substr(0, file.size()-2) + ".c\n";
+                cout << "\033[37;42mcreated\033[0m " + file.substr(0, file.size()-2) + ".c\n";
                 return 0;
             } 
             else {
                 // Task::Compile
-                cout << "\033[36msmoλ \033[35mcompile\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
+                cout << "\033[35mcompile\033[0m --back "+compiler+"  --runtime "+runtime+"  "<<std::flush;
                 int run_status = compile_from_stringstream_with_flags(out, file.substr(0, file.size()-2), "-lc");
                 cout << to_string(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t_start).count()) + "ms\n";
                 if(run_status) 
                     return run_status;
-                cout << "\033[36msmoλ \033[32mcreated\033[0m " + file.substr(0, file.size()-2) + "\n";
+                cout << "\033[32mcreated\033[0m " + file.substr(0, file.size()-2) + "\n";
             }
 
         }

@@ -46,7 +46,7 @@ void handle_install(
         if (installed_paths.contains(test_path)) 
             return;
         installed_paths.insert(test_path);
-        cout << "\r\033[36msmoλ \033[33minstall\033[0m " << test_path << "                                      \n";
+        cout << "\r\033[33minstall\033[0m " << test_path << "                                      \n";
         int run_status = system((EXEC_PREFIX + ("smol " + path + " --runtime eager --workers 1")).c_str());
         cout << "\n";
         if (run_status) 

@@ -1,6 +1,6 @@
 #include "compiler.h"
 
-string compiler = "g++";
+string compiler = "gcc";
 string linker = "";
 string runtime = "std/runtime/auto.h";
 

@@ -23,6 +23,8 @@ Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_tok
     // else 
     //     uplifiting_is_loop.push_back(false);
     uplifting.emplace_back(finally_var, uplifting.size(), false, uplifting.size() && uplifting.back().is_loop);
+    if(uplifting.size()>=2)
+        uplifting[uplifting.size()-1].context = uplifting[uplifting.size()-2].context;
     vars[finally_var] = types.vars[LABEL_VAR];
     vars[closeif_var] = types.vars[LABEL_VAR];
     auto next = imp->at(p++);
@@ -66,6 +68,8 @@ Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_tok
         vars[else_skip] = types.vars[LABEL_VAR];
         uplifting.pop_back();
         uplifting.emplace_back(else_var, uplifting.size(), false, uplifting.size() && uplifting.back().is_loop);
+        if(uplifting.size()>=2)
+            uplifting[uplifting.size()-1].context = uplifting[uplifting.size()-2].context;
         implementation += Code(finally_var,COLON_VAR,Variable("goto"), else_skip, SEMICOLON_VAR, closeif_var, COLON_VAR);
         parse(imp, p, types, false);
         p++; // offset p-- after parse_return above
