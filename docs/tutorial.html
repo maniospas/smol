@@ -813,7 +813,7 @@ The same colon also works with loops provided by the standard library (like <cod
 <h2 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h2>
 
 <p>
-You can return from a function early using <code class="language-smolambda">return value</code>. This works given that there is no 
+You can return from a function early per <code class="language-smolambda">return value</code>. This works given that there is no 
 <code class="language-smolambda">algorithm</code> environment capturing the returned value.
 </p>
 
@@ -852,7 +852,8 @@ Finally, <code class="language-smolambda">@args</code> is a shorthand that retur
 and accessing fiels is also done with the dot notation. Below is an example.
 </p>
 
-<pre><code class="language-smolambda">@include std.core
+<pre><code class="language-smolambda">\\ main.s
+@include std.core
 
 def Point(f64 x, f64 y) 
     return @args
@@ -1291,7 +1292,8 @@ assigned to an immutable variable.
 
 
 
-<pre><code class="language-smolambda">@include std.core
+<pre><code class="language-smolambda">// main.s
+@include std.core
 
 service main()
     vals = u64[Heap.allocate(1024)] // 1024 max buffer size
@@ -1301,6 +1303,16 @@ service main()
     print(vals[0])
 </code></pre>
 
+<pre style="background-color: #222; color: white;">> smol main.s
+<span style="color: #b072d1;">codegen</span> --workers 1 ██████████ 7/7 files  27ms
+<span style="color: #b072d1;">compile</span> --back gcc  --runtime std/runtime/auto.h  68ms
+<span style="color: #7cd15d;">running</span> tests/unit/tutorial/hello
+
+<span style="color:#5dc1b9">🔹</span> https://github.com/maniospas/smol
+<span style="color:#5dc1b9">🔹</span> single threaded
+
+1
+</pre>
 
 
 <p>
@@ -1311,7 +1323,8 @@ in the same memory surface</b>.
 Below is an example.
 </p>
 
-<pre><code class="language-smolambda">@include std.core
+<pre><code class="language-smolambda">\\ main.s
+@include std.core
 @include std.mem
 
 service main()
@@ -1322,6 +1335,17 @@ service main()
     b = boxes[0]
     print(b)
 </code></pre>
+
+<pre style="background-color: #222; color: white;">> smol main.s
+<span style="color: #b072d1;">codegen</span> --workers 1 ██████████ 7/7 files  27ms
+<span style="color: #b072d1;">compile</span> --back gcc  --runtime std/runtime/auto.h  68ms
+<span style="color: #7cd15d;">running</span> tests/unit/tutorial/hello
+
+<span style="color:#5dc1b9">🔹</span> https://github.com/maniospas/smol
+<span style="color:#5dc1b9">🔹</span> single threaded
+
+buffer start
+</pre>
 
 <p>
 Here we pushed two strings into a string array. 
@@ -1341,8 +1365,19 @@ service samples()
 
 service main()
     buf = samples()
-    print(buf[0]) // prints 42
+    print(buf[0])
 </code></pre>
+
+<pre style="background-color: #222; color: white;">> smol main.s
+<span style="color: #b072d1;">codegen</span> --workers 1 ██████████ 7/7 files  27ms
+<span style="color: #b072d1;">compile</span> --back gcc  --runtime std/runtime/auto.h  68ms
+<span style="color: #7cd15d;">running</span> tests/unit/tutorial/hello
+
+<span style="color:#5dc1b9">🔹</span> https://github.com/maniospas/smol
+<span style="color:#5dc1b9">🔹</span> single threaded
+
+42
+</pre>
 
 <p>
 Here <code>samples</code> constructs and returns a buffer.  
