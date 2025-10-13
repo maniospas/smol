@@ -211,19 +211,19 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                         );
                 }
             } 
-            else {
-                for(const auto& pack : vars[expression_outcome]->packs) {
-                    if((vars[expression_outcome]->vars[pack]->name==PTR_VAR 
-                            || vars[expression_outcome]->vars[pack]->name==BUFFER_VAR)
-                        && !can_mutate(var+pack, p)
-                    ) 
-                        imp->error(assignment_start, "Cannot transfer a mutable ptr packed in a mutable variable to an immutable ptr: "
-                            + pretty_var((var+pack).to_string())
-                            + "\nThis error occurs because, by convention, the contents (but not addresses) "
-                            + "\nof mutable pointers may be freely modified when runtypes gain a hold of them."
-                        );
-                }
-            }
+            // else {
+            //     for(const auto& pack : vars[expression_outcome]->packs) {
+            //         if((vars[expression_outcome]->vars[pack]->name==PTR_VAR 
+            //                 || vars[expression_outcome]->vars[pack]->name==BUFFER_VAR)
+            //             && !can_mutate(var+pack, p)
+            //         ) 
+            //             imp->error(assignment_start, "Cannot transfer a mutable ptr packed in a mutable variable to an immutable ptr: "
+            //                 + pretty_var((var+pack).to_string())
+            //                 + "\nThis error occurs because, by convention, the contents (but not addresses) "
+            //                 + "\nof mutable pointers may be freely modified when runtypes gain a hold of them."
+            //             );
+            //     }
+            // }
             if(!accepted_var_name(var.to_string())) 
                 imp->error(assignment_start, "Not a valid name");
             if(types.vars.find(var)!=types.vars.end()) 

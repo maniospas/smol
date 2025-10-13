@@ -20,6 +20,8 @@ Variable Def::parse_buffer_expect(size_t& p, Types& types, Variable curry, size_
     if(mutables.find(curry)==mutables.end()) 
         imp->error(--p, "Cannot grow a non-mutable buffer");
     curry = curry+Variable("dynamic");
+    if(!can_mutate(curry, p))
+        imp->error(--p, "Cannot push onto a non-mutable buffer");
     if(buffer_types.find(curry)==buffer_types.end())
         imp->error(first_token_pos, "Internal error: buffer has not been properly transferred to scope");
     auto prev_p = p;

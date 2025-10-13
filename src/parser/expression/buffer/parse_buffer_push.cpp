@@ -20,6 +20,8 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
         imp->error(--p, "Cannot push onto a non-mutable buffer");
     Variable raw_var = curry;
     curry = curry+Variable("dynamic");
+    if(!can_mutate(curry, p))
+        imp->error(--p, "Cannot push onto a non-mutable buffer");
     if(buffer_types.find(curry)==buffer_types.end())
         imp->error(first_token_pos, "Internal error: buffer has not been properly transferred to scope");
     auto prev_p = p;

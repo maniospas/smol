@@ -20,6 +20,8 @@ Variable Def::parse_buffer_put(size_t& p, Types& types, Variable curry, size_t f
     if(mutables.find(curry)==mutables.end()) 
         imp->error(first_token_pos, "Cannot put into a non-mutable buffer");
     curry = curry+Variable("dynamic");
+    if(!can_mutate(curry, p))
+        imp->error(--p, "Cannot push onto a non-mutable buffer");
     if(buffer_types.find(curry)==buffer_types.end()) 
         imp->error(--p, "Internal error: buffer has not been properly transferred to scope: "+curry.to_string());
     size_t prev_p = p;

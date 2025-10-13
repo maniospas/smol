@@ -845,6 +845,9 @@ service main()
 You can return several named values at once and then access them by their variable's name with a 
 dot notation. For example, if the outcome returning with <code class="language-smolambda">return x,y</code>
 is stored into a variable <code>p</code>, individual values can be accessed via <code>p.x</code> or <code>p.y</code>.
+But <code>p</code> still represents the sequence of values <code>x,y</code>.
+</p>
+<p>
 This is visually different from currying in that there is no function call parenthesis. But returned values would not
 be retrievable from <code class="language-smolambda">return x+1,y+1</code>, as the additions have not been stored
 in a named variable. This is also fine, and you may do it for convenience in some scenarios.
@@ -1243,7 +1246,7 @@ I think. Therefore I am.
 Buffers represent collections of data that grow dynamically.  
 The simplest syntax is <code class="language-smolambda">type[]</code>, which produces 
 a resizable array of that type. You can grow buffers or modify
-their elements only as long as theyr remain mutable. For example,
+their elements only as long as they remain mutable. For example,
 you can create a buffer <code class="language-smolambda">v = u64[].push(1).push(2)</code>
 that is henceforth immutable. 
 </p>
