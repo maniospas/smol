@@ -610,7 +610,7 @@ The <code class="language-smolambda">algorithm</code> structure can be used as a
 breaking away from loops. Below is an example, where some commands are merged in the same line
 for conciseness. Having an explicit <code class="language-smolambda">return</code> statement 
 in all situations is necessary - the language would complain otherwise. The example returns
-a <code class="language-smolambda">nil</code> value provided by <code>std.core</code>, 
+a <code class="language-smolambda">ok</code> value provided by <code>std.core</code>, 
 which has no contents. As a sidenote, the "algorithm" keyword is deliberately long so that
 it's easy to spot and match nested returns to.
 </p>
@@ -624,9 +624,9 @@ service main()
     algorithm while true
         print(i)
         if i==limit
-            return nil
+            return ok
         then i = i+1
-        return nil  // runs if nothing else is returned
+        return ok  // runs if nothing else is returned
     print("ended while")
     print(i)
 </code></pre>
@@ -1147,7 +1147,7 @@ service main()
     on Stack.arena(1024) 
     v = vector(5)
 
-    on nil
+    on ok
     print(v.len())
 </code></pre>
 
@@ -1510,7 +1510,7 @@ Prism.languages.smolambda = {
     pattern: /&/,
     alias: 'operator' // optional, gives Prism’s operator style too
   },
-  'builtin': /\b(?:i64|u64|f64|nil|true|false|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal|tag)\b/,
+  'builtin': /\b(?:i64|u64|f64|ok|true|false|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal|tag)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

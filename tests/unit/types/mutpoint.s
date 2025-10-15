@@ -44,4 +44,4 @@ service main()
 
     @mut tp = TPoint(1.0,1.0)
     tp.scale(5.0) // creates an error if we remove @mut from before tp
-    return nil
+    return ok

@@ -38,7 +38,7 @@
 @about Number  "One of u64, f64, i64"
 
 union Number = u64 or f64 or i64
-def nil()
+def ok()
 
 def print(@access f64 message)
     @head{#include <stdio.h>}
@@ -79,6 +79,10 @@ def printin(@access bool message)
 def printin(@access char message)
     @head{#include <stdio.h>}
     @body{printf("%c", message);}
+
+def print()
+    @head{#include <stdio.h>}
+    @body{fflush(stdout);}
 
 def le(@access Number x, Number y)
     @body{bool z=x<=y;}   

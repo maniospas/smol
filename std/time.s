@@ -40,7 +40,7 @@ def sleep(f64 duration)
     @body{__smolambda_task_sleep(duration);}
 
 def exact_sleep(f64 duration)
-    if duration<=0.0 return nil
+    if duration<=0.0 return ok
     @head{#include "std/oscommon.h"}
     @body{__smo_exact_sleep(duration);}
 

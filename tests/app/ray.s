@@ -22,75 +22,62 @@ def process(@mut Sphere s, f64 dt)
     if(nx - s.r)< 0.0
         nx = s.r
         ndx = ndx.negative()
-        end
     elif(nx + s.r) > 800.0
         nx = 800.0 - s.r
-        ndx = ndx.negative()
-        end
+        then ndx = ndx.negative()
     if(ny - s.r) < 0.0
         ny = s.r
         ndy = ndy.negative()
-        end
     elif(ny + s.r) > 450.0
         ny = 450.0 - s.r
         ndy = ndy.negative()
-        end
+        then ok
     s = Sphere(nx, ny, s.r, ndx, ndy)
-    end
 
 def draw(Sphere sphere, @mut Window window)
-    window.circ(sphere.x, sphere.y, sphere.r, Color(200, 50, 50))
-    end
+    window.circ(sphere.x, sphere.y, sphere.r, Color(200, 50, 50, 255))
     
 def process(@mut Sphere[] spheres, f64 dt)
     spheres
     .len()
     .range()
     .while next(@mut u64 i)
-        spheres[i] .= process(dt)
-    end end
+        spheres[i] = .process(dt)
 
 service test()
-    @mut spheres = Sphere[].expect(2)
-    spheres[0] = Sphere(100.0, 100.0, 30.0, 1000.0, 650.0)
-    spheres[1] = Sphere(100.0, 100.0, 30.0, 450.0, 600.0)
+    @mut spheres = Sphere[]
+    spheres.push(Sphere(100.0, 100.0, 30.0, 1000.0, 650.0))
+    spheres.push(Sphere(100.0, 100.0, 30.0, 450.0, 600.0))
 
     @mut dt = 0.0
-    @mut window = nominal.Window(800.0, 450.0, "Hello from smoλ+raylib")
+    @access @mut window = nominal.Window(800.0, 450.0, "Hello from smoλ+raylib")
     @mut prev_t = time()
     @mut accum_fps = 60.0
     on Heap.volatile(1024)
-        while window.is_open()
-            start_t = time()
-            spheres
-            .process(dt)
+    while window.is_open()
+        window
+        .begin()
+        .clear(Color(50,50,80))
 
-            window
-            .begin()
-            .clear(Color(50,50,80))
+        spheres
+        .len()
+        .range()
+        .while next(@mut u64 i)
+            then spheres[i].draw(window)
 
-            spheres
-            .len()
-            .range()
-            .while next(@mut u64 i)
-                spheres[i].draw(window)
-                end
-
-            window
-            .text(accum_fps.u64().str()+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
-            .frame()
-            
-            // time computation
-            t = time()
-            dt = t-prev_t
-            prev_t = t
-            accum_fps = add(accum_fps*0.99, 0.01.div(dt))
-            exact_sleep(0.015-(t-start_t))
-            end
-        end
-    end
+        // TODO: chained curry does not affect the final variable
+        window.text(accum_fps.u64().str()+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
+        window.end()
+        
+        // time computation
+        t = time()
+        dt = t-prev_t
+        prev_t = t
+        accum_fps = add(accum_fps*0.99, 0.01/dt)
+        spheres
+        .process(dt)
+        exact_sleep(0.015-(t-prev_t))
 
 service main()
     test()
     //print("running") // services are async, this will be printed
-    end

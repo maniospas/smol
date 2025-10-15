@@ -259,3 +259,27 @@ def print(@access str[] messages)
     while i<n
         print(messages[i])
         i = i+1
+
+def key(nominal, i64 data)
+    return @args
+
+def getch()
+    @head{#include "std/oscommon.h"}
+    @body{i64 ch = __smo_next_key_press();}
+    return nominal.key(ch)
+
+def is_left(key input)   return input.data==i64(1792836)
+def is_right(key input)  return input.data==i64(1792835)
+def is_up(key input)     return input.data==i64(1792833)
+def is_down(key input)   return input.data==i64(1792834)
+def is_tab(key input)    return input.data==i64(9)
+def is_delete(key input) return input.data==i64(126)
+def is_backspace(key input) return input.data==i64(127)
+
+def is_char(key input)  
+    return(input.data>=i64(0))and(input.data<i64(255))
+    
+def to_char(key input)
+    if(input.data<i64(0))or(input.data>=i64(255)) 
+        then @fail{printf("Cannot convert a non-character key input to a characters\n");}
+    return char(input.data)

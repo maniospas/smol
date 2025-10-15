@@ -88,11 +88,7 @@ def at(@access ContiguousMemory v, u64 pos)
 
     return value
     
-def __unsafe_put(@access ContiguousMemory v, u64 pos, Primitive value)
-    // case
-    //     v.primitive.is(Primitive)
-    //     qed
-
+def put(@access ContiguousMemory v, u64 pos, Primitive value)
     if pos>=v.size then fail("ContiguousMemory out of bounds")
 
     case value.is(u64) @body{((u64*)v__mem)[pos] = value;}

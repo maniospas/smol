@@ -90,4 +90,78 @@ uint64_t __smo_file_size(FILE* fp) {
     return 0;
 }
 
+#include <stdio.h>
+#include <stdint.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
+
+    static inline int64_t __smo_next_key_press() {
+        HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+        INPUT_RECORD record;
+        DWORD readCount;
+        int64_t code = -1;
+
+        // Set console to raw mode
+        DWORD mode;
+        GetConsoleMode(hIn, &mode);
+        DWORD rawMode = mode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
+        SetConsoleMode(hIn, rawMode);
+
+        while (1) {
+            if (!ReadConsoleInputW(hIn, &record, 1, &readCount))
+                break;
+            if (record.EventType == KEY_EVENT && record.Event.KeyEvent.bKeyDown) {
+                // Combine virtual key + scan code into one 64-bit value
+                code = ((int64_t)record.Event.KeyEvent.wVirtualKeyCode << 16)
+                     |  (int64_t)record.Event.KeyEvent.wVirtualScanCode;
+                break;
+            }
+        }
+
+        // Restore mode
+        SetConsoleMode(hIn, mode);
+        return code;
+    }
+
+#else
+    #include <termios.h>
+    #include <unistd.h>
+    #include <string.h>
+
+    static inline int64_t __smo_next_key_press() {
+        //struct termios oldt, newt;
+        unsigned char seq[8] = {0};
+        int64_t code = 0;
+
+        // Set terminal to raw mode
+        // tcgetattr(STDIN_FILENO, &oldt);
+        // newt = oldt;
+        // newt.c_lflag &= ~(ICANON | ECHO);
+        // tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+        // Read one byte
+        ssize_t n = read(STDIN_FILENO, &seq[0], 1);
+
+        // If ESC (start of special sequence)
+        if (n > 0 && seq[0] == 27) {
+            // Read rest of escape sequence
+            ssize_t r1 = read(STDIN_FILENO, &seq[1], 1);
+            ssize_t r2 = read(STDIN_FILENO, &seq[2], 1);
+            (void)r1; (void)r2;
+            // Combine the 3 bytes into a unique i64 code
+            code = ((int64_t)seq[0] << 16) | ((int64_t)seq[1] << 8) | (int64_t)seq[2];
+        } else if (n > 0) {
+            // Normal ASCII key
+            code = (int64_t)seq[0];
+        }
+
+        // Restore terminal
+        //tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        return code;
+    }
+#endif
+
+
+
 #endif // SMOLAMBDA_COMMON_OS_H

@@ -44,13 +44,13 @@
 
 def Color(u64 r, u64 g, u64 b, u64 a)
     if r>255 
-        return fail("Color r greater than 255")
+        then fail("Color r greater than 255")
     if g>255 
-        return fail("Color g greater than 255")
+        then fail("Color g greater than 255")
     if b>255 
-        return fail("Color b greater than 255")
+        then fail("Color b greater than 255")
     if a>255 
-        return fail("Color a greater than 255")
+        then fail("Color a greater than 255")
     return @args
 
 def Position(f64 x, f64 y)
@@ -67,13 +67,13 @@ def Window(nominal, Size size, cstr title)
     @link{-Istd/raylib/raylib-5.5_linux_amd64/include}
     @link{-Lstd/raylib/raylib-5.5_linux_amd64/lib}
     @link{-lraylib}
-    @link{-lm}
     @link{-ldl}
     @link{-lpthread}
     @link{-lGL}
     @link{-lX11}
     @body{ SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title); }
-    return @args
+    @mut ready = false
+    return @args, ready
 
 def close(@mut Window window)
 
@@ -81,11 +81,15 @@ def is_open(@mut Window)
     @body{ bool ret = WindowShouldClose(); }
     return ret.not()
 
-def begin(@mut Window window)
+def begin(@access @mut Window window)
+    if window.ready then fail("Window.begin() already called without closing it with Window.end()")
+    window.ready = true
     @body{ BeginDrawing(); }
     return window
 
-def frame(@mut Window window)
+def end(@access @mut Window window)
+    if window.ready.not() then fail("Window.begin() must be called before a matching Window.end()")
+    window.ready = false
     @body{ EndDrawing(); }
     return window
 

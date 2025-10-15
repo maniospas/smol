@@ -444,7 +444,7 @@ static inline void __smolambda_stop_all_threads() {
 
 /* ---------------- WORKER FUNCTION ---------------- */
 #ifdef _WIN32
-DWORD WInilPI worker_thread(LPVOID arg)
+DWORD WIokPI worker_thread(LPVOID arg)
 #else
 static inline void* __smolambda_worker_thread(void *arg)
 #endif

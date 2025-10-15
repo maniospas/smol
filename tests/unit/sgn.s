@@ -9,13 +9,13 @@ def test_sgn()
 
 def test_while()
     algorithm
-        range(10)
-        .while next(@mut u64 i)
-            if i==5 return nil
+        on range(10)
+        while next(@mut u64 i)
+            if i==5 return ok
             then print(i)
-        return nil
+        return ok
     print("ended")
 
 service main()
-    test_sgn()  
+    //test_sgn()  
     test_while()

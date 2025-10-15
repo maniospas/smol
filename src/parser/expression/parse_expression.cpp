@@ -97,7 +97,7 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
             implementation += Code(Variable("goto"), end_var, SEMICOLON_VAR);
             implementation += Code(skip_var, COLON_VAR);
         }
-        implementation += Code(Variable("printf(\"An unforeseen dynamic option was encountered\\n\");\n__result__errocode=__DYnilMIC__ERROR;\ngoto __failsafe;\n"));
+        implementation += Code(Variable("printf(\"An unforeseen dynamic option was encountered\\n\");\n__result__errocode=__DYokMIC__ERROR;\ngoto __failsafe;\n"));
         implementation += Code(end_var, COLON_VAR);
         
         return return_var;
@@ -133,6 +133,8 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
         auto finally_var = temp;
         vars[finally_var] = types.vars[LABEL_VAR];
         uplifting.emplace_back(finally_var, uplifting.size(), true, uplifting.size() && uplifting.back().is_loop);
+        if(uplifting.size()>=2)
+            uplifting[uplifting.size()-1].context = uplifting[uplifting.size()-2].context;
         parse_implementation(p, false);
         p++; // offset p-- after parse_return above
         implementation += Code(finally_var,COLON_VAR);

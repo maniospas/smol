@@ -16,7 +16,7 @@ void Def::parse_return(size_t& p, Variable next, Types& types) {
     size_t return_to = uplifting.size()-1;
     size_t return_p = p; // TODO: fix this when we fully migrate to "return" as a keyword instead of a macro for "->"
     static const Variable token_goto = Variable("goto");
-    if(next=="else") {
+    if(next=="else" || next=="elif") {
         implementation += Code(token_goto,this->uplifting[return_to].target,SEMICOLON_VAR);
         if(uplifting[return_to].has_returned) {
             if(!return_to && packs.size())
@@ -45,14 +45,18 @@ void Def::parse_return(size_t& p, Variable next, Types& types) {
         next = imp->at(p++);
         next = parse_expression(p, next, types);
         if(next.exists() && contains(next)) {
-            if(uplifting[return_to].has_returned && !contains(uplifting[return_to].target+Variable("r")))
-                imp->error(return_p, "Cannot mix `end` with a previous capture return: "
-                    +vars[uplifting[return_to].target+Variable("r")]->signature(types)
-                );
-            assign_variable(vars[next], uplifting[return_to].target+Variable("r"), next, p);
-            mutables.insert(uplifting[return_to].target+Variable("r"));
+            if(uplifting[return_to].has_returned && !contains(uplifting[return_to].target+Variable("r"))) {
+                if(vars[next]->packs.size())
+                    imp->error(return_p, "Previously returned no value, but here a value is obtainted: "
+                        +vars[next]->signature(types)
+                    );
+            }
+            else {
+                assign_variable(vars[next], uplifting[return_to].target+Variable("r"), next, p);
+                mutables.insert(uplifting[return_to].target+Variable("r"));
+            }
         }
-        else if(contains(uplifting[return_to].target+Variable("r")))
+        else if(contains(uplifting[return_to].target+Variable("r"))) 
             imp->error(return_p, "Cannot mix a capture return with a previously unset on");
         implementation += Code(token_goto,uplifting[return_to].target,SEMICOLON_VAR);
         uplifting[return_to].has_returned = true;

@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include <iostream>
 
 string compiler = "gcc";
 string linker = "";
@@ -13,7 +14,7 @@ int compile_from_stringstream_with_flags(
     string cmd = compiler+string(" -O3 ")
         + " -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 -m64 -fpermissive "
         //+" -fno-stack-protector -fno-exceptions -fno-rtti -ffunction-sections -s -fdata-sections -std=c++11 "
-        + extra_flags + " -o \"" + output_file + "\" -x c++ -"+linker;
+        + extra_flags + " -o \"" + output_file + "\" -x c++ -"+linker+" -lm";
     //cout << cmd << "\n";
     FILE* pipe = SMOL_POPEN(cmd.c_str(), "w");
     if(!pipe) 

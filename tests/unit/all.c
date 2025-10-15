@@ -26,7 +26,7 @@
 #define __BUFFER__ERROR 2
 #define __UNHANDLED__ERROR 3
 #define __STACK__ERROR 4
-#define __DYnilMIC__ERROR 5
+#define __DYokMIC__ERROR 5
 #define __TRANSIENT(message)
 #define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)
 #ifdef __cplusplus
@@ -1392,7 +1392,7 @@ nominal __SAL=0;
 u64 __jCL=0;
 cstr __PAL=0;
 cstr __OAL=0;
-u64 __nilL=0;
+u64 __okL=0;
 ptr __MAL=0;
 char __LAL=0;
 ptr __KAL=0;
@@ -1615,9 +1615,9 @@ __tEL = __runtime_alloc ( sizeof ( ptr **)); if ( __tEL )(( ptr **) __tEL )[0]=0
  __fBL :
  __PAL = "[ \033[32mOK\033[0m ] " ;
  __OAL = ".s" ;
- __nilL = strlen ( __OAL ); __MAL =( ptr ) __OAL ; __LAL = __OAL [0]; __KAL =( ptr ) __KAL ; 
+ __okL = strlen ( __OAL ); __MAL =( ptr ) __OAL ; __LAL = __OAL [0]; __KAL =( ptr ) __KAL ; 
  __JAL = __MAL ;
- __IAL = name__length ; __HAL = __nilL ; __GAL = __IAL + __HAL ; __FAL = name__length ? name__first : __LAL ; 
+ __IAL = name__length ; __HAL = __okL ; __GAL = __IAL + __HAL ; __FAL = name__length ? name__first : __LAL ; 
  __EAL = 1 ;
  __DAL = __GAL + __EAL ; 
  __CAL :
@@ -1875,7 +1875,7 @@ u64 __SIL=0;
 char __QIL=0;
 char __PIL=0;
 char __OIL=0;
-bool __NIL=0;
+bool __ok=0;
 bool __MIL=0;
 cstr __JIL=0;
 u64 __HIL=0;
@@ -2121,8 +2121,8 @@ __gLL = __runtime_alloc ( sizeof ( ptr **)); if ( __gLL )(( ptr **) __gLL )[0]=0
  __RIL :
  __QIL = 0 ;
  __PIL = __OIL ;
- __NIL = __b8G__acquired ;
- __MIL =(! __NIL ); 
+ __ok = __b8G__acquired ;
+ __MIL =(! __ok ); 
  __LIL :
  if(! __MIL )goto __KIL ;
  __JIL = "Did not initialize Dynamic" ;

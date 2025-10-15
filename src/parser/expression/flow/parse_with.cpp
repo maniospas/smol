@@ -94,7 +94,6 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
         ERROR("Competes with previous branch of `case`"+CODE_START()+competing+CODE_END());
     if(numberOfCandidates==0) 
         imp->error(with_start, "Not found a branch of `case`"+CODE_START()+overloading_errors+CODE_END());
-
     implementation += Code(finally_var,COLON_VAR);
     if(uplifting.size())
         uplifting[uplifting.size()-1].proving = false;

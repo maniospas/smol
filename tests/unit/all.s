@@ -55,6 +55,7 @@ service all()
     std_test("types/pong")
     std_test("types/range_test")
     std_test("types/union")
+    std_test("sgn")
 
 service main()
     tic = time()

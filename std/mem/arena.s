@@ -37,7 +37,7 @@ def Volatile(nominal type, ContiguousMemory contents)
     //     qed
     return type, contents, length, cycles
 
-def controlled_corrupt(@access @mut Volatile self)
+def clear(@access @mut Volatile self)
     if self.cycles.bool() then fail("Volatile corrupt detected that some data have already been corrupted by insufficient space instead.")
     @body{self__length=0;}
 
@@ -175,3 +175,6 @@ def arena(@access @mut Memory self, u64 size)
     
 def volatile(@access @mut Memory self, u64 size) 
     return nominal.Volatile(self.allocate(size))
+
+def arena(@mut Volatile mem)
+    return mem.arena(mem.len())
