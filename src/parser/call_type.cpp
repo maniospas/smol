@@ -25,8 +25,8 @@ Variable Def::call_type(
     // manually handle some primitive conversions to help with safety
     if(type->_is_primitive) {
         if(type->name=="tag") { // convert whatever type into a tag
-            string symbol = "";
-            size_t unpack_pos = 0;
+            auto symbol = string{""};
+            auto unpack_pos = size_t{0};
             while(unpack_pos<unpacks.size()) {
                 const auto& unpack = unpacks[unpack_pos];
                 if(contains(unpack)) {
