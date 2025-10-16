@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Smoλ is a low-level language with fast zero-cost abstractions that are organized into failsafe services.">
-  <meta name="keywords" content="smolambda, low-level language, smoλ, programming language, runtype, safe language, systems programming, DSL">
+  <meta name="keywords" content="smolambda, low-level language, smoλ, programming language, safe language, systems programming, DSL">
   <meta name="author" content="Emmanouil (Manios) Krasanakis">
   <meta name="robots" content="index, follow">
   <link rel="icon" href="smol.png" type="image/x-icon">
@@ -209,7 +209,7 @@ Finally, the generated executable runs.
 <p>
 The last two bullet points come from running the program. These
 are printed by the language's default <i>runtime</i>, that is, the
-instructions embeded in the generated executable of how to work together with the operating system. 
+instructions embedded in the generated executable of how to work together with the operating system. 
 The default runtime prints a link to the language's repository so that you can report bugs (and add a star!)
 and then automatically selects whether the application should be a single-threaded or multi-threaded one.
 </p>
@@ -243,7 +243,7 @@ concepts can be understood only after reading the rest of this tutorial:
   in the <i>std/runtime/</i> directory. Default name is <i>auto</i>, corresponding to
   <i>std/runtime/auto.h</i> that chooses between an eager and co-routine implementation 
   of services depending on their number. There are two more runtimes provided out-of-the-box,
-  <i>threads</i> that contains a co-routine implementaiton of services and <i>eager</i>
+  <i>threads</i> that contains a co-routine implementation of services and <i>eager</i>
   that contains an eager calling of services.</li>
   <li><code>--task [name]</code> Controls whet the compiler actually does with the input code.
   The default task is <i>run</i>, which produces and runs an executable. You can set the following options:
@@ -251,7 +251,7 @@ concepts can be understood only after reading the rest of this tutorial:
     <li><i>compile</i> to only produce the executable but not run it.</li>
     <li><i>transpile</i> to produce a <i>.c</i> file
     containing an intermediate largely unreadable but still compile-able C transpilation of your program.</li>
-    <li><i>assemble</i> to run the combination process but emmit readable assembly, <i>verify</i> to run
+    <li><i>assemble</i> to run the combination process but emit readable assembly, <i>verify</i> to run
     a verification of correctness and print warning about sources of unsafety without producing any
     other outcome.</li>
     <li><i>lsp</i> to run the same verification process with markdown output that is what is leveraged 
@@ -430,7 +430,7 @@ back in main now
 
 <p>
 <b>Style guide:</b> Prefer indenting code blocks for easier reading, 
-as well as starting them in new lines. Proper identation is a good coding practce for any
+as well as starting them in new lines. Proper indentation is a good coding practice for any
 language, so try to stick to it. As an exception, you can keep a block comprising a
 single <code class="language-smolambda">then</code> statement in the same line as the condition
 (see next example).
@@ -441,7 +441,7 @@ Above, the tested condition is just the value <code class="language-smolambda">t
 If you changed the condition to <code class="language-smolambda">false</code>, the inside would be skipped. These two values
 (<code class="language-smolambda">true</code> and <code class="language-smolambda">false</code>) are 
 known as boolean ones, or <code class="language-smolambda">bool</code> for short. 
-More often, the test contains numerical or other comparisons that evaluate to a boolea value. 
+More often, the test contains numerical or other comparisons that evaluate to a boolean value. 
 For example, <code class="language-smolambda">2 &lt; 3</code> checks whether two is less than three.
 </p>
 
@@ -478,7 +478,7 @@ There are several comparison operators you can use - some of these are defined f
 
 <p>
 We can also use <code class="language-smolambda">elif</code> (else if) 
-and <code class="language-smolambda">else</code> branches to cover alternatves.  
+and <code class="language-smolambda">else</code> branches to cover alternatives.  
 Each branch is tried in order, until one runs. The rest are skipped.  
 Using <code class="language-smolambda">then</code> is mandatory only for the last branch, 
 as in the other cases the language can understand where the block ends without it. But you 
@@ -512,7 +512,7 @@ positive
 
 <p>A loop repeats a block while a condition is true. Syntactically, it
 starts with <code class="language-smolambda">while</code> followed by a condition 
-and the block's contents. Similarly to conditions, the loop's condents end just after <code class="language-smolambda">then last_expression</code>.
+and the block's contents. Similarly to conditions, the loop's contents end just after <code class="language-smolambda">then last_expression</code>.
 If a variable changes inside the loop, is needs to be mutable during its first assignment.
 Otherwise, the language would complain.</p>
 
@@ -544,14 +544,14 @@ service main()
 <p>The next snippet shows a pattern for looping through a <i>range</i> of unsigned integers <code class="language-smolambda">0 upto 4</code>.
 You could skip the <code>0,</code> argument for further simplicity. More details will be fully presented later, but it 
 would be remiss to not mention this pattern here, as it prevents accidental bugs. Broadly, the <code>next</code> function
-progresses the range while tracking values by assigning them to mutable varable <code class="language-smolambda">i</code>. 
+progresses the range while tracking values by assigning them to mutable variable <code class="language-smolambda">i</code>. 
 The latter is updated in every loop.
 </p>
 <p>
 Notice the <code class="language-smolambda">.</code> before the <code class="language-smolambda">while</code>, which is how
 range is transferred to <code>next</code>. With this pattern, you do not need to manually handle the increment, which
 you might forget about or could be complicated. Similar patterns let you, for example, automate the process of reading
-from fles.
+from files.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -569,7 +569,7 @@ service main()
 <p>Sometimes, you may want to conditionally assign a value to
 a variable. If the variable is mutable, you can place a different assignment within 
 each branch, though this requires the mutability -which is not as safe as immutable assignments-
-and a priorly set default value. As an alternative, <i>smoλ</i> provides 
+and a previously set default value. As an alternative, <i>smoλ</i> provides 
 an <code class="language-smolambda">algorithm</code> control flow that starts a code block and
 captures values obtained from internal statements of the form <code class="language-smolambda">return value</code>. 
 Returns immediately end the code block, even if they occur within internally defined blocks.
@@ -611,7 +611,7 @@ breaking away from loops. Below is an example, where some commands are merged in
 for conciseness. Having an explicit <code class="language-smolambda">return</code> statement 
 in all situations is necessary - the language would complain otherwise. The example returns
 a <code class="language-smolambda">ok</code> value provided by <code>std.core</code>, 
-which has no contents. As a sidenote, the "algorithm" keyword is deliberately long so that
+which has no contents. As a side-note, the "algorithm" keyword is deliberately long so that
 it's easy to spot and match nested returns to.
 </p>
 
@@ -669,7 +669,7 @@ The named block is called a function and its inputs are called arguments. There 
 <p>In simple programs you will mostly declare <code class="language-smolambda">def</code> functions
 and let them freely fail. <i>Smoλ</i>'s philosophy is to not try to hopelessly recover from every failure state, 
 but exit gracefully a bunch of dependent computations and try again. This is to strike a balance between error handling
-code that polutes the codebase and recovering from impactful failures. Services are more complex in that they run
+code that pollutes the codebase and recovering from impactful failures. Services are more complex in that they run
 independently to each other.</p>
 <p>Regardless of the type of function, you can declare arguments
 as comma-separated variable types and names (each type corresponds to a name, separated by space). 
@@ -777,7 +777,7 @@ service main()
 
 <p>
 <b>Currying:</b> 
-The dot noration <code class="language-smolambda">first_argument.function_call(other_arguments)</code> 
+The dot notation <code class="language-smolambda">first_argument.function_call(other_arguments)</code> 
 sends the value on the left as the first argument of a function.  
 This reads left-to-right and can be chained. Here is an example:
 </p>
@@ -852,7 +852,7 @@ This is visually different from currying in that there is no function call paren
 be retrievable from <code class="language-smolambda">return x+1,y+1</code>, as the additions have not been stored
 in a named variable. This is also fine, and you may do it for convenience in some scenarios.
 Finally, <code class="language-smolambda">@args</code> is a shorthand that returns all inputs
-and accessing fiels is also done with the dot notation. Below is an example.
+and accessing fields is also done with the dot notation. Below is an example.
 </p>
 
 <pre><code class="language-smolambda">\\ main.s
@@ -896,9 +896,9 @@ If a function returns only one value, you use that directly, that is, without an
 
 <p>
 To help you write secure code that does not arbitrarily access mutable fields, <i>smoλ</i> normally
-precents you from accessing or setting them. To be able to do so, add <code class="language-smolambda">@access</code>
+prevents you from accessing or setting them. To be able to do so, add <code class="language-smolambda">@access</code>
 at the very start of respective arguments. Below is an example where, without this notation, even immutable versions
-of a runtype will not let you view mutable fields.
+of a type will not let you view mutable fields.
 </p>
 
 
@@ -939,9 +939,9 @@ service main()
 
 <p>
 Now is the right time to talk about services and their philosophy: they are basically
-runtypes that run in parallel threads 
+functions that run in parallel threads 
 (in truth: with a co-routine model but this is too advanced 
-for this tutorial) and, when something is wrong -including in one of their called runtypes-, 
+for this tutorial) and, when something is wrong -including in one of their called functions-, 
 they complain and stop their work. When they stop, they also safely release any resources so that 
 you do not have memory leaks or other similar issues.
 Anywhere, call <code class="language-smolambda">fail("message")</code> to stop the current service.
@@ -1073,7 +1073,7 @@ amount of memory, such as combining strings or managing lists of arbitrary sizes
 <code class="language-smolambda">std.mem</code> import come. Here, we start from touching on concepts
 from the import, to give a general picture. Broadly, there are two memory
 devices; the <code>Stack</code> and <code>Heap</code>, corresponding to the small but fast
-memory your operating system uses to run your program, and the full extend of availabel memory.
+memory your operating system uses to run your program, and the full extend of available memory.
 These provide memory allocation capabilities, but also grant you the ability to allocate more
 memory either dynamically or as arenas at the respective device.</p>
 
@@ -1082,17 +1082,17 @@ all resources that <i>smoλ</i> uses; it is freed only when not in use by any of
 This is achieved with some minor restrictions that the compiler will let you know occasionally. For example,
 you need to declare memory management contexts (the <code class="language-smolambda">on</code>
 statements mentioned below) outside of loops that would leak the memory in each execution. However, the
-benefit is that there is no running overhead or bottlenceck for testing when memory is no longer needed
+benefit is that there is no running overhead or bottleneck for testing when memory is no longer needed
 and freeing it. Instead, memory is released back to the operating system at function ends that are
 determined during compilation. That is, memory management is a zero-cost abstraction.
 </p>
 
 <p>
-<b>Arenas:</b> Of the aforementiond types of memory, arenas are pre-allocated memory regions that cannot grow. 
+<b>Arenas:</b> Of the aforementioned types of memory, arenas are pre-allocated memory regions that cannot grow. 
 They are typically made to consume a safe amount of memory
 to ensure that programs can successfully run, although this often comes with some
-wasteage. New allocations on arenas are 
-lightweight (thay are reduced to simple additions) and therefore execute fastly. In <i>smoλ</i>, arenas
+wastage. New allocations on arenas are 
+lightweight (they are reduced to simple additions) and therefore execute quickly. In <i>smoλ</i>, arenas
 that run out of space cause services to fail, which is always done safely and without leaking
 resources. Here is how to work with arenas, where the <code class="language-smolambda">on</code>
 statement automatically adds the arena as a first argument to all operations inside the current code block. 
@@ -1126,7 +1126,7 @@ service main()
 <p>
 If you switch to <code>Heap</code> instead of <code>Stack</code>, the same code 
 would allocate on random access memory. Do note that the exact details of how heap 
-memory is manageed may be modified under the hood for different systems by passing 
+memory is managed may be modified under the hood for different systems by passing 
 a different runtime to the compiler.
 </p>
 
@@ -1194,7 +1194,7 @@ long as any is in use. However, you can also retain one allocation per dynamic m
 Most operations on strings are zero-cost abstractions over simple arithmetics, as happens 
 for example when retrieving substrings. The most heavyweight operations are copying and
 concatenation, both of which require an arena or dynamic memory to store the result. Below
-is an example, where it is important to note that concatenation yilds a <code class="language-smolambda">nstr</code>
+is an example, where it is important to note that concatenation yields a <code class="language-smolambda">nstr</code>
 by default, which can be directly reduced to a simpler <code class="language-smolambda">str</code> if needed.
 Similarly, conversion of <code class="language-smolambda">cstr</code> to the other types is lightweight.
 </p>
@@ -1411,8 +1411,8 @@ This way, recursion does not pile up memory; it just reuses a single loop.
 Below is an example that demonstrates how to do this using a <code class="language-smolambda">tag</code> primitive that 
 we have not addressed so far. That consists of writing 
 <code class="language-smolambda">;name</code> and behaves like a number with a given value.
-Importatly, tag values, can overlap with function names, which a <code class="language-smolambda">@dynamic</code>
-instruction uses to its advantage to execut dfferent functions given different tag values.
+Importantly, tag values, can overlap with function names, which a <code class="language-smolambda">@dynamic</code>
+instruction uses to its advantage to execute different functions given different tag values.
 </p>
 
 <p>Below is a concrete example of how this can work in practice. 

@@ -4,7 +4,7 @@
 service main()
     endl = "\n".str().first // get `\n` as a character
 
-    on Stack.volatile(1024)
+    on Stack.circular(1024)
     ReadFile
     .open("README.md")
     .while next_line(@mut str line)

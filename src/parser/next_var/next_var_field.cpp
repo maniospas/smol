@@ -18,7 +18,7 @@ Variable Def::next_var_field(Variable next, size_t& p, const Variable& first_tok
     Variable var = Variable(next);
     if(active_calls.find(var)!=active_calls.end() && active_calls[var].exists()) {
         if(active_calls[active_calls[var]].exists()) {
-            static const Variable token_print = Variable(":\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+            static const Variable token_print = Variable(":\n__result__error_code=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
             const Variable& call_var = active_calls[var];
             implementation += Code(
                 Variable("__smolambda_task_wait"),
@@ -56,7 +56,7 @@ Variable Def::next_var_field(Variable next, size_t& p, const Variable& first_tok
                 fail_var, 
                 token_print
             ));
-            add_preample("#include <stdio.h>");
+            add_preamble("#include <stdio.h>");
         }
         next = active_calls[var]+next_token;
         if(active_calls.find(var)!=active_calls.end() 

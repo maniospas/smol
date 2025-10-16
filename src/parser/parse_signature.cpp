@@ -182,8 +182,8 @@ void Def::parse_signature(size_t& p, Types& types) {
                 args.emplace_back(arg_name+it.name, it.type, mut || it.mut);
                 vars[arg_name+it.name] = it.type;
                 implementation += it.type->rebase(it.type->implementation, arg_name);
-                for(const string& pre : it.type->preample) 
-                    add_preample(pre);
+                for(const string& pre : it.type->preamble) 
+                    add_preamble(pre);
                 for(const string& pre : it.type->linker) 
                     add_linker(pre);
                 for(const auto& it : it.type->buffer_types)

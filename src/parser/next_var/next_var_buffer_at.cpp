@@ -73,7 +73,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
     );
     errors.insert(Code(
         fail_var, 
-        Variable(":\nprintf(\"Buffer error\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")
+        Variable(":\nprintf(\"Buffer error\\n\");\n__result__error_code=__BUFFER__ERROR;\ngoto __failsafe;\n")
     ));
     Variable elem = create_temp();
     Variable packname = EMPTY_VAR;
@@ -257,7 +257,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
 
         // range check
         implementation += Code(token_if, idx, Variable(">="), next+Variable("__buffer_size"), Variable(")goto"), fail_var, SEMICOLON_VAR);
-        errors.insert(Code(fail_var, Variable(":\nprintf(\"Buffer error\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")));
+        errors.insert(Code(fail_var, Variable(":\nprintf(\"Buffer error\\n\");\n__result__error_code=__BUFFER__ERROR;\ngoto __failsafe;\n")));
 
         // write element packs at idx
         size_t pack_index = 0;

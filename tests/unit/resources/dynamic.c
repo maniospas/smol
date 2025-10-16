@@ -60,7 +60,7 @@ struct main__882__state{errcode err;};
 __externc void main__882(void *__void__state);
 
 void main__882(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 2360;
 struct main__882__state *__state=(struct main__882__state*)__void__state;
@@ -490,15 +490,15 @@ goto __return;
 // ERROR HANDLING
 __BwG :
  printf ( "%s\n" , __CwG ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __bwG :
  printf ( "%s\n" , __cwG ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __result__buffer_error :
 printf("Buffer error\n");
-__result__errocode=__BUFFER__ERROR;
+__result__error_code=__BUFFER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -518,7 +518,7 @@ if( __8pG__lookups__dynamic ){if((u64*)((u64*) __8pG__lookups__dynamic )[2]) __r
  }if( __8pG__squares__dynamic ){if((u64*)((u64*) __8pG__squares__dynamic )[2]) __runtime_free((u64*)((u64*) __8pG__squares__dynamic )[0]) ;
  __runtime_free( __8pG__squares__dynamic ) ;
  __8pG__squares__dynamic = 0 ;
- }__state->err =  __result__errocode;
+ }__state->err =  __result__error_code;
 }
 
 

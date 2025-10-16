@@ -55,7 +55,7 @@ struct main__787__state{errcode err;};
 void main__787(void *__void__state);
 
 void main__787(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 struct main__787__state *__state=(struct main__787__state*)__void__state;
 ptr __l9__message__contents=0;
 nominal __k9____d9____Vi__self__contents____5E=0;
@@ -345,23 +345,23 @@ goto __return;
 // ERROR HANDLING
 __k9____d9____Vi____NS____oD :
  printf ( "%s\n" , __k9____d9____Vi____MS ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __k9____c9____jb____NS____oD :
  printf ( "%s\n" , __k9____c9____jb____MS ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __k9____P9____GW____QI____uF____oD :
  printf ( "%s\n" , __k9____P9____GW____QI____tF ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __k9____P9____GW____QI____oF____oD :
  printf ( "%s\n" , __k9____P9____GW____QI____nF ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __result__buffer_error :
 printf("Buffer error\n");
-__result__errocode=__BUFFER__ERROR;
+__result__error_code=__BUFFER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -372,7 +372,7 @@ __return:
 if( __f9__dynamic ){if((u64*)((u64*) __f9__dynamic )[2]) __runtime_free((u64*)((u64*) __f9__dynamic )[0]) ;
  __runtime_free( __f9__dynamic ) ;
  __f9__dynamic = 0 ;
- }__state->err =  __result__errocode;
+ }__state->err =  __result__error_code;
 }
 
 

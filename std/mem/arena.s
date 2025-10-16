@@ -19,36 +19,38 @@
 @unsafe
 @about "Standard library implementation of arena allocation, marked as @noborrow but unsafely returned from constructors. Pointer arithmetics yield offsets within arenas."
 
+def Region(nominal type, ContiguousMemory contents)
+    length = 0
+    return type, contents, length
+
 def Arena(nominal type, ContiguousMemory contents)
-    @noborrow
+    @noborrow  // we need this so that we can clear
     length = 0
-    size = contents.size
-    // case 
-    //     contents.Primitive.is(char) 
-    //     qed
-    return type, contents, length, size
+    return type, contents, length
 
-def Volatile(nominal type, ContiguousMemory contents)
-    @noborrow  // we need this so that controlled_corrupt can properly analyze corruptions
+def Circular(nominal type, ContiguousMemory contents)
+    @noborrow  // we need this so that we can clear
     length = 0
-    cycles = 0
-    // case 
-    //     contents.Primitive.is(char)
-    //     qed
-    return type, contents, length, cycles
+    return type, contents, length
 
-def clear(@access @mut Volatile self)
-    if self.cycles.bool() then fail("Volatile corrupt detected that some data have already been corrupted by insufficient space instead.")
+def clear(@access @mut Circular self)
     @body{self__length=0;}
 
-union DerivedMemory = Arena or Volatile
+def clear(@access @mut Arena self)
+    @body{self__length=0;}
 
-def len(@access @mut DerivedMemory self) 
+union BoundMemory = Region or Arena
+union Buffer = Region or Arena or Circular
+
+def len(@access @mut Buffer self) 
     return self.contents.size
 
 def Dynamic(nominal) 
     @noborrow
-    @body{ptr acquired = __runtime_alloc(sizeof(ptr**));if(acquired)((ptr**)acquired)[0]=0;}
+    @body{
+        ptr acquired = __runtime_alloc(sizeof(ptr**));
+        if(acquired)((ptr**)acquired)[0]=0;
+    }
     size = 0
     allocated = 0
     @finally acquired {
@@ -70,9 +72,8 @@ def dynamic(@access Heap)
 def dynamic(@access Stack) 
     return nominal.Stack()
     
-def allocate(@access @mut Dynamic self, u64 size, Primitive)
+def allocate(@access @mut Dynamic self, u64 size)
     @head{#include <stdlib.h>}
-    primitive = Primitive
     if self.acquired.bool().not() then fail("Did not initialize Dynamic")
     @body{
         u64 next_size = self__size+1;
@@ -84,7 +85,7 @@ def allocate(@access @mut Dynamic self, u64 size, Primitive)
             if((success=next_acquired)) ((ptr**)self__acquired)[0] = (ptr*)next_acquired;
         }
         if(success) {
-            ptr mem=(ptr)__runtime_alloc(size*sizeof(primitive));
+            ptr mem=(ptr)__runtime_alloc(size);
             if((success=mem)) {
                 ((ptr**)self__acquired)[0][self__size] = mem;
                 self__size = next_size;
@@ -92,46 +93,23 @@ def allocate(@access @mut Dynamic self, u64 size, Primitive)
         }
     }
     if success.not() then fail("Failed a Dynamic allocation")
-    return nominal.ContiguousMemory(Heap, size, Primitive, mem, self.acquired)
+    return nominal.ContiguousMemory(size, mem, self.acquired)
 
-def allocate(@access @mut Dynamic self, u64 size)
-    return allocate(self, size, char)
-
-def used(@access @mut Arena self)
+def used(@access @mut Buffer self)
     return self.length
 
-def used(@access @mut Volatile self)
-    return 0
-
-def allocate(@access @mut Arena self, u64 size)
-    if(self.length+size)>self.contents.size then fail("Failed an Arena allocation")
+def allocate(@access @mut BoundMemory self, u64 size)
+    if(self.length+size)>=self.contents.size then fail("Failed an Arena allocation") // >= so that last byte will always be zero
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    return nominal.ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
+    return nominal.ContiguousMemory(size, _contents, self.contents.underlying)
 
-def allocate(@access @mut Arena self, u64 _size, Primitive) 
-    primitive = Primitive
-    @body{u64 size = _size*sizeof(primitive);}
-    if(self.length+size)>self.contents.size then fail("Failed an Arena allocation")
+def allocate(@access @mut Circular self, u64 size)
+    if size>=self.contents.size then fail("Failed an Circular allocation") // >= so that last byte will always be zero
+    @body{if(self__length+size>=self__contents__size) {self__length = 0;}} // >= so that last byte will always be zero
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    return nominal.ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
-
-def allocate(@access @mut Volatile self, u64 size)
-    if size>self.contents.size then fail("Failed an Volatile allocation")
-    @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
-    @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
-    @body{self__length = self__length+size;}
-    return nominal.ContiguousMemory(self.contents.MemoryDevice, size, char, _contents, self.contents.underlying)
-
-def allocate(@access @mut Volatile self, u64 _size, Primitive) 
-    primitive = Primitive
-    @body{u64 size = _size*sizeof(primitive);}
-    if size>self.contents.size then fail("Failed a Volatile allocation")
-    @body{if(self__length+size>self__contents__size) {self__length = 0;self__cycles=self__cycles+1;}}
-    @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length);}
-    @body{self__length = self__length+size;}
-    return nominal.ContiguousMemory(self.contents.MemoryDevice, size, Primitive, _contents, self.contents.underlying)
+    return nominal.ContiguousMemory(size, _contents, self.contents.underlying)
 
 def read(@access @mut Arena self)
     @acquire "std.terminal.read"
@@ -143,9 +121,8 @@ def read(@access @mut Arena self)
             ptr _contents = 0;
         } else {
             char *dest = (char*)self__contents__mem + self__length;
-            u64 maxlen = self__contents__size - self__length;
-
-            if(fgets(dest, maxlen, stdin)) {
+            u64 max_len = self__contents__size - self__length;
+            if(fgets(dest, max_len, stdin)) {
                 u64 length = strlen(dest);
 
                 // Trim CR or LF
@@ -164,17 +141,19 @@ def read(@access @mut Arena self)
     if _contents.exists().not() then fail("Error: Tried to read more elements than remaining Arena size or read failed")
     return nominal.str(_contents, length, first, self__contents__mem)
 
-union Memory = MemoryDevice or DerivedMemory or Dynamic
-union BoundedMemory = Arena or Volatile
+union Memory = MemoryDevice or Buffer or Dynamic
 
 def is(@access @mut Memory self, @mut Memory) 
     return self
 
+def fixed(@access @mut Memory self, u64 size) 
+    return nominal.Buffer(self.allocate(size))
+
 def arena(@access @mut Memory self, u64 size) 
     return nominal.Arena(self.allocate(size))
     
-def volatile(@access @mut Memory self, u64 size) 
-    return nominal.Volatile(self.allocate(size))
+def circular(@access @mut Memory self, u64 size) 
+    return nominal.Circular(self.allocate(size))
 
-def arena(@mut Volatile mem)
+def arena(@mut Circular mem)
     return mem.arena(mem.len())

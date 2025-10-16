@@ -13,7 +13,7 @@
 #include "../../def.h"
 
 #define CHECK_RELEASE(next) if(released[next]) imp->error(--p, "Cannot use already released value: "+next.to_string());
-#define CHECK_ERRCODE(next) if(contains(next+ERR_VAR)) {implementation += Code(token_if, next+ERR_VAR, Variable(") goto "), Variable("__result_unhandled_error"), SEMICOLON_VAR); errors.insert(Code(Variable("__result_unhandled_error"), COLON_VAR, Variable("printf(\"Unhandled error\\n\")"),SEMICOLON_VAR, Variable("__result__errocode"), Variable("=__UNHANDLED__ERROR;\ngoto __failsafe"), SEMICOLON_VAR));}
+#define CHECK_ERRCODE(next) if(contains(next+ERR_VAR)) {implementation += Code(token_if, next+ERR_VAR, Variable(") goto "), Variable("__result_unhandled_error"), SEMICOLON_VAR); errors.insert(Code(Variable("__result_unhandled_error"), COLON_VAR, Variable("printf(\"Unhandled error\\n\")"),SEMICOLON_VAR, Variable("__result__error_code"), Variable("=__UNHANDLED__ERROR;\ngoto __failsafe"), SEMICOLON_VAR));}
 
 Variable Def::next_var(size_t& p, const Variable& first_token, Types& types, bool test) {
     if(first_token.is_empty()) 

@@ -157,7 +157,7 @@ def div(@access u64 x, u64 y)
 
 def sub(@access u64 x, u64 y)
     @head{#include <stdio.h>}
-    if y>x then @fail{printf("Error: unsigned substraction yielded a negative\n");}
+    if y>x then @fail{printf("Error: unsigned subtraction yielded a negative\n");}
     @body{u64 z=x-y;}
     return z
 

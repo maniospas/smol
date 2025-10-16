@@ -70,7 +70,7 @@ struct test__1204__state{errcode err;};
 __externc void test__1204(void *__void__state);
 
 void test__1204(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 3412;
 struct test__1204__state *__state=(struct test__1204__state*)__void__state;
@@ -867,83 +867,83 @@ goto __return;
 // ERROR HANDLING
 __UhI :
  printf ( "%s\n" , __YaI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __RdI :
  printf ( "%s\n" , __qeI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __weI :
  printf ( "%s\n" , __veI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __7gI :
  printf ( "%s\n" , __6gI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __meI :
  printf ( "%s\n" , __leI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __DhI :
  printf ( "%s\n" , __ChI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __result__buffer_error :
 printf("Buffer error\n");
-__result__errocode=__BUFFER__ERROR;
+__result__error_code=__BUFFER__ERROR;
 goto __failsafe;
 __afI :
  printf ( "%s\n" , __ZfI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __JhI :
  printf ( "%s\n" , __IhI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __WeI :
  printf ( "%s\n" , __VeI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __gfI :
  printf ( "%s\n" , __ffI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __IgI :
  printf ( "Failed to allocate str from number\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __9dI :
  printf ( "%s\n" , __8dI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __mfI :
  printf ( "%s\n" , __lfI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __vfI :
  printf ( "%s\n" , __LhI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __caI :
  printf ( "%s\n" , __6ZI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __mgI :
  printf ( "%s\n" , __lgI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __1eI :
  printf ( "%s\n" , __0eI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __VfI :
  printf ( "%s\n" , __UfI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __6fI :
  printf ( "%s\n" , __5fI ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -955,12 +955,12 @@ if ( __tKI__contents__mem ) __runtime_free ( __tKI__contents__mem ); __tKI__cont
 if( __UKI__dynamic ){if((u64*)((u64*) __UKI__dynamic )[2]) __runtime_free((u64*)((u64*) __UKI__dynamic )[0]) ;
  __runtime_free( __UKI__dynamic ) ;
  __UKI__dynamic = 0 ;
- }__state->err =  __result__errocode;
+ }__state->err =  __result__error_code;
 }
 
 
 void main__1205(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 1892;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
@@ -982,11 +982,11 @@ goto __return;
 // ERROR HANDLING
 __result_unhandled_error :
  printf("Unhandled error\n") ;
- __result__errocode =__UNHANDLED__ERROR;
+ __result__error_code =__UNHANDLED__ERROR;
 goto __failsafe ;
 __service_stack_floor_handler:
 printf("Insufficient stack for safe service call (too much recursion or stack allocation)\n");
-__result__errocode=__STACK__ERROR;
+__result__error_code=__STACK__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -1000,7 +1000,7 @@ __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 

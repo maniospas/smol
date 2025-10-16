@@ -14,7 +14,7 @@
 
 
 vector<Variable> Def::gather_tuple(size_t& p, Types& types, const Variable& curry) {
-    static const Variable token_print = Variable(":\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+    static const Variable token_print = Variable(":\n__result__error_code=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
 
     vector<Variable> ret;
     if(curry.exists()) {
@@ -50,7 +50,7 @@ vector<Variable> Def::gather_tuple(size_t& p, Types& types, const Variable& curr
                 vars[fail_var] = types.vars[LABEL_VAR];
                 implementation += Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
                 errors.insert(Code(fail_var, token_print));
-                add_preample("#include <stdio.h>");
+                add_preamble("#include <stdio.h>");
             }
             for(size_t i=1;i<type->packs.size();++i) 
                 ret.push_back(active_calls[var]+type->packs[i]);
@@ -86,7 +86,7 @@ vector<Variable> Def::gather_tuple(size_t& p, Types& types, const Variable& curr
                 vars[fail_var] = types.vars[LABEL_VAR];
                 implementation +=Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
                 errors.insert(Code(fail_var, token_print));
-                add_preample("#include <stdio.h>");
+                add_preamble("#include <stdio.h>");
             }
             for(size_t i=1;i<type->packs.size();++i) 
                 ret.push_back(active_calls[var]+type->packs[i]);

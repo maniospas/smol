@@ -54,7 +54,7 @@ struct adder__182__state{errcode err;u64 *input____ret;u64 input;};
 extern "C" void adder__182(void *__void__state);
 
 void adder__182(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 struct adder__182__state *__state=(struct adder__182__state*)__void__state;
 u64 input= __state->input;
 errcode err=0;
@@ -69,12 +69,12 @@ __failsafe:
 // HOTPATH SKIPS TO HERE
 __return:
 *__state->input____ret=input;
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 
 void main__183(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
 __SmolambdaLinkedMemory* __smolambda_all_task_results = 0;
 struct main__183__state *__state=(struct main__183__state*)__void__state;
@@ -106,11 +106,11 @@ goto __return;
 // ERROR HANDLING
 __2E :
 printf("Runtime error from adder __1E \n");
-__result__errocode=__UNHANDLED__ERROR;
+__result__error_code=__UNHANDLED__ERROR;
 goto __failsafe;
 __result_unhandled_error :
  printf("Unhandled error\n") ;
- __result__errocode =__UNHANDLED__ERROR;
+ __result__error_code =__UNHANDLED__ERROR;
 goto __failsafe ;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -124,7 +124,7 @@ __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 

@@ -27,7 +27,7 @@
 @about open       "Opens a File given a String path. There might be service failure due to external factors. Opening a WriteFile, "
                   "may also cause failure if it already exists - in that case remove it first and it will be created. "
                   "On the other hand, a ReadFile must already exist to be opened. "
-                  "Files must be set as mutables to allow reads and writes. Otherwise, only a few operations become available."
+                  "Files must be set as mutable variables to allow reads and writes. Otherwise, only a few operations become available."
                   "\n\nExample for overwriting a file:"
                   "<pre>if is_file(\"hi.txt\")"
                   "\n    then remove_file(\"hi.txt\")"
@@ -141,7 +141,7 @@ def print(@access @mut WriteFile f, String _s)
     if success.not() then @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
 
 def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
-    // using temporary files can be exceptionall 
+    // using temporary files can be exceptional
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -156,7 +156,7 @@ def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     return nominal.WriteFile(contents)
     
 def next_chunk (
-        @mut Volatile reader, 
+        @mut Circular reader, 
         @access @mut File f,
         @mut nstr value
     )
@@ -177,7 +177,7 @@ def next_chunk (
     return ret.bool()
 
 def next_line (
-        @mut Volatile reader, 
+        @mut Circular reader, 
         @access @mut File f, 
         @mut nstr value
     )
@@ -202,7 +202,7 @@ def next_line (
     return ret.bool()
 
 def next_chunk (
-        @mut Arena reader, 
+        @mut BoundMemory reader, 
         @access @mut File f,
         @mut nstr value
     )
@@ -220,7 +220,7 @@ def next_chunk (
     return ret.bool()
 
 def next_line(
-        @mut Arena reader,
+        @mut BoundMemory reader,
         @access @mut File f,
         @mut nstr value
     )
@@ -242,21 +242,21 @@ def next_line(
     return ret.bool()
 
 def next_line (
-        @mut BoundedMemory reader,
+        @mut Buffer reader,
         @access @mut File f, 
         @mut str value
     )
-    ret = next_line(reader, f, @mut nstr retvalue)
-    value = retvalue.str()
+    ret = next_line(reader, f, @mut nstr nstr_value)
+    value = nstr_value.str()
     return ret
 
 def next_chunk (
-        @mut BoundedMemory reader, 
+        @mut Buffer reader, 
         @access @mut File f, 
         @mut str value
     )
-    ret = next_chunk(reader, f, @mut nstr retvalue)
-    value = retvalue.str()
+    ret = next_chunk(reader, f, @mut nstr nstr_value)
+    value = nstr_value.str()
     return ret
 
 def ended(@access @mut File f)

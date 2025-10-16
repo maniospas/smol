@@ -58,7 +58,7 @@ struct main__871__state{errcode err;};
 __externc void main__871(void *__void__state);
 
 void main__871(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
 __SmolambdaLinkedMemory* __smolambda_all_task_results = 0;
 struct main__871__state *__state=(struct main__871__state*)__void__state;
@@ -475,39 +475,39 @@ goto __return;
 // ERROR HANDLING
 __gIB____sHB____FCB____oD :
  printf ( "%s\n" , __gIB____sHB____ECB ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __fIB____IFB____NT____oD :
  printf ( "%s\n" , __fIB____IFB____MT ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __fIB____FFB____oD :
  printf ( "%s\n" , __fIB____EFB ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __eIB____DIB____JCB____oD :
  printf ( "%s\n" , __eIB____DIB____ICB ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __bIB____DIB____JCB____oD :
  printf ( "%s\n" , __bIB____DIB____ICB ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __eIB____AIB____49____NT____oD :
  printf ( "%s\n" , __eIB____AIB____49____MT ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __bIB____AIB____49____NT____oD :
  printf ( "%s\n" , __bIB____AIB____49____MT ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __XIB____QW____YI____2F____oD :
  printf ( "%s\n" , __XIB____QW____YI____1F ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __XIB____QW____YI____wF____oD :
  printf ( "%s\n" , __XIB____QW____YI____vF ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -522,7 +522,7 @@ __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __TRANSIENT( __XIB__contents__mem )
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 

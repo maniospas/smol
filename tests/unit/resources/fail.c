@@ -63,7 +63,7 @@ struct main__779__state{errcode err;};
 __externc void main__779(void *__void__state);
 
 void main__779(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
 __SmolambdaLinkedMemory* __smolambda_all_task_results = 0;
 struct main__779__state *__state=(struct main__779__state*)__void__state;
@@ -96,15 +96,15 @@ goto __return;
 // ERROR HANDLING
 __m5____oD :
  printf ( "%s\n" , __l5 ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __result_unhandled_error :
  printf("Unhandled error\n") ;
- __result__errocode =__UNHANDLED__ERROR;
+ __result__error_code =__UNHANDLED__ERROR;
 goto __failsafe ;
 __i5 :
 printf("Runtime error from  __g5 \n");
-__result__errocode=__UNHANDLED__ERROR;
+__result__error_code=__UNHANDLED__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -118,12 +118,12 @@ __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 
 void test__778(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
 __SmolambdaLinkedMemory* __smolambda_all_task_results = 0;
 struct test__778__state *__state=(struct test__778__state*)__void__state;
@@ -257,27 +257,27 @@ goto __return;
 // ERROR HANDLING
 __e5____PB____H :
  printf ( "Error: unsigned substraction yielded a negative\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __f5____qD :
  printf ( "%.*s\n" ,( int ) __e5____PB__z ,( char *) __e5__contents ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __e5____MB :
  printf ( "String slice must end at most at the length of the base string\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __e5____JB :
  printf ( "String slice cannot end before it starts\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __b5____Fb____pQ____oD :
  printf ( "%s\n" , __b5____Fb____oQ ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __b5____Fb____lQ____oD :
  printf ( "%s\n" , __b5____Fb____kQ ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -293,7 +293,7 @@ __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 if ( __X5__acquired ) { for ( __X5____dynamic_entry =0; __X5____dynamic_entry < __X5__size ;++ __X5____dynamic_entry ) { __runtime_free ((( ptr **) __X5__acquired )[0][ __X5____dynamic_entry ]); } __runtime_free ( __X5__acquired ); __X5__acquired =0; __X5__size =0; __X5__allocated =0; } 
  if ( __X5__acquired ) { for ( __X5____ZQ____dynamic_entry =0; __X5____ZQ____dynamic_entry < __X5____ZQ____UQ ;++ __X5____ZQ____dynamic_entry ) { __runtime_free ((( ptr **) __X5__acquired )[0][ __X5____ZQ____dynamic_entry ]); } __runtime_free ( __X5__acquired ); __X5__acquired =0; __X5____ZQ____UQ =0; __X5____ZQ____VQ =0; } 
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 

@@ -32,7 +32,7 @@
 
 def copy(@access @mut Memory allocator, String _s)
     s = _s.str()
-    mem = allocator.allocate(s.length+1, char)
+    mem = allocator.allocate(s.length+1)
     @body{
         char first = 0;
         memcpy((char*)mem__mem, s__contents, s__length);
@@ -51,7 +51,7 @@ def add(@access @mut Memory allocator, String _x, IndependentString _y)
         u64 total_len = len_x + len_y ;
         char first = x__length?x__first:y__first;
     }
-    mem = allocator.allocate(total_len+1, char)
+    mem = allocator.allocate(total_len+1)
     _contents = mem.mem
     @body{
         memcpy((char*)_contents, (char*)x__contents, len_x);
@@ -64,15 +64,15 @@ def nstr(@access @mut Memory allocator, i64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
-    mem = allocator.allocate(21, char)
-    readbuf = mem.mem
+    mem = allocator.allocate(21)
+    read_buffer = mem.mem
     @body{
-        if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*21, "%ld", number);
+        if(read_buffer) {
+            u64 length = (u64)snprintf((char*)read_buffer, sizeof(char)*21, "%ld", number);
             if(length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
-                    memcpy(contents, (char*)readbuf, length);
+                    memcpy(contents, (char*)read_buffer, length);
                     ((char*)contents)[length] = 0;
                     char first = ((char*)contents)[0];
                 }
@@ -86,15 +86,15 @@ def nstr(@access @mut Memory allocator, u64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
-    mem = allocator.allocate(21, char)
-    readbuf = mem.mem
+    mem = allocator.allocate(21)
+    read_buffer = mem.mem
     @body{
-        if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*21, "%lu", number);
+        if(read_buffer) {
+            u64 length = (u64)snprintf((char*)read_buffer, sizeof(char)*21, "%lu", number);
             if(length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
-                    memcpy(contents, (char*)readbuf, length);
+                    memcpy(contents, (char*)read_buffer, length);
                     ((char*)contents)[length] = 0;
                     char first = ((char*)contents)[0];
                 }
@@ -108,15 +108,15 @@ def nstr(@access @mut Memory allocator, f64 number)
     @head{#include <stdio.h>}
     @head{#include <stdlib.h>}
     @head{#include <string.h>}
-    mem = allocator.allocate(25, char)
-    readbuf = mem.mem
+    mem = allocator.allocate(25)
+    read_buffer = mem.mem
     @body{
-        if(readbuf) {
-            u64 length = (u64)snprintf((char*)readbuf, sizeof(char)*25, "%.6f", number);
+        if(read_buffer) {
+            u64 length = (u64)snprintf((char*)read_buffer, sizeof(char)*25, "%.6f", number);
             if(length < 32) {
                 ptr contents = malloc(length + 1);
                 if(contents) {
-                    memcpy(contents, (char*)readbuf, length);
+                    memcpy(contents, (char*)read_buffer, length);
                     ((char*)contents)[length] = 0;
                     char first = ((char*)contents)[0];
                 }
@@ -127,12 +127,12 @@ def nstr(@access @mut Memory allocator, f64 number)
     return nominal.nstr(contents, length, first, mem.underlying)
 
 def str(@access ContiguousMemory region)
-    return nominal.str(region.mem, region.size, char(region.at(0)), region.underlying)
+    return nominal.str(region.mem, region.size, char[region][0], region.underlying)
 
 def str(@access ContiguousMemory region, u64 size)
     if size>=region.size
         then fail("Cannot allocate more than the available memory")
-    return nominal.str(region.mem, size, char(region.at(0)), region.underlying)
+    return nominal.str(region.mem, size, char[region][0], region.underlying)
 
 def str(@access @mut Memory allocator, u64 number)
     return nstr(allocator, number).str()

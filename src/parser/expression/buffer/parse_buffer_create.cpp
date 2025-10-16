@@ -114,8 +114,8 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
         );
 
         // returning simplifcations may split the memory poiters into two independent sets of finals that reference the same memory - gather in one place
-        coallesce_finals(surface+vars[surface]->buffer_ptr);
-        coallesce_finals(surface+vars[surface]->buffer_release);
+        coalesce_finals(surface+vars[surface]->buffer_ptr);
+        coalesce_finals(surface+vars[surface]->buffer_release);
         finals[surface_var] = 
                 rename_var(finals[surface+vars[surface]->buffer_ptr], surface+vars[surface]->buffer_ptr, surface_var)
                 +rename_var(finals[surface+vars[surface]->buffer_release], surface+vars[surface]->buffer_release, surface_var);

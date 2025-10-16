@@ -64,7 +64,7 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
     implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
     implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[2] & ~(1ULL << 63)"), SEMICOLON_VAR);
 
-    static const Variable token_print = Variable(":\nprintf(\"Buffer error\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n");
+    static const Variable token_print = Variable(":\nprintf(\"Buffer error\\n\");\n__result__error_code=__BUFFER__ERROR;\ngoto __failsafe;\n");
 
     implementation += Code(token_if, curry+Variable("__buffer_size"),
         Variable(">="), curry+Variable("__buffer_capacity"), Variable("){"));

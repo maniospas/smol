@@ -62,7 +62,7 @@ def open(@access @mut Process, CString _command)
             if(status!=-1 && WIFEXITED(status)) 
                 status = WEXITSTATUS(status);
             printf("Error: Process not finished or exited with non-zero exit code %ld\n", status);
-            __result__errocode = __USER__ERROR;
+            __result__error_code = __USER__ERROR;
             goto __failsafe; // already cleaned resources will not have an issue with this
         }
     }
@@ -79,7 +79,7 @@ def to_end(@access @mut Process p)
     }
 
 def next_chunk(
-        @mut DerivedMemory reader, 
+        @mut Buffer reader, 
         @access @mut Process p,
         @mut nstr value
     )
@@ -97,7 +97,7 @@ def next_chunk(
     return ret.bool()
 
 def next_line(
-        @mut DerivedMemory reader, 
+        @mut Buffer reader, 
         @access @mut Process p, 
         @mut nstr value
     )
@@ -111,21 +111,21 @@ def next_line(
     return ret.bool()
 
 def next_chunk(
-        @mut DerivedMemory memory, 
+        @mut Buffer memory, 
         @access @mut Process p, 
         @mut str value
     ) 
-    ret = next_chunk(memory, p, @mut nstr retvalue)
-    value = retvalue.str()
+    ret = next_chunk(memory, p, @mut nstr nstr_value)
+    value = nstr_value.str()
     return ret
 
 def next_line(
-        @mut DerivedMemory memory, 
+        @mut Buffer memory, 
         @access @mut Process p, 
         @mut str value
     ) 
-    ret = next_line(memory, p, @mut nstr retvalue)
-    value = retvalue.str()
+    ret = next_line(memory, p, @mut nstr nstr_value)
+    value = nstr_value.str()
     return ret
 
 def system(cstr command)
@@ -138,7 +138,7 @@ def system(str command)
     system(Stack.copy(command).memory.cstr())
 
 def open(@access @mut Process, str command)
-    mem = Stack.allocate(command.length+1, char)
+    mem = Stack.allocate(command.length+1)
     @body{
         char first = 0;
         if(mem__mem) {

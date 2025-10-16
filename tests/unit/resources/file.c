@@ -55,7 +55,7 @@ struct main__869__state{errcode err;};
 void main__869(void *__void__state);
 
 void main__869(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
 __SmolambdaLinkedMemory* __smolambda_all_task_results = 0;
 struct main__869__state *__state=(struct main__869__state*)__void__state;
@@ -309,43 +309,43 @@ goto __return;
 // ERROR HANDLING
 __WDB____FC :
  printf ( "String index out of bounds\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
  __aDB____jW____RI____pF____pD :
  printf ( "%s\n" , __aDB____jW____RI____oF ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
  __aDB____jW____RI____vF____pD :
  printf ( "%s\n" , __aDB____jW____RI____uF ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
  __gDB____G9 :
  printf ( "Failed to open file: %.*s\n" ,( int ) __gDB____C9__length ,( char *) __gDB____C9____m__contents ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
  __pDB____H :
  printf ( "Error: unsigned substraction yielded a negative\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
  __qDB____FC :
  printf ( "String index out of bounds\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
  __vDB____H :
  printf ( "Error: unsigned substraction yielded a negative\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
  __wDB____8 :
  printf ( "String slice cannot end before it starts\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
  __wDB____BB :
  printf ( "String slice must end at most at the length of the base string\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
  __wDB____EB____H :
  printf ( "Error: unsigned substraction yielded a negative\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -359,7 +359,7 @@ __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 

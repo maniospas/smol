@@ -62,7 +62,7 @@ struct main__185__state{errcode err;};
 __externc void main__185(void *__void__state);
 
 void main__185(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 1808;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
@@ -302,43 +302,43 @@ goto __return;
 // ERROR HANDLING
 __zE____OD____PB____H :
  printf ( "Error: unsigned substraction yielded a negative\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __zE____OD____JB :
  printf ( "String slice cannot end before it starts\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __zE____LD____PB____H :
  printf ( "Error: unsigned substraction yielded a negative\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __zE____OD____MB :
  printf ( "String slice must end at most at the length of the base string\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __zE____LD____JB :
  printf ( "String slice cannot end before it starts\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __zE____LD____MB :
  printf ( "String slice must end at most at the length of the base string\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __zE____ED____JB :
  printf ( "String slice cannot end before it starts\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __zE____ED____PB____H :
  printf ( "Error: unsigned substraction yielded a negative\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __zE____ED____MB :
  printf ( "String slice must end at most at the length of the base string\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __zE____9C____H :
  printf ( "Error: unsigned substraction yielded a negative\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -352,7 +352,7 @@ __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 

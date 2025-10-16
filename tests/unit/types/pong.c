@@ -60,7 +60,7 @@ struct main__187__state{errcode err;};
 __externc void main__187(void *__void__state);
 
 void main__187(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 1316;
 struct main__187__state *__state=(struct main__187__state*)__void__state;
@@ -144,7 +144,7 @@ __LF = 3 ;
  goto __RF ;
  __WF :
  printf("An unforeseen dynamic option was encountered\n");
-__result__errocode=__DYokMIC__ERROR;
+__result__error_code=__DYokMIC__ERROR;
 goto __failsafe;
  __RF :
  pending__func = __VF__func ;
@@ -157,7 +157,7 @@ goto __return;
 // ERROR HANDLING
 __XF____JF____H :
  printf ( "Error: unsigned substraction yielded a negative\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -165,7 +165,7 @@ __failsafe:
 
 // HOTPATH SKIPS TO HERE
 __return:
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 

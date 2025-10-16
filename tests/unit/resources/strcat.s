@@ -24,8 +24,14 @@ service main()
     on Stack.arena(1024)
     print("Hi "+name+"!")
 
-    on Stack.volatile(1024)
+    on Stack.circular(1024)
     print("Hi "+name+"!")
 
-    on Heap.volatile(1024)
+    on Heap.circular(1024)
+    print("Hi "+name+"!")
+
+    on Stack.fixed(1024)
+    print("Hi "+name+"!")
+
+    on Heap.fixed(1024)
     print("Hi "+name+"!")

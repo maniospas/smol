@@ -248,7 +248,7 @@ public:
     Code vardecl, implementation;
     unordered_set<Code> errors;
     size_t number_of_calls;
-    set<string> preample;
+    set<string> preamble;
     set<string> linker;
     unordered_set<Variable> singletons;
     unordered_set<Variable> acquired;
@@ -287,7 +287,7 @@ public:
         args.clear();
         packs.clear();
         errors.clear();
-        preample.clear();
+        preamble.clear();
         linker.clear();
         singletons.clear();
         acquired.clear();
@@ -313,10 +313,10 @@ public:
     inline auto estimate_stack_deallocation_size() const {return estimate_stack_size();} // have this be conservative for now
 
     // property managers for finals, errors, mutability, service calls, etc
-    void add_preample(const string& pre);
+    void add_preamble(const string& pre);
     void add_linker(const string& pre);
     void assert_options_validity(size_t& p);
-    void coallesce_finals(const Variable& original);
+    void coalesce_finals(const Variable& original);
     void notify_release(const Variable& original);
     void notify_service_arg(const Variable& original);
     bool can_mutate_any_part(const Variable& _text);

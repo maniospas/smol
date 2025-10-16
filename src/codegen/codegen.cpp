@@ -95,13 +95,13 @@ void codegen(
             catch (const runtime_error& e) {
                 warnings++;
                 string message = e.what();
-                string preample = message;
+                string preamble = message;
                 if(!Def::lsp)
-                    preample = message.substr(0, message.find('\n'));
-                if(types.all_errors.find(preample)==types.all_errors.end())
-                    types.all_errors[preample] += message.substr(message.find('\n'));
+                    preamble = message.substr(0, message.find('\n'));
+                if(types.all_errors.find(preamble)==types.all_errors.end())
+                    types.all_errors[preamble] += message.substr(message.find('\n'));
                 else
-                    types.suppressed[preample] += 1;
+                    types.suppressed[preamble] += 1;
                 while(p < imp->size() - 1) {
                     p++;
                     if(imp->at(p)=="def" || imp->at(p)=="union" || imp->at(p)=="service") break;

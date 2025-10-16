@@ -9,7 +9,7 @@ service run(String command)
     process.to_end()
     // Be explicit that the process is released
     // so that nobody accidentally returns it.
-    // Releasng checks for failure of incomplete
+    // Releasing checks for failure of incomplete
     // status or non-zero exit code.
     @release process
 

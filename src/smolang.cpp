@@ -295,12 +295,12 @@ int main(int argc, char* argv[]) {
 
             //define services
             auto count_services = size_t{0};
-            unordered_set<string> preample;
+            unordered_set<string> preamble;
             for(const auto& it : included[file]->vars) 
                 if(it.second->is_service) 
                     for(const auto& service : it.second->options) {
-                        for(const string& pre : service->preample) 
-                            preample.insert(pre);
+                        for(const string& pre : service->preamble) 
+                            preamble.insert(pre);
                         for(const string& pre : service->linker) 
                             linker += " " + pre;
                         count_services++;
@@ -366,7 +366,7 @@ int main(int argc, char* argv[]) {
                 "typedef uint64_t nominal;\n"
                 "typedef double f64;\n\n";
 
-            for(const string& pre : preample) 
+            for(const string& pre : preamble) 
                 out << pre << "\n";
             unordered_set<Type> added_services; // we track added services because somtimes services add themselves to themselves
             for(const auto& it : included[file]->vars) 
@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
                 if(service->name=="main") 
                     main_service = service;
                 out << "\n";
-                out << "void "<<service->raw_signature()+"{\nerrcode __result__errocode=0;\n";
+                out << "void "<<service->raw_signature()+"{\nerrcode __result__error_code=0;\n";
                 out << "char* __service_stack_floor = (char*)__runtime_stack_bottom();\n";
                 out << "u64 __service_stack_size = "<<service->estimate_stack_deallocation_size()<<";\n"; 
                 if(service->active_calls.size()) {
@@ -404,7 +404,7 @@ int main(int argc, char* argv[]) {
                     if(arg.type->name==NOM_VAR)     
                         continue;
                     if(arg.mut) {
-                        service->coallesce_finals(arg.name); // coallesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
+                        service->coalesce_finals(arg.name); // coalesce finals so that we can hard-remove finals attached to them in the next line (these are transferred on call instead)
                         if(service->finals[arg.name].exists()) {
                             finals_on_error += service->finals[arg.name].to_string();
                             finals_on_error += arg.name.to_string()+"=0;\n";
@@ -419,7 +419,7 @@ int main(int argc, char* argv[]) {
                 }
                 for(size_t i=1;i<service->packs.size();++i) {
                     Variable var = service->packs[i];
-                    service->coallesce_finals(var); // so that we can hard-remove finals in the next line (these are transferred on call instead)
+                    service->coalesce_finals(var); // so that we can hard-remove finals in the next line (these are transferred on call instead)
                     if(service->finals[var].exists()) {
                         finals_on_error += service->finals[var].to_string();
                         finals_on_error += var.to_string()+"=0;\n";
@@ -472,7 +472,7 @@ int main(int argc, char* argv[]) {
                 out << enref_at_end;
                 if(Def::calls_on_heap && service->active_calls.size()) 
                     out << "__runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);\n"; // do this after running all finalization code
-                out << "__state->err =  __result__errocode;\n";
+                out << "__state->err =  __result__error_code;\n";
                 out << "}\n\n";
 
                 // restore variable types to be potentially used by further transpilation

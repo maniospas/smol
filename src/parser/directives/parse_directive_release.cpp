@@ -18,14 +18,14 @@ void Def::parse_directive_release(size_t& p, string next, Types& types) {
     bool resolved_call = false;
     if(active_calls[next_var].exists() && active_calls[active_calls[next_var]].exists()) {
         const Variable& call_var = active_calls[next_var];
-        static const Variable token_print = Variable(":\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+        static const Variable token_print = Variable(":\n__result__error_code=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
         implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
         implementation += Code(call_var+ERR_VAR, ASSIGN_VAR, call_var+STATE_VAR, DOT_VAR, ERR_VAR, SEMICOLON_VAR);
         Variable fail_var = create_temp();
         vars[fail_var] = types.vars[LABEL_VAR];
         implementation += Code(token_if,call_var+ERR_VAR,token_goto,fail_var, SEMICOLON_VAR);
         errors.insert(Code(fail_var, token_print));
-        add_preample("#include <stdio.h>");
+        add_preamble("#include <stdio.h>");
         active_calls[call_var] = EMPTY_VAR;
         next_var = call_var;
     }
@@ -48,7 +48,7 @@ void Def::parse_directive_release(size_t& p, string next, Types& types) {
         Variable var = released_var+it.first;
         if(has_been_service_arg[var]) 
             imp->error(--p, "Cannot release a variable that has been previously passed to a service: "+pretty_var(var.to_string()));
-        coallesce_finals(var);
+        coalesce_finals(var);
         if(finals[var].exists()) {
             implementation += finals[var];
             finals[var] = Code();
@@ -65,7 +65,7 @@ void Def::parse_directive_release(size_t& p, string next, Types& types) {
         notify_release(var);
         //vars[it.first] = types.vars[RELEASED_VAR];
     }
-    coallesce_finals(next);
+    coalesce_finals(next);
     if(finals[next].exists()) {
         implementation += finals[next];
         finals[next] = Code();

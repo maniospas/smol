@@ -25,7 +25,7 @@
 @about "Standard library porting Xoshiro256plus random numbers from https://prng.di.unimi.it/. These and are NOT cryptographically secure."
 @about Rand "This a structural type for storing the progress of random number generators on four u64 state fields. "
             "It can be initialized with an optional seed, which defaults to a time-based initialization if not provided. Its period is 2^256-1.<br><br>"
-            "For safety against sharing random implementations between services or repeatedly initializating them, state "
+            "For safety against sharing random implementations between services or repeatedly initializing them, state "
             "variables are marked as a leaking resource. The whole data type is marked as @noborrow too, to prevent sharing mutable random states across "
             "different services. These safety mechanisms help safeguard speed and prevent common mistakes, for example by making impossible to directly "
             "re-initialize Rand in each loop to get a next number."

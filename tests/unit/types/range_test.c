@@ -51,7 +51,7 @@ struct main__182__state{errcode err;};
 void main__182(void *__void__state);
 
 void main__182(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 struct main__182__state *__state=(struct main__182__state*)__void__state;
 u64 __7E__value=0;
 u64 __7E__self__pos=0;
@@ -116,7 +116,7 @@ __failsafe:
 
 // HOTPATH SKIPS TO HERE
 __return:
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 

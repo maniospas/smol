@@ -60,7 +60,7 @@ struct main__184__state{errcode err;};
 __externc void main__184(void *__void__state);
 
 void main__184(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 1076;
 struct main__184__state *__state=(struct main__184__state*)__void__state;
@@ -94,7 +94,7 @@ __failsafe:
 
 // HOTPATH SKIPS TO HERE
 __return:
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 

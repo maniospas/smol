@@ -97,7 +97,7 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
             implementation += Code(Variable("goto"), end_var, SEMICOLON_VAR);
             implementation += Code(skip_var, COLON_VAR);
         }
-        implementation += Code(Variable("printf(\"An unforeseen dynamic option was encountered\\n\");\n__result__errocode=__DYokMIC__ERROR;\ngoto __failsafe;\n"));
+        implementation += Code(Variable("printf(\"An unforeseen dynamic option was encountered\\n\");\n__result__error_code=__DYokMIC__ERROR;\ngoto __failsafe;\n"));
         implementation += Code(end_var, COLON_VAR);
         
         return return_var;

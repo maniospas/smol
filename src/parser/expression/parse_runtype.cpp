@@ -84,10 +84,10 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
                     call_var+ERR_VAR,
                     SEMICOLON_VAR
                 );
-                static const Variable token_print = Variable(":\n__result__errocode=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+                static const Variable token_print = Variable(":\n__result__error_code=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
                 implementation += Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
                 errors.insert(Code(fail_var, token_print));
-                add_preample("#include <stdio.h>");
+                add_preamble("#include <stdio.h>");
             }
             for(size_t i=1;i<rhsType->packs.size();++i)
                 unpacks.push_back(active_calls[rhs]+rhsType->packs[i]);

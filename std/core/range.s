@@ -20,7 +20,7 @@
 @about range "Defines a u64 range as a structural type (instead of nominal type). When directly using variables as ranges, the position should be mutable. A couple of calling conventions are provided for default values of 0 for start and 1 for step."
 @about next  "Obtains the next element in the range. Using a combination of a range and next element traversal is safer than manually checking bounds."
              "\n<br><br>Below is the main usage pattern. Notice that next's argument is an in-place constructed u64 number that is mutable to obtain the next value. "
-             "The function sets the next value, progresses the range's state, and returns whether the iteration eneded. The first retrieved value is the starting element of the range. Example:"
+             "The function sets the next value, progresses the range's state, and returns whether the iteration ended. The first retrieved value is the starting element of the range. Example:"
              "\n<pre>range(10)"
              "\n.while next(@mut u64 i)"
              "\n    then print(i)</pre>"

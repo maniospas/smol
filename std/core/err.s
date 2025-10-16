@@ -30,21 +30,21 @@
 @about print "Prints a string interpretation of an error code."
 
 def assert_ok(errcode error)
-    @body{bool isuser = (error==__USER__ERROR);}
-    @body{bool isbuffer = (error==__BUFFER__ERROR);}
-    @body{bool isstack = (error==__STACK__ERROR);}
-    @body{bool iserror = (error);}
-    @body{bool isstack = (error==__STACK__ERROR);}
-    @body{bool isunhandled = (error==__UNHANDLED__ERROR);}
-    if isuser 
+    @body{bool is_user = (error==__USER__ERROR);}
+    @body{bool is_buffer = (error==__BUFFER__ERROR);}
+    @body{bool is_stack = (error==__STACK__ERROR);}
+    @body{bool is_error = (error);}
+    @body{bool is_stack = (error==__STACK__ERROR);}
+    @body{bool is_unhandled = (error==__UNHANDLED__ERROR);}
+    if is_user 
         @fail{printf("User error\n");} 
-    elif isbuffer 
+    elif is_buffer 
         @fail{printf("Buffer error\n");} 
-    elif isunhandled 
+    elif is_unhandled 
         @fail{printf("Unhandled error\n");}
-    elif isstack 
+    elif is_stack 
         @fail{printf("Stack error\n");}
-    elif iserror 
+    elif is_error 
         then @fail{printf("Unknown error\n");}
 
 def fail(cstr error)

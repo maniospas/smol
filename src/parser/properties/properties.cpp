@@ -12,9 +12,9 @@
 // limitations under the License.
 #include "../../def.h"
 
-void Def::add_preample(const string& pre) {
-    if(preample.find(pre)==preample.end()) 
-        preample.insert(pre);
+void Def::add_preamble(const string& pre) {
+    if(preamble.find(pre)==preamble.end()) 
+        preamble.insert(pre);
 }
 void Def::add_linker(const string& pre) {
     if(linker.find(pre)==linker.end()) 
@@ -32,7 +32,7 @@ void Def::assert_options_validity(size_t& p) {
     if(count_nom>1 && count_nonnom)
         imp->error(p, "More than one nominal declarations for: "+name.to_string());
 }
-void Def::coallesce_finals(const Variable& original) {
+void Def::coalesce_finals(const Variable& original) {
     unordered_set<Variable> visited;
     queue<Variable> q;
     unordered_set<Variable> group;

@@ -46,7 +46,7 @@
 @about eq      "Checks for equality between String types when considering their contents. Implementation of this operation varies, "
                "ensuring that the cached first element of strings (not available for cstr) is compared first and then the lengths "
                "are taken into account to compare memory bytes. Example: <pre>if \"me\"==\"me\" return print(\"me!\")</pre>"
-@about neq     "Equivalent to logical enversion of String <i>eq</i>. It is faster to write and run."
+@about neq     "Equivalent to logical inversion of String <i>eq</i>. It is faster to write and run."
 @about slice   "Obtains a substring slice out of a String. This always produces a <code>str</code> results, because null termination "
                "cannot be guaranteed for most results - and is dropped even if it could be guaranteed to save computations. "
                ""
@@ -101,17 +101,17 @@ def nstr(@access cstr raw)
     return nominal.nstr(contents, length, first, noptr)
 
 def str(@access bool value) 
-    @head{cstr __truestr = "true";}
-    @head{cstr __falsestr = "false";}
-    if value @body{cstr _contents=__truestr;} 
-    else then @body{cstr _contents=__falsestr;}
+    @head{cstr __smol_true_str = "true";}
+    @head{cstr __smol_false_str = "false";}
+    if value @body{cstr _contents=__smol_true_str;} 
+    else then @body{cstr _contents=__smol_false_str;}
     return str(_contents)
 
 def nstr(@access bool value)
-    @head{cstr __truestr = "true";}
-    @head{cstr __falsestr = "false";}
-    if value @body{cstr _contents=__truestr;} 
-    else then @body{cstr _contents=__falsestr;}
+    @head{cstr __smol_true_str = "true";}
+    @head{cstr __smol_false_str = "false";}
+    if value @body{cstr _contents=__smol_true_str;} 
+    else then @body{cstr _contents=__smol_false_str;}
     return nstr(_contents)
 
 def print(@access cstr message)
@@ -163,21 +163,21 @@ def strip(@access String _s)
     s = _s.str()
     @body{
         u64 start = 0;
-        u64 endpos = s__length;
-        while(start < endpos) {
+        u64 end_pos = s__length;
+        while(start < end_pos) {
             char c = ((char*)s__contents)[start];
             if(c == 32 || c == 9 || c == 13 || c == 10) 
                 start++; // ' ', '\t', '\r', '\n'
             else break;
         }
-        while(endpos > start) {
-            char c = ((char*)s__contents)[endpos - 1];
+        while(end_pos > start) {
+            char c = ((char*)s__contents)[end_pos - 1];
             if(c == 32 || c == 9 || c == 13 || c == 10) 
-                endpos--;
+                end_pos--;
             else break;
         }
     }
-    return s.slice(start, endpos)
+    return s.slice(start, end_pos)
 
 def eq(@access String _x, IndependentString _y)
     x = _x.str()

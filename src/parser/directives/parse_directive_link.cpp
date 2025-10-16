@@ -19,7 +19,7 @@ void Def::parse_directive_link(size_t& p, string next) {
     if(next!="{") 
         imp->error(--p, "Expected brackets");
     int depth = 1;
-    string preample("");
+    string preamble("");
     while(true) {
         next = imp->at(p++);
         if(next=="{") 
@@ -29,12 +29,12 @@ void Def::parse_directive_link(size_t& p, string next) {
             if(depth==0) 
                 break;
         }
-        if(next=="#" && preample.size()) {
-            preample += "\n#"; 
+        if(next=="#" && preamble.size()) {
+            preamble += "\n#"; 
             continue;
         }
         string nextnext = imp->at(p);
-        preample += next;
+        preamble += next;
     }
-    add_linker(preample);
+    add_linker(preamble);
 }

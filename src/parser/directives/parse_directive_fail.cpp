@@ -58,7 +58,7 @@ void Def::parse_directive_fail(size_t& p, string next, Types& types) {
             directive_errors += Code(Variable(next));
         }
     }
-    static const Variable token_error = Variable("\n__result__errocode=__USER__ERROR;\ngoto __failsafe;\n");
+    static const Variable token_error = Variable("\n__result__error_code=__USER__ERROR;\ngoto __failsafe;\n");
     static const Variable token_goto = Variable("goto");
     directive_errors += Code(token_error);
     implementation += Code(token_goto, fail_label, SEMICOLON_VAR, UNREACHABLE_VAR);

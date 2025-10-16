@@ -8,6 +8,6 @@ service main()
     file.print("hello world!")
     file.to_start()
 
-    on Stack.volatile(1024)
+    on Stack.circular(1024)
     file.next_line(str& s)
     print(s)

@@ -22,36 +22,36 @@
              "tailored for scientific use, so implementations aim to cut even the smallest corners without compromising safety. Use buffers to work "
              "with collections of u64 data instead."
 @about vector "Initializes a vector by using a provided memory allocator. The generated vector is zero-initialized. "
-             "You can also provide a Rand random state imported from <code>std.rand</code> to initializ with uniformly random values in [0,1]. "
+             "You can also provide a Rand random state imported from <code>std.rand</code> to initialize with uniformly random values in [0,1]. "
              "Example of generating a vector of 10 zero elements:<pre>vec = Heap:dynamic:vector(10)</pre>"
 @about print "Prints a vector to the console. To avoid large prints, at most the first 10 elements are printed."
 @about slice "Slices a vector from a given to an ending position. This is a transparent view of vector data."
-@about add   "Adds two vectors element-by-element and stores the result on eiter a third mutable vector also of the same size, or on a "
-             "newlly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
+@about add   "Adds two vectors element-by-element and stores the result on either a third mutable vector also of the same size, or on a "
+             "newly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
              "the required space. Example where an <code>on</code> context is used to allow operator overloading:"
              "<pre>@mut rnd = Rand()\non Heap:dynamic"
              "\n    v1 = rnd:vector(10)"
              "\n    v2 = rnd:vector(10)"
              "\n    v3 = v1+v2"
              "\n    end</pre>"
-@about mul   "Multiplies two vectors element-by-element and stores the result on eiter a third mutable vector also of the same size, or on a "
-             "newlly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
+@about mul   "Multiplies two vectors element-by-element and stores the result on either a third mutable vector also of the same size, or on a "
+             "newly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
              "the required space. Example where an <code>on</code> context is used to allow operator overloading:"
              "<pre>@mut rnd = Rand()\non Heap:dynamic"
              "\n    v1 = rnd:vector(10)"
              "\n    v2 = rnd:vector(10)"
              "\n    v3 = v1*v2"
              "\n    end</pre>"
-@about sub   "Substracts two vectors element-by-element and stores the result on eiter a third mutable vector also of the same size, or on a "
-             "newlly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
+@about sub   "Subtracts two vectors element-by-element and stores the result on either a third mutable vector also of the same size, or on a "
+             "newly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
              "the required space. Example where an <code>on</code> context is used to allow operator overloading:"
              "<pre>@mut rnd = Rand()\non Heap:dynamic"
              "\n    v1 = rnd:vector(10)"
              "\n    v2 = rnd:vector(10)"
              "\n    v3 = v1-v2"
              "\n    end</pre>"
-@about div   "Divides two vectors element-by-element and stores the result on eiter a third mutable vector also of the same size, or on a "
-             "newlly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
+@about div   "Divides two vectors element-by-element and stores the result on either a third mutable vector also of the same size, or on a "
+             "newly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
              "the required space. Division may create NaN values. Example where an <code>on</code> context is used to allow operator overloading:"
              "<pre>@mut rnd = Rand()\non Heap.dynamic()"
              "\n    v1 = rnd.vector(10)"
@@ -69,7 +69,7 @@ def Vec(nominal, ptr contents, u64 size, ptr surface)
     return @args
 
 def vector(@mut Memory memory, u64 size)
-    mem = memory.allocate(size,f64)
+    mem = memory.allocate(size*4)
     range(size)
     .while next(@mut u64 i)
         then @body{((f64*)mem__mem)[i] = 0;}
@@ -86,7 +86,7 @@ def slice(@access Vec v, u64 from, u64 to)
     return nominal.Vec(contents, to-from, v.surface)
 
 def vector(@mut Memory memory, @mut Rand rand, u64 size)
-    mem = memory.allocate(size,f64)
+    mem = memory.allocate(size*4)
     range(size)
     .while next(@mut u64 i)
         value = rand.next()
@@ -131,7 +131,7 @@ def add(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    mem = memory.allocate(size,f64)
+    mem = memory.allocate(size*4)
     @body{
         for(u64 i=0;i<size;++i)
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];
@@ -142,7 +142,7 @@ def sub(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    mem = memory.allocate(size,f64)
+    mem = memory.allocate(size*4)
     @body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];
@@ -153,7 +153,7 @@ def mul(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    mem = memory.allocate(size,f64)
+    mem = memory.allocate(size*4)
     @body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];
@@ -164,7 +164,7 @@ def div(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size then fail("Incompatible Vec sizes")
     @body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    mem = memory.allocate(size,f64)
+    mem = memory.allocate(size*4)
     @body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]/((f64*)x2__contents)[i];

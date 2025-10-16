@@ -88,7 +88,7 @@ struct run__927__state{errcode err;nominal command____CC;ptr command__contents;u
 __externc void run__927(void *__void__state);
 
 void run__927(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 1568;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
@@ -201,18 +201,18 @@ __XrJ = 0 ;
  if ( process____K5G__contents ) { char buf [ 1024 ]; while ( fread ( buf ,1, sizeof ( buf ),( FILE *) process____K5G__contents )) { } } 
  __TrJ :
  process____K5G____blG = __kqJ ;
- __jqJ =0; if ( process____K5G__contents ) __jqJ = pclose (( FILE *) process____K5G__contents ); process____K5G__contents =0; if ( __jqJ ) { if ( __jqJ !=-1&& WIFEXITED ( __jqJ )) __jqJ = WEXITSTATUS ( __jqJ ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __jqJ ); __result__errocode = __USER__ERROR ; goto __failsafe ; } 
+ __jqJ =0; if ( process____K5G__contents ) __jqJ = pclose (( FILE *) process____K5G__contents ); process____K5G__contents =0; if ( __jqJ ) { if ( __jqJ !=-1&& WIFEXITED ( __jqJ )) __jqJ = WEXITSTATUS ( __jqJ ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __jqJ ); __result__error_code = __USER__ERROR ; goto __failsafe ; } 
  __iqJ :
 goto __return;
 
 // ERROR HANDLING
 __erJ :
  printf ( "%s\n" , __lqJ ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __frJ :
  printf ( "Error: Failed to start process\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -226,12 +226,12 @@ __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 
 void run__926(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 1180;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
@@ -270,14 +270,14 @@ __srJ = 0 ;
  if ( process__contents ) { char buf [ 1024 ]; while ( fread ( buf ,1, sizeof ( buf ),( FILE *) process__contents )) { } } 
  __xrJ :
  process____blG = __irJ ;
- __hrJ =0; if ( process__contents ) __hrJ = pclose (( FILE *) process__contents ); process__contents =0; if ( __hrJ ) { if ( __hrJ !=-1&& WIFEXITED ( __hrJ )) __hrJ = WEXITSTATUS ( __hrJ ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __hrJ ); __result__errocode = __USER__ERROR ; goto __failsafe ; } 
+ __hrJ =0; if ( process__contents ) __hrJ = pclose (( FILE *) process__contents ); process__contents =0; if ( __hrJ ) { if ( __hrJ !=-1&& WIFEXITED ( __hrJ )) __hrJ = WEXITSTATUS ( __hrJ ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __hrJ ); __result__error_code = __USER__ERROR ; goto __failsafe ; } 
  __grJ :
 goto __return;
 
 // ERROR HANDLING
 __jrJ :
  printf ( "Error: Failed to start process\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -291,12 +291,12 @@ __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 
 void all__932(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 19124;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
@@ -629,11 +629,11 @@ goto __return;
 // ERROR HANDLING
 __result_unhandled_error :
  printf("Unhandled error\n") ;
- __result__errocode =__UNHANDLED__ERROR;
+ __result__error_code =__UNHANDLED__ERROR;
 goto __failsafe ;
 __service_stack_floor_handler:
 printf("Insufficient stack for safe service call (too much recursion or stack allocation)\n");
-__result__errocode=__STACK__ERROR;
+__result__error_code=__STACK__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -647,12 +647,12 @@ __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 
 void std_test__931(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 2716;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
@@ -1135,62 +1135,62 @@ goto __return;
 // ERROR HANDLING
 __result_unhandled_error :
  printf("Unhandled error\n") ;
- __result__errocode =__UNHANDLED__ERROR;
+ __result__error_code =__UNHANDLED__ERROR;
 goto __failsafe ;
 __87K :
  printf ( "%s\n" , __D8K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __s6K :
  printf ( "%s\n" , __y8K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __A3K :
  printf ( "%s\n" , __B3K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __w4K :
  printf ( "%s\n" , __x4K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __L9K :
  printf ( "%s\n" , __J9K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __P4K :
  printf ( "%s\n" , __Q4K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __22K :
-__result__errocode=__UNHANDLED__ERROR;
+__result__error_code=__UNHANDLED__ERROR;
 goto __failsafe;
 __l3K :
  printf ( "%s\n" , __m3K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __k4K :
  printf ( "%s\n" , __l4K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __w8K :
  printf ( "%s\n" , __v8K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __w3K :
  printf ( "%s\n" , __x3K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __L3K :
  printf ( "%s\n" , __M3K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __Z7K :
  printf ( "%s\n" , __76K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __service_stack_floor_handler:
 printf("Insufficient stack for safe service call (too much recursion or stack allocation)\n");
-__result__errocode=__STACK__ERROR;
+__result__error_code=__STACK__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -1208,12 +1208,12 @@ if ( __YNH__acquired ) { for ( __V9K =0; __V9K < __S9K ;++ __V9K ) { __runtime_f
 if ( __RNH__acquired ) { for ( __V8K =0; __V8K < __S8K ;++ __V8K ) { __runtime_free ((( ptr **) __RNH__acquired )[0][ __V8K ]); } __runtime_free ( __RNH__acquired ); __RNH__acquired =0; __S8K =0; __T8K =0; } 
  if ( __RNH__acquired ) { for ( __W8K =0; __W8K < __Q8K ;++ __W8K ) { __runtime_free ((( ptr **) __RNH__acquired )[0][ __W8K ]); } __runtime_free ( __RNH__acquired ); __RNH__acquired =0; __Q8K =0; __R8K =0; } 
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 
 void std_test__930(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 2740;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
@@ -1696,62 +1696,62 @@ goto __return;
 // ERROR HANDLING
 __result_unhandled_error :
  printf("Unhandled error\n") ;
- __result__errocode =__UNHANDLED__ERROR;
+ __result__error_code =__UNHANDLED__ERROR;
 goto __failsafe ;
 __SFL :
  printf ( "%s\n" , __YEL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __XAL :
  printf ( "%s\n" , __YAL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __sEL :
-__result__errocode=__UNHANDLED__ERROR;
+__result__error_code=__UNHANDLED__ERROR;
 goto __failsafe;
 __yFL :
  printf ( "%s\n" , __DEL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __ABL :
  printf ( "%s\n" , __BBL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __xFL :
  printf ( "%s\n" , __wFL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __s9K :
  printf ( "%s\n" , __t9K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __39K :
  printf ( "%s\n" , __49K ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __kFL :
  printf ( "%s\n" , __4FL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __b9K :
  printf ( "%s\n" , __FFL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __service_stack_floor_handler:
 printf("Insufficient stack for safe service call (too much recursion or stack allocation)\n");
-__result__errocode=__STACK__ERROR;
+__result__error_code=__STACK__ERROR;
 goto __failsafe;
 __OEL :
  printf ( "%s\n" , __bFL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __LBL :
  printf ( "%s\n" , __MBL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __iAL :
  printf ( "%s\n" , __jAL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -1769,12 +1769,12 @@ if ( __9FH__acquired ) { for ( __BFL =0; __BFL < __1EL ;++ __BFL ) { __runtime_f
 if ( __2FH__acquired ) { for ( __kEL =0; __kEL < __yEL ;++ __kEL ) { __runtime_free ((( ptr **) __2FH__acquired )[0][ __kEL ]); } __runtime_free ( __2FH__acquired ); __2FH__acquired =0; __yEL =0; __zEL =0; } 
  if ( __2FH__acquired ) { for ( __qEL =0; __qEL < __vEL ;++ __qEL ) { __runtime_free ((( ptr **) __2FH__acquired )[0][ __qEL ]); } __runtime_free ( __2FH__acquired ); __2FH__acquired =0; __vEL =0; __xEL =0; } 
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 
 void std_test__929(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 2740;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
@@ -2274,62 +2274,62 @@ goto __return;
 // ERROR HANDLING
 __LML :
  printf ( "%s\n" , __KML ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __IIL :
  printf ( "%s\n" , __JIL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __tIL :
  printf ( "%s\n" , __MKL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __result_unhandled_error :
  printf("Unhandled error\n") ;
- __result__errocode =__UNHANDLED__ERROR;
+ __result__error_code =__UNHANDLED__ERROR;
 goto __failsafe ;
 __bML :
  printf ( "%s\n" , __XJL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __IGL :
  printf ( "%s\n" , __JGL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __2GL :
  printf ( "%s\n" , __3GL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __service_stack_floor_handler:
 printf("Insufficient stack for safe service call (too much recursion or stack allocation)\n");
-__result__errocode=__STACK__ERROR;
+__result__error_code=__STACK__ERROR;
 goto __failsafe;
 __8HL :
  printf ( "%s\n" , __9HL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __TJL :
  printf ( "%s\n" , __NLL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __lHL :
  printf ( "%s\n" , __mHL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __TGL :
  printf ( "%s\n" , __UGL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __tGL :
  printf ( "%s\n" , __uGL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 __AGL :
-__result__errocode=__UNHANDLED__ERROR;
+__result__error_code=__UNHANDLED__ERROR;
 goto __failsafe;
 __aHL :
  printf ( "%s\n" , __bHL ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -2347,12 +2347,12 @@ if ( __b8G__acquired ) { for ( __rML =0; __rML < __pML ;++ __rML ) { __runtime_f
 if ( __U8G__acquired ) { for ( __kLL =0; __kLL < __WLL ;++ __kLL ) { __runtime_free ((( ptr **) __U8G__acquired )[0][ __kLL ]); } __runtime_free ( __U8G__acquired ); __U8G__acquired =0; __WLL =0; __jLL =0; } 
  if ( __U8G__acquired ) { for ( __lLL =0; __lLL < __hLL ;++ __lLL ) { __runtime_free ((( ptr **) __U8G__acquired )[0][ __lLL ]); } __runtime_free ( __U8G__acquired ); __U8G__acquired =0; __hLL =0; __iLL =0; } 
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 
 void run__925(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 1164;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
@@ -2394,14 +2394,14 @@ __CNL = 0 ;
  if ( process__contents ) { char buf [ 1024 ]; while ( fread ( buf ,1, sizeof ( buf ),( FILE *) process__contents )) { } } 
  __wML :
  process____blG = __vML ;
- __JNL =0; if ( process__contents ) __JNL = pclose (( FILE *) process__contents ); process__contents =0; if ( __JNL ) { if ( __JNL !=-1&& WIFEXITED ( __JNL )) __JNL = WEXITSTATUS ( __JNL ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __JNL ); __result__errocode = __USER__ERROR ; goto __failsafe ; } 
+ __JNL =0; if ( process__contents ) __JNL = pclose (( FILE *) process__contents ); process__contents =0; if ( __JNL ) { if ( __JNL !=-1&& WIFEXITED ( __JNL )) __JNL = WEXITSTATUS ( __JNL ); printf ( "Error: Process not finished or exited with non-zero exit code %ld\n" , __JNL ); __result__error_code = __USER__ERROR ; goto __failsafe ; } 
  __2ML :
 goto __return;
 
 // ERROR HANDLING
 __xML :
  printf ( "Error: Failed to start process\n" ); 
-__result__errocode=__USER__ERROR;
+__result__error_code=__USER__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -2415,12 +2415,12 @@ __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 
 void main__933(void *__void__state){
-errcode __result__errocode=0;
+errcode __result__error_code=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
 u64 __service_stack_size = 18860;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
@@ -2463,14 +2463,14 @@ goto __return;
 // ERROR HANDLING
 __result_unhandled_error :
  printf("Unhandled error\n") ;
- __result__errocode =__UNHANDLED__ERROR;
+ __result__error_code =__UNHANDLED__ERROR;
 goto __failsafe ;
 __NNL :
-__result__errocode=__UNHANDLED__ERROR;
+__result__error_code=__UNHANDLED__ERROR;
 goto __failsafe;
 __service_stack_floor_handler:
 printf("Insufficient stack for safe service call (too much recursion or stack allocation)\n");
-__result__errocode=__STACK__ERROR;
+__result__error_code=__STACK__ERROR;
 goto __failsafe;
 
 // DEALLOCATE RESOURCES BY ERRORS
@@ -2484,7 +2484,7 @@ __return:
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_wait, 0);
 __runtime_apply_linked(__smolambda_all_tasks, __smolambda_task_destroy, 1);
 __runtime_apply_linked(__smolambda_all_task_results, __runtime_free, 1);
-__state->err =  __result__errocode;
+__state->err =  __result__error_code;
 }
 
 

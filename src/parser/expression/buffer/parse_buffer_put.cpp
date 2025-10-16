@@ -75,7 +75,7 @@ Variable Def::parse_buffer_put(size_t& p, Types& types, Variable curry, size_t f
     // range check
     //vars[fail_var] = types.vars[LABEL_VAR];
     implementation += Code(token_if, idx, Variable(">="), curry+Variable("__buffer_size"),Variable(")goto"), fail_var, SEMICOLON_VAR);
-    errors.insert(Code(fail_var, Variable(":\nprintf(\"Buffer error\\n\");\n__result__errocode=__BUFFER__ERROR;\ngoto __failsafe;\n")));
+    errors.insert(Code(fail_var, Variable(":\nprintf(\"Buffer error\\n\");\n__result__error_code=__BUFFER__ERROR;\ngoto __failsafe;\n")));
 
     // write element packs at idx
     size_t pack_index = 0;

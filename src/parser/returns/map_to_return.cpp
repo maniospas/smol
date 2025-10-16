@@ -141,7 +141,7 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                         false
                     );
                     if(is_service) {
-                        coallesce_finals(next+pack);
+                        coalesce_finals(next+pack);
                         if(finals.find(next+pack)!=finals.end() && finals[next+pack].find(TRANSIENT_VAR) != std::string::npos) 
                             imp->error(--p, 
                                 "Returned @noshare data from a service: "
@@ -180,7 +180,7 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                         );
                     packs.push_back(next_pack);
                     if(is_service) {
-                        coallesce_finals(next_pack);
+                        coalesce_finals(next_pack);
                         if(finals.find(next_pack)!=finals.end() && finals[next_pack].find(TRANSIENT_VAR) != std::string::npos) 
                             imp->error(--p, "Returned @noshare data from a service: "
                                 +pretty_var((next+pack).to_string())
