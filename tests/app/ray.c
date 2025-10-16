@@ -72,873 +72,877 @@ __externc void test__1204(void *__void__state);
 void test__1204(void *__void__state){
 errcode __result__errocode=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
-u64 __service_stack_size = 3424;
+u64 __service_stack_size = 3412;
 struct test__1204__state *__state=(struct test__1204__state*)__void__state;
-nominal __8hI=0;
-nominal __7hI=0;
-cstr __5hI=0;
-bool __4hI=0;
-u64 __3hI=0;
-u64 __2hI=0;
-char __1hI=0;
-char __0hI=0;
-u64 __yhI=0;
-char __xhI=0;
-u64 __whI=0;
-u64 __vhI=0;
-ptr __uhI=0;
-u64 __thI=0;
-cstr __shI=0;
-nominal __rhI=0;
-nominal __qhI=0;
-nominal __phI=0;
+f64 __2hI=0;
+f64 __1hI=0;
+f64 __zhI=0;
+f64 __xhI=0;
+f64 __whI=0;
+f64 __vhI=0;
+f64 __uhI=0;
+f64 __thI=0;
+f64 __shI=0;
+f64 __rhI=0;
+f64 __qhI=0;
+f64 __phI=0;
+f64 __ohI=0;
+f64 __nhI=0;
 bool __mhI=0;
-bool __khI=0;
-ptr __jhI=0;
-char __ihI=0;
-ptr __hhI=0;
+u64 __lhI=0;
+u64 __khI=0;
+u64 __jhI=0;
+u64 __ihI=0;
 u64 __ghI=0;
 u64 __ehI=0;
-char __dhI=0;
-ptr __chI=0;
-cstr __ahI=0;
-bool __YhI=0;
-u64 __XhI=0;
-char __WhI=0;
-u64 __VhI=0;
-u64 __UhI=0;
-u64 __ThI=0;
-nominal __ShI=0;
-f64 __RhI=0;
-cstr __QhI=0;
-bool __NhI=0;
+f64 __dhI=0;
+f64 __chI=0;
+f64 __bhI=0;
+f64 __ahI=0;
+f64 __ZhI=0;
+f64 __XhI=0;
+f64 __WhI=0;
+bool __VhI=0;
+bool __ShI=0;
+nominal __RhI=0;
+f64 __QhI=0;
+bool __PhI=0;
+cstr __OhI=0;
+f64 __NhI=0;
 u64 __MhI=0;
-cstr __KhI=0;
-cstr __FhI=0;
-bool __DhI=0;
-u64 __ChI=0;
-cstr __AhI=0;
-bool __7gI=0;
-u64 __6gI=0;
-u64 __5gI=0;
+cstr __LhI=0;
+u64 __KhI=0;
+cstr __IhI=0;
+bool __FhI=0;
+u64 __EhI=0;
+cstr __ChI=0;
+bool __9gI=0;
+u64 __8gI=0;
+cstr __6gI=0;
 u64 __3gI=0;
-u64 __2gI=0;
-f64 __1gI=0;
-f64 __0gI=0;
-f64 __zgI=0;
-f64 __ygI=0;
+bool __2gI=0;
+u64 __1gI=0;
+u64 __0gI=0;
+u64 __zgI=0;
+u64 __ygI=0;
 f64 __xgI=0;
-bool __tgI=0;
-char __qgI=0;
+f64 __wgI=0;
+f64 __vgI=0;
+nominal __ugI=0;
+nominal __tgI=0;
+ptr __rgI=0;
 u64 __pgI=0;
-u64 __ogI=0;
-u64 __ngI=0;
-u64 __lgI=0;
-u64 __kgI=0;
-u64 __jgI=0;
-u64 __igI=0;
+char __ogI=0;
+ptr __ngI=0;
+cstr __lgI=0;
+bool __igI=0;
 u64 __hgI=0;
-u64 __fgI=0;
-u64 __egI=0;
-f64 __dgI=0;
-u64 i=0;
-bool __agI=0;
+char __ggI=0;
+char __fgI=0;
+u64 __dgI=0;
+u64 __cgI=0;
+char __bgI=0;
+u64 __agI=0;
 u64 __ZgI=0;
-ptr __YgI=0;
-cstr __WgI=0;
-cstr __QgI=0;
-bool __OgI=0;
-u64 __NgI=0;
-cstr __LgI=0;
-bool __IgI=0;
-u64 __HgI=0;
-u64 __GgI=0;
-u64 __FgI=0;
-u64 __EgI=0;
-u64 __DgI=0;
-u64 __CgI=0;
-nominal __BgI=0;
-cstr __AgI=0;
-f64 __9fI=0;
-f64 __8fI=0;
-f64 __6fI=0;
-f64 __5fI=0;
-f64 __3fI=0;
-f64 __2fI=0;
-bool __zfI=0;
-f64 __yfI=0;
-f64 __wfI=0;
-f64 __tfI=0;
-bool __qfI=0;
-f64 __pfI=0;
+u64 __XgI=0;
+ptr __WgI=0;
+ptr __UgI=0;
+char __TgI=0;
+ptr __SgI=0;
+f64 __RgI=0;
+u64 __QgI=0;
+cstr __PgI=0;
+nominal __OgI=0;
+nominal __NgI=0;
+nominal __MgI=0;
+nominal __LgI=0;
+nominal __KgI=0;
+nominal __JgI=0;
+bool __FgI=0;
+bool __DgI=0;
+ptr __CgI=0;
+char __BgI=0;
+ptr __AgI=0;
+u64 __9fI=0;
+char __7fI=0;
+cstr __5fI=0;
+bool __3fI=0;
+u64 __2fI=0;
+f64 __1fI=0;
+u64 __0fI=0;
+char __zfI=0;
+char __yfI=0;
+u64 __xfI=0;
+u64 __wfI=0;
+u64 __ufI=0;
+u64 __tfI=0;
+ptr __sfI=0;
+ptr __rfI=0;
+char __qfI=0;
+u64 __pfI=0;
+nominal __ofI=0;
 f64 __nfI=0;
-u64 __mfI=0;
-f64 __jfI=0;
-bool __efI=0;
-f64 __cfI=0;
-f64 __ZfI=0;
-bool __WfI=0;
-f64 __VfI=0;
-f64 __TfI=0;
-f64 __RfI=0;
-f64 __QfI=0;
-f64 __OfI=0;
+cstr __lfI=0;
+bool __ifI=0;
+u64 __hfI=0;
+cstr __ffI=0;
+bool __cfI=0;
+u64 __bfI=0;
+cstr __ZfI=0;
+bool __XfI=0;
+u64 __WfI=0;
+cstr __UfI=0;
+bool __RfI=0;
+u64 __QfI=0;
+u64 __PfI=0;
+u64 __OfI=0;
+f64 __NfI=0;
 f64 __MfI=0;
 f64 __LfI=0;
 f64 __KfI=0;
-f64 __IfI=0;
-f64 __HfI=0;
-f64 __GfI=0;
-f64 __FfI=0;
-f64 __EfI=0;
-f64 __DfI=0;
-f64 __CfI=0;
-f64 __BfI=0;
-f64 __AfI=0;
-f64 __9eI=0;
-nominal __8eI=0;
-f64 __7eI=0;
-f64 __6eI=0;
-f64 __5eI=0;
-f64 __4eI=0;
+f64 __JfI=0;
+bool __GfI=0;
+u64 __EfI=0;
+u64 __DfI=0;
+u64 i=0;
+u64 __CfI=0;
+u64 __BfI=0;
+u64 __9eI=0;
+u64 __8eI=0;
+u64 __7eI=0;
+u64 __6eI=0;
+u64 __5eI=0;
+u64 __4eI=0;
 u64 __3eI=0;
-u64 __2eI=0;
-bool __zeI=0;
+f64 __2eI=0;
+cstr __0eI=0;
+bool __yeI=0;
 u64 __xeI=0;
-u64 __weI=0;
-u64 __veI=0;
+cstr __veI=0;
 u64 __ueI=0;
-u64 __teI=0;
 u64 __reI=0;
-u64 __qeI=0;
-u64 __peI=0;
-u64 __oeI=0;
-ptr __neI=0;
-f64 __leI=0;
-nominal __jeI=0;
-bool __heI=0;
-bool __geI=0;
-ptr __feI=0;
-bool __eeI=0;
-u64 __ceI=0;
-u64 __beI=0;
-ptr __aeI=0;
-char __ZeI=0;
-u64 __YeI=0;
-u64 __XeI=0;
-u64 __VeI=0;
-char __UeI=0;
-cstr __SeI=0;
-bool __PeI=0;
-bool __OeI=0;
-ptr __NeI=0;
-cstr __LeI=0;
-bool __IeI=0;
-u64 __HeI=0;
-u64 __GeI=0;
-char __FeI=0;
-char __EeI=0;
-u64 __DeI=0;
-f64 __CeI=0;
-f64 __AeI=0;
-f64 __9dI=0;
-f64 __2dI=0;
-cstr __DdI=0;
-u64 __6cI=0;
-ptr __3cI=0;
-f64 __kfI=0;
-f64 window__size__w=0;
-u64 __HhI=0;
-ptr spheres__dynamic____buffer_contents=0;
-nominal __hcI=0;
-char __dcI=0;
-f64 __YcI=0;
-f64 __VcI=0;
-char __ScI=0;
-f64 __PcI=0;
-f64 __4bI=0;
-f64 __zbI=0;
-f64 __ubI=0;
-f64 __sbI=0;
-nominal __pbI=0;
-f64 __obI=0;
-cstr window__title=0;
-f64 __ibI=0;
-u64 __gbI=0;
-f64 __SfI=0;
+cstr __qeI=0;
+bool __neI=0;
+cstr __leI=0;
+bool __ieI=0;
+u64 __heI=0;
+u64 __geI=0;
+u64 __feI=0;
+u64 __eeI=0;
+u64 __deI=0;
+nominal __ceI=0;
+bool __beI=0;
+cstr __aeI=0;
+f64 __ZeI=0;
+f64 __YeI=0;
+bool __XeI=0;
+bool __TeI=0;
+nominal __ReI=0;
 nominal window____EDI=0;
-f64 __ZbI=0;
-u64 __YbI=0;
-ptr __VbI=0;
-bool __TbI=0;
-bool __SgI=0;
-ptr __mKI__contents__mem=0;
-u64 __ddI=0;
-u64 __odI=0;
-u64 __LbI=0;
-u64 __ndI=0;
-ptr __HbI=0;
-char __gdI=0;
-u64 __jdI=0;
-u64 spheres__dynamic____buffer_alignment=0;
-u64 __zaI=0;
-u64 __rgI=0;
-ptr spheres__dynamic=0;
-f64 __hfI=0;
-u64 spheres__dynamic____buffer_size=0;
-f64 __dfI=0;
+bool __NeI=0;
+bool __MeI=0;
+u64 __KeI=0;
+u64 __JeI=0;
+u64 __IeI=0;
+ptr __HeI=0;
+char __GeI=0;
+u64 __FeI=0;
+u64 __EeI=0;
+u64 __DeI=0;
+u64 __BeI=0;
+char __AeI=0;
+cstr __8dI=0;
+bool __5dI=0;
+bool __pdI=0;
+f64 __VgI=0;
+f64 __CdI=0;
+f64 __AdI=0;
+u64 __3cI=0;
+f64 __1cI=0;
+u64 __xcI=0;
+u64 __lcI=0;
+u64 __fcI=0;
+u64 __bcI=0;
+cstr __VeI=0;
+f64 window__size__w=0;
+ptr __UKI__dynamic=0;
+u64 __YcI=0;
+f64 __UcI=0;
+f64 __RcI=0;
+f64 __IcI=0;
+u64 __5bI=0;
+bool __2bI=0;
+f64 __ubI=0;
+f64 __ibI=0;
+bool __4dI=0;
+cstr window__title=0;
+char __UbI=0;
+bool __OeI=0;
 f64 window__size__h=0;
-f64 accum_fps=0;
+u64 spheres__dynamic____buffer_alignment=0;
+f64 __kdI=0;
+u64 __gdI=0;
+u64 spheres__dynamic____buffer_size=0;
+f64 __DbI=0;
+ptr __7aI=0;
 f64 prev_t=0;
-f64 __RaI=0;
-u64 __OaI=0;
-ptr __8JI__dynamic=0;
-char __IaI=0;
-nominal __GaI=0;
-f64 __4ZI=0;
-ptr __3ZI=0;
-u64 __2ZI=0;
-u64 __1ZI=0;
-u64 __4gI=0;
-ptr spheres__surface=0;
-u64 __0ZI=0;
-ptr __yZI=0;
-f64 __xZI=0;
+bool __faI=0;
+u64 __eaI=0;
+cstr __YaI=0;
+f64 __UaI=0;
+bool window__ready=0;
+char __GaI=0;
+ptr spheres__dynamic____buffer_contents=0;
+u64 spheres__dynamic____buffer_capacity=0;
+u64 spheres__dynamic____buffer_prev_capacity=0;
+bool __8ZI=0;
+cstr __6ZI=0;
+ptr __2ZI=0;
+nominal __sgI=0;
+f64 __1ZI=0;
+f64 __0ZI=0;
+ptr __zZI=0;
 f64 __wZI=0;
 f64 __vZI=0;
-char __uZI=0;
-f64 __tZI=0;
+f64 __uZI=0;
 f64 __sZI=0;
+bool __qZI=0;
 f64 __rZI=0;
-f64 __qZI=0;
-f64 __oZI=0;
-f64 __nZI=0;
 f64 dt=0;
-f64 __mZI=0;
+f64 __pZI=0;
+cstr __oZI=0;
+u64 __lZI=0;
+f64 accum_fps=0;
 f64 __kZI=0;
-f64 __jZI=0;
+u64 __jZI=0;
 f64 __iZI=0;
-f64 __hZI=0;
-cstr __gZI=0;
-f64 __fZI=0;
-f64 __eZI=0;
-u64 __dZI=0;
-u64 __cZI=0;
-u64 __bZI=0;
-u64 __aZI=0;
-u64 __ZZI=0;
-bool __YZI=0;
-cstr __VZI=0;
-u64 __UZI=0;
-bool __TZI=0;
-cstr __QZI=0;
-u64 __OZI=0;
-bool __NZI=0;
-cstr __KZI=0;
-u64 __IZI=0;
-bool __HZI=0;
-cstr __EZI=0;
-f64 __CZI=0;
-f64 __BZI=0;
-cstr __AZI=0;
-nominal __9YI=0;
-f64 __8YI=0;
-f64 __7YI=0;
-f64 __5YI=0;
-f64 __3YI=0;
-f64 __2YI=0;
+char __hZI=0;
+char __fZI=0;
+f64 __dZI=0;
+f64 __cZI=0;
+f64 __aZI=0;
+bool __ZZI=0;
+f64 __WZI=0;
+f64 __VZI=0;
+f64 __SZI=0;
+ptr __tKI__contents__mem=0;
+f64 __QZI=0;
+bool __PZI=0;
+f64 __MZI=0;
+f64 __LZI=0;
+f64 __JZI=0;
+f64 __IZI=0;
+ptr spheres__dynamic=0;
+ptr spheres__surface=0;
+f64 __GZI=0;
+f64 __EZI=0;
+bool __DZI=0;
+f64 __AZI=0;
+f64 __9YI=0;
+f64 __6YI=0;
+f64 __4YI=0;
+bool __3YI=0;
 f64 __0YI=0;
 f64 __zYI=0;
 f64 __xYI=0;
-f64 __vYI=0;
+f64 __wYI=0;
 f64 __uYI=0;
-f64 __sYI=0;
-f64 __qYI=0;
+f64 __tYI=0;
+f64 __rYI=0;
 bool __pYI=0;
 
 // IMPLEMENTATION
-__8JI__dynamic = __runtime_calloc(3*sizeof(u64)) ;
- __3ZI = 0 ;
- __odI = 2 ;
- if(! __8JI__dynamic )goto __result__buffer_error ;
- __6cI = 5 ;
- __YbI = ((u64*) __8JI__dynamic )[1] ;
- __2ZI = ((u64*) __8JI__dynamic )[2] & ~(1ULL << 63) ;
- if( __odI && __YbI + __odI > __2ZI ){ if( ((u64*) __8JI__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
- __2ZI = __YbI + __odI +1 ;
- if( __YbI ) { ((u64*) __8JI__dynamic )[0]=(u64)(u64*)__runtime_realloc((u64*)((u64*) __8JI__dynamic )[0],  __2ZI * __6cI *sizeof(u64),  __2ZI * __6cI *sizeof(u64)); memset((u64*)((u64*)((u64*) __8JI__dynamic )[0]) + ( __2ZI * __6cI ), 0, (( __2ZI  -  __2ZI ) *  __6cI  * sizeof(u64))); } else ((u64*) __8JI__dynamic )[0]=(u64)(u64*)__runtime_calloc( __2ZI * __6cI *sizeof(u64)) , 0 ;
- ((u64*) __8JI__dynamic )[2] = __2ZI ;
- __HbI = (ptr)(((u64*) __8JI__dynamic )[0]) ;
- if(! __HbI )goto __result__buffer_error ;
- } else  __HbI = (ptr)(((u64*) __8JI__dynamic )[0]) ;
- ((u64*) __8JI__dynamic )[1] = __YbI + __odI ;
- spheres__dynamic = __8JI__dynamic ;
- spheres__surface = __3ZI ;
- __0ZI = 0 ;
+__UKI__dynamic = __runtime_calloc(3*sizeof(u64)) ;
+ __zZI = 0 ;
+ spheres__dynamic = __UKI__dynamic ;
+ spheres__surface = __zZI ;
+ __wZI = 100.0 ;
+ __CdI = 100.0 ;
+ __vZI = 30.0 ;
+ __ibI = 1000.0 ;
+ __uZI = 650.0 ;
  if(! spheres__dynamic )goto __result__buffer_error ;
  spheres__dynamic____buffer_alignment = 5 ;
  spheres__dynamic____buffer_size = ((u64*) spheres__dynamic )[1] ;
- if( __0ZI >= spheres__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(& __xZI , &((u64*)((void**) spheres__dynamic )[0])[ __0ZI * spheres__dynamic____buffer_alignment +0], sizeof( f64 )) ;
- memcpy(& __ubI , &((u64*)((void**) spheres__dynamic )[0])[ __0ZI * spheres__dynamic____buffer_alignment +1], sizeof( f64 )) ;
- memcpy(& __wZI , &((u64*)((void**) spheres__dynamic )[0])[ __0ZI * spheres__dynamic____buffer_alignment +2], sizeof( f64 )) ;
- memcpy(& __ibI , &((u64*)((void**) spheres__dynamic )[0])[ __0ZI * spheres__dynamic____buffer_alignment +3], sizeof( f64 )) ;
- memcpy(& __2dI , &((u64*)((void**) spheres__dynamic )[0])[ __0ZI * spheres__dynamic____buffer_alignment +4], sizeof( f64 )) ;
- __tZI = 100.0 ;
- __sZI = 100.0 ;
- __4bI = 30.0 ;
- __VcI = 1000.0 ;
- __rZI = 650.0 ;
- if(! spheres__dynamic )goto __result__buffer_error ;
- spheres__dynamic____buffer_size = ((u64*) spheres__dynamic )[1] ;
- spheres__dynamic____buffer_alignment = 5 ;
- spheres__dynamic____buffer_contents = (ptr)(((u64*) spheres__dynamic )[0]) ;
- if( __0ZI >= spheres__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(&((u64*) spheres__dynamic____buffer_contents )[ __0ZI * spheres__dynamic____buffer_alignment +0], & __tZI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ __0ZI * spheres__dynamic____buffer_alignment +1], & __sZI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ __0ZI * spheres__dynamic____buffer_alignment +2], & __4bI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ __0ZI * spheres__dynamic____buffer_alignment +3], & __VcI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ __0ZI * spheres__dynamic____buffer_alignment +4], & __rZI , sizeof(f64)); __LbI = 1 ;
+ spheres__dynamic____buffer_capacity = ((u64*) spheres__dynamic )[2] & ~(1ULL << 63) ;
+ if( spheres__dynamic____buffer_size >= spheres__dynamic____buffer_capacity ){ if( ((u64*) spheres__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ spheres__dynamic____buffer_prev_capacity = spheres__dynamic____buffer_capacity ;
+ spheres__dynamic____buffer_capacity = spheres__dynamic____buffer_capacity +( spheres__dynamic____buffer_capacity >>2)+1; if( spheres__dynamic____buffer_size ) ((void**) spheres__dynamic )[0] = __runtime_realloc((u64*)((void**) spheres__dynamic )[0],  spheres__dynamic____buffer_capacity * spheres__dynamic____buffer_alignment *sizeof(u64),  spheres__dynamic____buffer_prev_capacity * spheres__dynamic____buffer_alignment *sizeof(u64)); else ((void**) spheres__dynamic )[0] = __runtime_alloc( spheres__dynamic____buffer_capacity * spheres__dynamic____buffer_alignment *sizeof(u64)); ((u64*) spheres__dynamic )[2] = spheres__dynamic____buffer_capacity ;
+ spheres__dynamic____buffer_contents = (ptr)((void**) spheres__dynamic )[0] ;
+ if(! spheres__dynamic____buffer_contents )goto __result__buffer_error ;
+ } else  spheres__dynamic____buffer_contents = (ptr)(((u64*) spheres__dynamic )[0]) ;
+ ((u64*) spheres__dynamic )[1] = spheres__dynamic____buffer_size +1 ;
+ memcpy(&((u64*) spheres__dynamic____buffer_contents )[ spheres__dynamic____buffer_size * spheres__dynamic____buffer_alignment +0], & __wZI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ spheres__dynamic____buffer_size * spheres__dynamic____buffer_alignment +1], & __CdI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ spheres__dynamic____buffer_size * spheres__dynamic____buffer_alignment +2], & __vZI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ spheres__dynamic____buffer_size * spheres__dynamic____buffer_alignment +3], & __ibI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ spheres__dynamic____buffer_size * spheres__dynamic____buffer_alignment +4], & __uZI , sizeof(f64)); __sZI = 100.0 ;
+ __IcI = 100.0 ;
+ __ubI = 30.0 ;
+ __UaI = 450.0 ;
+ __rZI = 600.0 ;
  if(! spheres__dynamic )goto __result__buffer_error ;
  spheres__dynamic____buffer_alignment = 5 ;
  spheres__dynamic____buffer_size = ((u64*) spheres__dynamic )[1] ;
- if( __LbI >= spheres__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(& __sbI , &((u64*)((void**) spheres__dynamic )[0])[ __LbI * spheres__dynamic____buffer_alignment +0], sizeof( f64 )) ;
- memcpy(& __oZI , &((u64*)((void**) spheres__dynamic )[0])[ __LbI * spheres__dynamic____buffer_alignment +1], sizeof( f64 )) ;
- memcpy(& __vZI , &((u64*)((void**) spheres__dynamic )[0])[ __LbI * spheres__dynamic____buffer_alignment +2], sizeof( f64 )) ;
- memcpy(& __nZI , &((u64*)((void**) spheres__dynamic )[0])[ __LbI * spheres__dynamic____buffer_alignment +3], sizeof( f64 )) ;
- memcpy(& __mZI , &((u64*)((void**) spheres__dynamic )[0])[ __LbI * spheres__dynamic____buffer_alignment +4], sizeof( f64 )) ;
- __PcI = 100.0 ;
- __kZI = 100.0 ;
- __YcI = 30.0 ;
- __jZI = 450.0 ;
- __iZI = 600.0 ;
- if(! spheres__dynamic )goto __result__buffer_error ;
- spheres__dynamic____buffer_size = ((u64*) spheres__dynamic )[1] ;
- spheres__dynamic____buffer_alignment = 5 ;
- spheres__dynamic____buffer_contents = (ptr)(((u64*) spheres__dynamic )[0]) ;
- if( __LbI >= spheres__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(&((u64*) spheres__dynamic____buffer_contents )[ __LbI * spheres__dynamic____buffer_alignment +0], & __PcI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ __LbI * spheres__dynamic____buffer_alignment +1], & __kZI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ __LbI * spheres__dynamic____buffer_alignment +2], & __YcI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ __LbI * spheres__dynamic____buffer_alignment +3], & __jZI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ __LbI * spheres__dynamic____buffer_alignment +4], & __iZI , sizeof(f64)); __obI = 0.0 ;
- dt = __obI ;
- __hZI = 800.0 ;
- __4ZI = 450.0 ;
- __gZI = "Hello from smoλ+raylib" ;
- SetTraceLogLevel ( LOG_WARNING ); InitWindow ( __hZI , __4ZI ,( char *) __gZI ); 
- __pZI :
- window__size__w = __hZI ;
- window__size__h = __4ZI ;
- window__title = __gZI ;
- __AeI = __smo_time_eta (); 
- __BeI :
- prev_t = __AeI ;
- __CeI = 60.0 ;
- accum_fps = __CeI ;
- __DeI = 1024 ;
+ spheres__dynamic____buffer_capacity = ((u64*) spheres__dynamic )[2] & ~(1ULL << 63) ;
+ if( spheres__dynamic____buffer_size >= spheres__dynamic____buffer_capacity ){ if( ((u64*) spheres__dynamic )[2] & (1ULL << 63) )goto __result__buffer_error ;
+ spheres__dynamic____buffer_prev_capacity = spheres__dynamic____buffer_capacity ;
+ spheres__dynamic____buffer_capacity = spheres__dynamic____buffer_capacity +( spheres__dynamic____buffer_capacity >>2)+1; if( spheres__dynamic____buffer_size ) ((void**) spheres__dynamic )[0] = __runtime_realloc((u64*)((void**) spheres__dynamic )[0],  spheres__dynamic____buffer_capacity * spheres__dynamic____buffer_alignment *sizeof(u64),  spheres__dynamic____buffer_prev_capacity * spheres__dynamic____buffer_alignment *sizeof(u64)); else ((void**) spheres__dynamic )[0] = __runtime_alloc( spheres__dynamic____buffer_capacity * spheres__dynamic____buffer_alignment *sizeof(u64)); ((u64*) spheres__dynamic )[2] = spheres__dynamic____buffer_capacity ;
+ spheres__dynamic____buffer_contents = (ptr)((void**) spheres__dynamic )[0] ;
+ if(! spheres__dynamic____buffer_contents )goto __result__buffer_error ;
+ } else  spheres__dynamic____buffer_contents = (ptr)(((u64*) spheres__dynamic )[0]) ;
+ ((u64*) spheres__dynamic )[1] = spheres__dynamic____buffer_size +1 ;
+ memcpy(&((u64*) spheres__dynamic____buffer_contents )[ spheres__dynamic____buffer_size * spheres__dynamic____buffer_alignment +0], & __sZI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ spheres__dynamic____buffer_size * spheres__dynamic____buffer_alignment +1], & __IcI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ spheres__dynamic____buffer_size * spheres__dynamic____buffer_alignment +2], & __ubI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ spheres__dynamic____buffer_size * spheres__dynamic____buffer_alignment +3], & __UaI , sizeof(f64)); memcpy(&((u64*) spheres__dynamic____buffer_contents )[ spheres__dynamic____buffer_size * spheres__dynamic____buffer_alignment +4], & __rZI , sizeof(f64)); __DbI = 0.0 ;
+ dt = __DbI ;
+ __pZI = 800.0 ;
+ __RcI = 450.0 ;
+ __oZI = "Hello from smoλ+raylib" ;
+ SetTraceLogLevel ( LOG_WARNING ); InitWindow ( __pZI , __RcI ,( char *) __oZI ); 
+ __pdI = false ;
+ window__size__w = __pZI ;
+ window__size__h = __RcI ;
+ window__title = __oZI ;
+ window__ready = __pdI ;
+ __kZI = __smo_time_eta (); 
+ __ZbI :
+ prev_t = __kZI ;
+ __iZI = 60.0 ;
+ accum_fps = __iZI ;
+ __eaI = 1024 ;
+ __hZI = 0 ;
+ __fZI = __hZI ;
+ __5bI = 0 ;
+ __8ZI =( __eaI == __5bI ); 
+ __yZI :
+ if(! __8ZI )goto __eZI ;
+ __6ZI = "Cannot allocate zero size" ;
+ goto __caI ;
+ __builtin_unreachable();
+ __eZI :
+ __2ZI = __runtime_alloc ( __eaI * sizeof ( __fZI )); 
+ __4dI = __2ZI ;
+ __5dI =(! __4dI ); 
+ __6dI :
+ if(! __5dI )goto __7dI ;
+ __8dI = "Failed a Heap allocation" ;
+ goto __9dI ;
+ __builtin_unreachable();
+ __7dI :
+ __AeI = 0 ;
+ __BeI = sizeof ( __AeI )* __eaI ; 
+ __CeI :
+ __fZI = __AeI ;
+ __DeI = 0 ;
  __EeI = 0 ;
- __FeI = __EeI ;
- __HeI = 0 ;
- __IeI =( __DeI == __HeI ); 
- __JeI :
- if(! __IeI )goto __KeI ;
- __LeI = "Cannot allocate zero size" ;
- goto __MeI ;
+ __FeI = __eaI ;
+ __GeI = __fZI ;
+ __tKI__contents__mem = __2ZI ;
+ __HeI = __2ZI ;
+ __IeI = __BeI ;
+ __JeI = __DeI ;
+ __KeI = __EeI ;
+ __LeI :
+ __MeI = WindowShouldClose (); 
+ __NeI = __MeI ;
+ __OeI =(! __NeI ); 
+ __PeI :
+ window____EDI = __ReI ;
+ if(! __OeI )goto __SeI ;
+ __TeI = window__ready ;
+ if(! __TeI )goto __UeI ;
+ __VeI = "Window.begin() already called without closing it with Window.end()" ;
+ goto __WeI ;
  __builtin_unreachable();
- __KeI :
- __NeI = __runtime_alloc ( __DeI * sizeof ( __FeI )); 
- __OeI = __NeI ;
- __PeI =(! __OeI ); 
- __QeI :
- if(! __PeI )goto __ReI ;
- __SeI = "Failed a Heap allocation" ;
- goto __TeI ;
- __builtin_unreachable();
- __ReI :
- __UeI = 0 ;
- __VeI = sizeof ( __UeI )* __DeI ; 
- __WeI :
- __FeI = __UeI ;
- __XeI = 0 ;
- __YeI = 0 ;
- __1ZI = __DeI ;
- __ZeI = __FeI ;
- __mKI__contents__mem = __NeI ;
- __aeI = __NeI ;
- __beI = __VeI ;
- __zaI = __XeI ;
- __ceI = __YeI ;
- __deI :
- __eeI = WindowShouldClose (); 
- __geI = __eeI ;
- __heI =(! __geI ); 
- __ieI :
- window____EDI = __jeI ;
- if(! __heI )goto __keI ;
- __leI = __smo_time_eta (); 
- __meI :
- __oeI = spheres__dynamic ? ((u64*) spheres__dynamic )[1]:0 ;
- __peI = 0 ;
- __qeI = 1 ;
- __reI = __peI ;
- __seI :
- __teI = __reI ;
- __ueI = __veI ;
- __ueI = __teI ;
- __ddI = 1 ;
- __xeI = __teI + __ddI ; 
- __yeI :
- __teI = __xeI ;
- __zeI = __teI <= __oeI ; 
- __0eI :
- __reI = __teI ;
- if(! __zeI )goto __1eI ;
- if(! spheres__dynamic )goto __result__buffer_error ;
- __2eI = 5 ;
- __3eI = ((u64*) spheres__dynamic )[1] ;
- if( __ueI >= __3eI )goto __result__buffer_error ;
- memcpy(& __4eI , &((u64*)((void**) spheres__dynamic )[0])[ __ueI * __2eI +0], sizeof( f64 )) ;
- __5eI = __4eI ;
- memcpy(& __6eI , &((u64*)((void**) spheres__dynamic )[0])[ __ueI * __2eI +1], sizeof( f64 )) ;
- __zbI = __6eI ;
- memcpy(& __7eI , &((u64*)((void**) spheres__dynamic )[0])[ __ueI * __2eI +2], sizeof( f64 )) ;
- __9eI = __7eI ;
- memcpy(& __AfI , &((u64*)((void**) spheres__dynamic )[0])[ __ueI * __2eI +3], sizeof( f64 )) ;
- __BfI = __AfI ;
- memcpy(& __CfI , &((u64*)((void**) spheres__dynamic )[0])[ __ueI * __2eI +4], sizeof( f64 )) ;
- __DfI = __CfI ;
- __EfI = __5eI ;
- __FfI = __zbI ;
- __GfI = __BfI ;
- __HfI = __DfI ;
- __IfI = __GfI * dt ; 
- __JfI :
- __KfI = __EfI + __IfI ; 
- __zZI :
- __LfI = __KfI ;
- __MfI = __HfI * dt ; 
- __NfI :
- __OfI = __FfI + __MfI ; 
- __PfI :
- __QfI = __OfI ;
- __RfI = __GfI ;
- __SfI = __HfI ;
- __TfI = __LfI - __9eI ; 
- __UfI :
- __VfI = 0.0 ;
- __WfI = __TfI < __VfI ; 
- __XfI :
- if(! __WfI )goto __YfI ;
- __LfI = __9eI ;
- __ZfI = 0.0 ;
- __qZI = __ZfI - __RfI ; 
- __afI :
- __RfI = __qZI ;
- goto __bfI ;
- __YfI :
- __cfI = __LfI + __9eI ; 
- __ldI :
- __dfI = 800.0 ;
- __efI = __cfI > __dfI ; 
- __ffI :
- if(! __efI )goto __gfI ;
- __9dI = 800.0 ;
- __hfI = __9dI - __9eI ; 
- __ifI :
- __LfI = __hfI ;
- __jfI = 0.0 ;
- __kfI = __jfI - __RfI ; 
- __lfI :
- __RfI = __kfI ;
- __nfI = __QfI - __9eI ; 
- __ofI :
- __pfI = 0.0 ;
- __qfI = __nfI < __pfI ; 
- __rfI :
- if(! __qfI )goto __sfI ;
- __QfI = __9eI ;
- __ZbI = 0.0 ;
- __tfI = __ZbI - __SfI ; 
- __ufI :
- __SfI = __tfI ;
- goto __vfI ;
- __sfI :
- __wfI = __QfI + __9eI ; 
- __xfI :
- __yfI = 450.0 ;
- __zfI = __wfI > __yfI ; 
- __0fI :
- if(! __zfI )goto __1fI ;
- __2fI = 450.0 ;
- __3fI = __2fI - __9eI ; 
- __4fI :
- __QfI = __3fI ;
- __5fI = 0.0 ;
- __6fI = __5fI - __SfI ; 
- __7fI :
- __SfI = __6fI ;
- __1fI :
- __vfI :
- __EfI = __LfI ;
- __FfI = __QfI ;
- __GfI = __RfI ;
- __HfI = __SfI ;
- __gfI :
- __bfI :
- __5eI = __EfI ;
- __zbI = __FfI ;
- __BfI = __GfI ;
- __DfI = __HfI ;
- memcpy(&((u64*)((u64*) spheres__dynamic )[0])[ __ueI * __2eI +0], & __5eI , sizeof( __5eI )) ;
- memcpy(&((u64*)((u64*) spheres__dynamic )[0])[ __ueI * __2eI +1], & __zbI , sizeof( __zbI )) ;
- memcpy(&((u64*)((u64*) spheres__dynamic )[0])[ __ueI * __2eI +2], & __9eI , sizeof( __9eI )) ;
- memcpy(&((u64*)((u64*) spheres__dynamic )[0])[ __ueI * __2eI +3], & __BfI , sizeof( __BfI )) ;
- memcpy(&((u64*)((u64*) spheres__dynamic )[0])[ __ueI * __2eI +4], & __DfI , sizeof( __DfI )) ;
- goto __seI ;
- __1eI :
+ __UeI :
+ __XeI = true ;
+ __TeI = __XeI ;
  BeginDrawing (); 
- __8fI = window__size__w ;
- __9fI = window__size__h ;
- __AgI = window__title ;
- window____EDI = __BgI ;
- __CgI = 50 ;
- __EgI = 50 ;
- __FgI = 80 ;
- __GgI = 255 ;
- __HgI = 255 ;
- __IgI = __CgI > __HgI ; 
- __JgI :
- if(! __IgI )goto __KgI ;
- __LgI = "Color r greater than 255" ;
- goto __MgI ;
+ __YeI = window__size__w ;
+ __ZeI = window__size__h ;
+ __aeI = window__title ;
+ __beI = __TeI ;
+ window____EDI = __ceI ;
+ window__ready = __TeI ;
+ __deI = 50 ;
+ __eeI = 50 ;
+ __feI = 80 ;
+ __geI = 255 ;
+ __heI = 255 ;
+ __ieI = __deI > __heI ; 
+ __jeI :
+ if(! __ieI )goto __keI ;
+ __leI = "Color r greater than 255" ;
+ goto __meI ;
  __builtin_unreachable();
- __KgI :
- __NgI = 255 ;
- __OgI = __EgI > __NgI ; 
- __xaI :
- if(! __OgI )goto __PgI ;
- __QgI = "Color g greater than 255" ;
- goto __RgI ;
+ __keI :
+ __xcI = 255 ;
+ __neI = __eeI > __xcI ; 
+ __oeI :
+ if(! __neI )goto __peI ;
+ __qeI = "Color g greater than 255" ;
+ goto __RdI ;
  __builtin_unreachable();
- __PgI :
- __OaI = 255 ;
- __SgI = __FgI > __OaI ; 
- __TgI :
- if(! __SgI )goto __VgI ;
- __WgI = "Color b greater than 255" ;
- goto __XgI ;
+ __peI :
+ __reI = 255 ;
+ __faI = __feI > __reI ; 
+ __seI :
+ if(! __faI )goto __teI ;
+ __veI = "Color b greater than 255" ;
+ goto __weI ;
  __builtin_unreachable();
- __VgI :
- __ZgI = 255 ;
- __agI = __GgI > __ZgI ; 
- __bgI :
- if(! __agI )goto __cgI ;
- __DdI = "Color a greater than 255" ;
- goto __lZI ;
+ __teI :
+ __xeI = 255 ;
+ __yeI = __geI > __xeI ; 
+ __zeI :
+ if(! __yeI )goto __bdI ;
+ __0eI = "Color a greater than 255" ;
+ goto __1eI ;
  __builtin_unreachable();
- __cgI :
- ClearBackground (( Color ) {( unsigned char ) __CgI ,( unsigned char ) __EgI ,( unsigned char ) __FgI ,( unsigned char ) __GgI }); 
- __dgI = __8fI ;
- __egI = spheres__dynamic ? ((u64*) spheres__dynamic )[1]:0 ;
- __fgI = __egI ;
- __hgI = 0 ;
- __igI = 1 ;
- __jgI = __hgI ;
- __kgI = __igI ;
- __lgI = __hgI ;
- __mgI :
- __ngI = __lgI ;
- __ogI = i ;
- __ogI = __ngI ;
- __pgI = 1 ;
- __rgI = __ngI + __pgI ; 
- __sgI :
- __ngI = __rgI ;
- __tgI = __ngI <= __fgI ; 
- __ugI :
- __lgI = __ngI ;
- if(! __tgI )goto __wgI ;
+ __bdI :
+ ClearBackground (( Color ) {( unsigned char ) __deI ,( unsigned char ) __eeI ,( unsigned char ) __feI ,( unsigned char ) __geI }); 
+ __2eI = __YeI ;
+ __3eI = spheres__dynamic ? ((u64*) spheres__dynamic )[1]:0 ;
+ __4eI = __3eI ;
+ __5eI = 0 ;
+ __6eI = 1 ;
+ __7eI = __5eI ;
+ __8eI = __6eI ;
+ __9eI = __5eI ;
+ __AfI :
+ __BfI = __9eI ;
+ __CfI = i ;
+ __CfI = __BfI ;
+ __DfI = 1 ;
+ __EfI = __BfI + __DfI ; 
+ __FfI :
+ __BfI = __EfI ;
+ __GfI = __BfI <= __4eI ; 
+ __HfI :
+ __9eI = __BfI ;
+ if(! __GfI )goto __IfI ;
  if(! spheres__dynamic )goto __result__buffer_error ;
  spheres__dynamic____buffer_alignment = 5 ;
  spheres__dynamic____buffer_size = ((u64*) spheres__dynamic )[1] ;
- if( __ogI >= spheres__dynamic____buffer_size )goto __result__buffer_error ;
- memcpy(& __xgI , &((u64*)((void**) spheres__dynamic )[0])[ __ogI * spheres__dynamic____buffer_alignment +0], sizeof( f64 )) ;
- memcpy(& __ygI , &((u64*)((void**) spheres__dynamic )[0])[ __ogI * spheres__dynamic____buffer_alignment +1], sizeof( f64 )) ;
- memcpy(& __zgI , &((u64*)((void**) spheres__dynamic )[0])[ __ogI * spheres__dynamic____buffer_alignment +2], sizeof( f64 )) ;
- memcpy(& __0gI , &((u64*)((void**) spheres__dynamic )[0])[ __ogI * spheres__dynamic____buffer_alignment +3], sizeof( f64 )) ;
- memcpy(& __1gI , &((u64*)((void**) spheres__dynamic )[0])[ __ogI * spheres__dynamic____buffer_alignment +4], sizeof( f64 )) ;
- __2gI = 200 ;
- __3gI = 50 ;
- __4gI = 50 ;
- __5gI = 255 ;
- __6gI = 255 ;
- __7gI = __2gI > __6gI ; 
- __8gI :
- if(! __7gI )goto __9gI ;
- __AhI = "Color r greater than 255" ;
- goto __BhI ;
+ if( __CfI >= spheres__dynamic____buffer_size )goto __result__buffer_error ;
+ memcpy(& __JfI , &((u64*)((void**) spheres__dynamic )[0])[ __CfI * spheres__dynamic____buffer_alignment +0], sizeof( f64 )) ;
+ memcpy(& __KfI , &((u64*)((void**) spheres__dynamic )[0])[ __CfI * spheres__dynamic____buffer_alignment +1], sizeof( f64 )) ;
+ memcpy(& __LfI , &((u64*)((void**) spheres__dynamic )[0])[ __CfI * spheres__dynamic____buffer_alignment +2], sizeof( f64 )) ;
+ memcpy(& __MfI , &((u64*)((void**) spheres__dynamic )[0])[ __CfI * spheres__dynamic____buffer_alignment +3], sizeof( f64 )) ;
+ memcpy(& __NfI , &((u64*)((void**) spheres__dynamic )[0])[ __CfI * spheres__dynamic____buffer_alignment +4], sizeof( f64 )) ;
+ __fcI = 200 ;
+ __bcI = 50 ;
+ __OfI = 50 ;
+ __PfI = 255 ;
+ __QfI = 255 ;
+ __RfI = __fcI > __QfI ; 
+ __SfI :
+ if(! __RfI )goto __TfI ;
+ __UfI = "Color r greater than 255" ;
+ goto __VfI ;
  __builtin_unreachable();
- __9gI :
- __ChI = 255 ;
- __DhI = __3gI > __ChI ; 
- __EhI :
- if(! __DhI )goto __UgI ;
- __FhI = "Color g greater than 255" ;
- goto __GhI ;
+ __TfI :
+ __WfI = 255 ;
+ __XfI = __bcI > __WfI ; 
+ __QeI :
+ if(! __XfI )goto __YfI ;
+ __ZfI = "Color g greater than 255" ;
+ goto __afI ;
  __builtin_unreachable();
- __UgI :
- __HhI = 255 ;
- __TbI = __4gI > __HhI ; 
- __IhI :
- if(! __TbI )goto __JhI ;
- __KhI = "Color b greater than 255" ;
- goto __LhI ;
+ __YfI :
+ __bfI = 255 ;
+ __cfI = __OfI > __bfI ; 
+ __dfI :
+ if(! __cfI )goto __efI ;
+ __ffI = "Color b greater than 255" ;
+ goto __gfI ;
  __builtin_unreachable();
- __JhI :
- __MhI = 255 ;
- __NhI = __5gI > __MhI ; 
- __OhI :
- if(! __NhI )goto __PhI ;
- __QhI = "Color a greater than 255" ;
- goto __jbI ;
+ __efI :
+ __hfI = 255 ;
+ __ifI = __PfI > __hfI ; 
+ __jfI :
+ if(! __ifI )goto __kfI ;
+ __lfI = "Color a greater than 255" ;
+ goto __mfI ;
  __builtin_unreachable();
- __PhI :
- DrawCircleV (( Vector2 ) {( float ) __xgI ,( float ) __ygI },( float ) __zgI ,( Color ) {( unsigned char ) __2gI ,( unsigned char ) __3gI ,( unsigned char ) __4gI ,( unsigned char ) __5gI }); 
- __RhI = window__size__w ;
- window____EDI = __ShI ;
+ __kfI :
+ DrawCircleV (( Vector2 ) {( float ) __JfI ,( float ) __KfI },( float ) __LfI ,( Color ) {( unsigned char ) __fcI ,( unsigned char ) __bcI ,( unsigned char ) __OfI ,( unsigned char ) __PfI }); 
+ __nfI = window__size__w ;
+ window____EDI = __ofI ;
  window__size__w = window__size__w ;
  window__size__h = window__size__h ;
  window__title = window__title ;
- __ThI = accum_fps ;
- __DgI = __1ZI ;
- __uZI = __ZeI ;
- __yZI = __mKI__contents__mem ;
- __VbI = __aeI ;
- __mfI = __beI ;
- __UhI = __zaI ;
- __VhI = __ceI ;
- __GeI = 21 ;
- __WhI = 0 ;
- __IaI = __dcI ;
- __XhI = __GeI * sizeof ( __IaI ); 
- __gbI = __XhI ;
- __YhI = __gbI > __DgI ; 
- __ZhI :
- if(! __YhI )goto __FcI ;
- __ahI = "Failed a Volatile allocation" ;
- goto __MaI ;
+ window__ready = window__ready ;
+ goto __AfI ;
+ __IfI :
+ __gdI = accum_fps ;
+ __pfI = __FeI ;
+ __qfI = __GeI ;
+ __rfI = __tKI__contents__mem ;
+ __sfI = __HeI ;
+ __tfI = __IeI ;
+ __ufI = __JeI ;
+ __wfI = __KeI ;
+ __xfI = 21 ;
+ __yfI = 0 ;
+ __GaI = __zfI ;
+ __0fI = __xfI * sizeof ( __GaI ); 
+ __2fI = __0fI ;
+ __3fI = __2fI > __pfI ; 
+ __9ZI :
+ if(! __3fI )goto __4fI ;
+ __5fI = "Failed a Volatile allocation" ;
+ goto __6fI ;
  __builtin_unreachable();
- __FcI :
- if ( __UhI + __XhI > __DgI ) { __UhI =0; __VhI = __VhI +1; } 
- __chI =( ptr )(( char *) __yZI + __UhI ); 
- __UhI = __UhI + __XhI ; 
- __dhI = 0 ;
- __ehI = sizeof ( __dhI )* __XhI ; 
- __fhI :
- __IaI = __dhI ;
- if ( __chI ) { __ghI =( u64 ) snprintf (( char *) __chI , sizeof ( char )* 21 , "%lu" , __ThI ); if ( __ghI < 32 ) { __hhI = malloc ( __ghI +1); if ( __hhI ) { memcpy ( __hhI ,( char *) __chI , __ghI );(( char *) __hhI )[ __ghI ]=0; __ihI =(( char *) __hhI )[0]; } } } 
- __jhI = __hhI ;
- __khI =( __jhI ); 
- __lhI :
- __mhI =(! __khI ); 
- __nhI :
- if(! __mhI )goto __bhI ;
- goto __ohI ;
+ __4fI :
+ if ( __ufI + __0fI > __pfI ) { __ufI =0; __wfI = __wfI +1; } 
+ __7aI =( ptr )(( char *) __rfI + __ufI ); 
+ __ufI = __ufI + __0fI ; 
+ __7fI = 0 ;
+ __ueI = sizeof ( __7fI )* __0fI ; 
+ __8fI :
+ __GaI = __7fI ;
+ if ( __7aI ) { __9fI =( u64 ) snprintf (( char *) __7aI , sizeof ( char )* 21 , "%lu" , __gdI ); if ( __9fI < 32 ) { __AgI = malloc ( __9fI +1); if ( __AgI ) { memcpy ( __AgI ,( char *) __7aI , __9fI );(( char *) __AgI )[ __9fI ]=0; __BgI =(( char *) __AgI )[0]; } } } 
+ __CgI = __AgI ;
+ __DgI =( __CgI ); 
+ __EgI :
+ __FgI =(! __DgI ); 
+ __GgI :
+ if(! __FgI )goto __HgI ;
+ goto __IgI ;
  __builtin_unreachable();
- __bhI :
- __GaI = __phI ;
- __qhI = __hcI ;
- __pbI = __rhI ;
- __1ZI = __DgI ;
- __ZeI = __uZI ;
- __mKI__contents__mem = __yZI ;
- __aeI = __VbI ;
- __beI = __mfI ;
- __zaI = __UhI ;
- __ceI = __VhI ;
- __shI = " fps" ;
- __thI = strlen ( __shI ); __neI =( ptr ) __shI ; __ScI = __shI [0]; __uhI =( ptr ) __uhI ; 
- __3cI = __neI ;
- __whI = __ghI ; __jdI = __thI ; __ndI = __whI + __jdI ; __xhI = __ghI ? __ihI : __ScI ; 
- __weI = 1 ;
- __yhI = __ndI + __weI ; 
- __zhI :
- __gdI = 0 ;
- __0hI = __1hI ;
- __2hI = __yhI * sizeof ( __0hI ); 
- __3hI = __2hI ;
- __4hI = __3hI > __1ZI ; 
- __WdI :
- if(! __4hI )goto __vgI ;
- __5hI = "Failed a Volatile allocation" ;
- goto __ggI ;
+ __HgI :
+ __JgI = __KgI ;
+ __LgI = __MgI ;
+ __NgI = __OgI ;
+ __FeI = __pfI ;
+ __GeI = __qfI ;
+ __tKI__contents__mem = __rfI ;
+ __HeI = __sfI ;
+ __IeI = __tfI ;
+ __JeI = __ufI ;
+ __KeI = __wfI ;
+ __PgI = " fps" ;
+ __QgI = strlen ( __PgI ); __SgI =( ptr ) __PgI ; __TgI = __PgI [0]; __UgI =( ptr ) __UgI ; 
+ __WgI = __SgI ;
+ __XgI = __9fI ; __ZgI = __QgI ; __agI = __XgI + __ZgI ; __bgI = __9fI ? __BgI : __TgI ; 
+ __cgI = 1 ;
+ __dgI = __agI + __cgI ; 
+ __egI :
+ __fgI = 0 ;
+ __UbI = __ggI ;
+ __lZI = __dgI * sizeof ( __UbI ); 
+ __hgI = __lZI ;
+ __igI = __hgI > __FeI ; 
+ __jgI :
+ if(! __igI )goto __kgI ;
+ __lgI = "Failed a Volatile allocation" ;
+ goto __mgI ;
  __builtin_unreachable();
- __vgI :
- if ( __zaI + __2hI > __1ZI ) { __zaI =0; __ceI = __ceI +1; } 
- __feI =( ptr )(( char *) __mKI__contents__mem + __zaI ); 
- __zaI = __zaI + __2hI ; 
- __qgI = 0 ;
- __vhI = sizeof ( __qgI )* __2hI ; 
- __6hI :
- __0hI = __qgI ;
- memcpy (( char *) __feI ,( char *) __hhI , __whI ); memcpy (( char *) __feI + __whI ,( char *) __3cI , __jdI );(( char *) __feI )[ __ndI ]=0; 
- __YgI = __feI ;
- __GaI = __7hI ;
- __qhI = __8eI ;
- __pbI = __8hI ;
- __1ZI = __1ZI ;
- __ZeI = __ZeI ;
- __mKI__contents__mem = __mKI__contents__mem ;
- __aeI = __aeI ;
- __beI = __beI ;
- __zaI = __zaI ;
- __ceI = __ceI ;
- __fZI = 10.0 ;
- __RaI = 10.0 ;
- __eZI = 20.0 ;
- __dZI = 255 ;
- __cZI = 255 ;
- __bZI = 255 ;
- __aZI = 255 ;
- __ZZI = 255 ;
- __YZI = __dZI > __ZZI ; 
- __XZI :
- if(! __YZI )goto __WZI ;
- __VZI = "Color r greater than 255" ;
- goto __fbI ;
+ __kgI :
+ if ( __JeI + __lZI > __FeI ) { __JeI =0; __KeI = __KeI +1; } 
+ __ngI =( ptr )(( char *) __tKI__contents__mem + __JeI ); 
+ __JeI = __JeI + __lZI ; 
+ __ogI = 0 ;
+ __pgI = sizeof ( __ogI )* __lZI ; 
+ __qgI :
+ __UbI = __ogI ;
+ memcpy (( char *) __ngI ,( char *) __AgI , __XgI ); memcpy (( char *) __ngI + __XgI ,( char *) __WgI , __ZgI );(( char *) __ngI )[ __agI ]=0; 
+ __rgI = __ngI ;
+ __JgI = __sgI ;
+ __LgI = __tgI ;
+ __NgI = __ugI ;
+ __FeI = __FeI ;
+ __GeI = __GeI ;
+ __tKI__contents__mem = __tKI__contents__mem ;
+ __HeI = __HeI ;
+ __IeI = __IeI ;
+ __JeI = __JeI ;
+ __KeI = __KeI ;
+ __vgI = 10.0 ;
+ __wgI = 10.0 ;
+ __xgI = 20.0 ;
+ __ygI = 255 ;
+ __3cI = 255 ;
+ __zgI = 255 ;
+ __0gI = 255 ;
+ __1gI = 255 ;
+ __2gI = __ygI > __1gI ; 
+ __4gI :
+ if(! __2gI )goto __5gI ;
+ __6gI = "Color r greater than 255" ;
+ goto __7gI ;
  __builtin_unreachable();
- __WZI :
- __UZI = 255 ;
- __TZI = __cZI > __UZI ; 
- __SZI :
- if(! __TZI )goto __RZI ;
- __QZI = "Color g greater than 255" ;
- goto __PZI ;
+ __5gI :
+ __8gI = 255 ;
+ __9gI = __3cI > __8gI ; 
+ __AhI :
+ if(! __9gI )goto __BhI ;
+ __ChI = "Color g greater than 255" ;
+ goto __DhI ;
  __builtin_unreachable();
- __RZI :
- __OZI = 255 ;
- __NZI = __bZI > __OZI ; 
- __MZI :
- if(! __NZI )goto __LZI ;
- __KZI = "Color b greater than 255" ;
- goto __JZI ;
+ __BhI :
+ __EhI = 255 ;
+ __FhI = __zgI > __EhI ; 
+ __GhI :
+ if(! __FhI )goto __HhI ;
+ __IhI = "Color b greater than 255" ;
+ goto __JhI ;
  __builtin_unreachable();
- __LZI :
- __IZI = 255 ;
- __HZI = __aZI > __IZI ; 
- __GZI :
- if(! __HZI )goto __FZI ;
- __EZI = "Color a greater than 255" ;
- goto __DZI ;
+ __HhI :
+ __KhI = 255 ;
+ __2bI = __0gI > __KhI ; 
+ __SaI :
+ if(! __2bI )goto __DdI ;
+ __LhI = "Color a greater than 255" ;
+ goto __vfI ;
  __builtin_unreachable();
- __FZI :
- DrawText (( char *) __YgI , __fZI , __RaI , __eZI ,( Color ) {( unsigned char ) __dZI ,( unsigned char ) __cZI ,( unsigned char ) __bZI ,( unsigned char ) __aZI }); 
- __CZI = window__size__w ;
- __BZI = window__size__h ;
- __AZI = window__title ;
- window____EDI = __9YI ;
+ __DdI :
+ DrawText (( char *) __rgI , __vgI , __wgI , __xgI ,( Color ) {( unsigned char ) __ygI ,( unsigned char ) __3cI ,( unsigned char ) __zgI ,( unsigned char ) __0gI }); 
+ __NhI = window__size__w ;
+ __kdI = window__size__h ;
+ __OhI = window__title ;
+ __PhI = window__ready ;
+ window____EDI = __RhI ;
+ __ShI = __PhI ;
+ __qZI =(! __ShI ); 
+ __ThI :
+ if(! __qZI )goto __ScI ;
+ __YaI = "Window.begin() must be called before a matching Window.end()" ;
+ goto __UhI ;
+ __builtin_unreachable();
+ __ScI :
+ __VhI = false ;
+ __ShI = __VhI ;
  EndDrawing (); 
- __8YI = __CZI ;
- __7YI = __smo_time_eta (); 
- __6YI :
- __5YI = __7YI - prev_t ; 
- __4YI :
- dt = __5YI ;
- prev_t = __7YI ;
- __3YI = 0.99 ;
- __2YI = accum_fps * __3YI ; 
- __1YI :
- __0YI = 0.01 ;
- __zYI = __0YI / dt ; 
+ __WhI = __NhI ;
+ __PhI = __ShI ;
+ __XhI = __smo_time_eta (); 
+ __YhI :
+ __ZhI = __XhI - prev_t ; 
+ __WaI :
+ dt = __ZhI ;
+ prev_t = __XhI ;
+ __ahI = 0.99 ;
+ __bhI = accum_fps * __ahI ; 
+ __gZI :
+ __chI = 0.01 ;
+ __1fI = __chI / dt ; 
+ __nbI :
+ __dhI = __bhI + __1fI ; 
+ __fhI :
+ accum_fps = __dhI ;
+ __MhI = spheres__dynamic ? ((u64*) spheres__dynamic )[1]:0 ;
+ __ghI = 0 ;
+ __YcI = 1 ;
+ __lcI = __ghI ;
+ __hhI :
+ __ihI = __lcI ;
+ __ehI = __jhI ;
+ __ehI = __ihI ;
+ __khI = 1 ;
+ __lhI = __ihI + __khI ; 
+ __iaI :
+ __ihI = __lhI ;
+ __mhI = __ihI <= __MhI ; 
+ __kaI :
+ __lcI = __ihI ;
+ if(! __mhI )goto __gaI ;
+ if(! spheres__dynamic )goto __result__buffer_error ;
+ __jZI = 5 ;
+ __3gI = ((u64*) spheres__dynamic )[1] ;
+ if( __ehI >= __3gI )goto __result__buffer_error ;
+ memcpy(& __nhI , &((u64*)((void**) spheres__dynamic )[0])[ __ehI * __jZI +0], sizeof( f64 )) ;
+ __UcI = __nhI ;
+ memcpy(& __ohI , &((u64*)((void**) spheres__dynamic )[0])[ __ehI * __jZI +1], sizeof( f64 )) ;
+ __QhI = __ohI ;
+ memcpy(& __phI , &((u64*)((void**) spheres__dynamic )[0])[ __ehI * __jZI +2], sizeof( f64 )) ;
+ __1ZI = __phI ;
+ memcpy(& __qhI , &((u64*)((void**) spheres__dynamic )[0])[ __ehI * __jZI +3], sizeof( f64 )) ;
+ __1cI = __qhI ;
+ memcpy(& __rhI , &((u64*)((void**) spheres__dynamic )[0])[ __ehI * __jZI +4], sizeof( f64 )) ;
+ __shI = __rhI ;
+ __thI = __UcI ;
+ __uhI = __QhI ;
+ __vhI = __1cI ;
+ __whI = __shI ;
+ __xhI = __vhI * dt ; 
+ __yhI :
+ __zhI = __thI + __xhI ; 
+ __0hI :
+ __1hI = __zhI ;
+ __VgI = __whI * dt ; 
+ __YgI :
+ __RgI = __uhI + __VgI ; 
+ __8cI :
+ __AdI = __RgI ;
+ __2hI = __vhI ;
+ __dZI = __whI ;
+ __cZI = __1hI - __1ZI ; 
+ __bZI :
+ __aZI = 0.0 ;
+ __ZZI = __cZI < __aZI ; 
+ __YZI :
+ if(! __ZZI )goto __XZI ;
+ __1hI = __1ZI ;
+ __WZI = 0.0 ;
+ __VZI = __WZI - __2hI ; 
+ __UZI :
+ __2hI = __VZI ;
+ goto __TZI ;
+ __XZI :
+ __SZI = __1hI + __1ZI ; 
+ __RZI :
+ __QZI = 800.0 ;
+ __PZI = __SZI > __QZI ; 
+ __OZI :
+ if(! __PZI )goto __NZI ;
+ __MZI = 800.0 ;
+ __LZI = __MZI - __1ZI ; 
+ __KZI :
+ __1hI = __LZI ;
+ __JZI = 0.0 ;
+ __IZI = __JZI - __2hI ; 
+ __HZI :
+ __2hI = __IZI ;
+ __NZI :
+ __TZI :
+ __GZI = __AdI - __1ZI ; 
+ __FZI :
+ __EZI = 0.0 ;
+ __DZI = __GZI < __EZI ; 
+ __CZI :
+ if(! __DZI )goto __BZI ;
+ __AdI = __1ZI ;
+ __AZI = 0.0 ;
+ __9YI = __AZI - __dZI ; 
+ __8YI :
+ __dZI = __9YI ;
+ goto __7YI ;
+ __BZI :
+ __6YI = __AdI + __1ZI ; 
+ __5YI :
+ __4YI = 450.0 ;
+ __3YI = __6YI > __4YI ; 
+ __2YI :
+ if(! __3YI )goto __1YI ;
+ __0YI = 450.0 ;
+ __zYI = __0YI - __1ZI ; 
  __yYI :
- __xYI = __2YI + __zYI ; 
- __wYI :
- accum_fps = __xYI ;
- __vYI = 0.015 ;
- __uYI = __7YI - __leI ; 
- __tYI :
- __sYI = __vYI - __uYI ; 
- __rYI :
- __qYI = 0.0 ;
- __pYI = __sYI <= __qYI ; 
+ __AdI = __zYI ;
+ __xYI = 0.0 ;
+ __wYI = __xYI - __dZI ; 
+ __vYI :
+ __dZI = __wYI ;
+ __1YI :
+ __7YI :
+ __thI = __1hI ;
+ __uhI = __AdI ;
+ __vhI = __2hI ;
+ __whI = __dZI ;
+ __UcI = __thI ;
+ __QhI = __uhI ;
+ __1cI = __vhI ;
+ __shI = __whI ;
+ memcpy(&((u64*)((u64*) spheres__dynamic )[0])[ __ehI * __jZI +0], & __UcI , sizeof( __UcI )) ;
+ memcpy(&((u64*)((u64*) spheres__dynamic )[0])[ __ehI * __jZI +1], & __QhI , sizeof( __QhI )) ;
+ memcpy(&((u64*)((u64*) spheres__dynamic )[0])[ __ehI * __jZI +2], & __1ZI , sizeof( __1ZI )) ;
+ memcpy(&((u64*)((u64*) spheres__dynamic )[0])[ __ehI * __jZI +3], & __1cI , sizeof( __1cI )) ;
+ memcpy(&((u64*)((u64*) spheres__dynamic )[0])[ __ehI * __jZI +4], & __shI , sizeof( __shI )) ;
+ goto __hhI ;
+ __gaI :
+ __uYI = 0.015 ;
+ __tYI = __XhI - prev_t ; 
+ __sYI :
+ __rYI = __uYI - __tYI ; 
+ __qYI :
+ __0ZI = 0.0 ;
+ __pYI = __rYI <= __0ZI ; 
  __oYI :
  if(! __pYI )goto __nYI ;
  goto __mYI ;
  __nYI :
- __smo_exact_sleep ( __sYI ); 
+ __smo_exact_sleep ( __rYI ); 
  __mYI :
- goto __mgI ;
- __wgI :
- goto __deI ;
- __keI :
+ goto __LeI ;
+ __SeI :
  __lYI :
 goto __return;
 
 // ERROR HANDLING
-__GhI :
- printf ( "%s\n" , __FhI ); 
+__UhI :
+ printf ( "%s\n" , __YaI ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
-__DZI :
- printf ( "%s\n" , __EZI ); 
+__RdI :
+ printf ( "%s\n" , __qeI ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
-__MgI :
- printf ( "%s\n" , __LgI ); 
+__weI :
+ printf ( "%s\n" , __veI ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
-__JZI :
- printf ( "%s\n" , __KZI ); 
+__7gI :
+ printf ( "%s\n" , __6gI ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
+__meI :
+ printf ( "%s\n" , __leI ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
+__DhI :
+ printf ( "%s\n" , __ChI ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
 __result__buffer_error :
 printf("Buffer error\n");
 __result__errocode=__BUFFER__ERROR;
 goto __failsafe;
-__PZI :
- printf ( "%s\n" , __QZI ); 
+__afI :
+ printf ( "%s\n" , __ZfI ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
-__TeI :
- printf ( "%s\n" , __SeI ); 
+__JhI :
+ printf ( "%s\n" , __IhI ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
-__MeI :
- printf ( "%s\n" , __LeI ); 
+__WeI :
+ printf ( "%s\n" , __VeI ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
-__XgI :
- printf ( "%s\n" , __WgI ); 
+__gfI :
+ printf ( "%s\n" , __ffI ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
-__BhI :
- printf ( "%s\n" , __AhI ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__RgI :
- printf ( "%s\n" , __QgI ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__jbI :
- printf ( "%s\n" , __QhI ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__MaI :
- printf ( "%s\n" , __ahI ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__fbI :
- printf ( "%s\n" , __VZI ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__lZI :
- printf ( "%s\n" , __DdI ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__ggI :
- printf ( "%s\n" , __5hI ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__LhI :
- printf ( "%s\n" , __KhI ); 
-__result__errocode=__USER__ERROR;
-goto __failsafe;
-__ohI :
+__IgI :
  printf ( "Failed to allocate str from number\n" ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
+__9dI :
+ printf ( "%s\n" , __8dI ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
+__mfI :
+ printf ( "%s\n" , __lfI ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
+__vfI :
+ printf ( "%s\n" , __LhI ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
+__caI :
+ printf ( "%s\n" , __6ZI ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
+__mgI :
+ printf ( "%s\n" , __lgI ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
+__1eI :
+ printf ( "%s\n" , __0eI ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
+__VfI :
+ printf ( "%s\n" , __UfI ); 
+__result__errocode=__USER__ERROR;
+goto __failsafe;
+__6fI :
+ printf ( "%s\n" , __5fI ); 
 __result__errocode=__USER__ERROR;
 goto __failsafe;
 
@@ -947,10 +951,10 @@ __failsafe:
 
 // HOTPATH SKIPS TO HERE
 __return:
-if ( __mKI__contents__mem ) __runtime_free ( __mKI__contents__mem ); __mKI__contents__mem =0; 
-if( __8JI__dynamic ){if((u64*)((u64*) __8JI__dynamic )[2]) __runtime_free((u64*)((u64*) __8JI__dynamic )[0]) ;
- __runtime_free( __8JI__dynamic ) ;
- __8JI__dynamic = 0 ;
+if ( __tKI__contents__mem ) __runtime_free ( __tKI__contents__mem ); __tKI__contents__mem =0; 
+if( __UKI__dynamic ){if((u64*)((u64*) __UKI__dynamic )[2]) __runtime_free((u64*)((u64*) __UKI__dynamic )[0]) ;
+ __runtime_free( __UKI__dynamic ) ;
+ __UKI__dynamic = 0 ;
  }__state->err =  __result__errocode;
 }
 
@@ -958,21 +962,21 @@ if( __8JI__dynamic ){if((u64*)((u64*) __8JI__dynamic )[2]) __runtime_free((u64*)
 void main__1205(void *__void__state){
 errcode __result__errocode=0;
 char* __service_stack_floor = (char*)__runtime_stack_bottom();
-u64 __service_stack_size = 1896;
+u64 __service_stack_size = 1892;
 __SmolambdaLinkedMemory* __smolambda_all_tasks = 0;
 __SmolambdaLinkedMemory* __smolambda_all_task_results = 0;
 struct main__1205__state *__state=(struct main__1205__state*)__void__state;
-struct test__1204__state* __EVI____state = 0 ;
-ptr __BiI=0;
-errcode __AiI=0;
+struct test__1204__state* __FVI____state = 0 ;
+ptr __5hI=0;
+errcode __4hI=0;
 
 // IMPLEMENTATION
-{char mark;if(__service_stack_floor+ 3504 >=(char*)&mark) goto __service_stack_floor_handler;} __EVI____state = (struct test__1204__state*)__runtime_calloc(sizeof(struct test__1204__state)) ;
- __smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results, __EVI____state ) ;
- __BiI = __smolambda_add_task ( test__1204 , __EVI____state ) ;
- __smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks, __BiI ) ;
- if( __AiI ) goto  __result_unhandled_error ;
- __9hI :
+{char mark;if(__service_stack_floor+ 3496 >=(char*)&mark) goto __service_stack_floor_handler;} __FVI____state = (struct test__1204__state*)__runtime_calloc(sizeof(struct test__1204__state)) ;
+ __smolambda_all_task_results = __runtime_prepend_linked(__smolambda_all_task_results, __FVI____state ) ;
+ __5hI = __smolambda_add_task ( test__1204 , __FVI____state ) ;
+ __smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks, __5hI ) ;
+ if( __4hI ) goto  __result_unhandled_error ;
+ __3hI :
 goto __return;
 
 // ERROR HANDLING

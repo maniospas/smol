@@ -43,14 +43,14 @@ def push(@access @mut Shapes shapes, Shape shape)
     shapes.lookups.push(shapes.squares.len())
     shapes.types.push(shape.tag())
     case shapes.squares.push(shape)
-    case shapes.circles.push(shape) 
+    case shapes.circles.push(shape)
     qed
 
 def len(@access Shapes shapes)
     return shapes.types.len()
 
 service main()
-    @mut shapes = nominal.Shapes()
+    @access @mut shapes = nominal.Shapes()
     shapes.push(nominal.Square(1.0))
     shapes.push(nominal.Circle(1.0))
     shapes.push(nominal.Circle(2.0))

@@ -55,7 +55,7 @@ service test()
     @mut accum_fps = 60.0
     on Heap.volatile(1024)
     while window.is_open()
-        window
+        window = window
         .begin()
         .clear(Color(50,50,80))
 
@@ -63,11 +63,12 @@ service test()
         .len()
         .range()
         .while next(@mut u64 i)
-            then spheres[i].draw(window)
+            then window = spheres[i].draw(window)
 
-        // TODO: chained curry does not affect the final variable
-        window.text(accum_fps.u64().str()+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
-        window.end()
+        // TODO: currying creates a new temporary object, which would be modified by end
+        window = window
+        .text(accum_fps.u64().str()+" fps", Position(10.0, 10.0), 20.0, Color(255, 255, 255))
+        .end()
         
         // time computation
         t = time()

@@ -35,7 +35,7 @@
 @about text     "Draw at given position a String of given size and color"
 @about draw     "Draws a texture at specific coodinates and size"
 @about begin    "Begin drawing a new scene instance - must be followed by an end"
-@about frame    "End drawing of a new scene instance"
+@about end      "End drawing of a new scene instance"
 @about clear    "Clears the window's contents with given color"
 @about circ     "Draws at given position a circle of given f64 radious"
 @about rect     "Draws at given position a rectangle of given size"
@@ -72,7 +72,7 @@ def Window(nominal, Size size, cstr title)
     @link{-lGL}
     @link{-lX11}
     @body{ SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title); }
-    @mut ready = false
+    @mut ready = bool
     return @args, ready
 
 def close(@mut Window window)

@@ -24,6 +24,8 @@ void Def::parse_directive(size_t& p, string next, Types& types) {
         noassign = true;
     else if(next=="nozero") 
         nozero = true;
+    else if(next=="noleftover") 
+        noleftover = true;
     else if(next=="invalid") 
         imp->error(p-1, "Not found correct path: "+imp->at(p));
     else if(next=="noother") {

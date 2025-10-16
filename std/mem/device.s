@@ -95,6 +95,7 @@ def put(@access ContiguousMemory v, u64 pos, Primitive value)
     case value.is(i64) @body{((i64*)v__mem)[pos] = value;}
     case value.is(f64) @body{((f64*)v__mem)[pos] = value;} 
     case value.is(char) @body{((char*)v__mem)[pos] = value;} 
+    case value.is(bool) @body{((char*)v__mem)[pos] = value;} 
     qed
 
     return v

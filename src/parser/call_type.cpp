@@ -23,18 +23,35 @@ Variable Def::call_type(
     Types& types
 ) {
     // manually handle some primitive conversions to help with safety
-    // if(type->_is_primitive) {
-    //     if(type->name=="tag") { // convert whatever type into a tag
-    //         string symbol = "";
-    //         for(const auto& unpack : unpacks)
-    //             if(contains(unpack))
-    //                 symbol += vars[unpack]->name.to_string();
-    //         auto var = Variable{create_temp()};
-    //         vars[var] = types.vars[Variable("tag")];
-    //         implementation += Code(var,ASSIGN_VAR,to_string(get_symbol(symbol)),SEMICOLON_VAR);
-    //         return next_var(p, var, types);
-    //     }
-    // }
+    if(type->_is_primitive) {
+        if(type->name=="tag") { // convert whatever type into a tag
+            string symbol = "";
+            size_t unpack_pos = 0;
+            while(unpack_pos<unpacks.size()) {
+                const auto& unpack = unpacks[unpack_pos];
+                if(contains(unpack)) {
+                    if(vars[unpack]->name==NOM_VAR) {
+                        if(!alignments.contains(unpack))
+                            imp->error(--p, "Cannot extract a tag for unknown nominal type of variable: "
+                                +pretty_var(unpack.to_string())
+                            );
+                        if(unpack_pos)
+                            symbol += "__";
+                        symbol += types.reverse_alignment_labels[alignments[unpack]]->name.to_string();
+                        if(types.reverse_alignment_labels[alignments[unpack]]->packs.size())
+                            unpack_pos += types.reverse_alignment_labels[alignments[unpack]]->packs.size()-1;
+                    }
+                    else
+                        symbol += vars[unpack]->name.to_string();
+                    unpack_pos++;
+                }
+            }
+            auto var = Variable{create_temp()};
+            vars[var] = types.vars[Variable("tag")];
+            implementation += Code(var,ASSIGN_VAR,to_string(get_symbol(symbol)),SEMICOLON_VAR);
+            return next_var(p, var, types);
+        }
+    }
     auto overloading_errors = string{""};
     auto var = Variable{create_temp()};
     auto successfullType = Type{nullptr};
