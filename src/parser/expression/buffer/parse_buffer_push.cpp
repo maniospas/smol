@@ -56,10 +56,9 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
     // compute alignment_size (valid packs only)
     size_t count_alignment_bytes = 0;
     for(const auto& pack : buffer_types[curry]->packs)
-        if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR) 
-            count_alignment_bytes += 4;
+        count_alignment_bytes += buffer_types[curry]->vars[pack]->storage_size;
     if(buffer_types[curry]->_is_primitive) 
-        count_alignment_bytes += (buffer_types[curry]->name==Variable("char") || buffer_types[curry]->name==Variable("bool"))?1:4;
+        count_alignment_bytes += buffer_types[curry]->storage_size;
 
     implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_alignment_bytes)), SEMICOLON_VAR);
     implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
@@ -117,7 +116,7 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
     implementation += Code(Variable("((u64*)"), curry, Variable(")[1]"), ASSIGN_VAR, curry+Variable("__buffer_size"), Variable("+1"), SEMICOLON_VAR);
 
     // final loop: move only valid packs
-    size_t pack_index = 0;
+    size_t count_alignment_bytes_offset = 0;
     if(buffer_types[curry]->_is_primitive) {
         implementation += Code(
             Variable("memcpy(&((char*)"), 
@@ -135,16 +134,28 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
         );
     }
     else for(const auto& pack : buffer_types[curry]->packs) {
-        if(buffer_types[curry]->contains(pack) 
-            && buffer_types[curry]->vars[pack]->name!=NOM_VAR
-            && pack!=ERR_VAR
-        ) {
+        size_t storage = buffer_types[curry]->vars[pack]->storage_size;
+        if(storage) {
             implementation += Code(
-                Variable("memcpy(&((u64*)"), curry+Variable("__buffer_contents"), Variable(")["), curry+Variable("__buffer_size"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("+"+to_string(pack_index)+"], &"),
-                var+Variable(pack),
-                Variable(", sizeof("+buffer_types[curry]->vars[pack]->name.to_string()+"));")
+                Variable("memcpy("), 
+                Variable("&((char*)"),
+                curry+Variable("__buffer_contents"), 
+                Variable(")["), 
+                curry+Variable("__buffer_size"), 
+                MUL_VAR, 
+                curry+Variable("__buffer_alignment"),
+                PLUS_VAR,
+                Variable(to_string(count_alignment_bytes_offset)),
+                Variable("]"),
+                COMMA_VAR,
+                REF_VAR,
+                var+pack,
+                COMMA_VAR,
+                Variable(to_string(storage)),
+                RPAR_VAR, 
+                SEMICOLON_VAR
             );
-            pack_index++;
+            count_alignment_bytes_offset += storage;
         }
     }
     return next_var(p, raw_var, types);

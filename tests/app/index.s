@@ -14,12 +14,11 @@ def Segment(String _value)
 def combine(Segment[] segments)
     @mut combined = "".str()  // mutable string with known size
     on Stack.arena(1024)    // automatically use as argument if needed (for string operations)
-        segments
-        .len()
-        .range()
-        .while next(@mut u64 i) 
-            combined = str(combined+segments[i].value+" ")
-        end end
+    segments
+    .len()
+    .range()
+    .while next(@mut u64 i) 
+        then combined = str(combined+segments[i].value+" ")
     return combined
 
 service main()
@@ -27,5 +26,4 @@ service main()
     .push("I think.".Segment())
     .push("Therefore I am.".Segment())
     segments.combine().print()
-    end
 

@@ -60,10 +60,9 @@ Variable Def::parse_buffer_expect(size_t& p, Types& types, Variable curry, size_
     // compute count_packs (valid packs only)
     size_t count_alignment_bytes = 0;
     for(const auto& pack : buffer_types[curry]->packs)
-        if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR) 
-            count_alignment_bytes += 4;
+        count_alignment_bytes += buffer_types[curry]->vars[pack]->storage_size;
     if(buffer_types[curry]->_is_primitive) 
-        count_alignment_bytes += (buffer_types[curry]->name==Variable("char") || buffer_types[curry]->name==Variable("bool"))?1:4;
+        count_alignment_bytes += buffer_types[curry]->storage_size;
 
     implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_alignment_bytes)), SEMICOLON_VAR);
     implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);

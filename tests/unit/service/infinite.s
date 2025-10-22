@@ -14,5 +14,3 @@ service main()
         print("This message should never appear - value.n creates 'Unhandled error'")
         then ok
     print(value.n)
-    
-    

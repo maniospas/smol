@@ -65,10 +65,9 @@ Variable Def::parse_buffer_put(size_t& p, Types& types, Variable curry, size_t f
     // compute count_packs (valid packs only)
     size_t count_alignment_bytes = 0;
     for(const auto& pack : buffer_types[curry]->packs)
-        if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR) 
-            count_alignment_bytes += 4;
+        count_alignment_bytes += buffer_types[curry]->vars[pack]->storage_size;
     if(buffer_types[curry]->_is_primitive) 
-        count_alignment_bytes += (buffer_types[curry]->name==Variable("char") || buffer_types[curry]->name==Variable("bool"))?1:4;
+        count_alignment_bytes += buffer_types[curry]->storage_size;
 
     implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
     implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_alignment_bytes)), SEMICOLON_VAR);
@@ -99,7 +98,8 @@ Variable Def::parse_buffer_put(size_t& p, Types& types, Variable curry, size_t f
     }
     else 
         for(const auto& pack : buffer_types[curry]->packs) {
-            if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR) {
+            size_t storage = buffer_types[curry]->vars[pack]->storage_size;
+            if(storage){
                 implementation += Code(
                     Variable("memcpy(&((char*)"), 
                     curry+Variable("__buffer_contents"), 
@@ -109,9 +109,12 @@ Variable Def::parse_buffer_put(size_t& p, Types& types, Variable curry, size_t f
                     curry+Variable("__buffer_alignment"), 
                     Variable("+"+to_string(count_alignment_bytes_index)+"], &"),
                     val+Variable(pack),
-                    Variable(", sizeof("+buffer_types[curry]->vars[pack]->name.to_string()+"));")
+                    COMMA_VAR,
+                    Variable(to_string(storage)),
+                    RPAR_VAR,
+                    SEMICOLON_VAR
                 );
-                count_alignment_bytes_index += 4;
+                count_alignment_bytes_index += storage;
             }
         }
 

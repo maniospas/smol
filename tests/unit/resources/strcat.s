@@ -29,9 +29,4 @@ service main()
 
     on Heap.circular(1024)
     print("Hi "+name+"!")
-
-    on Stack.fixed(1024)
-    print("Hi "+name+"!")
-
-    on Heap.fixed(1024)
-    print("Hi "+name+"!")
+    

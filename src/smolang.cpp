@@ -45,11 +45,16 @@ int main(int argc, char* argv[]) {
     builtins.vars[Variable("f64")] = make_shared<Def>("f64");
     builtins.vars[PTR_VAR] = make_shared<Def>("ptr");
     builtins.vars[ERRCODE_VAR] = make_shared<Def>("errcode");
+    builtins.vars[ERRCODE_VAR]->storage_size = 0; // not true, but speeds up buffer calculations
     builtins.vars[Variable("cstr")] = make_shared<Def>("cstr");
     builtins.vars[BOOL_VAR] = make_shared<Def>("bool");
+    builtins.vars[BOOL_VAR]->storage_size = 1;
     builtins.vars[Variable("char")] = make_shared<Def>("char");
+    builtins.vars[Variable("char")]->storage_size = 1;
     builtins.vars[NOM_VAR] = make_shared<Def>("nominal");
+    builtins.vars[NOM_VAR]->storage_size = 0;
     builtins.vars[LABEL_VAR] = make_shared<Def>("__label");
+    builtins.vars[LABEL_VAR]->storage_size = 0;
     builtins.vars[Variable("tag")] = make_shared<Def>("tag");
     
     builtins.vars[BUFFER_VAR] = make_shared<Def>("__buffer");

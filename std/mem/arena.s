@@ -18,18 +18,17 @@
 @include std.mem.device
 @unsafe
 @about "Standard library implementation of arena allocation, marked as @noborrow but unsafely returned from constructors. Pointer arithmetics yield offsets within arenas."
-
-def Region(nominal type, ContiguousMemory contents)
-    length = 0
-    return type, contents, length
+@about Arena    "A fixed-sized arena that can be cleared. Data stored on this could be zero-initialized."
+@about Circular "A fixed-sized arena that cannot be cleared."
+@about arena    "Allocates an Arena buffer of given size on the given Memory. Allocations on this can be shared and corrupted."
+@about circular "Allocates a Circular buffer a of given size on the given Memory. Allocations on this can be shared and corrupted."
+@about clear    "Clears an Arena or Circular arena by resetting its occupied length to zero. This can overwrite."
 
 def Arena(nominal type, ContiguousMemory contents)
-    @noborrow  // we need this so that we can clear
     length = 0
     return type, contents, length
 
 def Circular(nominal type, ContiguousMemory contents)
-    @noborrow  // we need this so that we can clear
     length = 0
     return type, contents, length
 
@@ -39,8 +38,7 @@ def clear(@access @mut Circular self)
 def clear(@access @mut Arena self)
     @body{self__length=0;}
 
-union BoundMemory = Region or Arena
-union Buffer = Region or Arena or Circular
+union Buffer = Arena or Circular
 
 def len(@access @mut Buffer self) 
     return self.contents.size
@@ -98,7 +96,7 @@ def allocate(@access @mut Dynamic self, u64 size)
 def used(@access @mut Buffer self)
     return self.length
 
-def allocate(@access @mut BoundMemory self, u64 size)
+def allocate(@access @mut Arena self, u64 size)
     if(self.length+size)>self.contents.size then fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
@@ -146,14 +144,9 @@ union Memory = MemoryDevice or Buffer or Dynamic
 def is(@access @mut Memory self, @mut Memory) 
     return self
 
-def fixed(@access @mut Memory self, u64 size) 
-    return nominal.Buffer(self.allocate(size))
-
 def arena(@access @mut Memory self, u64 size) 
     return nominal.Arena(self.allocate(size))
     
 def circular(@access @mut Memory self, u64 size) 
     return nominal.Circular(self.allocate(size))
 
-def arena(@mut Circular mem)
-    return mem.arena(mem.len())

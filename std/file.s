@@ -202,7 +202,7 @@ def next_line (
     return ret.bool()
 
 def next_chunk (
-        @mut BoundMemory reader, 
+        @mut Arena reader, 
         @access @mut File f,
         @mut nstr value
     )
@@ -220,7 +220,7 @@ def next_chunk (
     return ret.bool()
 
 def next_line(
-        @mut BoundMemory reader,
+        @mut Arena reader,
         @access @mut File f,
         @mut nstr value
     )
