@@ -321,6 +321,8 @@ public:
     void notify_service_arg(const Variable& original);
     bool can_mutate_any_part(const Variable& _text);
     bool can_mutate(const Variable& _text, size_t p);
+    void assert_compatible(const Variable& original, const Type& type, size_t p);
+    bool can_mutate_any_assigned(const Variable& original, size_t p);
     
     // various types of exports
     string signature_like(Types& types, vector<Variable> args);

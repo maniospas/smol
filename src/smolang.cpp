@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
                 "#include <stdbool.h>\n"
                 "#else\n"
                 "#ifndef bool\n"
-                "typedef int bool;\n"
+                "typedef char bool;\n"
                 "#define true 1\n"
                 "#define false 0\n"
                 "#endif\n"

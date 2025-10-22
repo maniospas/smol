@@ -37,7 +37,7 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
         );
     if(imp->at(p++)!=")") 
         imp->error(--p, "Expecting closing parenthesis");
-
+    
     vars[curry+Variable("__buffer_size")]          = types.vars[Variable("u64")];
     vars[curry+Variable("__buffer_capacity")]      = types.vars[Variable("u64")];
     vars[curry+Variable("__buffer_prev_capacity")] = types.vars[Variable("u64")];
@@ -53,14 +53,15 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
         SEMICOLON_VAR
     );
 
-    // compute count_packs (valid packs only)
-    size_t count_packs = 0;
+    // compute alignment_size (valid packs only)
+    size_t count_alignment_bytes = 0;
     for(const auto& pack : buffer_types[curry]->packs)
-        if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR)
-            count_packs++;
-    if(buffer_types[curry]->_is_primitive) count_packs++;
+        if(buffer_types[curry]->contains(pack) && buffer_types[curry]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR) 
+            count_alignment_bytes += 4;
+    if(buffer_types[curry]->_is_primitive) 
+        count_alignment_bytes += (buffer_types[curry]->name==Variable("char") || buffer_types[curry]->name==Variable("bool"))?1:4;
 
-    implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_packs)), SEMICOLON_VAR);
+    implementation += Code(curry+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_alignment_bytes)), SEMICOLON_VAR);
     implementation += Code(curry+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[1]"), SEMICOLON_VAR);
     implementation += Code(curry+Variable("__buffer_capacity"), ASSIGN_VAR, Variable("((u64*)"), curry, Variable(")[2] & ~(1ULL << 63)"), SEMICOLON_VAR);
 
@@ -86,15 +87,17 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
         Variable(")[0] = __runtime_realloc((u64*)((void**)"), curry,
         Variable(")[0], "),
         curry+Variable("__buffer_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"),
-        Variable("*sizeof(u64), "),
+        COMMA_VAR,
         curry+Variable("__buffer_prev_capacity"), MUL_VAR, curry+Variable("__buffer_alignment"),
-        Variable("*sizeof(u64));"));
+        RPAR_VAR,
+        SEMICOLON_VAR
+    );
 
     // alloc path
     implementation += Code(Variable("else ((void**)"), curry,
         Variable(")[0] = __runtime_alloc("),
         curry+Variable("__buffer_capacity"), Variable("*"),
-        curry+Variable("__buffer_alignment"), Variable("*sizeof(u64));"));
+        curry+Variable("__buffer_alignment"), RPAR_VAR, SEMICOLON_VAR);
 
     // update capacity
     implementation += Code(Variable("((u64*)"), curry, Variable(")[2]"),
@@ -117,9 +120,18 @@ Variable Def::parse_buffer_push(size_t& p, Types& types, Variable curry, size_t 
     size_t pack_index = 0;
     if(buffer_types[curry]->_is_primitive) {
         implementation += Code(
-            Variable("memcpy(&((u64*)"), curry+Variable("__buffer_contents"), Variable(")["), curry+Variable("__buffer_size"), MUL_VAR, curry+Variable("__buffer_alignment"), Variable("], &"),
+            Variable("memcpy(&((char*)"), 
+            curry+Variable("__buffer_contents"), 
+            Variable(")["), 
+            curry+Variable("__buffer_size"), 
+            MUL_VAR, 
+            curry+Variable("__buffer_alignment"),
+            Variable("], &"),
             var,
-            Variable(", sizeof(u64));")
+            COMMA_VAR,
+            Variable(to_string(count_alignment_bytes)),
+            RPAR_VAR, 
+            SEMICOLON_VAR
         );
     }
     else for(const auto& pack : buffer_types[curry]->packs) {

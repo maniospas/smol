@@ -79,6 +79,7 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
         SEMICOLON_VAR
     ); // ZERO OUT MEMORY, SIZE, CAPACITY (MSB of capacity holds whether the buffer is statically initialized)
     if(surface.exists()) {
+        assert_compatible(surface+vars[surface]->buffer_ptr, type, p);
         size_t count_packs = 0;
         for(const auto& pack : type->packs)
             if(type->contains(pack) && type->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR)
@@ -91,6 +92,8 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
             surface+vars[surface]->buffer_ptr, 
             SEMICOLON_VAR
         );
+        current_renaming[var] = surface+vars[surface]->buffer_ptr;
+        current_renaming[surface+vars[surface]->buffer_ptr] = var;
         implementation += Code(
             Variable("((u64*)"),
             var,
@@ -113,13 +116,13 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
             p
         );
 
-        // returning simplifcations may split the memory poiters into two independent sets of finals that reference the same memory - gather in one place
-        coalesce_finals(surface+vars[surface]->buffer_ptr);
+        // returning simplifications may split the memory pointers into two independent sets of finals that reference the same memory - gather in one place
+        // coalesce_finals(surface+vars[surface]->buffer_ptr);
+        // finals[surface_var] += rename_var(finals[surface+vars[surface]->buffer_ptr], surface+vars[surface]->buffer_ptr, surface_var);
+        // finals[surface+vars[surface]->buffer_ptr] = Code();
+        // do this in two stages, in case buffer_ptr is buffer_release
         coalesce_finals(surface+vars[surface]->buffer_release);
-        finals[surface_var] = 
-                rename_var(finals[surface+vars[surface]->buffer_ptr], surface+vars[surface]->buffer_ptr, surface_var)
-                +rename_var(finals[surface+vars[surface]->buffer_release], surface+vars[surface]->buffer_release, surface_var);
-        finals[surface+vars[surface]->buffer_ptr] = Code();
+        finals[surface_var] += rename_var(finals[surface+vars[surface]->buffer_release], surface+vars[surface]->buffer_release, surface_var);
         finals[surface+vars[surface]->buffer_release] = Code();
     }
     else {

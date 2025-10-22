@@ -99,14 +99,14 @@ def used(@access @mut Buffer self)
     return self.length
 
 def allocate(@access @mut BoundMemory self, u64 size)
-    if(self.length+size)>=self.contents.size then fail("Failed an Arena allocation") // >= so that last byte will always be zero
+    if(self.length+size)>self.contents.size then fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     return nominal.ContiguousMemory(size, _contents, self.contents.underlying)
 
 def allocate(@access @mut Circular self, u64 size)
-    if size>=self.contents.size then fail("Failed an Circular allocation") // >= so that last byte will always be zero
-    @body{if(self__length+size>=self__contents__size) {self__length = 0;}} // >= so that last byte will always be zero
+    if size>self.contents.size then fail("Failed an Circular allocation")
+    @body{if(self__length+size>self__contents__size) {self__length = 0;}}
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     return nominal.ContiguousMemory(size, _contents, self.contents.underlying)

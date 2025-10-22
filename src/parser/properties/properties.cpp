@@ -80,6 +80,65 @@ void Def::notify_release(const Variable& original) {
     for(const Variable& name : group) 
         released[name] = true;
 }
+
+void Def::assert_compatible(const Variable& original, const Type& type, size_t p) {
+    if(imp->allow_unsafe)
+        return;
+    unordered_set<Variable> visited;
+    queue<Variable> q;
+    unordered_set<Variable> group;
+    q.push(original);
+    visited.insert(original);
+    while(!q.empty()) {
+        auto var = q.front();
+        q.pop();
+        group.insert(var);
+        if(current_renaming.count(var)) {
+            Variable next = current_renaming[var];
+            if(visited.insert(next).second) 
+                q.push(next);
+        }
+        for(const auto& [k, v] : current_renaming) 
+            if(v == var && visited.insert(k).second) 
+                q.push(k);
+    }
+    //for(const Variable& name : group) 
+    //    mutables.erase(name);
+    for(const Variable& name : group) {
+        if(buffer_types.find(name)!=buffer_types.end()) {
+            if(buffer_types[name].get()!=type.get())
+                imp->error(p-1, "Mismatching buffer types.\n"
+                    "The same memory has been accessed as a different kind of buffer before."
+                );
+        }
+    }
+}
+
+bool Def::can_mutate_any_assigned(const Variable& original, size_t p) {
+    unordered_set<Variable> visited;
+    queue<Variable> q;
+    unordered_set<Variable> group;
+    q.push(original);
+    visited.insert(original);
+    while(!q.empty()) {
+        auto var = q.front();
+        q.pop();
+        group.insert(var);
+        if(current_renaming.count(var)) {
+            Variable next = current_renaming[var];
+            if(visited.insert(next).second) 
+                q.push(next);
+        }
+        for(const auto& [k, v] : current_renaming) 
+            if(v == var && visited.insert(k).second) 
+                q.push(k);
+    }
+    for(const Variable& name : group) 
+        if(!can_mutate(name, p))
+            return false;
+    return true;
+}
+
 void Def::notify_service_arg(const Variable& original) {
     unordered_set<Variable> visited;
     queue<Variable> q;

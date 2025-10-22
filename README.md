@@ -42,7 +42,6 @@ def print(file_stats stats)
     printin(" lines, ")
     printin(stats.chars)
     print(" bytes")
-    end
 
 def file_reader(String path, @mut Memory memory) // for all String variations
     @mut stat_lines = 0
@@ -63,7 +62,6 @@ service main()
     @mut memory = Stack.arena(1048576) // 1MB
     stats = file_reader("README.md", memory)
     print(stats)
-    end
 ```
 
 

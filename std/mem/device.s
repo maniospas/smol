@@ -39,10 +39,9 @@ def ContiguousMemory (
         ptr mem,
         ptr underlying
     )
-    @noassign
+    //@noassign
     @buffer mem size underlying
     return @args
-
 
 def allocate(@access Heap, u64 size)
     if size==0 then fail("Cannot allocate zero size")

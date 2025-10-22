@@ -58,7 +58,7 @@ def str (
         u64 length, 
         char first, 
         ptr memory
-    ) 
+    )
     return @args
 
 def nstr (
