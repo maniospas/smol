@@ -84,8 +84,7 @@ def combine(Segment[] segments)
     @mut s = str("")     // convert "" to mutable str
     on Stack.arena(1024) // automatic use when needed
     segments.len().range().while next(@mut u64 i)
-        s = str(s+segments[i].value+" ")
-        end
+        then s = str(s+segments[i].value+" ")
     return combined
 
 service main()
@@ -95,7 +94,6 @@ service main()
     segments
     .combine()
     .print()
-    end
 </code></pre>
 
     <button id="toggle-example" class="explain-button">
@@ -110,6 +108,7 @@ service main()
       <li><code class="language-smolambda">def</code> functions that can fail and produce nominal values.</li>
       <li><code class="language-smolambda">service</code> functions run safely; if a def fails, resources are cleaned up.</li>
       <li><code class="language-smolambda">nominal</code> declares a nominal type variation.</li>
+      <li><code class="language-smolambda">then</code> is followed by the last expression of the code block.</li>
       <li><code class="language-smolambda">@mut</code> denotes mutable variables (their values change as the program runs).</li>
       <li><code class="language-smolambda">on</code> is automatically added as first argument - here to store string addition on a fast arena allocator.</li>
       <li><code class="language-smolambda">.</code> member values or curries a first argument into functions.</li>

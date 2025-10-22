@@ -545,7 +545,7 @@ service main()
 You could skip the <code>0,</code> argument for further simplicity. More details will be fully presented later, but it 
 would be remiss to not mention this pattern here, as it prevents accidental bugs. Broadly, the <code>next</code> function
 progresses the range while tracking values by assigning them to mutable variable <code class="language-smolambda">i</code>. 
-The latter is updated in every loop.
+It also returns a boolean value on whether the loop should continue. The mutable variable is updated in every loop.
 </p>
 <p>
 Notice the <code class="language-smolambda">.</code> before the <code class="language-smolambda">while</code>, which is how
@@ -675,7 +675,8 @@ independently -and potentially asynchronously- to each other.</p>
 as comma-separated variable types and names (each type corresponds to a name, separated by space). 
 Types are needed so that the service can know what inputs to expect. 
 For example, <code class="language-smolambda">f64 x</code> denotes an argument that is a float named <code>x</code>.
-There may be some additional notation before types, described below.
+Arguments may also be nameless (consist of only the type), but more on this later.
+There may be some additional notation before types too. This is described below.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -707,6 +708,8 @@ the variable passed as an argument may be modified inside the function - and hen
 must already be mutable. This also makes the argument variable internally mutable. 
 Importantly, <b>services do not accept mutable arguments</b>. The pattern there is to have one service
 control the creation process of data, and share the outcome with other services.
+<i>Immutability by default is a contract of function inputs (not outputs); functions declare that 
+they will never alter values, but what they return can be assigned to mutable variables.</i>
 Below is an example.
 </p>
 
@@ -1125,15 +1128,14 @@ service main()
 
 <p>
 If you switch to <code>Heap</code> instead of <code>Stack</code>, the same code 
-would allocate on random access memory. Do note that the exact details of how heap 
-memory is managed may be modified under the hood for different systems by passing 
+would allocate on random access memory. The details of how heap 
+memory is managed may be modified for different systems by passing 
 a different runtime to the compiler.
 </p>
 
-
 <p>In the above snippet, mutability is needed to allow modification of memory contents.
-However, variables not assigned to any symbol are by default mutable. You can also return a
-value from that block, therefore making the following equivalent syntax possible. 
+However, temporary values thar have not yet been assigned to any symbol are mutable.
+You can also return a value from that block, therefore making the following equivalent syntax possible. 
 Remember that the arena's consumed memory is not released at the end of the 
 <code class="language-smolambda">on</code> block, but only when the vector is no longer needed. 
 </p>
@@ -1356,7 +1358,14 @@ Notice the explicit conversion to the correct string version using <code>.str()<
 </p>
 
 <details>
-<summary>Returning buffers from services</summary>
+<summary>Returning buffers from services.</summary>
+
+<p>
+Buffers can be returned from services normally. In this case, their 
+memory is released by the returning service.
+In the example below, <code>samples</code> constructs and returns a buffer.  
+The caller can then access its elements with <code>buf[index]</code>.
+</p>
 
 <pre><code class="language-smolambda">@include std.core
 
@@ -1382,10 +1391,6 @@ service main()
 42
 </pre>
 
-<p>
-Here <code>samples</code> constructs and returns a buffer.  
-The caller can then access its elements with <code>buf[index]</code>.
-</p>
 </details>
 
 <h2 id="recursion">Recursion <a href="#recursion" class="anchor-link">🔗</a></h2>
@@ -1415,8 +1420,7 @@ Importantly, tag values, can overlap with function names, which a <code class="l
 instruction uses to its advantage to execute different functions given different tag values.
 </p>
 
-<p>Below is a concrete example of how this can work in practice. 
-There, the <code class="language-smolambda">tag</code> primitive type lets us reference <code>:ping</code> or <code>:pong</code> anywhere,
+<p>The <code class="language-smolambda">tag</code> primitive type lets us reference <code>:ping</code> or <code>:pong</code> anywhere,
 even before those are being defined. Then, the <code>@dynamic</code> instruction chooses to call a function
 among various options (<code>ping</code> or <code>pong</code> here) depending on the next tag value. Additional
 tag values are added as first arguments.
