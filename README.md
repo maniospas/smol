@@ -23,6 +23,8 @@ Here's what smoλ programs look like.
 <li><code class="language-smolambda">@mut</code>, if prepended to the first declation of a variable, indicates values that may change.</li>
 </li><li><code class="language-smolambda">.</code> is element access, or passes the left-hand-side as the first argument into functions ("currying"). Currying into a loop passes the value into first call in the condition; in this case <code class="language-smolambda">next(@mut chunks, @mut str)</code> is called to progress the iteration.
 </li>
+<li><code class="language-smolambda">then</code> indicates the last command of code blocks, when that is not a return statement (return from functions).
+</li>
 </ul>
 
 ```rust
@@ -51,11 +53,10 @@ def file_reader(String path, @mut Memory memory) // for all String variations
     on memory.arena(1024)
     file
     .while next_line(@mut str line)
-        printin("| ")
-        print(line)
         stat_lines = stat_lines + 1
         stat_chars = stat_chars + line:len
-        end
+        printin("| ")
+        then print(line)
     return nominal.Stats(stat_lines, stat_chars)
 
 service main()

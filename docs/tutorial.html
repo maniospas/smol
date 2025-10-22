@@ -332,7 +332,7 @@ Integer division by zero creates a runtime failure that you can intercept and ha
 of services. For floats, the IEEE 754 standard allows invalid operations like division by zero and lets them yield positive infinity, 
 negative infinity, or NaN (not a number) values. You can check for those properties by correspondingly calling one of 
 <code class="language-smolambda">is_inf</code> or <code class="language-smolambda">is_nan</code> 
-that can be include from <code class="language-smolambda">std.math</code>. 
+that can be made accessible with <code class="language-smolambda">@include std.math</code>. 
 Lack of native error checking from the standard results in performant code.
 </details>
 
@@ -363,8 +363,8 @@ service main()
 
 <p><b>Mutable variables:</b> After setting a variable, its value cannot normally change. To allow changes, declare it as <i>mutable</i> 
 by placing <code class="language-smolambda">@mut</code> before its first declaration/assignment. 
-Variables are immutable -that is, not mutable- by default to avoid many logic bugs. Always keep an eyes
-for things that might have changed in the interim if something is mutable.</p>
+Variables are immutable -that is, not mutable- by default to avoid many logic bugs. Always look out
+for what might have changed if something is mutable.</p>
 
 <pre><code class="language-smolambda">// main.s
 @include std.core
@@ -577,7 +577,7 @@ Returns immediately end the code block, even if they occur within internally def
 <p>
 Below is an example, which evaluates to several possibilities.
 All returns must provide the same type of values. Do note that the return statement
-also ends blocks in place of <code class="language-smolambda">end</code>. But, even if
+also ends blocks in place of <code class="language-smolambda">then</code>. But, even if
 there are nested conditions, all returns yield back a value to the <code class="language-smolambda">algorithm</code>.</p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -610,9 +610,9 @@ The <code class="language-smolambda">algorithm</code> structure can be used as a
 breaking away from loops. Below is an example, where some commands are merged in the same line
 for conciseness. Having an explicit <code class="language-smolambda">return</code> statement 
 in all situations is necessary - the language would complain otherwise. The example returns
-a <code class="language-smolambda">ok</code> value provided by <code>std.core</code>, 
-which has no contents. As a side-note, the "algorithm" keyword is deliberately long so that
-it's easy to spot and match nested returns to.
+the <code class="language-smolambda">ok</code> value provided by <code>std.core</code>, 
+which has no contents. As a side-note, the "algorithm" keyword is deliberately long to be 
+easy to spot and match nested returns to.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -659,18 +659,18 @@ ended while
 
 <p>
 You can name a block of code and call it with inputs to obtain none, one, or multiple outputs. 
-The named block is called a function and its inputs are called arguments. There are two kinds functions:
+The named block is called a function and its inputs are called arguments. There are two kinds of functions:
 </p>
 <ul>
   <li><code class="language-smolambda">def</code> — A function with no calling cost. Delegates error and resource handling to its caller.</li>
   <li><code class="language-smolambda">service</code> — Safely handles errors and resources, including resource freeing on failure.</li>
 </ul>
 
-<p>In simple programs you will mostly declare <code class="language-smolambda">def</code> functions
+<p>In simple programs, you will mostly declare <code class="language-smolambda">def</code> functions
 and let them freely fail. <i>Smoλ</i>'s philosophy is to not try to hopelessly recover from every failure state, 
 but exit gracefully a bunch of dependent computations and try again. This is to strike a balance between error handling
 code that pollutes the codebase and recovering from impactful failures. Services are more complex in that they run
-independently to each other.</p>
+independently -and potentially asynchronously- to each other.</p>
 <p>Regardless of the type of function, you can declare arguments
 as comma-separated variable types and names (each type corresponds to a name, separated by space). 
 Types are needed so that the service can know what inputs to expect. 
@@ -706,7 +706,7 @@ Place <code class="language-smolambda">@mut</code> before argument names to decl
 the variable passed as an argument may be modified inside the function - and hence
 must already be mutable. This also makes the argument variable internally mutable. 
 Importantly, <b>services do not accept mutable arguments</b>. The pattern there is to have one service
-control the creation process of data, and share that with other services.
+control the creation process of data, and share the outcome with other services.
 Below is an example.
 </p>
 
@@ -743,7 +743,7 @@ nothing changes.
 <p>
 <b>Functions as arguments:</b> 
 You can use functions as arguments to help disambiguate between similarly-named alternatives.
-In that case, simply skip the the variable name. This is useful for choosing a behavior 
+In that case, simply skip the variable name. This is useful for choosing a behavior 
 without passing a dummy value.
 </p>
 
@@ -851,8 +851,8 @@ But <code>p</code> still represents the sequence of values <code>x,y</code>.
 This is visually different from currying in that there is no function call parenthesis. But returned values would not
 be retrievable from <code class="language-smolambda">return x+1,y+1</code>, as the additions have not been stored
 in a named variable. This is also fine, and you may do it for convenience in some scenarios.
-Finally, <code class="language-smolambda">@args</code> is a shorthand that returns all inputs
-and accessing fields is also done with the dot notation. Below is an example.
+Finally, <code class="language-smolambda">@args</code> is a shorthand that returns all inputs if placed
+at the beginning of a return statement. Below is an example.
 </p>
 
 <pre><code class="language-smolambda">\\ main.s
@@ -891,14 +891,14 @@ service main()
 </pre>
 
 <p>
-If a function returns only one value, you use that directly, that is, without an extra field name.
+If a function returns only one value, use that directly without an extra field name.
 </p>
 
 <p>
 To help you write secure code that does not arbitrarily access mutable fields, <i>smoλ</i> normally
-prevents you from accessing or setting them. To be able to do so, add <code class="language-smolambda">@access</code>
-at the very start of respective arguments. Below is an example where, without this notation, even immutable versions
-of a type will not let you view mutable fields.
+prevents you from accessing or setting them. To be able to do so, add the <code class="language-smolambda">@access</code>
+notation at the very start of respective arguments. Below is an example where, if one removed the notation, even immutable versions
+of a type would not allow viewing certain fields.
 </p>
 
 
@@ -992,8 +992,8 @@ This approach keeps the happy path simple; you try running the service and, if i
 
 <p>
 Sometimes we want to treat several different types as if they were “the same kind of thing.”  
-For example, an integer, a float, and a signed integer are all numbers with similar operation defined;
-thus we can write code that reads largely the same for all of those. 
+For example, an integer, a float, and a signed integer are all numbers with similar operations defined.
+In other words, we can write code that reads largely the same for all three types of numbers. 
 In <i>smoλ</i>, you can avoid repeating that code by defining a <code class="language-smolambda">union</code>.
 The latter groups together several types under a single name and you can define 
 functions that work with the union instead of each type separately. Its definition looks like
@@ -1012,7 +1012,7 @@ functions that take a <code>Number</code> and automatically work with whichever
 form it has. For example, the standard library has printing and arithmetic operator overloads: 
 so you can call <code>print</code> on a <code>Number</code> and it “just works.”
 Unions are lexically scoped within functions; the same name always represents the same type.
-Thus in the example below both numbers must be of the same type. 
+Thus, in the example below both numbers must be of the same type. 
 But you can add a union as part of another one to transfer all types under a different name.
 </p>
 
@@ -1068,23 +1068,23 @@ to write the same code conceptually.”</i>
 <h2 id="memory">Memory <a href="#memory" class="anchor-link">🔗</a></h2>
 
 <p>
-At this point, you may be wondering how can <i>smoλ</i> run operations that consume an indeterminate 
-amount of memory, such as combining strings or managing lists of arbitrary sizes. This is where buffers and the
-<code class="language-smolambda">std.mem</code> import come. Here, we start from touching on concepts
-from the import, to give a general picture. Broadly, there are two memory
+At this point, you may be wondering how could <i>smoλ</i> run operations that consume an indeterminate 
+amount of memory, such as combining strings or managing lists of arbitrary sizes. This is where buffers and 
+<code class="language-smolambda">@include std.mem</code> come into play. We start from touching on concepts
+from the included file, which paint a general picture. Broadly, there are two memory
 devices; the <code>Stack</code> and <code>Heap</code>, corresponding to the small but fast
 memory your operating system uses to run your program, and the full extend of available memory.
 These provide memory allocation capabilities, but also grant you the ability to allocate more
 memory either dynamically or as arenas at the respective device.</p>
 
 <p>Memory follows the same pattern as
-all resources that <i>smoλ</i> uses; it is freed only when not in use by any of your program's data.
+all resources that <i>smoλ</i> uses; it is freed only when not in use by any program data.
 This is achieved with some minor restrictions that the compiler will let you know occasionally. For example,
 you need to declare memory management contexts (the <code class="language-smolambda">on</code>
 statements mentioned below) outside of loops that would leak the memory in each execution. However, the
 benefit is that there is no running overhead or bottleneck for testing when memory is no longer needed
-and freeing it. Instead, memory is released back to the operating system at function ends that are
-determined during compilation. That is, memory management is a zero-cost abstraction.
+and freeing it. Instead, memory is released back to the operating system at function ends. Which memory
+is released is determined during compilation. That is, memory management is a zero-cost abstraction.
 </p>
 
 <p>
