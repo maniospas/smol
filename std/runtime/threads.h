@@ -54,7 +54,7 @@ static inline void __runtime_free(void* mem) {free(mem);}
 /* ---------------- Windows ---------------- */
 #include <windows.h>
 
-void *__runtime_stack_bottom(void)
+static void *__runtime_stack_bottom(void)
 {
     SYSTEM_INFO si;
     GetSystemInfo(&si);
@@ -69,7 +69,7 @@ void *__runtime_stack_bottom(void)
 #include <pthread.h>
 #include <unistd.h>   /* for sysconf */
 
-void *__runtime_stack_bottom(void)
+static void *__runtime_stack_bottom(void)
 {
     void *high = pthread_get_stackaddr_np(pthread_self());
     size_t size = pthread_get_stacksize_np(pthread_self());
@@ -90,7 +90,7 @@ int pthread_getattr_np(pthread_t thread, pthread_attr_t *attr) __THROW; // preve
 #endif 
 #include <pthread.h>
 #include <unistd.h>
-void *__runtime_stack_bottom(void)
+static void *__runtime_stack_bottom(void)
 {
     pthread_attr_t attr;
     pthread_getattr_np(pthread_self(), &attr);
@@ -106,7 +106,7 @@ void *__runtime_stack_bottom(void)
 #else
 /* ----------- Fallback / unsupported -------- */
 #warning "__runtime_stack_bottom: platform not supported (will not detect low-stack condition)"
-void *__runtime_stack_bottom(void)
+static void *__runtime_stack_bottom(void)
 {
     return 0; /* or abort(), depending on your needs */
 }

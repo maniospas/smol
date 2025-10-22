@@ -30,12 +30,14 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
     vars[next+Variable("__buffer_size")]          = types.vars[Variable("u64")];
     vars[next+Variable("__buffer_alignment")]     = types.vars[Variable("u64")];
 
-    size_t count_packs = 0;
+    
+    // compute alignment_size (valid packs only)
+    size_t count_alignment_bytes = 0;
     for(const auto& pack : buffer_types[next]->packs)
-        if(buffer_types[next]->contains(pack) && buffer_types[next]->vars[pack]->name != NOM_VAR)
-            count_packs++;
+        if(buffer_types[next]->contains(pack) && buffer_types[next]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR) 
+            count_alignment_bytes += 4;
     if(buffer_types[next]->_is_primitive) 
-        count_packs++;
+        count_alignment_bytes += (buffer_types[next]->name==Variable("char") || buffer_types[next]->name==Variable("bool"))?1:4;
     Variable fail_var = Variable("__result__buffer_error"); //create_temp();
     
     implementation += Code(
@@ -49,7 +51,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
     implementation += Code(
         next+Variable("__buffer_alignment"), 
         ASSIGN_VAR, 
-        Variable(to_string(count_packs)), 
+        Variable(to_string(count_alignment_bytes)), 
         SEMICOLON_VAR
     );
     implementation += Code(
@@ -88,13 +90,13 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
         implementation += Code(
             Variable("memcpy(&"), 
             tmp, 
-            Variable(", &((u64*)((u64*)"), 
+            Variable(", &((char*)((u64*)"), 
             next, 
             Variable(")[0])["),
             idx, 
             MUL_VAR, 
             next+Variable("__buffer_alignment"), 
-            Variable("+"+ to_string(pack_index)+"], sizeof("), 
+            Variable("], sizeof("), 
             buffer_types[next]->name, 
             Variable("))"), 
             SEMICOLON_VAR
@@ -144,7 +146,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
                     implementation += Code(
                         Variable("memcpy(&"), 
                         tmp, 
-                        Variable(", &((u64*)((void**)"),
+                        Variable(", &((char*)((void**)"),
                         next, 
                         Variable(")[0])["),
                         idx, 
@@ -162,7 +164,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
                         p
                     );
                 }
-                pack_index++;
+                pack_index += 4;
             }
         }
     }
@@ -194,7 +196,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
                 );
             else if(buffer_types[next]->vars[pack]->name != NOM_VAR) {
                 implementation += Code(
-                    Variable("memcpy(&((u64*)((u64*)"), 
+                    Variable("memcpy(&((char*)((u64*)"), 
                     next, 
                     Variable(")[0])["),
                     idx, 
@@ -264,7 +266,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
         for(const auto& pack : buffer_types[next]->packs) {
             if(buffer_types[next]->contains(pack) && buffer_types[next]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR) {
                 implementation += Code(
-                    Variable("memcpy(&((u64*)"), next+Variable("__buffer_contents"), Variable(")["), idx,
+                    Variable("memcpy(&((char*)"), next+Variable("__buffer_contents"), Variable(")["), idx,
                     MUL_VAR, next+Variable("__buffer_alignment"),
                     Variable("+"+to_string(pack_index)+"], &"),
                     val+Variable(pack),

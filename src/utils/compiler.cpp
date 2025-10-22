@@ -12,9 +12,10 @@ int compile_from_stringstream_with_flags(
     const string& extra_flags 
 ) {
     string cmd = compiler+string(" -O3 ")
-        + " -ffunction-sections -fno-exceptions -fno-rtti -fdata-sections -std=c++11 -m64 -fpermissive "
-        //+" -fno-stack-protector -fno-exceptions -fno-rtti -ffunction-sections -s -fdata-sections -std=c++11 "
+        +" -std=c++11 -m64 -fpermissive"
+        +" -fno-stack-protector -fno-exceptions -fno-rtti -ffunction-sections -s -fdata-sections -std=c++11 -Wl,--gc-sections "
         + extra_flags + " -o \"" + output_file + "\" -x c++ -"+linker+" -lm";
+
     //cout << cmd << "\n";
     FILE* pipe = SMOL_POPEN(cmd.c_str(), "w");
     if(!pipe) 
