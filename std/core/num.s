@@ -42,47 +42,47 @@ def ok()
 
 def print(@access f64 message)
     @head{#include <stdio.h>}
-    @body{printf("%.6f\n", message);}
+    then @body{printf("%.6f\n", message);}
     
 def print(@access i64 message)
     @head{#include <stdio.h>}
-    @body{printf("%ld\n", message);}
+    then @body{printf("%ld\n", message);}
     
 def print(@access u64 message)
     @head{#include <stdio.h>}
-    @body{printf("%lu\n", message);}
+    then @body{printf("%lu\n", message);}
     
 def print(@access bool message)
     @head{#include <stdio.h>}
-    @body{message?printf("true\n"):printf("false\n");}
+    then @body{message?printf("true\n"):printf("false\n");}
     
 def print(@access char message)
     @head{#include <stdio.h>}
-    @body{printf("%c\n", message);}
+    then @body{printf("%c\n", message);}
     
 def printin(@access f64 message)
     @head{#include <stdio.h>}
-    @body{printf("%.6f", message);}
+    then @body{printf("%.6f", message);}
     
 def printin(@access i64 message)
     @head{#include <stdio.h>}
-    @body{printf("%ld", message);}
+    then @body{printf("%ld", message);}
     
 def printin(@access u64 message)
     @head{#include <stdio.h>}
-    @body{printf("%lu", message);}
+    then @body{printf("%lu", message);}
     
 def printin(@access bool message)
     @head{#include <stdio.h>}
-    @body{message?printf("true"):printf("false");}
+    then @body{message?printf("true"):printf("false");}
     
 def printin(@access char message)
     @head{#include <stdio.h>}
-    @body{printf("%c", message);}
+    then @body{printf("%c", message);}
 
 def print()
     @head{#include <stdio.h>}
-    @body{fflush(stdout);}
+    then @body{fflush(stdout);}
 
 def le(@access Number x, Number y)
     @body{bool z=x<=y;}   

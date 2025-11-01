@@ -19,13 +19,13 @@
 @unsafe
 @about "Standard library implementation of arena allocation, marked as @noborrow but unsafely returned from constructors. Pointer arithmetics yield offsets within arenas."
 @about Arena    "A fixed-sized arena that can be cleared. Data stored on this could be zero-initialized."
-@about Circular "A fixed-sized arena that cannot be cleared."
+@about Circular "A fixed-sized arena that cannot be cleared. Data stored on this could be zero-initialized."
 @about arena    "Allocates an Arena buffer of given size on the given Memory. Allocations on this can be shared and corrupted."
 @about circular "Allocates a Circular buffer a of given size on the given Memory. Allocations on this can be shared and corrupted."
 @about clear    "Clears an Arena or Circular arena by resetting its occupied length to zero. This can overwrite."
 
 def Arena(nominal type, ContiguousMemory contents)
-    length = 0
+    length = 0 
     return type, contents, length
 
 def Circular(nominal type, ContiguousMemory contents)
@@ -33,10 +33,10 @@ def Circular(nominal type, ContiguousMemory contents)
     return type, contents, length
 
 def clear(@access @mut Circular self)
-    @body{self__length=0;}
+    then @body{self__length=0;}
 
 def clear(@access @mut Arena self)
-    @body{self__length=0;}
+    then @body{self__length=0;}
 
 union Buffer = Arena or Circular
 

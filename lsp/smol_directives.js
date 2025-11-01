@@ -1,6 +1,7 @@
 module.exports = {
   "include": "include definitions",
   "install": "run during compilation",
+  "indentation": "automatically applies `then` based on indentation",
   "mut": "mutable variable",
   "access": "access mutable fields",
   "unsafe": "file is unsafe",

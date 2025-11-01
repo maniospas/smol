@@ -21,28 +21,30 @@
 @unsafe
 @about "Standard library wrapping of C time (provided by posix time.h or windows.h)."
 @about time  "Retrieve time elapsed from the start of the program in f64 seconds."
-@about sleep "Make the current service wait for AT LEAST a number of f64 seconds."
-             "\n\nWhile yielding, other services may be called asynchronously to fill in "
-             "the missing time. There is no guarantee for this, though. "
-             "Sleeping for 0.0 duration does not incur delays, but may still run "
-             "other services. Negative durations skip over this. Use exact_slepp "
-             "to sleep without yielding and thus get a guarantee on the sleep "
-             "duration. This method's exact implementation is ported from the runtime."
-             "\n\nExample: <pre>sleep(1.0) // yields for at least 1 sec</pre> "
-@about exact_sleep "Make the current service wait for exactly a specified number "
-             "of f64 seconds. Control flow is not transferred to other services, "
-             "so use sparingly (e.g., in main game loops)."
-             "\n\nExample: <pre>sleep(1.0) // waits for 1 sec of inactivity</pre> "
+@about sleep 
+"Make the current service wait for AT LEAST a number of f64 seconds."
+"\n\nWhile yielding, other services may be called asynchronously to fill in "
+"the missing time. There is no guarantee for this, though. "
+"Sleeping for 0.0 duration does not incur delays, but may still run "
+"other services. Negative durations skip over this. Use exact_slepp "
+"to sleep without yielding and thus get a guarantee on the sleep "
+"duration. This method's exact implementation is ported from the runtime."
+"\n\nExample: <pre>sleep(1.0) // yields for at least 1 sec</pre> "
+@about exact_sleep 
+"Make the current service wait for exactly a specified number "
+"of f64 seconds. Control flow is not transferred to other services, "
+"so use sparingly (e.g., in main game loops)."
+"\n\nExample: <pre>sleep(1.0) // waits for 1 sec of inactivity</pre> "
 
 // time.h or windows.h imported by all runtimes
 
 def sleep(f64 duration)
-    @body{__smolambda_task_sleep(duration);}
+    then @body{__smolambda_task_sleep(duration);}
 
 def exact_sleep(f64 duration)
     if duration<=0.0 return ok
     @head{#include "std/oscommon.h"}
-    @body{__smo_exact_sleep(duration);}
+    then @body{__smo_exact_sleep(duration);}
 
 def time()
     @head{#include "std/oscommon.h"}

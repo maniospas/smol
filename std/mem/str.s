@@ -20,13 +20,14 @@
 @unsafe
 @about "Standard library implementation of string operations using its own allocators and C memory operations."
 @about copy "Copies a string on a given Memory allocator. The result is nstr, that is, a string variation is null-terminated. This operation may fail if the allocation fails."
-@about add  "Overloads the + operator to concatenate two strings. The result is nstr, that is, a string variation that is null-terminated. "
-            "Example:"
-            "<pre>name = \"Mario\""
-            "\non Heap.arena(1024)"
-            "\n    message = \"It's a me, \"+name+\"!\""
-            "\n    end"
-            "\nprint(message)</pre>"
+@about add  
+"Overloads the + operator to concatenate two strings. The result is nstr, that is, a string variation that is null-terminated. "
+"Example:"
+"<pre>name = \"Mario\""
+"\non Heap.arena(1024)"
+"\n    message = \"It's a me, \"+name+\"!\""
+"\n    end"
+"\nprint(message)</pre>"
 @about str  "Provides methods for converting numbers to strings that are stored on provided Memory allocators. These are not necessarily null-terminated, so use nstr if that is important."
 @about str  "Provides methods for converting numbers to strings that are stored on provided Memory allocators. The result is a null-terminated nstr."
 

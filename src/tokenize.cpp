@@ -125,10 +125,66 @@ shared_ptr<Import> tokenize(const string& path) {
     auto main_file = make_shared<Import>(path);
     auto in_brackets = size_t{0};
     auto& tokens = main_file->tokens;
+    auto indentation_mode = false;
+    size_t last_nonempty_indent = 0;
+    string last_nonempty_content;
+
+    auto is_blank = [](const string& s) {
+        for(char c : s)
+            if(!isspace(static_cast<unsigned char>(c))) return false;
+        return true;
+    };
+
     while(getline(file, line)) {
         line_num++;
+        if(is_blank(line))
+            continue;
+        string trimmed_line = line;
+        trimmed_line.erase(0, trimmed_line.find_first_not_of(" \t"));
+        if(trimmed_line.rfind("//", 0) == 0)
+            continue;
+        if(line == "@indentation") {
+            indentation_mode = true;
+            continue;
+        }
+        size_t indent = 0;
+        for(char c : line) {
+            if(c == ' ') indent++;
+            else if(c == '\t') indent += 4;
+            else break;
+        }
+        if (indentation_mode && indent%4)
+            main_file->error(
+                tokens.size() ? tokens.size()-1 : 0,
+                "Indentation expects tabs or 4 spaces when @indentation is enabled "
+                + to_string(line_num)
+            );
+        if(indent < last_nonempty_indent && !in_brackets) {
+            string trimmed_prev = last_nonempty_content;
+            trimmed_prev.erase(0, trimmed_prev.find_first_not_of(" \t"));
+            bool has_then   = trimmed_prev.rfind("then ", 0) == 0;
+            bool has_return = trimmed_prev.rfind("return ", 0) == 0;
+            if(!has_then && !has_return) {
+                if(indentation_mode) {
+                    tokens.emplace_back("then", line_num, 1, main_file);
+                    tokens.emplace_back("ok", line_num, 1, main_file);
+                } 
+                else {
+                    main_file->error(
+                        tokens.size() ? tokens.size()-1 : 0,
+                        "Indentation expects 'then' or 'return' before dedent at line "
+                        "(use @indentation to automatically detect code blocks in this file instead) "
+                        + to_string(line_num)
+                    );
+                }
+            }
+        }
+        last_nonempty_indent = indent;
+        last_nonempty_content = line;
+
         auto i = size_t{0};
         auto col = size_t{1};
+
         while(i < line.size()) {
             while(i < line.size() && isspace(line[i])) {
                 if(line[i] == '\t') 

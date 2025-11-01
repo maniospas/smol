@@ -19,16 +19,18 @@
 @include std.core.str
 @unsafe
 @about "Standard library wrapping and simplification of C console commands."
-@about read    "Reads several string and primitive types from the console. The user needs to press enter after entering the input. "
-               "Invalid inputs create service failures, including in the case where the number is too large to properly process. "
-               "Example: <pre>printin(\"Give a number.\")"
-               "\nx = f64.read"
-               "\nprintin(\"Rounded.\")"
-               "\nprint(i64(x+0.5))</pre>"
-@about convert "Converts a String representation to various numeric formats. This is lightweight and does not consume additional memory. "
-               "The current service fails if the conversion is not possible. "
-               "Example: <pre>x = f64.convert(\"1.2\")"
-               "\nprint(x)</pre>"
+@about read    
+"Reads several string and primitive types from the console. The user needs to press enter after entering the input. "
+"Invalid inputs create service failures, including in the case where the number is too large to properly process. "
+"Example: <pre>printin(\"Give a number.\")"
+"\nx = f64.read"
+"\nprintin(\"Rounded.\")"
+"\nprint(i64(x+0.5))</pre>"
+@about convert 
+"Converts a String representation to various numeric formats. This is lightweight and does not consume additional memory. "
+"The current service fails if the conversion is not possible. "
+"Example: <pre>x = f64.convert(\"1.2\")"
+"\nprint(x)</pre>"
 
 def read(@access i64)
     @acquire "std.terminal.read"

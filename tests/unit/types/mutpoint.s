@@ -1,3 +1,4 @@
+@indentation
 @include std.core
 
 def Point(f64 px, f64 py)

@@ -1,3 +1,4 @@
+@indentation
 @include std.core
 @include std.mem  return Memory
 @include std.os   return Process
@@ -22,7 +23,8 @@ service std_test(String name)
     on Heap.dynamic()
     if run(command).err.bool()
         print("[ \033[31mERROR\033[0m ] "+name+".s")
-    else then print("[ \033[32mOK\033[0m ] "+name+".s")
+    else 
+        print("[ \033[32mOK\033[0m ] "+name+".s")
 
 service all()
     // services are asynchronous co-routines

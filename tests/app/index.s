@@ -1,3 +1,4 @@
+@indentation
 @include std.core
 @include std.mem
 
@@ -18,7 +19,7 @@ def combine(Segment[] segments)
     .len()
     .range()
     .while next(@mut u64 i) 
-        then combined = str(combined+segments[i].value+" ")
+        combined = str(combined+segments[i].value+" ")
     return combined
 
 service main()

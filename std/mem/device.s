@@ -34,10 +34,10 @@ def Heap(nominal)
 union MemoryDevice = Stack or Heap
 
 def ContiguousMemory (
-        nominal type,
-        u64 size,
-        ptr mem,
-        ptr underlying
+    nominal type,
+    u64 size,
+    ptr mem,
+    ptr underlying
     )
     //@noassign
     @buffer mem size underlying
