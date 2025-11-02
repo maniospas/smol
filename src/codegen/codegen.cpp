@@ -50,7 +50,18 @@ void codegen(
     auto types_ref = get_file(files, file);
     auto& types = *types_ref;
     auto already_tokenized = (bool)types.imp;
-    auto imp = already_tokenized?types.imp:tokenize(file);
+    auto imp = types.imp;
+    if(!already_tokenized)
+        try {
+            imp = tokenize(file);
+        }
+        catch(const std::runtime_error& e) {
+            imp = make_shared<Import>("");
+            errors = true;
+            return;
+        }
+    if(!imp->path.size())
+        return;
     if(!already_tokenized) {
         types.imp = imp;
         for(const auto& it : builtins.vars)

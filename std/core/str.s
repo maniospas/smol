@@ -1,4 +1,3 @@
-@serial
 // Written in 2025 by Emmanouil Krasanakis (maniospas@hotmail.com)
 //
 // To the extent possible under law, the author has dedicated all copyright
@@ -217,8 +216,8 @@ def neq(@access String _x, IndependentString _y)
         //printf("y. '%s', length. %zu\n", ((char*)y__contents), y__length - 1);
 
         bool z = (x__first != y__first) 
-                || (x__length != y__length) 
-                || (memcmp((char*)x__contents + 1, (char*)y__contents + 1, x__length - 1) != 0);
+            || (x__length != y__length) 
+            || (memcmp((char*)x__contents + 1, (char*)y__contents + 1, x__length - 1) != 0);
     }
     return z
 
@@ -262,7 +261,7 @@ def next(
         return false
     @mut prev = self.pos
     while self.pos<self.query.len()-self.sep.len()
-        then if self.sep!=self.query[self.pos to self.pos+self.sep.len()]
+        if self.sep!=self.query[self.pos to self.pos+self.sep.len()]
             self.pos = self.pos + 1
         elif self.pos<=prev
             //TODO: first find is unoptimized but added in the loop here

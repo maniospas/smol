@@ -13,7 +13,7 @@ def Segment(String _value)
 
 def combine(Segment[] segments)
     @mut combined = "".str()  // mutable string with known size
-    on Stack.arena(1024)    // automatically use as argument if needed (for string operations)
+    on Stack.arena(1024)      // automatically use as argument if needed (for string operations)
     segments
     .len()
     .range()

@@ -184,7 +184,7 @@ shared_ptr<Import> tokenize(const string& path) {
             tokens.emplace_back(line, line_num, 1, main_file);
             main_file->error(
                 tokens.size() ? tokens.size()-1 : 0,
-                "Cannot indent more than 4 spaces or a tab deeper than the previous block"
+                "Cannot indent more than 4 spaces or a tab deeper than the previous line"
             );
         }
         if(main_file->indentation_mode && !in_parentheses && indent <= last_nonempty_indent) {

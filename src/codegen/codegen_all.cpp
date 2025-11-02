@@ -84,7 +84,6 @@ bool codegen_all(
             codegen(files, path, builtins, selected_task, task_report, halted, errors);
             if (errors) 
                 global_errors = true;
-
             {
                 unique_lock<mutex> lock(g_importMutex);
                 status_progress.erase(path);
