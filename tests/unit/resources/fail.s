@@ -1,5 +1,6 @@
 @include std.core
-@include std.mem return Heap
+@include std.mem 
+    return Heap
 
 service test()
     on Heap.dynamic()

@@ -1,4 +1,5 @@
-@include std.core return Number, range, fail
+@include std.core 
+    return Number, range, fail
 @include std.math
 @include std.mem
 
@@ -31,7 +32,8 @@ def Shapes(nominal)
 
 def at(@access Shapes shapes, Shape, u64 pos)
     type = shapes.types[pos]
-    if type != Shape.tag() then fail("Trying to access a different shape")
+    if type != Shape.tag() 
+        fail("Trying to access a different shape")
     lookup = shapes.lookups[pos]
     case Shape.is(Square) ret = shapes.squares[lookup]
     case Shape.is(Circle) ret = shapes.circles[lookup]
@@ -68,4 +70,4 @@ service main()
             printin("Circle: ")
             shapes.at(Circle, i).volume(1.0).print()
         else 
-            then fail("Invalid type")
+            fail("Invalid type")

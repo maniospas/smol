@@ -1,9 +1,9 @@
 @include std.core
 
 def data(
-        u64 id, 
-        u64[] values
-    ) 
+    u64 id, 
+    u64[] values
+) 
     return @args
 
 service main()

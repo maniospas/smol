@@ -74,19 +74,22 @@ def is_inf(f64 x)
     return z
 
 def sqrt(f64 x)
-    if x<0.0 then @fail{printf("Root requires positive inputs\n");}
+    if x<0.0
+        @fail{printf("Root requires positive inputs\n");}
     @head{#include <math.h>}
     @body{f64 z = sqrt(x);}
     return z
 
 def pow(f64 base, f64 exponent)
-    if base<0.0 then @fail{printf("Exponentiation requires non-negative base\n");} 
+    if base<0.0
+        @fail{printf("Exponentiation requires non-negative base\n");} 
     @head{#include <math.h>}
     @body{f64 z = pow(base, exponent);}
     return z
     
 def log(f64 x)
-    if x<=0.0 then @fail{printf("Logarithm needs positive inputs\n");}
+    if x<=0.0 
+        @fail{printf("Logarithm needs positive inputs\n");}
     @head{#include <math.h>}
     @body{f64 z = log(x);}
     return z
