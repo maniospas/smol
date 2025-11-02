@@ -216,8 +216,9 @@ and then automatically selects whether the application should be a single-thread
 <p>
 A quick preview on the source code of our first program: <code class="language-smolambda">@include std.core</code> 
 adds basic functionality, like <code class="language-smolambda">print</code>. Then  
-<code class="language-smolambda">service main()</code> is your actual program.
+<code class="language-smolambda">service main()</code> is the actual program.
 Why it's called a <i>service</i> is a mystery that will be addressed later.
+The contents of the service need to be intended one tab (or four spaces) to the right.
 </p>
 
 <details>
@@ -398,11 +399,8 @@ Lovelace
 Sometimes we only want certain lines to run if a tested condition is true.  
 This is done with an <code class="language-smolambda">if</code> block.  
 The word <code class="language-smolambda">if</code> starts the block, then comes a condition, 
-then the code that should run if the test passes. 
-There are two ways code blocks can end: either with <code class="language-smolambda">return value</code>
-that stops the function by returning a value (this will be covered below) 
-or with <code class="language-smolambda">then final_expression</code> to run
-the block's last expression.</p>
+then the code that should run if the test passes. Blocks are intended one more tab 
+(or four more spaces) to the right.
 
 <pre><code class="language-smolambda">// main.s
 @include std.core
@@ -427,14 +425,26 @@ still in the if block
 back in main now
 </pre>
 
-
+<details>
+<summary>Ignoring file indentation in @serial mode</summary>
+You can start a file with a line declaring
+<code class="language-smolambda">@serial</code>. This ignores any indentation, 
+and makes code blocks end in either <code class="language-smolambda">return value</code>
+that stops the function by returning a value (this will be covered below) 
+or with <code class="language-smolambda">then final_expression</code> to run
+the block's last expression. This mode can be used for serializing programs with minimal
+storage overhead.   
+Notably, <code class="language-smolambda">then</code> can be skipped when it can be inferred;
+typically use it for the last branch of conditions and in loops.
+</details>
+<!-- 
 <p>
 <b>Style guide:</b> Prefer indenting code blocks for easier reading, 
 as well as starting them in new lines. Proper indentation is a good coding practice for any
 language, so try to stick to it. As an exception, you can keep a block comprising a
 single <code class="language-smolambda">then</code> statement in the same line as the condition
 (see next example).
-</p>
+</p> -->
 
 <p><b>Booleans:</b>
 Above, the tested condition is just the value <code class="language-smolambda">true</code>, so the message will always be printed.  
@@ -449,7 +459,8 @@ For example, <code class="language-smolambda">2 &lt; 3</code> checks whether two
 @include std.core
 
 service main()
-    if 2&lt;3 then print("yes, two is smaller")
+    if 2&lt;3
+        print("yes, two is smaller")
 </code></pre>
 
 
@@ -479,10 +490,7 @@ There are several comparison operators you can use - some of these are defined f
 <p>
 We can also use <code class="language-smolambda">elif</code> (else if) 
 and <code class="language-smolambda">else</code> branches to cover alternatives.  
-Each branch is tried in order, until one runs. The rest are skipped.  
-Using <code class="language-smolambda">then</code> is mandatory only for the last branch, 
-as in the other cases the language can understand where the block ends without it. But you 
-can still add it for clarity, if you want to. Here is an example:
+Each branch is tried in order, until one runs. The rest are skipped. Here is an example:
 </p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -494,7 +502,7 @@ service main()
     elif x&lt;0 
         print("negative")
     else 
-        then print("zero")
+        print("zero")
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -512,7 +520,8 @@ positive
 
 <p>A loop repeats a block while a condition is true. Syntactically, it
 starts with <code class="language-smolambda">while</code> followed by a condition 
-and the block's contents. Similarly to conditions, the loop's contents end just after <code class="language-smolambda">then last_expression</code>.
+and the block's contents. Similarly to conditions, loop contents reside a further
+indented code block.
 If a variable changes inside the loop, is needs to be mutable during its first assignment.
 Otherwise, the language would complain.</p>
 
@@ -523,7 +532,7 @@ service main()
     @mut i = 0
     while i&lt;5
         print(i)
-        then i = i+1
+        i = i+1
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -559,7 +568,7 @@ from files.
 
 service main()
     range(0, 5).while next(@mut u64 i) 
-        then print(i)
+        print(i)
 </code></pre>
 
 
@@ -576,8 +585,7 @@ Returns immediately end the code block, even if they occur within internally def
 
 <p>
 Below is an example, which evaluates to several possibilities.
-All returns must provide the same type of values. Do note that the return statement
-also ends blocks in place of <code class="language-smolambda">then</code>. But, even if
+All returns must provide the same type of values. Even if
 there are nested conditions, all returns yield back a value to the <code class="language-smolambda">algorithm</code>.</p>
 
 <pre><code class="language-smolambda">@include std.core
@@ -621,11 +629,12 @@ easy to spot and match nested returns to.
 service main()
     @mut i = 0
     limit = 5
-    algorithm while true
-        print(i)
-        if i==limit
-            return ok
-        then i = i+1
+    algorithm 
+        while true
+            print(i)
+            if i==limit
+                return ok
+            i = i+1
         return ok  // runs if nothing else is returned
     print("ended while")
     print(i)
@@ -961,7 +970,7 @@ Your code waits for computations to conclude by called services only when values
 
 service divide(f64 x, f64 y)
     if y==0.0 
-        then fail("Division by zero")
+        fail("Division by zero")
     return x/y
 
 service main()
@@ -969,7 +978,7 @@ service main()
     if r.err.bool()
         print("Could not compute.")
     else
-        then print(r)
+        print(r)
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s
@@ -1220,7 +1229,7 @@ def combine(Segment[] segments)
     @mut combined = "".str()  // mutable string with known size
     on Stack.arena(1024)      // automatically use as argument if needed (for string operations)
     segments.len().range().while next(@mut u64 i) 
-        then combined = str(combined+segments[i].value+" ")
+        combined = str(combined+segments[i].value+" ")
     return combined
 
 service main()
@@ -1448,7 +1457,7 @@ def pong(u64 n, cstr message)
 service main()
     @mut pending = :pong.lambda(2)
     while :done!=pending.func
-        then pending = @dynamic(ping,pong) pending("next - ")
+        pending = @dynamic(ping,pong) pending("next - ")
 </code></pre>
 
 <pre style="background-color: #222; color: white;">> smol main.s

@@ -84,7 +84,7 @@ def combine(Segment[] segments)
     @mut s = str("")     // convert "" to mutable str
     on Stack.arena(1024) // automatic use when needed
     segments.len().range().while next(@mut u64 i)
-        then s = str(s+segments[i].value+" ")
+        s = str(s+segments[i].value+" ")
     return s
 
 service main()
@@ -103,16 +103,15 @@ service main()
 
   <div id="example-block" style="display: none;">
     In the example, freeing the arena is safely delayed until printing. All operations are also zero-cost abstractions
-    over performant implementations at the core of the standard library. Code blocks either end or return. Furthermore:
+    over performant implementations at the core of the standard library. Code blocks are identified by indentation. Furthermore:
     <ul>
       <li><code class="language-smolambda">def</code> functions that can fail and produce nominal values.</li>
       <li><code class="language-smolambda">service</code> functions run safely; if a def fails, resources are cleaned up.</li>
       <li><code class="language-smolambda">nominal</code> declares a nominal type variation.</li>
-      <li><code class="language-smolambda">then</code> is followed by the last expression of the code block.</li>
       <li><code class="language-smolambda">@mut</code> denotes mutable variables (their values change as the program runs).</li>
       <li><code class="language-smolambda">on</code> is automatically added as first argument - here to store string addition on a fast arena allocator.</li>
       <li><code class="language-smolambda">.</code> member values or curries a first argument into functions.</li>
-      <li><code class="language-smolambda">[]</code> declares buffers.</li>
+      <li><code class="language-smolambda">[]</code> declares and accesses buffers.</li>
     </ul>
   </div>
 </div>

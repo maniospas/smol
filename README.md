@@ -15,15 +15,13 @@ Declare zero-cost safe abstractions for structural and nominal data. Transpile t
 
 ## Quickstart
 
-Here's what smoλ programs look like.
+Here's what smoλ programs look like. Syntax is indentation-based.
 <ul>
 <li><code class="language-smolambda">def</code> functions are inlined and could fail. Results are treated as both tuples and types.
 </li><li><code class="language-smolambda">service</code> functions safely deallocate resources on internal failure (e.g., of called def or other services). Result errors can be checked or -if not- cascade into more failures.
 </li><li><code class="language-smolambda">nominal</code> references types by name for safety (aka nominally).
 <li><code class="language-smolambda">@mut</code>, if prepended to the first declation of a variable, indicates values that may change.</li>
 </li><li><code class="language-smolambda">.</code> is element access, or passes the left-hand-side as the first argument into functions ("currying"). Currying into a loop passes the value into first call in the condition; in this case <code class="language-smolambda">next(@mut chunks, @mut str)</code> is called to progress the iteration.
-</li>
-<li><code class="language-smolambda">then</code> indicates the last command of code blocks, when that is not a return statement (return from functions).
 </li>
 </ul>
 
@@ -33,10 +31,10 @@ Here's what smoλ programs look like.
 @include std.file
 
 def Stats(
-        nominal, // nominal type (prevents structural matching)
-        u64 lines, 
-        u64 chars
-    )
+    nominal, // nominal type (prevents structural matching)
+    u64 lines, 
+    u64 chars
+)
     return @args // return all inputs
 
 def print(file_stats stats)
@@ -56,7 +54,7 @@ def file_reader(String path, @mut Memory memory) // for all String variations
         stat_lines = stat_lines + 1
         stat_chars = stat_chars + line:len
         printin("| ")
-        then print(line)
+        print(line)
     return nominal.Stats(stat_lines, stat_chars)
 
 service main()

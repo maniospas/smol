@@ -10,7 +10,7 @@ def Circle(nominal, f64 radius)
 def Square(nominal, f64 side) 
     return @args
 
-def area(Circle self) 
+def area(Circle self)
     return pi(self.radius*self.radius)
 
 def area(Square self) 
