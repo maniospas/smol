@@ -57,6 +57,7 @@ void codegen(
         }
         catch(const std::runtime_error& e) {
             imp = make_shared<Import>("");
+            cerr << "\n" << e.what() << "\n";
             errors = true;
             return;
         }

@@ -509,7 +509,11 @@ function runCompilerAndSendDiagnostics(document) {
         if (line.startsWith("at")) {
           const locMatch = line.match(/^at\s+(.*)\s+line\s+(\d+)\s+col\s+(\d+)/);
           if (!locMatch) continue;
-          const [, , lineStr, colStr] = locMatch;
+          const [, filePath, lineStr, colStr] = locMatch;
+          if (!filePath.includes(tempFilePath)) {
+            messageLines = []; // clear collected message lines
+            continue; // skip to next line
+          }
           const lineNum = parseInt(lineStr, 10) - 1;
           const colNum = parseInt(colStr, 10) - 1;
           const caretLine = lines[i + 2] || "";
