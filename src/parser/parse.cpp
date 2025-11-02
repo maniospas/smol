@@ -153,6 +153,12 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
                 end = (p-=2);
             else
                 end = --p;
+            // if(imp->indentation_mode && next=="return" && p<imp->size()-1 
+            //     && imp->at(p+1)!="def" && imp->at(p+1)!="service" && imp->at(p+1)!="union") {
+            //     if(imp->at(p+1)!="__end")
+            //         imp->error(p+1, "Mismatching indentation: code block should end after return");
+            //     p++;
+            // }
             continue;
         }
         // if(next=="else") {

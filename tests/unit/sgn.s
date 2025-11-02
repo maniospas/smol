@@ -1,10 +1,10 @@
-@indentation
 @include std.core
 
 def test_sgn()
     x = 1.0
     s = algorithm
-        if x>0.0 return "positive"
+        if x>0.0 
+            return "positive"
         return "negative" 
     print(s)
 

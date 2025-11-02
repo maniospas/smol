@@ -19,8 +19,10 @@
 @include std.core
 @include std.mem
 @unsafe
-@about "Standard library wrapping of C system calls and of process management using C popen."
-@about Process     "A running process whose stdout can be read as a file-like object."
+@about
+"Standard library wrapping of C system calls and of process management using C popen."
+@about Process
+"A running process whose stdout can be read as a file-like object."
 @about open        
 "Opens a Process given a command string. This starts the process and lets you read its output."
 "When the process is eventually released, services fail if there is pending "
@@ -53,7 +55,7 @@ def open(@access @mut Process, CString _command)
         #endif
     }
     @body{ptr contents = (ptr)popen((cstr)command, "r");}
-    if contents.exists().not() then @fail{printf("Error: Failed to start process\n");} 
+    if contents.exists().not() @fail{printf("Error: Failed to start process\n");} 
     @finally contents { 
         i64 status = 0;
         if(contents) 
@@ -78,13 +80,12 @@ def to_end(@access @mut Process p)
             while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) {}
         }
     }
-    then ok
 
 def next_chunk(
     @mut Buffer reader, 
     @access @mut Process p,
     @mut nstr value
-    )
+)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -102,7 +103,7 @@ def next_line(
     @mut Buffer reader, 
     @access @mut Process p, 
     @mut nstr value
-    )
+)
     @head{#include <stdio.h> #include <string.h> #include <stdlib.h>}
     @body{
         ptr ret = p__contents ? (ptr)fgets((char*)reader__contents__mem, reader__contents__size, (FILE*)p__contents) : 0;
@@ -116,7 +117,7 @@ def next_chunk(
     @mut Buffer memory, 
     @access @mut Process p, 
     @mut str value
-    ) 
+) 
     ret = next_chunk(memory, p, @mut nstr nstr_value)
     value = nstr_value.str()
     return ret
@@ -125,7 +126,7 @@ def next_line(
     @mut Buffer memory, 
     @access @mut Process p, 
     @mut str value
-    ) 
+) 
     ret = next_line(memory, p, @mut nstr nstr_value)
     value = nstr_value.str()
     return ret
@@ -133,11 +134,10 @@ def next_line(
 def system(cstr command)
     @head{#include <stdlib.h>}
     @body{u64 result = system((char*)command);}
-    if result!=0 
-        then fail("Error: System call failed")
+    if result!=0 fail("Error: System call failed")
 
 def system(str command) 
-    then system(Stack.copy(command).memory.cstr())
+    system(Stack.copy(command).memory.cstr())
 
 def open(@access @mut Process, str command)
     mem = Stack.allocate(command.length+1)

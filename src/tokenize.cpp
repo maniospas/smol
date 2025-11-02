@@ -14,6 +14,7 @@
 #include <fstream>
 #include <sstream>
 #include <cctype>
+#include <iostream>
 
 // ---------- parse_integer_suffix ----------
 size_t parse_integer_suffix(const string& line, size_t i) {
@@ -124,10 +125,13 @@ shared_ptr<Import> tokenize(const string& path) {
     auto line_num = size_t{0};
     auto main_file = make_shared<Import>(path);
     auto in_brackets = size_t{0};
+    auto in_parentheses = size_t{0};
+    auto parentheses_indent = size_t{0};
     auto& tokens = main_file->tokens;
-    auto indentation_mode = false;
+    main_file->indentation_mode = true;
     size_t last_nonempty_indent = 0;
     string last_nonempty_content;
+    size_t prev_indent = 0;
 
     auto is_blank = [](const string& s) {
         for(char c : s)
@@ -143,8 +147,24 @@ shared_ptr<Import> tokenize(const string& path) {
         trimmed_line.erase(0, trimmed_line.find_first_not_of(" \t"));
         if(trimmed_line.rfind("//", 0) == 0)
             continue;
-        if(line == "@indentation") {
-            indentation_mode = true;
+        if(line.starts_with("@serial")) {
+            if(line_num!=1) {
+                tokens.emplace_back("@serial", line_num, 1, main_file);
+                main_file->error(
+                    tokens.size() ? tokens.size()-1 : 0,
+                    "`@serial` can only be the first statement of a file. "
+                    + to_string(line_num)
+                );
+            }
+            if(line!="@serial" && line!="@serial ") {
+                tokens.emplace_back("@serial", line_num, 1, main_file);
+                main_file->error(
+                    tokens.size() ? tokens.size()-1 : 0,
+                    "`@serial` can only be a single statement in a separate line. "
+                    + to_string(line_num)
+                );
+            }
+            main_file->indentation_mode = false;
             continue;
         }
         size_t indent = 0;
@@ -153,34 +173,49 @@ shared_ptr<Import> tokenize(const string& path) {
             else if(c == '\t') indent += 4;
             else break;
         }
-        if (indentation_mode && indent%4)
+        if (main_file->indentation_mode && indent%4) {
+            tokens.emplace_back(line, line_num, 1, main_file);
             main_file->error(
                 tokens.size() ? tokens.size()-1 : 0,
-                "Indentation expects tabs or 4 spaces when @indentation is enabled "
-                + to_string(line_num)
+                "Indentation expects tabs or multiples of 4 spaces (switch to `@serial` mode to allow this syntax)"
             );
-        if(indent < last_nonempty_indent && !in_brackets) {
+        }
+        if (main_file->indentation_mode && indent>prev_indent+4) {
+            tokens.emplace_back(line, line_num, 1, main_file);
+            main_file->error(
+                tokens.size() ? tokens.size()-1 : 0,
+                "Cannot indent more than 4 spaces or a tab deeper than the previous block"
+            );
+        }
+        if(main_file->indentation_mode && !in_parentheses && indent <= last_nonempty_indent) {
             string trimmed_prev = last_nonempty_content;
             trimmed_prev.erase(0, trimmed_prev.find_first_not_of(" \t"));
-            bool has_then   = trimmed_prev.rfind("then ", 0) == 0;
-            bool has_return = trimmed_prev.rfind("return ", 0) == 0;
-            if(!has_then && !has_return) {
-                if(indentation_mode) {
-                    tokens.emplace_back("then", line_num, 1, main_file);
-                    tokens.emplace_back("ok", line_num, 1, main_file);
-                } 
-                else {
-                    main_file->error(
-                        tokens.size() ? tokens.size()-1 : 0,
-                        "Indentation expects 'then' or 'return' before dedent at line "
-                        "(use @indentation to automatically detect code blocks in this file instead) "
-                        + to_string(line_num)
-                    );
-                }
+            if(trimmed_prev.starts_with("if ") 
+                || trimmed_prev.starts_with("else ") 
+                || trimmed_prev.starts_with("elif ")
+                || trimmed_prev.starts_with("while ")
+                || trimmed_prev.starts_with(".while ")
+                || trimmed_prev.starts_with(".if ")
+            ) {
+                tokens.emplace_back("then", line_num-1, 1, main_file);
+                tokens.emplace_back("ok", line_num-1, 1, main_file);
+            }
+        }
+        if(main_file->indentation_mode && !in_parentheses && indent < last_nonempty_indent && !in_brackets && last_nonempty_content.size()>=indent+4) {
+            string trimmed_prev = last_nonempty_content;
+            trimmed_prev.erase(0, 4+indent);
+            if(!trimmed_prev.starts_with("then ") 
+                && !trimmed_prev.starts_with("return ")
+                && !trimmed_line.starts_with("elif ")
+                && !trimmed_line.starts_with("else ")
+            ) {
+                tokens.emplace_back("then", line_num-1, 1, main_file);
+                tokens.emplace_back("ok", line_num-1, 1, main_file);
             }
         }
         last_nonempty_indent = indent;
         last_nonempty_content = line;
+        prev_indent = indent;
 
         auto i = size_t{0};
         auto col = size_t{1};
@@ -333,6 +368,17 @@ shared_ptr<Import> tokenize(const string& path) {
             else if(is_symbol(line[i])) {
                 if(line[i]=='{') in_brackets++;
                 else if(line[i]=='}' && in_brackets) in_brackets--;
+                if(line[i]=='(') {
+                    if(!in_parentheses) parentheses_indent=indent; 
+                    in_parentheses++;
+                }
+                else if(line[i]==')' && in_parentheses) {
+                    in_parentheses--;
+                    if(!in_parentheses && parentheses_indent!=indent && main_file->indentation_mode) {
+                        tokens.emplace_back(string(1, line[i]), line_num, col, main_file);
+                        main_file->error(tokens.size() - 1, "Top-level parenthesis cannot close in a line with a different indent than its start");
+                    }
+                }
                 tokens.emplace_back(string(1, line[i]), line_num, col, main_file);
                 i++; 
                 col++;
@@ -351,7 +397,6 @@ shared_ptr<Import> tokenize(const string& path) {
                         if(hex_start == i)
                             tokens.emplace_back("Invalid hexadecimal number", line_num, number_col, main_file);
                             //ERROR("Invalid hexadecimal number\n" + Token(line.substr(number_start, i-number_start), line_num, number_col, main_file).show());
-                        // <<<<<< ADD THIS >>>>>
                         auto suffix_end = parse_integer_suffix(line, i);
                         col += (suffix_end - i);
                         i = suffix_end;
@@ -413,12 +458,37 @@ shared_ptr<Import> tokenize(const string& path) {
                 }
                 if(start < i) {
                     auto substr = line.substr(start, i - start);
+
                     if(substr=="elif") {
                         tokens.emplace_back("else", line_num, start_col, main_file);
                         tokens.emplace_back("then", line_num, start_col, main_file);
                         tokens.emplace_back("if", line_num, start_col, main_file);
                     }
                     else tokens.emplace_back(substr, line_num, start_col, main_file);
+                    if(main_file->indentation_mode && substr=="then")
+                            main_file->error(tokens.size() - 1, "`then` is available only in `@serial` mode");
+                    if (main_file->indentation_mode && (substr == "if" || substr == "while") && !in_brackets) {
+                        bool valid =
+                            (start_col == indent + 1) || 
+                            (!tokens.empty() &&
+                            tokens.size() >= 2 &&
+                            tokens[tokens.size()-2].line == line_num &&
+                            (tokens[tokens.size()-2].name == ".") &&
+                            tokens[tokens.size()-2].character == indent + 1);
+                        if (!valid) 
+                            main_file->error(
+                                tokens.size() - 1,
+                                "`" + substr + "` must start either immediately after the indentation "
+                                "or after a '.' immediately after the indentation (switch to `@serial` mode to allow this syntax)"
+                            );
+                    }
+                    else if (main_file->indentation_mode && (substr == "else" || substr == "elif" || substr == "return") && !in_brackets) {
+                        if (start_col != indent + 1) 
+                            main_file->error(
+                                tokens.size() - 1,
+                                "`" + substr + "` must start immediately after the indentation (switch to `@serial` mode to allow this syntax)"
+                            );
+                    }
                 }
             }
         }

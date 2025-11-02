@@ -88,8 +88,10 @@ void codegen(
                     handle_def_or_service(imp, p, types);
                 else if(imp->at(p)=="union")
                     handle_union(imp, p, types);
+                else if(imp->at(p)=="then" || imp->at(p)=="return") 
+                    imp->error(p, "Unexpected end of code block");
                 else
-                    imp->error(p, "Unexpected token\nOnly `service`, `smo`, `union`, `@include`, `@install`, `@about`, or `@unsafe` allowed");
+                    imp->error(p, "Unexpected token\nOnly `service`, `def`, `union`, `@include`, `@install`, `@about`, or `@unsafe` allowed");
                 p++;
             }
             catch (const runtime_error& e) {

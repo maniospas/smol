@@ -80,7 +80,8 @@ def nstr(@access @mut Memory allocator, i64 number)
             }
         }
     }
-    if contents.exists().not() then @fail{printf("Failed to allocate str from number\n");}
+    if contents.exists().not() 
+        @fail{printf("Failed to allocate str from number\n");}
     return nominal.nstr(contents, length, first, mem.underlying)
 
 def nstr(@access @mut Memory allocator, u64 number)
@@ -102,7 +103,8 @@ def nstr(@access @mut Memory allocator, u64 number)
             }
         }
     }
-    if contents.exists().not() then @fail{printf("Failed to allocate str from number\n");}
+    if contents.exists().not() 
+        @fail{printf("Failed to allocate str from number\n");}
     return nominal.nstr(contents, length, first, mem.underlying)
 
 def nstr(@access @mut Memory allocator, f64 number)
@@ -124,7 +126,8 @@ def nstr(@access @mut Memory allocator, f64 number)
             }
         }
     }
-    if contents.exists().not() then @fail{printf("Failed to allocate str from number\n");}
+    if contents.exists().not() 
+        @fail{printf("Failed to allocate str from number\n");}
     return nominal.nstr(contents, length, first, mem.underlying)
 
 def str(@access ContiguousMemory region)
@@ -132,7 +135,7 @@ def str(@access ContiguousMemory region)
 
 def str(@access ContiguousMemory region, u64 size)
     if size>=region.size
-        then fail("Cannot allocate more than the available memory")
+        fail("Cannot allocate more than the available memory")
     return nominal.str(region.mem, size, char[region].expect(1)[0], region.underlying)
 
 def str(@access @mut Memory allocator, u64 number)

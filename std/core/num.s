@@ -42,47 +42,47 @@ def ok()
 
 def print(@access f64 message)
     @head{#include <stdio.h>}
-    then @body{printf("%.6f\n", message);}
+    @body{printf("%.6f\n", message);}
     
 def print(@access i64 message)
     @head{#include <stdio.h>}
-    then @body{printf("%ld\n", message);}
+    @body{printf("%ld\n", message);}
     
 def print(@access u64 message)
     @head{#include <stdio.h>}
-    then @body{printf("%lu\n", message);}
+    @body{printf("%lu\n", message);}
     
 def print(@access bool message)
     @head{#include <stdio.h>}
-    then @body{message?printf("true\n"):printf("false\n");}
+    @body{message?printf("true\n"):printf("false\n");}
     
 def print(@access char message)
     @head{#include <stdio.h>}
-    then @body{printf("%c\n", message);}
+    @body{printf("%c\n", message);}
     
 def printin(@access f64 message)
     @head{#include <stdio.h>}
-    then @body{printf("%.6f", message);}
+    @body{printf("%.6f", message);}
     
 def printin(@access i64 message)
     @head{#include <stdio.h>}
-    then @body{printf("%ld", message);}
+    @body{printf("%ld", message);}
     
 def printin(@access u64 message)
     @head{#include <stdio.h>}
-    then @body{printf("%lu", message);}
+    @body{printf("%lu", message);}
     
 def printin(@access bool message)
     @head{#include <stdio.h>}
-    then @body{message?printf("true"):printf("false");}
+    @body{message?printf("true"):printf("false");}
     
 def printin(@access char message)
     @head{#include <stdio.h>}
-    then @body{printf("%c", message);}
+    @body{printf("%c", message);}
 
 def print()
     @head{#include <stdio.h>}
-    then @body{fflush(stdout);}
+    @body{fflush(stdout);}
 
 def le(@access Number x, Number y)
     @body{bool z=x<=y;}   
@@ -150,20 +150,23 @@ def mul(@access u64 x, u64 y)
  
 def div(@access u64 x, u64 y)
     @head{#include <stdio.h>}
-    if y==0 then @fail{printf("Error: division by zero\n");} 
+    if y==0 
+        @fail{printf("Error: division by zero\n");} 
     @head{#include <stdio.h>}
     @body{u64 z=x/y;}
     return z
 
 def sub(@access u64 x, u64 y)
     @head{#include <stdio.h>}
-    if y>x then @fail{printf("Error: unsigned subtraction yielded a negative\n");}
+    if y>x 
+        @fail{printf("Error: unsigned subtraction yielded a negative\n");}
     @body{u64 z=x-y;}
     return z
 
 def mod(@access u64 x, u64 y) 
     @head{#include <stdio.h>}
-    if y==0 then @fail{printf("Error: modulo by zero\n");}
+    if y==0 
+        @fail{printf("Error: modulo by zero\n");}
     @head{#include <stdio.h>}
     @body{u64 z=x%y;} 
     return z
@@ -174,7 +177,8 @@ def add(@access i64 x, i64 y)
 
 def mod(@access i64 x, i64 y)
     @head{#include <stdio.h>}
-    if y<=i64(0) then @fail{printf("Error: modulo by non-positive\n");}
+    if y<=i64(0) 
+        @fail{printf("Error: modulo by non-positive\n");}
     @head{#include <stdio.h>}
     @body{i64 z=x%y;}
     return z
@@ -192,7 +196,8 @@ def mul(@access i64 x, i64 y)
 
 def div(@access i64 x, i64 y)
     @head{#include <stdio.h>}
-    if y==i64(0) then @fail{printf("Error: division by zero\n");}
+    if y==i64(0) 
+        @fail{printf("Error: division by zero\n");}
     @head{#include <stdio.h>}
     @body{i64 z=x/y;}
     return z

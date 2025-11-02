@@ -21,61 +21,77 @@
 @include std.mem
 @unsafe
 @about "Standard library implementation of file management that uses the C filesystem."
-@about ReadFile   "An opened file that is meant to be read only."
-@about WriteFile  "An opened file that is meant to be read or written."
-@about File       "A union between file types that allows common reading and positioning operations."
-@about open       "Opens a File given a String path. There might be service failure due to external factors. Opening a WriteFile, "
-                  "may also cause failure if it already exists - in that case remove it first and it will be created. "
-                  "On the other hand, a ReadFile must already exist to be opened. "
-                  "Files must be set as mutable variables to allow reads and writes. Otherwise, only a few operations become available."
-                  "\n\nExample for overwriting a file:"
-                  "<pre>if is_file(\"hi.txt\")"
-                  "\n    then remove_file(\"hi.txt\")"
-                  "\n@mut file = WriteFile.open(\"tmp.txt\")"
-                  "\nfile:print(\"Hello world!\")"
-                  "\n@release file // early release closes the file"
-                  "\n</pre>"
-@about to_start   "Go to the beginning of a File. You can continue reading or writing from there. This may cause service failure "
-                  "due to external factors."
-@about to_end     "Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. "
-                  "Returns a boolean indicating a successful operation."
-@about len        "Computes the size of a File in bytes. This tries to leverage operating system metadata first, but if it fails it explicitly reads through the file once."
-@about print      "Writes a string on a WriteFile."
-@about temp       "Creates a WriteFile of a given size that is constrained to fixed memory provided by a Memory allocator. "
-                  "\n\nDue to safety mechanisms provided by operating systems, operations on this file may be slower than simple memory read and writes. "
-                  "If the operating system does not properly support memory mapped files, this may even end up consuming disk storage space of "
-                  "up to the given size by being stored as a temporary file. In general, reads and writes (with print) will be at most as slow as a normal "
-                  "file, with the contract that data cannot be recovered after termination. Some operating systems require manual deletion of "
-                  "temporary file folders if systems are abruptly powered off. This type of file should be mostly used to store temporary data or for "
-                  "testing purposes.\n\nExample usage:"
-                  "<pre>on Heap.dynamic() // allocator for the file"
-                  "\n@mut f = WrteFile.temp(1024)"
-                  "\nf.print(\"hello from withing a temp file!\")"
-                  "\nf.to_start()"
-                  "\nf.next_line(@mut u64 line)"
-                  "\nprint(line)</pre>"
-@about next_chunk "Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
-                  "Here is an example where volatile memory is used to avoid repeated or large allocations:"
-                  "<pre>on Heap:volatile(1024)"
-                  "\nReadFile"
-                  "\n.open(\"README.md\")"
-                  "\n.while next_chunk(@mut str chunk)"
-                  "\n    then print(chunk)</pre>"
-@about next_line  "Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
-                  "Here is an example where volatile memory is used to avoid repeated or large allocations:"
-                  "<pre>endl=\"n\".str().first // optimized to just setting the new line character"
-                  "\non Heap:volatile(1024)"
-                  "\nReadFile(\"README.md\")"
-                  "\n.open(\"README.md\")"
-                  "\n.while next_line(@mut str line)"
-                  "\n    if line[line:len-1]==endl"
-                  "\n         then line = line[0 to line:len-1]"
-                  "\n    then print(line)</pre>"
-@about ended      "Checks if the ending of the file has been reached. This is normal to be true for WriteFile."
-@about is_file    "Checks if a String path is a file system file."
-@about is_dir     "Checks if a String path is a file system directory."
-@about create_dir "Creates a directory given a String path. May cause service failure due to external factors, or if the directory already exists."
-@about remove_file "Deletes a file from the system. May cause service failure due to external factors, or if the file is already open."
+@about ReadFile
+"An opened file that is meant to be read only."
+@about WriteFile
+"An opened file that is meant to be read or written."
+@about File
+"A union between file types that allows common reading and positioning operations."
+@about open
+"Opens a File given a String path. There might be service failure due to external factors. Opening a WriteFile, "
+"may also cause failure if it already exists - in that case remove it first and it will be created. "
+"On the other hand, a ReadFile must already exist to be opened. "
+"Files must be set as mutable variables to allow reads and writes. Otherwise, only a few operations become available."
+"\n\nExample for overwriting a file:"
+"<pre>if is_file(\"hi.txt\")"
+"\n    then remove_file(\"hi.txt\")"
+"\n@mut file = WriteFile.open(\"tmp.txt\")"
+"\nfile:print(\"Hello world!\")"
+"\n@release file // early release closes the file"
+"\n</pre>"
+@about to_start
+"Go to the beginning of a File. You can continue reading or writing from there. This may cause service failure "
+"due to external factors."
+@about to_end
+"Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. "
+"Returns a boolean indicating a successful operation."
+@about len
+"Computes the size of a File in bytes. This tries to leverage operating system metadata first, but if it fails it explicitly reads through the file once."
+@about print
+"Writes a string on a WriteFile."
+@about temp
+"Creates a WriteFile of a given size that is constrained to fixed memory provided by a Memory allocator. "
+"\n\nDue to safety mechanisms provided by operating systems, operations on this file may be slower than simple memory read and writes. "
+"If the operating system does not properly support memory mapped files, this may even end up consuming disk storage space of "
+"up to the given size by being stored as a temporary file. In general, reads and writes (with print) will be at most as slow as a normal "
+"file, with the contract that data cannot be recovered after termination. Some operating systems require manual deletion of "
+"temporary file folders if systems are abruptly powered off. This type of file should be mostly used to store temporary data or for "
+"testing purposes.\n\nExample usage:"
+"<pre>on Heap.dynamic() // allocator for the file"
+"\n@mut f = WrteFile.temp(1024)"
+"\nf.print(\"hello from withing a temp file!\")"
+"\nf.to_start()"
+"\nf.next_line(@mut u64 line)"
+"\nprint(line)</pre>"
+@about next_chunk
+"Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
+"Here is an example where volatile memory is used to avoid repeated or large allocations:"
+"<pre>on Heap:volatile(1024)"
+"\nReadFile"
+"\n.open(\"README.md\")"
+"\n.while next_chunk(@mut str chunk)"
+"\n    then print(chunk)</pre>"
+@about next_line 
+"Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
+"Here is an example where volatile memory is used to avoid repeated or large allocations:"
+"<pre>endl=\"n\".str().first // optimized to just setting the new line character"
+"\non Heap:volatile(1024)"
+"\nReadFile(\"README.md\")"
+"\n.open(\"README.md\")"
+"\n.while next_line(@mut str line)"
+"\n    if line[line:len-1]==endl"
+"\n         then line = line[0 to line:len-1]"
+"\n    then print(line)</pre>"
+@about ended
+"Checks if the ending of the file has been reached. This is normal to be true for WriteFile."
+@about is_file
+"Checks if a String path is a file system file."
+@about is_dir
+"Checks if a String path is a file system directory."
+@about create_dir
+"Creates a directory given a String path. May cause service failure due to external factors, or if the directory already exists."
+@about remove_file
+"Deletes a file from the system. May cause service failure due to external factors, or if the file is already open."
 
 def ReadFile(nominal, ptr contents)
     @noborrow
@@ -98,11 +114,13 @@ def open(@access @mut ReadFile, String _path)
             fclose((FILE*)contents);
         contents=0;
     }
-    if contents.exists().not() then @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);}
+    if contents.exists().not() 
+        @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);}
     return nominal.ReadFile(contents)
 
 def to_start(@access @mut File f) 
-    if f.contents.exists().not() then @fail{printf("Failed to move to start of closed file");}
+    if f.contents.exists().not() 
+        @fail{printf("Failed to move to start of closed file");}
     @body{fseek((FILE*)f__contents, 0, SEEK_SET);}
 
 def to_end(@access @mut WriteFile f) 
@@ -132,13 +150,15 @@ def len(@access @mut File f)
 
 def print(@access @mut WriteFile f, String _s)
     s = _s.str()
-    if f.contents.exists().not() then @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
+    if f.contents.exists().not() 
+        @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
     @head{#include <stdio.h>}
     @body{
         u64 bytes_written = fwrite((char*)s__contents, 1, s__length, (FILE*)f__contents);
         bool success = (bytes_written == s__length);
     }
-    if success.not() then @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
+    if success.not() 
+        @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
 
 def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     // using temporary files can be exceptional
@@ -156,10 +176,10 @@ def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     return nominal.WriteFile(contents)
     
 def next_chunk (
-        @mut Circular reader, 
-        @access @mut File f,
-        @mut nstr value
-    )
+    @mut Circular reader, 
+    @access @mut File f,
+    @mut nstr value
+)
     contents = reader.contents.mem
     size = reader.contents.size
     @head{#include <stdio.h>}
@@ -177,10 +197,10 @@ def next_chunk (
     return ret.bool()
 
 def next_line (
-        @mut Circular reader, 
-        @access @mut File f, 
-        @mut nstr value
-    )
+    @mut Circular reader, 
+    @access @mut File f, 
+    @mut nstr value
+)
     contents = reader.contents.mem
     size = reader.contents.size
     @head{#include <stdio.h>}
@@ -202,10 +222,10 @@ def next_line (
     return ret.bool()
 
 def next_chunk (
-        @mut Arena reader, 
-        @access @mut File f,
-        @mut nstr value
-    )
+    @mut Arena reader, 
+    @access @mut File f,
+    @mut nstr value
+)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -220,10 +240,10 @@ def next_chunk (
     return ret.bool()
 
 def next_line(
-        @mut Arena reader,
-        @access @mut File f,
-        @mut nstr value
-    )
+    @mut Arena reader,
+    @access @mut File f,
+    @mut nstr value
+)
     @head{#include <stdio.h>}
     @head{#include <string.h>}
     @head{#include <stdlib.h>}
@@ -242,19 +262,19 @@ def next_line(
     return ret.bool()
 
 def next_line (
-        @mut Buffer reader,
-        @access @mut File f, 
-        @mut str value
-    )
+    @mut Buffer reader,
+    @access @mut File f, 
+    @mut str value
+)
     ret = next_line(reader, f, @mut nstr nstr_value)
     value = nstr_value.str()
     return ret
 
 def next_chunk (
-        @mut Buffer reader, 
-        @access @mut File f, 
-        @mut str value
-    )
+    @mut Buffer reader, 
+    @access @mut File f, 
+    @mut str value
+)
     ret = next_chunk(reader, f, @mut nstr nstr_value)
     value = nstr_value.str()
     return ret
@@ -311,7 +331,8 @@ def open(@access @mut WriteFile, String _path)
         ptr contents = 0;
         __SMOLANG_CREATE_FILE(path__contents, contents);
     }
-    if contents.exists().not() then@fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
+    if contents.exists().not() 
+        @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
     return nominal.WriteFile(contents)
 
 def create_dir(String _path)
@@ -375,7 +396,8 @@ def console(@access @mut WriteFile)
             has_gui = false;
         if(!has_gui && isatty(STDIN_FILENO)) has_gui = false;
     }
-    if has_gui.not() then fail("Cannot open a console in the current environment")
+    if has_gui.not() 
+        fail("Cannot open a console in the current environment")
     @body{
         ptr f = 0;
         SMOLAMBDA_CONSOLE(f)

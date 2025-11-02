@@ -16,8 +16,10 @@
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
 @include std.core.num
-@about "Standard library implementation of u64 ranges."
-@about range "Defines a u64 range as a structural type (instead of nominal type). When directly using variables as ranges, the position should be mutable. A couple of calling conventions are provided for default values of 0 for start and 1 for step."
+@about 
+"Standard library implementation of u64 ranges."
+@about range 
+"Defines a u64 range as a structural type (instead of nominal type). When directly using variables as ranges, the position should be mutable. A couple of calling conventions are provided for default values of 0 for start and 1 for step."
 @about next  
 "Obtains the next element in the range. Using a combination of a range and next element traversal is safer than manually checking bounds."
 "\n<br><br>Below is the main usage pattern. Notice that next's argument is an in-place constructed u64 number that is mutable to obtain the next value. "
@@ -39,7 +41,7 @@ def range(u64 sup)
 def next(
     @access @mut range self, 
     @mut u64 value
-    )
+)
     value = self.pos 
     self.pos = self.pos+1
     return (self.pos)<=(self.sup) 

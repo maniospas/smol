@@ -36,6 +36,7 @@ public:
     string about;
     unordered_map<string, string> docs;
     bool allow_unsafe;
+    bool indentation_mode;
     Import(const string& p);
     vector<Token> tokens;
     const string& at(size_t pos);

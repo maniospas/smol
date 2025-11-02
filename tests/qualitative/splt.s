@@ -8,18 +8,12 @@ def split(str query, str sep)
         if sep==query[pos to pos+sep.len()]
             if pos>prev
                 print(query[prev to pos])
-                end
             pos = pos+sep.len()
             prev = pos
-            end
-        pos = pos+1 
-        end
+        pos = pos+1
     if prev<query.len() 
         query[prev to query.len()].print()
-    end end
 
 service main()
     print("Write some text to split:")
-    on Heap.arena(4096)
-        Heap.arena(4096).read().split(" ".str())
-    end end
+    Heap.arena(4096).read().split(" ".str())

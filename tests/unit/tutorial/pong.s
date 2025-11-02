@@ -17,5 +17,5 @@ def pong(u64 n, cstr message)
 
 service main()
     @mut pending = :pong.lambda(2)
-    while :done!=pending.func
-        then pending = @dynamic(ping,pong) pending("next - ")
+    while pending.func!=:done
+        pending = @dynamic(ping,pong) pending("next - ")

@@ -1,4 +1,3 @@
-@indentation
 @include std.core
 
 def Point(f64 px, f64 py)
@@ -41,7 +40,6 @@ service main()
     print(ip.x) // 1 
     zero(ip)
     print(ip.x) // 0
-
 
     @mut tp = TPoint(1.0,1.0)
     tp.scale(5.0) // creates an error if we remove @mut from before tp

@@ -18,8 +18,10 @@
 @include std.core.num
 @include std.core.str
 @unsafe
-@about "Standard library implementations of error utilities."
-@about assert_ok "Checks if an error code corresponds to no error. If it does not, the service fails while printing the type of error. Error codes can be user errors, buffer errors, unknown errors, or no errors."
+@about 
+"Standard library implementations of error utilities."
+@about assert_ok 
+"Checks if an error code corresponds to no error. If it does not, the service fails while printing the type of error. Error codes can be user errors, buffer errors, unknown errors, or no errors."
 @about fail  
 "Causes the current service to fail given a String message. This creates a user error code. "
 "Example: <pre>printin(\"Give a number.\")"
@@ -28,7 +30,8 @@
 "\n    return fail(\"Cannot compute the inverse of zero\")"
 "\nprintin(\"Its inverse is.\")"
 "\nprint(1.0/x)</pre>"
-@about print "Prints a string interpretation of an error code."
+@about print 
+"Prints a string interpretation of an error code."
 
 def assert_ok(errcode error)
     @body{bool is_user = (error==__USER__ERROR);}
@@ -38,27 +41,27 @@ def assert_ok(errcode error)
     @body{bool is_stack = (error==__STACK__ERROR);}
     @body{bool is_unhandled = (error==__UNHANDLED__ERROR);}
     if is_user 
-        then @fail{printf("User error\n");} 
+        @fail{printf("User error\n");} 
     elif is_buffer
-        then @fail{printf("Buffer error\n");} 
+        @fail{printf("Buffer error\n");} 
     elif is_unhandled
-        then @fail{printf("Unhandled error\n");}
+        @fail{printf("Unhandled error\n");}
     elif is_stack 
-        then @fail{printf("Stack error\n");}
+        @fail{printf("Stack error\n");}
     elif is_error 
-        then @fail{printf("Unknown error\n");}
+        @fail{printf("Unknown error\n");}
 
 def fail(cstr error)
     @head{#include <stdio.h>}
-    then @fail {printf("%s\n", error);}
+    @fail {printf("%s\n", error);}
 
 def fail(nstr error)
     @head{#include <stdio.h>}
-    then @fail {printf("%s\n", (char*)error__contents);}
+    @fail {printf("%s\n", (char*)error__contents);}
 
 def fail(str error)
     @head{#include <stdio.h>}
-    then @fail {printf("%.*s\n", (int)error__length, (char*)error__contents);}
+    @fail {printf("%.*s\n", (int)error__length, (char*)error__contents);}
 
 def print(errcode error)
     @head{#include <stdio.h>}
@@ -76,7 +79,6 @@ def print(errcode error)
         else 
             printf("No error\n");
     }
-    then ok
 
 def assert(bool condition, cstr error)
     // prefer using this function as in the future constant evaluation of certain conditions will occur

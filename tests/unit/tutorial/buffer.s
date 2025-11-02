@@ -15,8 +15,9 @@ service main()
     .push(1)
     .push(2)
 
-    range(100000).while next(@mut u64& i)
-        then vals.push(i)
+    range(100000)
+    .while next(@mut u64& i)
+        vals.push(i)
 
     p = data[]
     .push(data(10, vals))

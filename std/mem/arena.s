@@ -33,10 +33,10 @@ def Circular(nominal type, ContiguousMemory contents)
     return type, contents, length
 
 def clear(@access @mut Circular self)
-    then @body{self__length=0;}
+    @body{self__length=0;}
 
 def clear(@access @mut Arena self)
-    then @body{self__length=0;}
+    @body{self__length=0;}
 
 union Buffer = Arena or Circular
 
@@ -72,7 +72,8 @@ def dynamic(@access Stack)
     
 def allocate(@access @mut Dynamic self, u64 size)
     @head{#include <stdlib.h>}
-    if self.acquired.bool().not() then fail("Did not initialize Dynamic")
+    if self.acquired.bool().not()
+        fail("Did not initialize Dynamic")
     @body{
         u64 next_size = self__size+1;
         bool success = true;
@@ -90,20 +91,23 @@ def allocate(@access @mut Dynamic self, u64 size)
             } 
         }
     }
-    if success.not() then fail("Failed a Dynamic allocation")
+    if success.not() 
+        fail("Failed a Dynamic allocation")
     return nominal.ContiguousMemory(size, mem, self.acquired)
 
 def used(@access @mut Buffer self)
     return self.length
 
 def allocate(@access @mut Arena self, u64 size)
-    if(self.length+size)>self.contents.size then fail("Failed an Arena allocation")
+    if(self.length+size)>self.contents.size
+        fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
     return nominal.ContiguousMemory(size, _contents, self.contents.underlying)
 
 def allocate(@access @mut Circular self, u64 size)
-    if size>self.contents.size then fail("Failed an Circular allocation")
+    if size>self.contents.size 
+        fail("Failed an Circular allocation")
     @body{if(self__length+size>self__contents__size) {self__length = 0;}}
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
@@ -136,7 +140,8 @@ def read(@access @mut Arena self)
             }
         }
     }
-    if _contents.exists().not() then fail("Error: Tried to read more elements than remaining Arena size or read failed")
+    if _contents.exists().not() 
+        fail("Error: Tried to read more elements than remaining Arena size or read failed")
     return nominal.str(_contents, length, first, self__contents__mem)
 
 union Memory = MemoryDevice or Buffer or Dynamic
@@ -149,4 +154,3 @@ def arena(@access @mut Memory self, u64 size)
     
 def circular(@access @mut Memory self, u64 size) 
     return nominal.Circular(self.allocate(size))
-

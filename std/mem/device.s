@@ -38,16 +38,18 @@ def ContiguousMemory (
     u64 size,
     ptr mem,
     ptr underlying
-    )
+)
     //@noassign
     @buffer mem size underlying
     return @args
 
 def allocate(@access Heap, u64 size)
-    if size==0 then fail("Cannot allocate zero size")
+    if size==0 
+        fail("Cannot allocate zero size")
     @head{#include <stdlib.h>}
     @body{ptr mem=__runtime_alloc(size);}
-    if mem.bool().not() then fail("Failed a Heap allocation")
+    if mem.bool().not() 
+        fail("Failed a Heap allocation")
     @finally mem {
         if(mem)
             __runtime_free(mem);
@@ -61,7 +63,8 @@ def allocate(@access Stack, u64 size)
         u64 size_bytes = size; // also serves as a position pointer to check stack size (use >= to create error for zero size too)
         ptr mem=(size_bytes+__service_stack_floor>=(char*)&size_bytes)?0:alloca(size_bytes);
     }
-    if mem.bool().not() then fail("Insufficient stack for allocation (too much recursion or stack allocation, or zero size requested)")
+    if mem.bool().not() 
+        fail("Insufficient stack for allocation (too much recursion or stack allocation, or zero size requested)")
     @noshare mem
     return nominal.ContiguousMemory(size, mem, mem)
 

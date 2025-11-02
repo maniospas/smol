@@ -1,8 +1,10 @@
-@indentation
 @include std.core
-@include std.mem  return Memory
-@include std.os   return Process
-@include std.time return time
+@include std.mem  
+    return Memory
+@include std.os   
+    return Process
+@include std.time 
+    return time
 
 service run(String command)
     @mut process = Process.open(command)

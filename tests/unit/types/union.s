@@ -1,4 +1,3 @@
-@indentation
 @include std.core
 
 union Type = i64 or u64 or f64

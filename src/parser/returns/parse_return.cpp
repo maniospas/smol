@@ -35,7 +35,7 @@ void Def::parse_return(size_t& p, Variable next, Types& types) {
     while(return_to && !uplifting[return_to].mandate_return) {
         //uplifting[return_to].has_exited = true;
         if(uplifting[return_to].has_returned && !contains(uplifting[return_to].target+Variable("var")))
-            imp->error(p, "Ending a code block that is epecting a returned value");
+            imp->error(p, "Ending a code block that is expecting a returned value");
         uplifting[return_to].has_returned = true;
         --return_to;
     }
