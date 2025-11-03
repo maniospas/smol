@@ -6,7 +6,7 @@ def HTML(nominal, @mut char[] output_buffer)
     @mut to_close = str[]
     return @args, to_close, output_buffer
 
-def new(@access @mut HTML doc, str _element)
+def new(@access @mut HTML doc, String _element)
     element = _element.str()
     doc.to_close.push(element)
 

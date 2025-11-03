@@ -384,7 +384,7 @@ shared_ptr<Import> tokenize(const string& path) {
                 col++;
                 continue;
             }
-            else if(isdigit(line[i]) || (line[i] == '.' && i + 1 < line.size() && isdigit(line[i + 1]))) {
+            else if(isdigit(line[i])) {
                 auto number_start = i;
                 auto number_col = col;
                 // Handle hex, octal, binary literals
@@ -438,12 +438,16 @@ shared_ptr<Import> tokenize(const string& path) {
                 }
                 // Decimal/floating point
                 auto has_dot = line[i] == '.';
-                while(i < line.size() && (isdigit(line[i]) || (line[i] == '.' && !has_dot))) {
-                    if(line[i] == '.') 
+                while(i < line.size()) {
+                    if(isdigit(line[i])) { 
+                        i++; col++; 
+                    }
+                    else if(line[i] == '.' && !has_dot && i + 1 < line.size() && isdigit(line[i + 1])) {
                         has_dot = true;
-                    i++; 
-                    col++;
+                        i++; col++;
+                    } else break;
                 }
+
                 // Accept integer suffixes (not for floats, but safe to include for now)
                 auto suffix_end = parse_integer_suffix(line, i);
                 col += (suffix_end - i);
