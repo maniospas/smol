@@ -478,15 +478,15 @@ shared_ptr<Import> tokenize(const string& path) {
                         if (!valid) 
                             main_file->error(
                                 tokens.size() - 1,
-                                "`" + substr + "` must start either immediately after the indentation "
-                                "or after a '.' immediately after the indentation (switch to `@serial` mode to allow this syntax)"
+                                "`" + substr + "` must start in a new line, immediately after indentation spaces or tabs. "
+                                "It can only be preceded by '.'. Switch to `@serial` mode to allow the current syntax."
                             );
                     }
                     else if (main_file->indentation_mode && (substr == "else" || substr == "elif" || substr == "return") && !in_brackets) {
                         if (start_col != indent + 1) 
                             main_file->error(
                                 tokens.size() - 1,
-                                "`" + substr + "` must start immediately after the indentation (switch to `@serial` mode to allow this syntax)"
+                                "`" + substr + "` must start line in a new line, immediately after indentation spaces or tabs. Switch to `@serial` mode to allow the current syntax."
                             );
                     }
                 }

@@ -1,9 +1,9 @@
 @include std.core
-@include std.mem  
+@include std.mem 
     return Memory
-@include std.os   
+@include std.os  
     return Process
-@include std.time 
+@include std.time
     return time
 
 service run(String command)
@@ -20,7 +20,7 @@ service std_test(String name)
     on Heap.dynamic() 
     command = "./smol tests/unit/"+name+".s --workers 1 --runtime eager 2>&1"
 
-    // new memory surface because the previous one was made immutable 
+    // new memory surface because the previous one is made immutable by running the command
     // by feeding into a service call
     on Heap.dynamic()
     if run(command).err.bool()
@@ -63,8 +63,7 @@ service all()
 
 service main()
     tic = time()
-    all().err // force synchronize by waiting for the error code
+    all().err // force synchronization by waiting for the error code
     printin("Completed in ")
     printin(time()-tic)
     print(" sec")
-    end

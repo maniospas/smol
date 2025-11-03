@@ -33,6 +33,12 @@ def Heap(nominal)
 
 union MemoryDevice = Stack or Heap
 
+def MB(u64 value)
+    return 1048576*value
+
+def KB(u64 value)
+    return 1024*value
+
 def ContiguousMemory (
     nominal type,
     u64 size,

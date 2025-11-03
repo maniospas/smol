@@ -2,24 +2,18 @@
 @include std.mem
 
 // TODO: if we can make this work properly, we have finished implementing buffers properly
-
-def move(@mut str from, @mut str[] buf)
-    buf.push(from)
-    from = "".str()
-
-def HTML(nominal, @mut str[] contents)
+def HTML(nominal, @mut char[] output_buffer)
     @mut to_close = str[]
-    return @args, to_close
+    return @args, to_close, output_buffer
 
-def div(@access @mut HTML doc)
-    doc.contents.push("<div>":str)
-    doc.to_close.push("<div>":str)
+def new(@access @mut HTML doc, str _element)
+    element = _element.str()
+    doc.to_close.push(element)
 
-def e(@access @mut HTML doc)
-    //doc.to_close[doc.to_close.len()] .= doc.contents
-    return ok
+// def end(@access @mut HTML doc)
+//     doc.contents.pop()
 
-def div(@access @mut HTML doc)
-    //doc.contents.push("<div>".str())
-    //doc.to_close.push("<div>".str())
-    return ok
+service main()
+    @mut buf = char[Heap.allocate(MB(1))]
+    @mut doc = nominal.HTML(buf)
+    new(doc, "div")
