@@ -15,66 +15,95 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 // IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 
-@unsafe
-@about 
-"Standard library implementation of vectors that are allocated with safe memory management but use C pointers for element access."
-@about Vec   
-"Represents a vector stored on contiguous memory. Prefer using the <code>vector</code> initializer, which can also generate vectors "
-"from random number generators. Vectors always hold f64 to ensure that invalid computations are stored as NaNs. They are also "
-"tailored for scientific use, so implementations aim to cut even the smallest corners without compromising safety. Use buffers to work "
-"with collections of u64 data instead."
-@about vector 
-"Initializes a vector by using a provided memory allocator. The generated vector is zero-initialized. "
-"You can also provide a Rand random state imported from <code>std.rand</code> to initialize with uniformly random values in [0,1]. "
-"Example of generating a vector of 10 zero elements:<pre>vec = Heap:dynamic:vector(10)</pre>"
-@about print 
-"Prints a vector to the console. To avoid large prints, at most the first 10 elements are printed."
-@about slice 
-"Slices a vector from a given to an ending position. This is a transparent view of vector data."
-@about add
-"Adds two vectors element-by-element and stores the result on either a third mutable vector also of the same size, or on a "
-"newly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
-"the required space. Example where an <code>on</code> context is used to allow operator overloading:"
-"<pre>@mut rnd = Rand()\non Heap:dynamic"
-"\n    v1 = rnd:vector(10)"
-"\n    v2 = rnd:vector(10)"
-"\n    v3 = v1+v2"
-"\n    end</pre>"
-@about mul
-"Multiplies two vectors element-by-element and stores the result on either a third mutable vector also of the same size, or on a "
-"newly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
-"the required space. Example where an <code>on</code> context is used to allow operator overloading:"
-"<pre>@mut rnd = Rand()\non Heap:dynamic"
-"\n    v1 = rnd:vector(10)"
-"\n    v2 = rnd:vector(10)"
-"\n    v3 = v1*v2"
-"\n    end</pre>"
-@about sub
-"Subtracts two vectors element-by-element and stores the result on either a third mutable vector also of the same size, or on a "
-"newly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
-"the required space. Example where an <code>on</code> context is used to allow operator overloading:"
-"<pre>@mut rnd = Rand()\non Heap:dynamic"
-"\n    v1 = rnd:vector(10)"
-"\n    v2 = rnd:vector(10)"
-"\n    v3 = v1-v2"
-"\n    end</pre>"
-@about div
-"Divides two vectors element-by-element and stores the result on either a third mutable vector also of the same size, or on a "
-"newly allocated one in the provided memory. This fails if vector sizes are incompatible, or if the provided Memory cannot allocate "
-"the required space. Division may create NaN values. Example where an <code>on</code> context is used to allow operator overloading:"
-"<pre>@mut rnd = Rand()\non Heap.dynamic()"
-"\n    v1 = rnd.vector(10)"
-"\n    v2 = rnd.vector(10)"
-"\n    v3 = v1/v2"
-"\n    end</pre>"
-@about len
-"Retrieves the length of a vector."
-@about at
-"Retrieves a specific f64 element from a vector. This overloads the element access operation like this:<pre>vec = Rand():vector(Heap.dynamic(), 10)\nprint(vev[0])</pre>"
-
 @include std.core
 @include std.rand
 @include std.mem
+@unsafe
+
+@about 
+"Standard library implementation of vectors that are allocated with safe "
+"memory management but use C pointers for element access."
+
+@about Vec   
+"Represents a vector stored on contiguous memory. Prefer using the "
+"<code>vector</code> initializer, which can also generate vectors from "
+"random number generators. Vectors always hold f64 to ensure that invalid "
+"computations are stored as NaNs. They are also tailored for scientific "
+"use, so implementations aim to cut even the smallest corners without "
+"compromising safety. Use buffers to work with collections of u64 data "
+"instead."
+
+@about vector 
+"Initializes a vector by using a provided memory allocator. The generated "
+"vector is zero-initialized. You can also provide a Rand random state "
+"imported from <code>std.rand</code> to initialize with uniformly random "
+"values in [0,1]. Example of generating a vector of 10 zero elements:"
+"<pre>vec = Heap.dynamic().vector(10)</pre>"
+
+@about print 
+"Prints a vector to the console. To avoid large prints, at most the first "
+"10 elements are printed."
+
+@about slice 
+"Slices a vector from a given to an ending position. This is a transparent "
+"view of vector data."
+
+@about add
+"Adds two vectors element-by-element and stores the result on either a "
+"third mutable vector also of the same size, or on a newly allocated one "
+"in the provided memory. This fails if vector sizes are incompatible, or "
+"if the provided Memory cannot allocate the required space. Example where "
+"an <code>on</code> context is used to allow operator overloading:"
+"<pre>@mut rnd = Rand()\non Heap:dynamic"
+"\n    v1 = rnd.vector(10)"
+"\n    v2 = rnd.vector(10)"
+"\n    v3 = v1+v2</pre>"
+
+@about mul
+"Multiplies two vectors element-by-element and stores the result on either "
+"a third mutable vector also of the same size, or on a newly allocated one "
+"in the provided memory. This fails if vector sizes are incompatible, or if "
+"the provided Memory cannot allocate the required space. Example where an "
+"<code>on</code> context is used to allow operator overloading:"
+"<pre>@mut rnd = Rand()"
+"\non Heap.dynamic()"
+"\nv1 = rnd.vector(10)"
+"\nv2 = rnd.vector(10)"
+"\nv3 = v1*v2</pre>"
+
+@about sub
+"Subtracts two vectors element-by-element and stores the result on either a "
+"third mutable vector also of the same size, or on a newly allocated one in "
+"the provided memory. This fails if vector sizes are incompatible, or if the "
+"provided Memory cannot allocate the required space. Example where an <code>on</code> "
+"context is used to allow operator overloading:"
+"<pre>@mut rnd = Rand()"
+"\non Heap.dynamic()"
+"\nv1 = rnd:vector(10)"
+"\nv2 = rnd:vector(10)"
+"\nv3 = v1-v2</pre>"
+
+@about div
+"Divides two vectors element-by-element and stores the result on either a "
+"third mutable vector also of the same size, or on a newly allocated one in "
+"the provided memory. This fails if vector sizes are incompatible, or if the "
+"provided Memory cannot allocate the required space. Division may create N"
+"aN values. Example where an <code>on</code> context is used to allow operator "
+"overloading:"
+"<pre>@mut rnd = Rand()"
+"\non Heap.dynamic()"
+"\nv1 = rnd.vector(10)"
+"\nv2 = rnd.vector(10)"
+"\nv3 = v1/v2</pre>"
+
+@about len
+"Retrieves the length of a vector."
+
+@about at
+"Retrieves a specific f64 element from a vector. This overloads the element "
+"access operation like this:"
+"<pre>vec = Rand().vector(Heap.dynamic(), 10)"
+"\nprint(vev[0])</pre>"
 
 def Vec(nominal, ptr contents, u64 size, ptr surface) 
     return @args

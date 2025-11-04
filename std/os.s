@@ -19,10 +19,13 @@
 @include std.core
 @include std.mem
 @unsafe
+
 @about
 "Standard library wrapping of C system calls and of process management using C popen."
+
 @about Process
 "A running process whose stdout can be read as a file-like object."
+
 @about open        
 "Opens a Process given a command string. This starts the process and lets you read its output."
 "When the process is eventually released, services fail if there is pending "
@@ -35,9 +38,15 @@
 "\nservice main()"
 "\n    run(\"invalid command\").err.assert_ok() // synchronize"
 "</pre>"
-@about to_end      "Reads all remaining output from the process without storing it."
-@about next_chunk  "Reads the next chunk of process output into a provided buffer."
-@about next_line   "Reads the next line of process output into a provided buffer."
+
+@about to_end
+"Reads all remaining output from the process without storing it."
+
+@about next_chunk
+"Reads the next chunk of process output into a provided buffer."
+
+@about next_line
+"Reads the next line of process output into a provided buffer."
 
 def Process(nominal, ptr contents)
     @noborrow

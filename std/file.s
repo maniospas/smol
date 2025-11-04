@@ -20,18 +20,25 @@
 @include std.core.err
 @include std.mem
 @unsafe
-@about "Standard library implementation of file management that uses the C filesystem."
+
+@about 
+"Standard library implementation of file management that uses the C filesystem."
+
 @about ReadFile
 "An opened file that is meant to be read only."
+
 @about WriteFile
 "An opened file that is meant to be read or written."
+
 @about File
 "A union between file types that allows common reading and positioning operations."
+
 @about open
-"Opens a File given a String path. There might be service failure due to external factors. Opening a WriteFile, "
-"may also cause failure if it already exists - in that case remove it first and it will be created. "
-"On the other hand, a ReadFile must already exist to be opened. "
-"Files must be set as mutable variables to allow reads and writes. Otherwise, only a few operations become available."
+"Opens a File given a String path. There might be service failure due to external "
+"factors. Opening a WriteFile, may also cause failure if it already exists - in "
+"that case remove it first and it will be created. On the other hand, a ReadFile "
+"must already exist to be opened. Files must be set as mutable variables to allow "
+"reads and writes. Otherwise, only a few operations become available."
 "\n\nExample for overwriting a file:"
 "<pre>if is_file(\"hi.txt\")"
 "\n    then remove_file(\"hi.txt\")"
@@ -39,41 +46,54 @@
 "\nfile:print(\"Hello world!\")"
 "\n@release file // early release closes the file"
 "\n</pre>"
+
 @about to_start
-"Go to the beginning of a File. You can continue reading or writing from there. This may cause service failure "
-"due to external factors."
+"Go to the beginning of a File. You can continue reading or writing from there. This "
+"may cause service failure due to external factors."
+
 @about to_end
-"Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more sense to just close the latter. "
-"Returns a boolean indicating a successful operation."
+"Go to the end of a WriteFile. This is not implemented for ReadFile, as it makes more "
+"sense to just close the latter. Returns a boolean indicating a successful operation."
+
 @about len
-"Computes the size of a File in bytes. This tries to leverage operating system metadata first, but if it fails it explicitly reads through the file once."
+"Computes the size of a File in bytes. This tries to leverage operating system metadata "
+"first, but if it fails it explicitly reads through the file once."
+
 @about print
 "Writes a string on a WriteFile."
+
 @about temp
-"Creates a WriteFile of a given size that is constrained to fixed memory provided by a Memory allocator. "
-"\n\nDue to safety mechanisms provided by operating systems, operations on this file may be slower than simple memory read and writes. "
-"If the operating system does not properly support memory mapped files, this may even end up consuming disk storage space of "
-"up to the given size by being stored as a temporary file. In general, reads and writes (with print) will be at most as slow as a normal "
-"file, with the contract that data cannot be recovered after termination. Some operating systems require manual deletion of "
-"temporary file folders if systems are abruptly powered off. This type of file should be mostly used to store temporary data or for "
-"testing purposes.\n\nExample usage:"
+"Creates a WriteFile of a given size that is constrained to fixed memory provided by a "
+"Memory allocator. "
+"\n\nDue to safety mechanisms provided by operating systems, operations on this file may "
+"be slower than simple memory read and writes. If the operating system does not properly "
+"support memory mapped files, this may even end up consuming disk storage space of up to "
+"the given size by being stored as a temporary file. In general, reads and writes (with "
+"print) will be at most as slow as a normal file, with the contract that data cannot be "
+"recovered after termination. Some operating systems require manual deletion of temporary "
+"file folders if systems are abruptly powered off. This type of file should be mostly "
+"used to store temporary data or for testing purposes.\n\nExample:"
 "<pre>on Heap.dynamic() // allocator for the file"
 "\n@mut f = WrteFile.temp(1024)"
 "\nf.print(\"hello from withing a temp file!\")"
 "\nf.to_start()"
 "\nf.next_line(@mut u64 line)"
 "\nprint(line)</pre>"
+
 @about next_chunk
-"Reads the next chunk of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
-"Here is an example where volatile memory is used to avoid repeated or large allocations:"
+"Reads the next chunk of a file while using it as an iterator. It accommodates Arena, "
+"Circular, and Volatile memories. Here is an example where volatile memory is used to "
+"avoid repeated or large allocations:"
 "<pre>on Heap:volatile(1024)"
 "\nReadFile"
 "\n.open(\"README.md\")"
 "\n.while next_chunk(@mut str chunk)"
 "\n    then print(chunk)</pre>"
-@about next_line 
-"Reads the next line of a file while using it as an iterator. It accomodates Arena and Volatile memories. "
-"Here is an example where volatile memory is used to avoid repeated or large allocations:"
+
+@about next_line
+"Reads the next line of a file while using it as an iterator. It accommodates Arena, "
+"Circular,  and Volatile memories. Here is an example where volatile memory is used "
+"to avoid repeated or large allocations:"
 "<pre>endl=\"n\".str().first // optimized to just setting the new line character"
 "\non Heap:volatile(1024)"
 "\nReadFile(\"README.md\")"
@@ -82,16 +102,24 @@
 "\n    if line[line:len-1]==endl"
 "\n         then line = line[0 to line:len-1]"
 "\n    then print(line)</pre>"
+
 @about ended
-"Checks if the ending of the file has been reached. This is normal to be true for WriteFile."
+"Checks if the ending of the file has been reached. This is normal to be true for "
+"WriteFile."
+
 @about is_file
 "Checks if a String path is a file system file."
+
 @about is_dir
 "Checks if a String path is a file system directory."
+
 @about create_dir
-"Creates a directory given a String path. May cause service failure due to external factors, or if the directory already exists."
+"Creates a directory given a String path. May cause service failure due to external "
+"factors, or if the directory already exists."
+
 @about remove_file
-"Deletes a file from the system. May cause service failure due to external factors, or if the file is already open."
+"Deletes a file from the system. May cause service failure due to external factors, "
+"or if the file is already open."
 
 def ReadFile(nominal, ptr contents)
     @noborrow

@@ -17,12 +17,29 @@
 
 @include std.mem.device
 @unsafe
-@about "Standard library implementation of arena allocation, marked as @noborrow but unsafely returned from constructors. Pointer arithmetics yield offsets within arenas."
-@about Arena    "A fixed-sized arena that can be cleared. Data stored on this could be zero-initialized."
-@about Circular "A fixed-sized arena that cannot be cleared. Data stored on this could be zero-initialized."
-@about arena    "Allocates an Arena buffer of given size on the given Memory. Allocations on this can be shared and corrupted."
-@about circular "Allocates a Circular buffer a of given size on the given Memory. Allocations on this can be shared and corrupted."
-@about clear    "Clears an Arena or Circular arena by resetting its occupied length to zero. This can overwrite."
+
+@about
+"Standard library implementation of arena allocation. Pointer arithmetics yield "
+"offsets within arenas."
+
+@about Arena
+"A fixed-sized arena that can be cleared. Data stored on this could be zero-initialized."
+
+@about Circular 
+"A fixed-sized arena that can be cleared and circularly corrupted. Data stored on this "
+"could be zero-initialized."
+
+@about arena
+"Allocates an Arena buffer of given size on the given Memory. Allocations on this can be "
+"shared and corrupted."
+
+@about circular 
+"Allocates a Circular buffer a of given size on the given Memory. Allocations on this can "
+"be shared and corrupted."
+
+@about clear
+"Clears an Arena or Circular arena by resetting its occupied length to zero. This can "
+"lead to overwriting previous data."
 
 def Arena(nominal type, ContiguousMemory contents)
     length = 0 

@@ -25,17 +25,24 @@
 @install std.rayget
 
 @unsafe
+
 @about
 "Raylib wrapper for smoλ providing window, input and drawing primitives."
+
 @about open
 "Opens a raylib Window"
+
 @about is_open
 "Checks if a raylib Window is open"
+
 @about Color   
-"Ensure that a tuple of four u64 RGBA values form an existing color by being in the range 0..255."
-"An RGB variation with three inputs creates a non-opaque color (with 255 alpha)."
+"Ensure that a tuple of four u64 RGBA values form an existing color by being "
+"in the range 0..255. An RGB variation with three inputs creates a non-opaque "
+"color (with 255 alpha)."
+
 @about Position
 "Packs a 2D position of f64 coordinates"
+
 @about Size
 "Packs a 2D size of f64 dimensions"
 @about text
@@ -59,13 +66,13 @@
 
 def Color(u64 r, u64 g, u64 b, u64 a)
     if r>255 
-        then fail("Color r greater than 255")
+        fail("Color r greater than 255")
     if g>255 
-        then fail("Color g greater than 255")
+        fail("Color g greater than 255")
     if b>255 
-        then fail("Color b greater than 255")
+        fail("Color b greater than 255")
     if a>255 
-        then fail("Color a greater than 255")
+        fail("Color a greater than 255")
     return @args
 
 def Position(f64 x, f64 y)
@@ -97,13 +104,15 @@ def is_open(@mut Window)
     return ret.not()
 
 def begin(@access @mut Window window)
-    if window.ready then fail("Window.begin() already called without closing it with Window.end()")
+    if window.ready 
+        fail("Window.begin() already called without closing it with Window.end()")
     window.ready = true
     @body{ BeginDrawing(); }
     return window
 
 def end(@access @mut Window window)
-    if window.ready.not() then fail("Window.begin() must be called before a matching Window.end()")
+    if window.ready.not() 
+        fail("Window.begin() must be called before a matching Window.end()")
     window.ready = false
     @body{ EndDrawing(); }
     return window
@@ -160,7 +169,8 @@ def circ(@mut Window window, Position pos, f64 radius, Color color)
         DrawCircleV(
             (Vector2){(float)pos__x, (float)pos__y}, 
             (float)radius,
-            (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a});
+            (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}
+        );
     }
     return window
 

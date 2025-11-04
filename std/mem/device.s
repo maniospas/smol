@@ -18,12 +18,51 @@
 @include std.core.num
 @include std.core.err
 @unsafe
-@about "Standard library implementation of memory management that accounts for the stack and heap and depends on the runtime.h implementation of heap memory, and GCC implementation of alloca. Stack allocations cannot be returned from services, as the stack is pruned when programming function calls end. Def-based functions are inlined within services, so it is fine to return stack allocations from them."
-@about Stack        "Represents call stack memory. Allocating on this is near-zero cost by being just an arithmetic addition. But its total size is limited - typically up to a few megabytes. Prefer this for small localized data that need to be processed exceedingly fast."
-@about Heap         "Random access memory (RAM) that can be allocated with __runtime_alloc. Writing to it and reading from it can be slow for programs that keep. Modern processors optimize heap usage by prefetching and caching nearby areas as the ones you access. For this reason, prefer creating Arena regions when you have a sense of the exact amount of data you will need. Allocating on the heap can leak memory under certain conditions, but the language's safety mechanism prevents this. Use other allocators in those cases. The standard library provides a Dynamic type that also accesses several heap allocations, though with an additional level of indirection. "
-@about MemoryDevice "Refers to either stack or heap memory."
-@about allocate     "Allocates memory on a predetermined device given a number of entries. Other standard library overloads implement allocation for more memory types, derived from the devices. Allocations throughout the standard library track the raw allocated memory so that usage is finally released only when the last dependent variable (e.g., the last string allocated on a heap arena) is no longer used. See ContiguousMemory."
-@about ContiguousMemory "Represents allocated memory management. It keeps track of both currently used pointer addresses, for example if these are offsets of allocated base pointers with finally segments calling __runtime_free on those, and the underlying pointer addresses. Importantly, not all this information is retained after compilation, as most of it -perhaps all- is optimized away. But this structure still helps the compiler organize where to place memory releases, if needed. Users of the standard library will not generally work with this type, as it is highly unsafe to get its pointer fields and requires annotation for the language to allow that."
+@about 
+"Standard library implementation of memory management that accounts for the "
+"stack and heap and depends on the runtime.h implementation of heap memory, "
+"and GCC implementation of alloca. Stack allocations cannot be returned from "
+"services, as the stack is pruned when programming function calls end. "
+"Def-based functions are inlined within services, so it is fine to return "
+"stack allocations from them."
+
+@about Stack
+"Represents call stack memory. Allocating on this is near-zero cost by being "
+"just an arithmetic addition. But its total size is limited - typically up to "
+"a few megabytes. Prefer this for small localized data that need to be processed "
+"exceedingly fast. Arena allocators are a close second in terms in performance."
+
+@about Heap
+"Random access memory (RAM) that can be allocated with __runtime_alloc. Writing "
+"to it and reading from it can be slow for programs that keep. Modern processors "
+"optimize heap usage by prefetching and caching nearby areas as the ones you "
+"access. For this reason, prefer creating Arena regions when you have a sense of "
+"the exact amount of data you will need. Allocating on the heap can leak memory "
+"under certain conditions, but the language's safety mechanism prevents this. Use "
+"other allocators in those cases. The standard library provides a Dynamic type "
+"that also accesses several heap allocations, though with an additional level of "
+"indirection. "
+
+@about MemoryDevice
+"Refers to either stack or heap memory."
+
+@about allocate
+"Allocates memory on a predetermined device given a number of entries. Other "
+"standard library overloads implement allocation for more memory types, derived from "
+"the devices. Allocations throughout the standard library track the raw allocated "
+"memory so that usage is finally released only when the last dependent variable "
+"(e.g., the last string allocated on a heap arena) is no longer used. See "
+"ContiguousMemory."
+
+@about ContiguousMemory 
+"Represents allocated memory management. It keeps track of both currently used pointer "
+"addresses, for example if these are offsets of allocated base pointers with finally "
+"segments calling __runtime_free on those, and the underlying pointer addresses. "
+"Importantly, not all this information is retained after compilation, as most of it "
+"-perhaps all- is optimized away. But this structure still helps the compiler organize "
+"where to place memory releases, if needed. Users of the standard library will not "
+"generally work with this type, as it is highly unsafe to get its pointer fields and "
+"requires annotation for the language to allow that."
 
 def Stack(nominal)
     return @args 
@@ -74,4 +113,4 @@ def allocate(@access Stack, u64 size)
     @noshare mem
     return nominal.ContiguousMemory(size, mem, mem)
 
-def file_end() // TODO: find why imports fail without this
+def __device_file_end() // TODO: find why imports fail without this

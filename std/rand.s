@@ -22,24 +22,43 @@
 // The same license is applied to changes.
 
 @unsafe
+
 @about 
-"Standard library porting Xoshiro256plus random numbers from https://prng.di.unimi.it/. These and are NOT cryptographically secure."
+"Standard library porting Xoshiro256plus random numbers from "
+"https://prng.di.unimi.it/. These and are NOT cryptographically secure."
+
 @about Rand
-"This a structural type for storing the progress of random number generators on four u64 state fields. "
-"It can be initialized with an optional seed, which defaults to a time-based initialization if not provided. Its period is 2^256-1.<br><br>"
-"For safety against sharing random implementations between services or repeatedly initializing them, state "
-"variables are marked as a leaking resource. The whole data type is marked as @noborrow too, to prevent sharing mutable random states across "
-"different services. These safety mechanisms help safeguard speed and prevent common mistakes, for example by making impossible to directly "
+"This a structural type for storing the progress of random number generators "
+"on four u64 state fields. It can be initialized with an optional seed, which "
+"defaults to a time-based initialization if not provided. Its period is 2^256-1."
+"<br><br>"
+"For safety against sharing random implementations between services or repeatedly "
+"initializing them, state variables are marked as a leaking resource. The whole "
+"data type is marked as @noborrow too, to prevent sharing mutable random states "
+"across different services. These safety mechanisms help safeguard speed and "
+"prevent common mistakes, for example by making impossible to directly "
 "re-initialize Rand in each loop to get a next number."
+
 @about next
-"Computes the next random number of a Rand sequence."
-"Example:<pre>@mut rnd = Rand()\nrange(10)\n:while next(@mut u64 i)\n    print(rnd:next)\n    end</pre>"
+"Computes the next random number of a Rand sequence. Example:"
+"<pre>@mut rnd = Rand()"
+"\nrange(10)"
+"\n.while next(@mut u64 i)"
+"\n    print(rnd.next())</pre>"
+
 @about splitmix64 
-"Computes the next random number of a splitmix64 sequence using the mutable unsigned int argument as state to be updated. "
-"This is NOT cryptographically secure and also has small period of 2^64 so usage is not recommended for long-running sequences."
-"It is, however, faster than computing a next Rand state with next. If you do not provide a seed, a number obtained from the current "
-"time is provided. That can only be the start of a sequence, and marked as a leaking resource to prevent time-based randomization (which is not random)."
-"Example:<pre>@mut rnd = splitmix64()\nrange(10)\n:while next(@mut u64 i)\n    print(rnd:splitmix64) // rnd is the state, the result is f64\n    end</pre>"
+"Computes the next random number of a splitmix64 sequence using the mutable "
+"unsigned int argument as state to be updated. This is NOT cryptographically "
+"secure and also has small period of 2^64 so usage is not recommended for "
+"long-running sequences. It is, however, faster than computing a next Rand "
+"state with next. If you do not provide a seed, a number obtained from the "
+"current time is provided. That can only be the start of a sequence, and "
+"marked as a leaking resource to prevent time-based randomization (which is "
+"not random). Example:"
+"<pre>@mut rnd = splitmix64()"
+"\nrange(10)"
+"\n.while next(@mut u64 i)"
+"\n    print(rnd.splitmix64()) // rnd is the state, the result is f64</pre>"
 
 def __rotl(u64 x, u64 k)
     @body{u64 z = (x << k) | (x >> (64 - k));}
