@@ -238,7 +238,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
         if(!val.exists() || !contains(val))
             imp->error(prev_p, "Expression does not yield a value for buffer assignment");
         if(vars[val].get() != buffer_types[next].get())
-            imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching is allowed.\nExpected "
+            imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching is allowed. Expected "
                 +buffer_types[next]->signature(types)+" but got "
                 +vars[val]->signature(types)
             );

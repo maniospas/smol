@@ -25,22 +25,37 @@
 @install std.rayget
 
 @unsafe
-@about "Raylib wrapper for smoλ providing window, input and drawing primitives."
-@about open    "Opens a raylib Window"
-@about is_open "Checks if a raylib Window is open"
-@about Color   "Ensure that a tuple of four u64 RGBA values form an existing color by being in the range 0..255."
-               "An RGB variation with three inputs creates a non-opaque color (with 255 alpha)."
-@about Position "Packs a 2D position of f64 coordinates"
-@about Size     "Packs a 2D size of f64 dimensions"
-@about text     "Draw at given position a String of given size and color"
-@about draw     "Draws a texture at specific coordinates and size"
-@about begin    "Begin drawing a new scene instance - must be followed by an end"
-@about end      "End drawing of a new scene instance"
-@about clear    "Clears the window's contents with given color"
-@about circ     "Draws at given position a circle of given f64 radius"
-@about rect     "Draws at given position a rectangle of given size"
-@about circ_line "Draws at given position a circle's outline for given f64 radius and thickness"
-@about rect_line "Draws at given position a rectangle's outline for a given size and f64 thickness"
+@about
+"Raylib wrapper for smoλ providing window, input and drawing primitives."
+@about open
+"Opens a raylib Window"
+@about is_open
+"Checks if a raylib Window is open"
+@about Color   
+"Ensure that a tuple of four u64 RGBA values form an existing color by being in the range 0..255."
+"An RGB variation with three inputs creates a non-opaque color (with 255 alpha)."
+@about Position
+"Packs a 2D position of f64 coordinates"
+@about Size
+"Packs a 2D size of f64 dimensions"
+@about text
+"Draw at given position a String of given size and color"
+@about draw
+"Draws a texture at specific coordinates and size"
+@about begin
+"Begin drawing a new scene instance - must be followed by an end"
+@about end
+"End drawing of a new scene instance"
+@about clear
+"Clears the window's contents with given color"
+@about circ
+"Draws at given position a circle of given f64 radius"
+@about rect
+"Draws at given position a rectangle of given size"
+@about circ_line 
+"Draws at given position a circle's outline for given f64 radius and thickness"
+@about rect_line 
+"Draws at given position a rectangle's outline for a given size and f64 thickness"
 
 def Color(u64 r, u64 g, u64 b, u64 a)
     if r>255 

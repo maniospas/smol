@@ -40,7 +40,7 @@ Variable Def::parse_buffer_put(size_t& p, Types& types, Variable curry, size_t f
     if(!val.exists() || !contains(val)) 
         imp->error(prev_p, "Expression does not yield a value within put");
     if(vars[val].get() != buffer_types[curry].get())
-        imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching is allowed.\nExpected "
+        imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching is allowed. Expected "
             +buffer_types[curry]->signature(types)+" but got "
             +vars[val]->signature(types)
         );

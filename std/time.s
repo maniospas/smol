@@ -19,8 +19,10 @@
 @include std.core.err
 
 @unsafe
-@about "Standard library wrapping of C time (provided by posix time.h or windows.h)."
-@about time  "Retrieve time elapsed from the start of the program in f64 seconds."
+@about
+"Standard library wrapping of C time (provided by posix time.h or windows.h)."
+@about time
+"Retrieve time elapsed from the start of the program in f64 seconds."
 @about sleep 
 "Make the current service wait for AT LEAST a number of f64 seconds."
 "\n\nWhile yielding, other services may be called asynchronously to fill in "

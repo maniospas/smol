@@ -17,7 +17,8 @@
 
 @include std.core.num
 @unsafe
-@about "Standard library wrapping of C math operations."
+@about 
+"Standard library wrapping of C math operations."
 
 def cos(f64 x)
     @head{#include <math.h>}

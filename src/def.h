@@ -261,7 +261,7 @@ public:
     unordered_map<Variable, bool> has_been_retrieved_as_immutable;
     unordered_map<Variable, Code> finals;              // resource closing code (transferred around)
     unordered_map<Variable, Type> parametric_types;    // type name resolution in signature (all argument types - even those not overloaded)
-    unordered_map<Variable, unsigned long> alignments; // the type id that `nom` vlues represent
+    unordered_map<Variable, unsigned long> alignments; // the type id that `nom` values represent
     unordered_set<Variable> mutables;
     vector<UpliftingStatus> uplifting;
     
@@ -324,6 +324,7 @@ public:
     bool can_mutate(const Variable& _text, size_t p);
     void assert_compatible(const Variable& original, const Type& type, size_t p);
     bool can_mutate_any_assigned(const Variable& original, size_t p);
+    Type extract_buffer_type(const Variable& var, size_t p);
     
     // various types of exports
     string signature_like(Types& types, vector<Variable> args);

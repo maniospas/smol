@@ -81,6 +81,40 @@ void Def::notify_release(const Variable& original) {
         released[name] = true;
 }
 
+Type Def::extract_buffer_type(const Variable& original, size_t p) {
+    unordered_set<Variable> visited;
+    queue<Variable> q;
+    unordered_set<Variable> group;
+    q.push(original);
+    visited.insert(original);
+    while(!q.empty()) {
+        auto var = q.front();
+        q.pop();
+        group.insert(var);
+        if(current_renaming.count(var)) {
+            Variable next = current_renaming[var];
+            if(visited.insert(next).second) 
+                q.push(next);
+        }
+        for(const auto& [k, v] : current_renaming) 
+            if(v == var && visited.insert(k).second) 
+                q.push(k);
+    }
+    auto found = Type{nullptr};
+    for (const Variable& name : group) {
+        auto it = buffer_types.find(name);
+        if (it != buffer_types.end()) {
+            if (!found.get())
+                found = it->second;
+            else if (found.get() != it->second.get())
+                imp->error(p - 1, "Mismatching buffer types.\nThe same memory has been accessed as a different kind of buffer before.");
+        }
+    }
+    return found;
+}
+
+
+
 void Def::assert_compatible(const Variable& original, const Type& type, size_t p) {
     if(imp->allow_unsafe)
         return;

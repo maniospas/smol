@@ -295,6 +295,20 @@ Variable Def::call_type(
         );
     if(type->lazy_compile) 
         imp->error(pos, "Internal error: Function has not been compiled");
+
+    
+    // check buffer type compatibility
+    if(!type->_is_primitive)
+        for (size_t i = 0; i < unpacks.size(); ++i) {
+            auto expected = type->extract_buffer_type(type->args[i].name, p-1);
+            auto actual = extract_buffer_type(unpacks[i], p-1);
+            if (expected.get() && actual.get() != expected.get() && actual.get())
+                imp->error(p-1, "The same memory has been accessed as a different kind of buffer before. " 
+                    + pretty_var(unpacks[i].to_string())
+                    + "\nInternal usage: "+expected->signature(types)
+                    + "\nBut got: "+actual->signature(types)
+                );
+        }
     
     // singleton resources should never be called twice in a program
     for(const auto& singleton : type->singletons) 
@@ -318,7 +332,7 @@ Variable Def::call_type(
                 );
     }
 
-    // repeat here to properly handle alignment (which we couldn't previously)
+    // repeat here to properly handle nominal alignment (which we couldn't previously)
     for(size_t i=0;i<unpacks.size();++i) {
         auto arg_type = type->_is_primitive?type:type->args[i].type;
         if(type->not_primitive() && arg_type->not_primitive()) 
