@@ -429,7 +429,7 @@ Variable Def::call_type(
     if(uplifting.size() && uplifting.back().is_loop && type->finals.size()) {
         auto desc = string{""};
         for(const auto& it : transferring) 
-            if(it.first.exists() && it.second.exists()) 
+            if(it.first.exists() && it.second.exists() && (!finals.contains(it.first) || finals[it.first]!=it.second))
                 desc += "\n- "+pretty_var(type->name.to_string()+"__"+it.first.to_string());
         if(desc.size()) 
             imp->error(--p, "Loop cannot call: "

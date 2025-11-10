@@ -149,7 +149,8 @@ def nstr(@access @mut Memory allocator, f64 number)
     return nominal.nstr(contents, length, first, mem.underlying)
 
 def str(@access ContiguousMemory region)
-    return nominal.str(region.mem, region.size, char[region].expect(1)[0], region.underlying)
+    @body{char first=region__size?((char*)region__mem)[0]:0;}
+    return nominal.str(region.mem, region.size, first, region.underlying)
 
 def str(@access ContiguousMemory region, u64 size)
     if size>=region.size

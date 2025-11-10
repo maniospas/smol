@@ -399,6 +399,9 @@ def getch()
     @body{i64 ch = __smo_next_key_press();}
     return nominal.key(ch)
 
+def is_enter(key input)
+    return input.data==i64(10)
+
 def is_left(key input)
     return input.data==i64(1792836)
     
@@ -428,3 +431,8 @@ def to_char(key input)
     if(input.data<i64(0))or(input.data>=i64(255)) 
         @fail{printf("Cannot convert a non-character key input to a characters\n");}
     return char(input.data)
+
+def is_printable(key input)
+    // Printable ASCII range: 32 (' ') to 126 ('~')
+    ret = (input.data>=i64(32))and(input.data<=i64(126))
+    return ret
