@@ -2,7 +2,7 @@
 @include std.os
 
 service main()
-    @mut memory = Stack.allocate(4096)
+    @mut memory = Heap.allocate(4.KB())
     @mut memory_characters = char[memory].expect(128)
     @mut size = 0
     @mut running = true
