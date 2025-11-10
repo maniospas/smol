@@ -42,7 +42,7 @@
 "Memory allocators. These are not necessarily null-terminated, so use nstr if that "
 "is important."
 
-@about str
+@about nstr
 "Provides methods for converting numbers to strings that are stored on provided "
 "Memory allocators. The result is a null-terminated nstr."
 
@@ -68,6 +68,9 @@ def add(@access @mut Memory allocator, String _x, IndependentString _y)
         char first = x__length?x__first:y__first;
     }
     mem = allocator.allocate(total_len+1)
+    @body{bool would_corrupt = ((char*)x__memory>=((char*)mem__mem) && (char*)x__memory<=((char*)mem__mem)+len_x) || (((char*)y__memory)+len_x>=((char*)mem__mem) && (char*)y__memory<=((char*)mem__mem)+total_len);}
+    if would_corrupt
+        @fail{printf("String concatenation would corrupt one of the operands due to writing on its memory region - consider larger or non-overlapping circular buffers or arenas.\n");}
     _contents = mem.mem
     @body{
         memcpy((char*)_contents, (char*)x__contents, len_x);

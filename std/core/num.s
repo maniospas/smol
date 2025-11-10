@@ -134,11 +134,11 @@ def print(@access f64 message)
     
 def print(@access i64 message)
     @head{#include <stdio.h>}
-    @body{printf("%ld\n", message);}
+    @body{printf("%lld\n", (long long)message);}
     
 def print(@access u64 message)
     @head{#include <stdio.h>}
-    @body{printf("%lu\n", message);}
+    @body{printf("%llu\n", (unsigned long long)message);}
     
 def print(@access bool message)
     @head{#include <stdio.h>}

@@ -64,7 +64,8 @@ def open(@access @mut Process, CString _command)
         #endif
     }
     @body{ptr contents = (ptr)popen((cstr)command, "r");}
-    if contents.exists().not() @fail{printf("Error: Failed to start process\n");} 
+    if contents.exists().not() 
+        @fail{printf("Error: Failed to start process\n");} 
     @finally contents { 
         i64 status = 0;
         if(contents) 

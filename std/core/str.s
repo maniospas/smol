@@ -190,6 +190,7 @@ def nstr (
     char first, 
     ptr memory
 )
+    @body{if(memory) (((char*)contents)[length]) = 0;}
     return @args
 
 union CString = cstr or nstr
@@ -208,7 +209,7 @@ def str(@access cstr raw)
         u64 length=strlen(raw);
         ptr contents=(ptr)raw;
         char first=raw[0];
-        ptr noptr=(ptr)noptr; // use this to indicate a cstr
+        ptr noptr=0; // use this to indicate a cstr
     }
     return nominal.str(contents, length, first, noptr)
 
@@ -218,7 +219,7 @@ def nstr(@access cstr raw)
         u64 length=strlen(raw);
         ptr contents=(ptr)raw;
         char first=raw[0];
-        ptr noptr = (ptr)noptr; // use this to indicate a cstr
+        ptr noptr = 0; // use this to indicate a cstr
     }
     return nominal.nstr(contents, length, first, noptr)
 
@@ -246,7 +247,7 @@ def print(@access cstr message)
 
 def print(@access nstr message)
     @head{#include <stdio.h>}
-    @body{printf("%s\n", (char*)message__contents);}
+    @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
 
 def print(@access str message)
     @head{#include <stdio.h>}
@@ -258,7 +259,7 @@ def printin(@access cstr message)
 
 def printin(@access nstr message)
     @head{#include <stdio.h>}
-    @body{printf("%s", (char*)message__contents);}
+    @body{printf("%.*s", (int)message__length, (char*)message__contents);}
 
 def printin(@access str message)
     @head{#include <stdio.h>}

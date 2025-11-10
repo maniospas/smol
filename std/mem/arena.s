@@ -171,3 +171,9 @@ def arena(@access @mut Memory self, u64 size)
     
 def circular(@access @mut Memory self, u64 size) 
     return nominal.Circular(self.allocate(size))
+
+def arena(@access @mut ContiguousMemory self) 
+    return nominal.Arena(self)
+    
+def circular(@access @mut ContiguousMemory self) 
+    return nominal.Circular(self)
