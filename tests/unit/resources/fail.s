@@ -3,7 +3,7 @@
     return Heap
 
 service test()
-    on Heap.dynamic()
+    @on Heap.dynamic()
     // cut off the "error message part to verify that we can properly print non-null-terminated messages
     fail(("Hi there!"+" We are manually failing but still displaying this heap-allocated error message")[0 to 60])
 

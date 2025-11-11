@@ -135,8 +135,7 @@
     <div class="sidebar-sub">
       <a href="#arguments">Arguments</a><br>
       <a href="#returns">Returns (named tuples)</a><br>
-      <a href="#errors">Error handling</a><br>
-      <a href="#recursion">Recursion</a>
+      <a href="#errors">Error handling</a>
     </div>
   </div>
 
@@ -1119,7 +1118,7 @@ service main()
     // allocate a stack arena of 1024 bytes
     @mut memory = Stack.arena(1024)
 
-    on memory
+    @on memory    // automatically apply as first argument
     v = vector(5) // calls vector(memory,5)
     print(v.len())
 </code></pre>
@@ -1155,10 +1154,10 @@ Remember that the arena's consumed memory is not released at the end of the
 @include std.vec
 
 service main()
-    on Stack.arena(1024) 
+    @on Stack.arena(1024) 
     v = vector(5)
 
-    on ok
+    @on ok // empty @on context for safety
     print(v.len())
 </code></pre>
 
@@ -1177,7 +1176,7 @@ service main()
 
 <p><b>Dynamic memory:</b>
 You can also choose to maintain a collection of dynamically allocated memory segments,
-for example by calling <code class="language-smolambda">on Heap.dynamic()</code> instead
+for example by calling <code class="language-smolambda">@on Heap.dynamic()</code> instead
 of creating an arena. If multiple of those segments are attached to the same dynamic
 allocation, they are also released together, which means that they remain allocated as 
 long as any is in use. However, you can also retain one allocation per dynamic memory.
@@ -1227,7 +1226,7 @@ def Segment(String _value)
 
 def combine(Segment[] segments)
     @mut combined = "".str()  // mutable string with known size
-    on Stack.arena(1024)      // automatically use as argument if needed (for string operations)
+    @on Stack.arena(1024)     // automatically use as argument if needed (for string operations)
     segments.len().range().while next(@mut u64 i) 
         combined = str(combined+segments[i].value+" ")
     return combined
@@ -1256,9 +1255,9 @@ I think. Therefore I am.
 <p>
 Buffers represent collections of data that grow dynamically.  
 The simplest syntax is <code class="language-smolambda">type[]</code>, which produces 
-a resizable array of that type. You can grow buffers or modify
-their elements only as long as they remain mutable. For example,
-you can create a buffer <code class="language-smolambda">v = u64[].push(1).push(2)</code>
+a resizable array of that type, though only allowed if the type is a nominal one. 
+You can grow buffers or modify their elements only as long as they remain mutable. For example,
+you can create a buffer per <code class="language-smolambda">v = u64[].push(1).push(2)</code>
 that is henceforth immutable. 
 </p>
 
@@ -1297,7 +1296,7 @@ service main()
 
 <p>
 By default, buffers use dynamically sized Heap memory to store their data. However, you can
-also create them on memory allocations created from the standard library; all types of memory
+also create them on memory allocations provided by the standard library; all types of memory
 accept an ,<code>allocate(size)</code> function for setting aside a fixed-size region, within
 which buffers can grow. Below is an example. Do note that data can be pushed onto buffers during
 their creation, while they are temporary variables -and hence mutable- and the result can be 

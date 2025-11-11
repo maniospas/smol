@@ -32,9 +32,8 @@
 "Overloads the + operator to concatenate two strings. The result is nstr, that "
 "is, a string variation that is null-terminated. Example:"
 "<pre>name = \"Mario\""
-"\non Heap.arena(1024)"
-"\n    message = \"It's a me, \"+name+\"!\""
-"\n    end"
+"\n@on Heap.arena(1024)"
+"\nmessage = \"It's a me, \"+name+\"!\""
 "\nprint(message)</pre>"
 
 @about str

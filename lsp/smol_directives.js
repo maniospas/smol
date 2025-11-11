@@ -9,6 +9,7 @@ module.exports = {
   "noassign": "prevent assignment",
   "nozero": "no zero initialization",
   "noleftover": "mandatory assignment when returned",
+  "on": "declares a variable to be prepended in calls, if needed",
   "body": "inline C/C++ code",
   "head": "C/C++ header code",
   "link": "C/C++ linker flags",

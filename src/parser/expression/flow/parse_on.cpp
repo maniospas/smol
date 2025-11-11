@@ -46,5 +46,5 @@ Variable Def::parse_on(size_t& p, Types& types, Variable curry, size_t first_tok
     // implementation +=Code(finally_var,COLON_VAR);
     // active_context = EMPTY_VAR;
     // return var;
-    return uplifting[uplifting.size()-1].context;
+    return EMPTY_VAR;//uplifting[uplifting.size()-1].context;
 }

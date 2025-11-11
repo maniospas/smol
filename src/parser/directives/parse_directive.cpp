@@ -82,6 +82,8 @@ void Def::parse_directive(size_t& p, string next, Types& types) {
         parse_directive_fail(p, next, types);
     else if(next=="release") 
         parse_directive_release(p, next, types);
+    else if(next=="on") 
+        parse_on(p, types, EMPTY_VAR, p);
     else
-        imp->error(--p, "Invalid symbol after @\nOnly @head, @body, @fail, @finally, @noshare, @release, @noborrow are allowed here.");
+        imp->error(--p, "Invalid symbol after @ (it is not a directive)");
 }

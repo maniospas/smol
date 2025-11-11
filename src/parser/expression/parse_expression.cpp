@@ -122,8 +122,6 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
         return parse_if(p, types, curry, first_token_pos);
     if(first_token=="while") 
         return parse_while(p, types, curry, first_token_pos);
-    if(first_token=="on") 
-        return parse_on(p, types, curry, first_token_pos);
     if(first_token=="case") 
         return parse_with(p, types, curry, first_token_pos);
     if(first_token=="algorithm") {

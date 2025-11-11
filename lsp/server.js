@@ -237,7 +237,6 @@ connection.onHover((params) => {
     "qed": "**qed** — completes the type check analysis of `with` alernatives and creates an error if no alternative is accepted.",
     "else": "**else** — marks an alternative branch of code.",
     "elif": "**elif** — marks an alternative branch of code that is still checked for a condition. It is equivalent to <code>else->if</code>",
-    "on": "**on** — declares a context variable, which may be prepended to all internal calls if they cannot be resolved otherwise.",
     "u64": "**u64** — unsigned 64-bit integer.",
     "i64": "**i64** — signed 64-bit integers.",
     "f64": "**f64** — 64-bit precision number.",

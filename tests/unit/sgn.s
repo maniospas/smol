@@ -10,8 +10,8 @@ def test_sgn()
 
 def test_while()
     algorithm
-        on range(10)
-        while next(@mut u64 i)
+        range(10)
+        .while next(@mut u64 i)
             if i==5 
                 return ok
             print(i)

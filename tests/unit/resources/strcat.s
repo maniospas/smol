@@ -12,21 +12,21 @@ def read_name(@mut Arena arn)
 service main()
     name = Heap.arena(24).read_name()
     
-    on Heap.dynamic()
+    @on Heap.dynamic()
     print("Hi "+name+"!")
     
-    on Stack.dynamic()
+    @on Stack.dynamic()
     print("Hi "+name+"!")
 
-    on Heap.arena(1024)
+    @on Heap.arena(1024)
     print("Hi "+name+"!")
 
-    on Stack.arena(1024)
+    @on Stack.arena(1024)
     print("Hi "+name+"!")
 
-    on Stack.circular(1024)
+    @on Stack.circular(1024)
     print("Hi "+name+"!")
 
-    on Heap.circular(1024)
+    @on Heap.circular(1024)
     print("Hi "+name+"!")
     
