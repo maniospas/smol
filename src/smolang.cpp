@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
                 string toc = "<h1 id=\"toc\">Contents</h1>\n";
                 for(auto& include : included) {
                     string display_name = include.first;
-                    if(display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")  
+                    if(display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")
                         display_name = display_name.substr(0, display_name.size() - 2);
                     display_name = regex_replace(display_name, regex("[\\\\/]"), ".");
                     string unsafe_html = "";
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
                 "#define __BUFFER__ERROR 2\n"
                 "#define __UNHANDLED__ERROR 3\n"
                 "#define __STACK__ERROR 4\n"
-                "#define __DYokMIC__ERROR 5\n"
+                "#define __DYNAMIC__ERROR 5\n"
                 "#define __TRANSIENT(message)\n" // empty
                 "#define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)\n"
                 "#ifdef __cplusplus\n"
@@ -373,8 +373,8 @@ int main(int argc, char* argv[]) {
 
             for(const string& pre : preamble) 
                 out << pre << "\n";
-            unordered_set<Type> added_services; // we track added services because somtimes services add themselves to themselves
-            for(const auto& it : included[file]->vars) 
+            unordered_set<Type> added_services; // we track added services because sometimes services add themselves to themselves
+            for(const auto& it : included[file]->vars) {
                 if(it.second->is_service) 
                     for(const auto& service : it.second->options)
                         if(!ranges::contains(added_services, it.second) && !service->lazy_compile) {
@@ -382,6 +382,7 @@ int main(int argc, char* argv[]) {
                             out << "__externc void "+service->raw_signature()+";\n";
                             added_services.insert(service);
                         }
+                    }
             Type main_service;
             // implement services
             for(const auto& service : added_services) {

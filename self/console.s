@@ -17,9 +17,8 @@ def read()
             size = size-1
         printin("\r")
         printin(mem.str(size))
-    print()
+    print("")
     return mem.str(size)
 
 service main()
-    @access ret = read()
-    print(ret)
+    print(read())

@@ -26,7 +26,7 @@
 #define __BUFFER__ERROR 2
 #define __UNHANDLED__ERROR 3
 #define __STACK__ERROR 4
-#define __DYokMIC__ERROR 5
+#define __DYNAMIC__ERROR 5
 #define __TRANSIENT(message)
 #define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)
 #ifdef __cplusplus

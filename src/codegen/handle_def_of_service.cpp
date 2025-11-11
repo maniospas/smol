@@ -104,8 +104,8 @@ void handle_def_or_service(
                 break;
         }
         --p;
-    } else {
+    } else 
         types.vars[def->name]->options.push_back(def);
-    }
-    def->assert_options_validity(p);
+    start_p++;
+    types.vars[def->name]->assert_options_validity(start_p);
 }

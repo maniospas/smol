@@ -21,9 +21,15 @@ void Def::add_linker(const string& pre) {
         linker.insert(pre);
 }
 void Def::assert_options_validity(size_t& p) {
+    bool is_service = false;
+    bool is_not_service = false;
     size_t count_nom = 0;
     size_t count_nonnom = 0;
     for(const auto& it : options) {
+        if(it->is_service)
+            is_service = true;
+        else
+            is_not_service = true;
         if(it->choice_power) 
             count_nom++;
         else
@@ -31,6 +37,8 @@ void Def::assert_options_validity(size_t& p) {
     }
     if(count_nom>1 && count_nonnom)
         imp->error(p, "More than one nominal declarations for: "+name.to_string());
+    if(is_service && is_not_service)
+        imp->error(p, "Cannot have both service and non-service declarations for: "+name.to_string());
 }
 void Def::coalesce_finals(const Variable& original) {
     unordered_set<Variable> visited;

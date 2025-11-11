@@ -26,7 +26,7 @@
 #define __BUFFER__ERROR 2
 #define __UNHANDLED__ERROR 3
 #define __STACK__ERROR 4
-#define __DYokMIC__ERROR 5
+#define __DYNAMIC__ERROR 5
 #define __TRANSIENT(message)
 #define __builtin_assume(cond) do { if(!(cond)) __builtin_unreachable(); } while(0)
 #ifdef __cplusplus
@@ -144,7 +144,7 @@ __LF = 3 ;
  goto __RF ;
  __WF :
  printf("An unforeseen dynamic option was encountered\n");
-__result__error_code=__DYokMIC__ERROR;
+__result__error_code=__DYNAMIC__ERROR;
 goto __failsafe;
  __RF :
  pending__func = __VF__func ;
