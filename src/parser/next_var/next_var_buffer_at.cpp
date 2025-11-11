@@ -221,72 +221,126 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
         return ret;
     }
 
-
-    if(p<imp->size()-2 && imp->at(p)=="=") {
+    if (p < imp->size() - 2 && imp->at(p) == "=") {
         // handle: buffer[index] = value
         p += 1;
-        if(mutables.find(buffer_var)==mutables.end())
+        if (mutables.find(buffer_var) == mutables.end())
             imp->error(p, "Buffer is immutable: "
-                +pretty_var(buffer_var.to_string())
-                +"\nCannot assign into an element of an immutable buffer."
+                + pretty_var(buffer_var.to_string())
+                + "\nCannot assign into an element of an immutable buffer."
             );
 
         // parse value to assign
         size_t prev_p = p;
         string next_tok = imp->at(p++);
         Variable val = parse_expression(p, next_tok, types, EMPTY_VAR);
-        if(!val.exists() || !contains(val))
+        if (!val.exists() || !contains(val))
             imp->error(prev_p, "Expression does not yield a value for buffer assignment");
-        if(vars[val].get() != buffer_types[next].get())
+        if (vars[val].get() != buffer_types[next].get())
             imp->error(prev_p, "Mismatching buffer types.\nTo prevent errors, no structural matching is allowed. Expected "
-                +buffer_types[next]->signature(types)+" but got "
-                +vars[val]->signature(types)
+                + buffer_types[next]->signature(types) + " but got "
+                + vars[val]->signature(types)
             );
 
         // locals (namespaced)
-        vars[next+Variable("__buffer_size")]      = types.vars[Variable("u64")];
-        vars[next+Variable("__buffer_alignment")] = types.vars[Variable("u64")];
-        vars[next+Variable("__buffer_contents")]  = types.vars[Variable("ptr")];
+        vars[next + Variable("__buffer_size")]      = types.vars[Variable("u64")];
+        vars[next + Variable("__buffer_alignment")] = types.vars[Variable("u64")];
+        vars[next + Variable("__buffer_contents")]  = types.vars[Variable("ptr")];
 
         Variable fail_var = Variable("__result__buffer_error");
         implementation += Code(token_ifnot, next, token_goto, fail_var, SEMICOLON_VAR);
 
-        // compute count_packs (valid packs only)
-        
-        size_t count_alignment_bytes = 0;
-        for(const auto& pack : buffer_types[next]->packs)
-            count_alignment_bytes += buffer_types[next]->vars[pack]->storage_size;
-        if(buffer_types[next]->_is_primitive) 
-            count_alignment_bytes += buffer_types[next]->storage_size;
+        // compute alignment size
+        size_t alignment_bytes = 0;
+        for (const auto& pack : buffer_types[next]->packs)
+            alignment_bytes += buffer_types[next]->vars[pack]->storage_size;
+        if (buffer_types[next]->_is_primitive)
+            alignment_bytes += buffer_types[next]->storage_size;
 
-        implementation += Code(next+Variable("__buffer_size"), ASSIGN_VAR, Variable("((u64*)"), next, Variable(")[1]"), SEMICOLON_VAR);
-        implementation += Code(next+Variable("__buffer_alignment"), ASSIGN_VAR, Variable(to_string(count_alignment_bytes)), SEMICOLON_VAR);
-        implementation += Code(next+Variable("__buffer_contents"), ASSIGN_VAR, Variable("(ptr)(((u64*)"), next, Variable(")[0])"), SEMICOLON_VAR);
+        // assign metadata
+        implementation += Code(
+            next + Variable("__buffer_size"),
+            ASSIGN_VAR,
+            Variable("((u64*)"), next, Variable(")[1]"),
+            SEMICOLON_VAR
+        );
+
+        implementation += Code(
+            next + Variable("__buffer_alignment"),
+            ASSIGN_VAR,
+            Variable(to_string(alignment_bytes)),
+            SEMICOLON_VAR
+        );
+
+        implementation += Code(
+            next + Variable("__buffer_contents"),
+            ASSIGN_VAR,
+            Variable("(ptr)(((u64*)"), next, Variable(")[0])"),
+            SEMICOLON_VAR
+        );
 
         // range check
-        implementation += Code(token_if, idx, Variable(">="), next+Variable("__buffer_size"), Variable(")goto"), fail_var, SEMICOLON_VAR);
-        errors.insert(Code(fail_var, Variable(":\nprintf(\"Buffer error\\n\");\n__result__error_code=__BUFFER__ERROR;\ngoto __failsafe;\n")));
+        implementation += Code(
+            token_if,
+            idx, Variable(">="),
+            next + Variable("__buffer_size"),
+            token_goto,
+            fail_var,
+            SEMICOLON_VAR
+        );
+
+        errors.insert(Code(
+            fail_var,
+            Variable(":\nprintf(\"Buffer error\\n\");\n__result__error_code=__BUFFER__ERROR;\ngoto __failsafe;\n")
+        ));
 
         // write element packs at idx
-        count_alignment_bytes = 0;
-        for(const auto& pack : buffer_types[next]->packs) {
-            if(buffer_types[next]->contains(pack) && buffer_types[next]->vars[pack]->name!=NOM_VAR && pack!=ERR_VAR) {
-                implementation += Code(
-                    Variable("memcpy(&((char*)"), 
-                    next+Variable("__buffer_contents"), 
-                    Variable(")["), idx,
-                    MUL_VAR, next+Variable("__buffer_alignment"),
-                    Variable("+"+to_string(count_alignment_bytes)+"], &"),
-                    val+Variable(pack),
-                    Variable(", sizeof("+buffer_types[next]->vars[pack]->name.to_string()+"));")
-                );
-                count_alignment_bytes += buffer_types[next]->vars[pack]->storage_size;
+        if (buffer_types[next]->_is_primitive) {
+            implementation += Code(
+                Variable("memcpy(&((char*)"),
+                next + Variable("__buffer_contents"),
+                Variable(")["),
+                idx,
+                MUL_VAR,
+                next + Variable("__buffer_alignment"),
+                Variable("], &"),
+                val,
+                Variable(", sizeof("),
+                buffer_types[next]->name,
+                Variable("))"),
+                SEMICOLON_VAR
+            );
+        }
+        else {
+            size_t offset = 0;
+            for (const auto& pack : buffer_types[next]->packs) {
+                if (buffer_types[next]->contains(pack)
+                    && buffer_types[next]->vars[pack]->name != NOM_VAR
+                    && pack != ERR_VAR)
+                {
+                    implementation += Code(
+                        Variable("memcpy(&((char*)"),
+                        next + Variable("__buffer_contents"),
+                        Variable(")["),
+                        idx,
+                        MUL_VAR,
+                        next + Variable("__buffer_alignment"),
+                        Variable("+" + to_string(offset) + "], &"),
+                        val + pack,
+                        Variable(", sizeof("),
+                        buffer_types[next]->vars[pack]->name,
+                        Variable("))"),
+                        SEMICOLON_VAR
+                    );
+                    offset += buffer_types[next]->vars[pack]->storage_size;
+                }
             }
         }
 
-        // after assignment, return the buffer itself (like put)
+        // after assignment, return the buffer itself
         return EMPTY_VAR;
     }
+
 
 
     next = elem;

@@ -35,6 +35,8 @@ Variable Def::parse_while(size_t& p, Types& types, Variable curry, size_t first_
             +" "+pretty_var(var.to_string())
         );
     implementation += Code(token_ifnot,var,token_goto,finally_var,SEMICOLON_VAR);
+    if(p<imp->size()-1 && imp->at(p)=="then" && imp->at(p+1)=="ok")
+        imp->error(first_token_pos, "Empty code block");
     parse(imp, p, types, false);
     p++; // offset p-- after parse_return above
     implementation += Code(Variable("goto"),start_var,SEMICOLON_VAR,finally_var,COLON_VAR);

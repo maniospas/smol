@@ -150,7 +150,7 @@ public:
 
 class Def : public enable_shared_from_this<Def> {
     static atomic<int> temp;
-    static string create_temp() {return "__"+numberToVar(++temp);}
+    static string create_temp() {return "__0"+numberToVar(++temp);}
     static size_t symbol;
     static unordered_map<Variable, size_t> symbol_values; 
     static mutex symbol_access;

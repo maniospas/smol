@@ -119,7 +119,6 @@
 "\nif s.is_char()"
 "\n    print(s.to_char())</pre>"
 
-
 @about strip
 "Removes leading and trailing whitespace characters from a String, including "
 "spaces, tabs, carriage returns, and newlines. Returns a substring without "
@@ -145,6 +144,9 @@
 "Represents a keyboard key input captured through <code>getch</code>. "
 "Encodes the key's integer representation in <code>data</code>."
 
+@about is_printable
+"Checks if a captured key represents a printable ASCII character."
+
 @about is_left
 "Checks if a captured key represents the left arrow key."
 
@@ -159,6 +161,9 @@
 
 @about is_tab
 "Checks if a captured key represents the tab key."
+
+@about is_enter
+"Checks if a captured key represents the enter key."
 
 @about is_delete
 "Checks if a captured key represents the delete key."

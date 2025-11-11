@@ -104,7 +104,7 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
             Variable("/(sizeof(u64)*"+to_string(count_packs)+")) | (1ULL <<63)"), 
             SEMICOLON_VAR
         );
-        coalesce_finals(var);
+        //coalesce_finals(var);
         finals[var] += Code(
             token_if, var, RPAR_VAR,
             Variable("__runtime_free("),var,RPAR_VAR,SEMICOLON_VAR,

@@ -37,6 +37,8 @@ Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_tok
             +" "+pretty_var(var.to_string())
         );
     implementation += Code(token_ifnot,var,token_goto,closeif_var,SEMICOLON_VAR);
+    if(p<imp->size()-1 && imp->at(p)=="then" && imp->at(p+1)=="ok")
+        imp->error(first_token_pos, "Empty code block");
     parse(imp, p, types, false);
     p++; // offset p-- after parse_return above
     auto else_var = EMPTY_VAR;
@@ -49,6 +51,9 @@ Variable Def::parse_if(size_t& p, Types& types, Variable curry, size_t first_tok
         if(uplifting.size() && uplifting[uplifting.size()-1].has_returned && contains(uplifting[uplifting.size()-1].target+Variable("r")))
             imp->error(p, "You have already returned from `if`, so an `else` block is redundant here");
         next = imp->at(++p); // keep the ++ if not in elif
+
+        if(p<imp->size()-1 && next=="then" && imp->at(p+1)=="ok")
+            imp->error(first_token_pos, "Empty code block");
         // if(next=="elif") {
         //     next = imp->at(++p);
         //     p++;

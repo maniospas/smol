@@ -1,13 +1,11 @@
 @include std.core
 @include std.os
 
-service main()
-    @mut memory = Heap.allocate(4.KB())
-    @mut memory_characters = char[memory].expect(128)
+def read()
+    @mut mem = Heap.allocate(4.KB())
+    @mut memory_characters = char[mem].expect(128)
     @mut size = 0
     @mut running = true
-    @mut input = "".str()
-
     while running
         ch = getch()
         if ch.is_enter()
@@ -15,9 +13,13 @@ service main()
         elif ch.is_printable()
             memory_characters[size] = ch.to_char()
             size = size+1
-        elif ch.is_backspace() and size>0 
+        elif ch.is_backspace() and size>0
             size = size-1
-        input = memory.str(size)
         printin("\r")
-        printin(input)
-        print()
+        printin(mem.str(size))
+    print()
+    return mem.str(size)
+
+service main()
+    @access ret = read()
+    print(ret)
