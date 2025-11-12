@@ -183,6 +183,7 @@ class Def : public enable_shared_from_this<Def> {
     Variable parse_buffer_expect(size_t& p, Types& types, Variable curry, size_t first_token_pos);
     Variable parse_buffer_len(size_t& p, Types& types, Variable curry);
     Variable parse_buffer_push(size_t& p, Types& types, Variable curry, size_t first_token_pos);
+    Variable parse_buffer_pop(size_t& p, Types& types, Variable curry, size_t first_token_pos);
     Variable parse_buffer_put(size_t& p, Types& types, Variable curry, size_t first_token_pos);
     
     Variable parse_primitive(size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);

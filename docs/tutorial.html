@@ -1489,6 +1489,34 @@ handles, so do not overuse it to avoid creating exceptionally large executables.
 </p>
 
 
+<pre><code class="language-smolambda">// main.s
+@include std.core
+
+def lambda(tag func, u64 n, u64 a, u64 b)
+    return @args
+
+def fib_start(u64 n)
+    // initialize Fibonacci sequence with first two numbers
+    return :fib_step.lambda(n, 0, 1)
+
+def fib_step(u64 n, u64 a, u64 b)
+    if n == 0
+        return :done.lambda(u64, a, b)
+    // compute next step
+    return :fib_step.lambda(n-1, b, a+b)
+
+service main()
+    n = 10
+    @mut pending = :fib_start.lambda(n)
+    while :done != pending.func
+        pending = @dynamic(fib_start, fib_step) pending()
+    // when done, print result (b is the n-th Fibonacci number)
+    print("Fibonacci result:")
+    print(pending.b)
+
+</code></pre>
+
+
 
 
 </div>

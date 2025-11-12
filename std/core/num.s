@@ -173,7 +173,7 @@ def print()
     @body{fflush(stdout);}
 
 def le(@access Number x, Number y)
-    @body{bool z=x<=y;}   
+    @body{bool z=x<=y;}
     return z
 
 def ge(@access Number x, Number y)  

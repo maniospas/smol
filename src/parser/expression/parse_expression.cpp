@@ -151,6 +151,8 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
             return parse_buffer_put(p, types, curry, first_token_pos);
         if(first_token=="push")
             return parse_buffer_push(p, types, curry, first_token_pos);
+        if(first_token=="pop")
+            return parse_buffer_pop(p, types, curry, first_token_pos);
         if(first_token=="expect")
             return parse_buffer_expect(p, types, curry, first_token_pos);
     }

@@ -1,0 +1,429 @@
+	.file	"<stdin>"
+	.intel_syntax noprefix
+	.text
+	.section	.text._Z15__smo_file_sizeP8_IO_FILE,"ax",@progbits
+	.p2align 4
+	.globl	_Z15__smo_file_sizeP8_IO_FILE
+	.type	_Z15__smo_file_sizeP8_IO_FILE, @function
+_Z15__smo_file_sizeP8_IO_FILE:
+.LFB114:
+	.cfi_startproc
+	endbr64
+	test	rdi, rdi
+	je	.L9
+	sub	rsp, 152
+	.cfi_def_cfa_offset 160
+	call	fileno@PLT
+	mov	rsi, rsp
+	mov	edi, eax
+	call	fstat@PLT
+	test	eax, eax
+	je	.L10
+	xor	eax, eax
+	add	rsp, 152
+	.cfi_remember_state
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L10:
+	.cfi_restore_state
+	mov	rax, QWORD PTR 48[rsp]
+	add	rsp, 152
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L9:
+	xor	eax, eax
+	ret
+	.cfi_endproc
+.LFE114:
+	.size	_Z15__smo_file_sizeP8_IO_FILE, .-_Z15__smo_file_sizeP8_IO_FILE
+	.section	.rodata.main__361.str1.1,"aMS",@progbits,1
+.LC3:
+	.string	"Fibonacci result:"
+.LC4:
+	.string	"%s"
+.LC5:
+	.string	"%llu\n"
+.LC6:
+	.string	"%.6f\n"
+.LC7:
+	.string	"Buffer error\n"
+	.section	.text.main__361,"ax",@progbits
+	.p2align 4
+	.globl	main__361
+	.type	main__361, @function
+main__361:
+.LFB116:
+	.cfi_startproc
+	endbr64
+	push	r15
+	.cfi_def_cfa_offset 16
+	.cfi_offset 15, -16
+	mov	r15, rdi
+	push	r14
+	.cfi_def_cfa_offset 24
+	.cfi_offset 14, -24
+	push	r13
+	.cfi_def_cfa_offset 32
+	.cfi_offset 13, -32
+	push	r12
+	.cfi_def_cfa_offset 40
+	.cfi_offset 12, -40
+	push	rbp
+	.cfi_def_cfa_offset 48
+	.cfi_offset 6, -48
+	push	rbx
+	.cfi_def_cfa_offset 56
+	.cfi_offset 3, -56
+	sub	rsp, 152
+	.cfi_def_cfa_offset 208
+	call	pthread_self@PLT
+	lea	r13, 80[rsp]
+	mov	rsi, r13
+	mov	rdi, rax
+	call	pthread_getattr_np@PLT
+	lea	rdx, 72[rsp]
+	lea	rsi, 64[rsp]
+	mov	rdi, r13
+	call	pthread_attr_getstack@PLT
+	mov	rdi, r13
+	call	pthread_attr_destroy@PLT
+	mov	edi, 30
+	call	sysconf@PLT
+	mov	edx, DWORD PTR _ZL22__smo_time_initialized[rip]
+	test	edx, edx
+	je	.L45
+	mov	rsi, r13
+	mov	edi, 1
+	call	clock_gettime@PLT
+	mov	rax, QWORD PTR 88[rsp]
+	pxor	xmm0, xmm0
+	sub	rax, QWORD PTR _ZL16__smo_time_start[rip+8]
+	cvtsi2sd	xmm0, rax
+	pxor	xmm1, xmm1
+	mov	rax, QWORD PTR 80[rsp]
+	sub	rax, QWORD PTR _ZL16__smo_time_start[rip]
+	divsd	xmm0, QWORD PTR .LC1[rip]
+	cvtsi2sd	xmm1, rax
+	addsd	xmm0, xmm1
+	movsd	QWORD PTR 48[rsp], xmm0
+.L13:
+	mov	esi, 24
+	mov	edi, 1
+	call	calloc@PLT
+	mov	r12, rax
+	test	rax, rax
+	je	.L14
+	mov	rdx, QWORD PTR 16[rax]
+	mov	rbp, QWORD PTR 8[rax]
+	mov	rax, rdx
+	btr	rax, 63
+	cmp	rbp, rax
+	jnb	.L46
+	mov	rax, QWORD PTR [r12]
+.L19:
+	lea	rdx, 0[rbp+rbp*2]
+	mov	QWORD PTR 56[rsp], r13
+	lea	r14, 1[rbp]
+	movdqa	xmm0, XMMWORD PTR .LC2[rip]
+	mov	QWORD PTR 16[rax+rdx*8], 1
+	mov	QWORD PTR [rsp], 0
+	mov	QWORD PTR 40[rsp], r15
+	movups	XMMWORD PTR [rax+rdx*8], xmm0
+	jmp	.L20
+	.p2align 4,,10
+	.p2align 3
+.L49:
+	movabs	r11, 9223372036854775807
+	lea	r10, 16[rbx]
+	lea	rax, [rdi+r10]
+	and	r11, rcx
+	mov	r15, QWORD PTR [rax]
+	cmp	rbp, r11
+	jb	.L27
+	test	rcx, rcx
+	js	.L28
+	mov	rax, r11
+	mov	QWORD PTR 32[rsp], r9
+	shr	rax, 2
+	mov	QWORD PTR 16[rsp], r10
+	lea	rdx, 1[rax+r11]
+	mov	QWORD PTR 8[rsp], r8
+	lea	rsi, [rdx+rdx*2]
+	mov	QWORD PTR 24[rsp], rdx
+	sal	rsi, 3
+	test	rbp, rbp
+	je	.L29
+	call	realloc@PLT
+	mov	rdx, QWORD PTR 24[rsp]
+	mov	r8, QWORD PTR 8[rsp]
+	mov	r10, QWORD PTR 16[rsp]
+	mov	r9, QWORD PTR 32[rsp]
+	mov	QWORD PTR [r12], rax
+	mov	QWORD PTR 16[r12], rdx
+	test	rax, rax
+	je	.L28
+.L52:
+	lea	rsi, [rax+rbx]
+	lea	rdx, [rax+r8]
+	add	rax, r10
+.L27:
+	sub	r13, 1
+	mov	QWORD PTR [rsi], r13
+	mov	QWORD PTR [rdx], r15
+	add	r15, r9
+	mov	QWORD PTR [rax], r15
+.L20:
+	lea	rbx, 0[rbp+rbp*2]
+	sal	rbx, 3
+	test	r14, r14
+	je	.L47
+.L21:
+	mov	rdi, QWORD PTR [r12]
+	mov	rcx, QWORD PTR 16[r12]
+	test	rdi, rdi
+	je	.L48
+	lea	rsi, [rdi+rbx]
+	lea	r8, 8[rbx]
+	mov	r13, QWORD PTR [rsi]
+	lea	rdx, [rdi+r8]
+	lea	rbp, -1[r14]
+	mov	r9, QWORD PTR [rdx]
+	test	r13, r13
+	jne	.L49
+	mov	r14, rbp
+	mov	QWORD PTR [rsp], r9
+	sub	rbx, 24
+	test	r14, r14
+	jne	.L21
+.L47:
+	lea	rdx, .LC3[rip]
+	lea	rsi, .LC4[rip]
+	mov	edi, 2
+	xor	eax, eax
+	mov	r13, QWORD PTR 56[rsp]
+	mov	r15, QWORD PTR 40[rsp]
+	call	__printf_chk@PLT
+	mov	rdx, QWORD PTR [rsp]
+	mov	edi, 2
+	xor	eax, eax
+	lea	rsi, .LC5[rip]
+	call	__printf_chk@PLT
+	mov	eax, DWORD PTR _ZL22__smo_time_initialized[rip]
+	test	eax, eax
+	je	.L50
+	mov	rsi, r13
+	mov	edi, 1
+	call	clock_gettime@PLT
+	mov	rax, QWORD PTR 88[rsp]
+	pxor	xmm0, xmm0
+	sub	rax, QWORD PTR _ZL16__smo_time_start[rip+8]
+	cvtsi2sd	xmm0, rax
+	pxor	xmm1, xmm1
+	mov	rax, QWORD PTR 80[rsp]
+	sub	rax, QWORD PTR _ZL16__smo_time_start[rip]
+	divsd	xmm0, QWORD PTR .LC1[rip]
+	cvtsi2sd	xmm1, rax
+	addsd	xmm0, xmm1
+.L23:
+	subsd	xmm0, QWORD PTR 48[rsp]
+	lea	rsi, .LC6[rip]
+	mov	edi, 2
+	xor	ebx, ebx
+	mov	eax, 1
+	call	__printf_chk@PLT
+	mov	rcx, QWORD PTR 16[r12]
+	test	rcx, rcx
+	je	.L33
+.L31:
+	mov	rdi, QWORD PTR [r12]
+	call	free@PLT
+	jmp	.L33
+	.p2align 4,,10
+	.p2align 3
+.L46:
+	test	rdx, rdx
+	js	.L16
+	mov	rdx, rax
+	shr	rdx, 2
+	lea	rbx, 1[rdx+rax]
+	lea	rsi, [rbx+rbx*2]
+	sal	rsi, 3
+	test	rbp, rbp
+	jne	.L51
+	mov	rdi, rsi
+	call	malloc@PLT
+.L18:
+	mov	QWORD PTR [r12], rax
+	mov	QWORD PTR 16[r12], rbx
+	test	rax, rax
+	jne	.L19
+.L16:
+	lea	rsi, .LC7[rip]
+	mov	edi, 2
+	xor	eax, eax
+	mov	ebx, 2
+	call	__printf_chk@PLT
+	mov	rdi, QWORD PTR [r12]
+	call	free@PLT
+	jmp	.L33
+	.p2align 4,,10
+	.p2align 3
+.L29:
+	mov	rdi, rsi
+	call	malloc@PLT
+	mov	rdx, QWORD PTR 24[rsp]
+	mov	r9, QWORD PTR 32[rsp]
+	mov	r10, QWORD PTR 16[rsp]
+	mov	r8, QWORD PTR 8[rsp]
+	mov	QWORD PTR [r12], rax
+	mov	QWORD PTR 16[r12], rdx
+	test	rax, rax
+	jne	.L52
+.L28:
+	lea	rsi, .LC7[rip]
+	mov	edi, 2
+	xor	eax, eax
+	mov	r15, QWORD PTR 40[rsp]
+	call	__printf_chk@PLT
+	mov	ebx, 2
+	mov	rcx, QWORD PTR 16[r12]
+	jmp	.L24
+	.p2align 4,,10
+	.p2align 3
+.L45:
+	lea	rsi, _ZL16__smo_time_start[rip]
+	mov	edi, 1
+	call	clock_gettime@PLT
+	mov	DWORD PTR _ZL22__smo_time_initialized[rip], 1
+	mov	QWORD PTR 48[rsp], 0x000000000
+	jmp	.L13
+	.p2align 4,,10
+	.p2align 3
+.L48:
+	mov	edi, 2
+	xor	eax, eax
+	mov	QWORD PTR [rsp], rcx
+	mov	r15, QWORD PTR 40[rsp]
+	lea	rsi, .LC7[rip]
+	mov	ebx, 2
+	call	__printf_chk@PLT
+	mov	rcx, QWORD PTR [rsp]
+.L24:
+	test	rcx, rcx
+	jne	.L31
+.L33:
+	mov	rdi, r12
+	call	free@PLT
+.L32:
+	mov	DWORD PTR [r15], ebx
+	add	rsp, 152
+	.cfi_remember_state
+	.cfi_def_cfa_offset 56
+	pop	rbx
+	.cfi_def_cfa_offset 48
+	pop	rbp
+	.cfi_def_cfa_offset 40
+	pop	r12
+	.cfi_def_cfa_offset 32
+	pop	r13
+	.cfi_def_cfa_offset 24
+	pop	r14
+	.cfi_def_cfa_offset 16
+	pop	r15
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L51:
+	.cfi_restore_state
+	mov	rdi, QWORD PTR [r12]
+	call	realloc@PLT
+	jmp	.L18
+.L50:
+	lea	rsi, _ZL16__smo_time_start[rip]
+	mov	edi, 1
+	call	clock_gettime@PLT
+	pxor	xmm0, xmm0
+	mov	DWORD PTR _ZL22__smo_time_initialized[rip], 1
+	jmp	.L23
+.L14:
+	lea	rsi, .LC7[rip]
+	mov	edi, 2
+	xor	eax, eax
+	mov	ebx, 2
+	call	__printf_chk@PLT
+	jmp	.L32
+	.cfi_endproc
+.LFE116:
+	.size	main__361, .-main__361
+	.section	.rodata.main.str1.8,"aMS",@progbits,1
+	.align 8
+.LC8:
+	.base64	"G1szNm3wn5S5G1swbSBodHRwczovL2dpdGh1Yi5jb20vbWFuaW9zcGFzL3Ntb2wKG1szNm3wn5S5G1swbSBzaW5nbGUgdGhyZWFkZWQKCgA="
+	.section	.text.startup.main,"ax",@progbits
+	.p2align 4
+	.globl	main
+	.type	main, @function
+main:
+.LFB117:
+	.cfi_startproc
+	endbr64
+	sub	rsp, 24
+	.cfi_def_cfa_offset 32
+	lea	rsi, .LC8[rip]
+	mov	edi, 2
+	xor	eax, eax
+	call	__printf_chk@PLT
+	lea	rdi, 12[rsp]
+	call	main__361
+	mov	eax, DWORD PTR 12[rsp]
+	add	rsp, 24
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE117:
+	.size	main, .-main
+	.section	.bss._ZL22__smo_time_initialized,"aw",@nobits
+	.align 4
+	.type	_ZL22__smo_time_initialized, @object
+	.size	_ZL22__smo_time_initialized, 4
+_ZL22__smo_time_initialized:
+	.zero	4
+	.section	.bss._ZL16__smo_time_start,"aw",@nobits
+	.align 16
+	.type	_ZL16__smo_time_start, @object
+	.size	_ZL16__smo_time_start, 16
+_ZL16__smo_time_start:
+	.zero	16
+	.section	.rodata.cst8,"aM",@progbits,8
+	.align 8
+.LC1:
+	.long	0
+	.long	1104006501
+	.section	.rodata.cst16,"aM",@progbits,16
+	.align 16
+.LC2:
+	.quad	42
+	.quad	0
+	.ident	"GCC: (Ubuntu 15.2.0-4ubuntu4) 15.2.0"
+	.section	.note.GNU-stack,"",@progbits
+	.section	.note.gnu.property,"a"
+	.align 8
+	.long	1f - 0f
+	.long	4f - 1f
+	.long	5
+0:
+	.string	"GNU"
+1:
+	.align 8
+	.long	0xc0000002
+	.long	3f - 2f
+2:
+	.long	0x3
+3:
+	.align 8
+4:

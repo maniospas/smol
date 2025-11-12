@@ -1,6 +1,6 @@
 @include std.core
 @include std.mem 
-    return Memory, arena
+    return Memory, arena, MB
 @include std.file 
     return File
 
@@ -34,6 +34,6 @@ def file_reader(
     return nominal.file_stats(stat_lines, stat_chars)
 
 service main()
-    @mut memory = Stack.arena(1048576) // 1MB
+    @mut memory = Stack.arena(1.MB()) // 1MB
     stats = file_reader("README.md", memory)
     print(stats)

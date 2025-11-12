@@ -187,7 +187,7 @@ shared_ptr<Import> tokenize(const string& path) {
                 "Cannot indent more than 4 spaces or a tab deeper than the previous line"
             );
         }
-        if(main_file->indentation_mode && !in_parentheses && indent <= last_nonempty_indent) {
+        if(main_file->indentation_mode && !in_parentheses && !in_brackets && indent <= last_nonempty_indent) {
             string trimmed_prev = last_nonempty_content;
             trimmed_prev.erase(0, trimmed_prev.find_first_not_of(" \t"));
             if(trimmed_prev.starts_with("if ") 
@@ -201,14 +201,29 @@ shared_ptr<Import> tokenize(const string& path) {
                 tokens.emplace_back("ok", line_num-1, 1, main_file);
             }
         }
-        if(main_file->indentation_mode && !in_parentheses && indent < last_nonempty_indent && !in_brackets && last_nonempty_content.size()>=indent+4) {
+
+
+        if(main_file->indentation_mode && !in_parentheses && !in_brackets && indent < last_nonempty_indent) {
             string trimmed_prev = last_nonempty_content;
-            trimmed_prev.erase(0, 4+indent);
-            if(!trimmed_prev.starts_with("then ") 
-                && !trimmed_prev.starts_with("return ")
-                && !trimmed_line.starts_with("elif ")
-                && !trimmed_line.starts_with("else ")
-            ) {
+            trimmed_prev.erase(0, trimmed_prev.find_first_not_of(" \t"));
+            size_t diff = (last_nonempty_indent - indent) / 4;
+            // if(trimmed_prev.starts_with("if ") 
+            //     || trimmed_prev.starts_with("else ") 
+            //     || trimmed_prev.starts_with("elif ")
+            //     || trimmed_prev.starts_with("while ")
+            //     || trimmed_prev.starts_with(".while ")
+            //     || trimmed_prev.starts_with(".if ")
+            // ) {
+            //     if(!diff)
+            //         diff += 1;
+            // }
+            if(trimmed_prev.starts_with("then ")
+                || trimmed_prev.starts_with("return ")
+                || trimmed_line.starts_with("elif ")
+                || trimmed_line.starts_with("else ")
+            ) 
+                diff -= 1;
+            for(size_t k = 0; k < diff; ++k) {
                 tokens.emplace_back("then", line_num-1, 1, main_file);
                 tokens.emplace_back("ok", line_num-1, 1, main_file);
             }
