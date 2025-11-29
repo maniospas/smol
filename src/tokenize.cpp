@@ -207,16 +207,15 @@ shared_ptr<Import> tokenize(const string& path) {
             string trimmed_prev = last_nonempty_content;
             trimmed_prev.erase(0, trimmed_prev.find_first_not_of(" \t"));
             size_t diff = (last_nonempty_indent - indent) / 4;
-            // if(trimmed_prev.starts_with("if ") 
-            //     || trimmed_prev.starts_with("else ") 
-            //     || trimmed_prev.starts_with("elif ")
-            //     || trimmed_prev.starts_with("while ")
-            //     || trimmed_prev.starts_with(".while ")
-            //     || trimmed_prev.starts_with(".if ")
-            // ) {
-            //     if(!diff)
-            //         diff += 1;
-            // }
+            if(trimmed_prev.starts_with("if ") 
+                || trimmed_prev.starts_with("else ") 
+                || trimmed_prev.starts_with("elif ")
+                || trimmed_prev.starts_with("while ")
+                || trimmed_prev.starts_with(".while ")
+                || trimmed_prev.starts_with(".if ")
+            ) {
+                diff -= 1; // already covered above
+            }
             if(trimmed_prev.starts_with("then ")
                 || trimmed_prev.starts_with("return ")
                 || trimmed_line.starts_with("elif ")
@@ -381,6 +380,10 @@ shared_ptr<Import> tokenize(const string& path) {
                 continue;
             }
             else if(is_symbol(line[i])) {
+                if(line[i]=='.' && i<line.size()-1 && (line[i+1]==' ' || line[i+1]=='\n' || line[i+1]=='\r' || line[i+1]=='\t')) {
+                    tokens.emplace_back(string(1, line[i]), line_num, col, main_file);
+                    main_file->error(tokens.size() - 1, "Fullstops cannot be followed by spaces, tabs, or new lines");
+                }
                 if(line[i]=='{') in_brackets++;
                 else if(line[i]=='}' && in_brackets) in_brackets--;
                 if(line[i]=='(') {
