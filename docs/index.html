@@ -83,8 +83,11 @@ def Segment(String _value)
 def combine(Segment[] segments)
     @mut s = str("")      // convert "" to mutable str
     @on Stack.arena(1024) // automatic use when needed
-    segments.len().range().while next(@mut u64 i)
-        s = str(s+segments[i].value+" ")
+    segments
+    .len()
+    .range()
+    .while next(@mut u64 i) // define i with values from the range
+        s = add(@all s segments[i].value " ").str()
     return s
 
 service main()
@@ -110,6 +113,7 @@ service main()
       <li><code class="language-smolambda">nominal</code> declares a nominal type variation.</li>
       <li><code class="language-smolambda">@mut</code> denotes mutable variables (their values change as the program runs).</li>
       <li><code class="language-smolambda">@on</code> is automatically added as first argument - here to store string addition on a fast arena allocator.</li>
+      <li><code class="language-smolambda">@all</code> iteratively applies a function to reduce a bunch of expression outcomes to one value.</li>
       <li><code class="language-smolambda">.</code> member values or curries a first argument into functions.</li>
       <li><code class="language-smolambda">[]</code> declares and accesses buffers.</li>
     </ul>

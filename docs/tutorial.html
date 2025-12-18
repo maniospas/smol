@@ -162,11 +162,12 @@ Let's take our first steps into programming with <i>smoλ</i>
 (pronounced like "small" but with "o" instead of "a"). The language 
 simplifies a lot of traditional programming concepts while keeping the ability to 
 write very fast yet safe code. Some level of control is sacrificed in the process, but this means 
-that you do not need to worry too much about details either. 
+that you do not need to worry too much about details. 
 </p>
 <p>
-Our first program shows how to print a message.
-To set things up, download the <code class="language-smolambda">smol</code> executable 
+Our first program prints a message; it is a tradition to print "Hello world" as
+a first example in all programming manuals. To set things up, 
+download the <code class="language-smolambda">smol</code> executable 
 from the language's <a href="https://github.com/maniospas/smol/releases/latest">latest release</a>.
 Place it alongside the <code>std/</code> directory and add both the containing folder 
 and a C/C++ compiler (e.g., GCC) to your system PATH. Create a file named <i>main.s</i> 
@@ -195,7 +196,9 @@ Hello world!
 </pre>
 
 <p>
-A bunch of messages appeared! So let's go through them in order.
+A bunch of messages appeared! So let's go through them in order.</p>
+
+<p>
 First, <i>smoλ</i> is a compiled language, meaning that 
 it creates executable programs containing machine instructions. 
 To this end, it first parses your program and transforms it to 
@@ -206,11 +209,11 @@ Turning programs into code is broadly known as <i>compiling</i> them.
 Finally, the generated executable runs.
 </p>
 <p>
-The last two bullet points come from running the program. These
+The last two bullet points come from running the program. They
 are printed by the language's default <i>runtime</i>, that is, the
-instructions embedded in the generated executable of how to work together with the operating system. 
+instructions embedded in the generated executable for working with the operating system. 
 The default runtime prints a link to the language's repository so that you can report bugs (and add a star!)
-and then automatically selects whether the application should be a single-threaded or multi-threaded one.
+and then automatically selects whether the application should be single-threaded or multi-threaded.
 </p>
 <p>
 A quick preview on the source code of our first program: <code class="language-smolambda">@include std.core</code> 
@@ -229,7 +232,7 @@ concepts can be understood only after reading the rest of this tutorial:
 <ul>
   <li><code>--back [compiler]</code> The compiler backend that is used to compile an intermediate
   C code representation produced by <i>smoλ</i>. Default is 
-  the highly robust <i>gcc</i>, but for example you may want to use another compile installed in
+  the highly robust <i>gcc</i>, but for example you may want to use another compiler installed in
   your system, or something like <i>tcc</i> (tinycc) for very fast compilation during prototyping.
   You can also use a C++ compiler to allow unsafe injection of code from that language too; everything
   has been configured to work with C99 or later, as well as C++11 or later.</li>
@@ -245,7 +248,7 @@ concepts can be understood only after reading the rest of this tutorial:
   of services depending on their number. There are two more runtimes provided out-of-the-box,
   <i>threads</i> that contains a co-routine implementation of services and <i>eager</i>
   that contains an eager calling of services.</li>
-  <li><code>--task [name]</code> Controls whet the compiler actually does with the input code.
+  <li><code>--task [name]</code> Controls when the compiler actually does with the input code.
   The default task is <i>run</i>, which produces and runs an executable. You can set the following options:
   <ul>
     <li><i>compile</i> to only produce the executable but not run it.</li>
@@ -269,7 +272,7 @@ concepts can be understood only after reading the rest of this tutorial:
 
 <p>
 A variable is a named box that holds a value. You give it a name, then 
-put a value in it once with the pattern <code class="language-smolambda">variable_name = value</code>. 
+put a value in it with the pattern <code class="language-smolambda">variable_name = value</code>. 
 In programming, we say that you <i>assign</i> a value to a variable. 
 Names cannot start with numbers or contain
 spaces or special symbols other than the underscore <code class="language-smolambda">_</code>.
@@ -361,7 +364,7 @@ service main()
 -1
 </pre>
 
-<p><b>Mutable variables:</b> After setting a variable, its value cannot normally change. To allow changes, declare it as <i>mutable</i> 
+<p><b>Mutable variables:</b> After assigning to a variable, its value cannot normally change. To allow changes, declare it as <i>mutable</i> 
 by placing <code class="language-smolambda">@mut</code> before its first declaration/assignment. 
 Variables are immutable -that is, not mutable- by default to avoid many logic bugs. Always look out
 for what might have changed if something is mutable.</p>
@@ -820,6 +823,44 @@ service main()
 <p>
 The same colon also works with loops provided by the standard library (like <code class="language-smolambda">range</code>) so you can write readable iterations.
 </p>
+<p>
+<b>Reduction:</b> 
+It is often desire-able to iteratively apply a function to several values. This concept is known as <i>reduction</i>,
+and is applied with a pattern like <code class="language-smolambda">add(@all 1 2 1+2*2)</code>. To understand how this works,
+first we need to understand that each expression within <code>add</code> will be evaluated separately, thus resulting
+to the evaluation of <code class="language-smolambda">add(@all 1 2 5)</code>.</p>
+
+<p>Then, the called function is applied to the first
+arguments and replaces them with the result, yielding an under-the-hood representation 
+<code class="language-smolambda">add(@all 3 5)</code>. This process is repeated until eventually all arguments are used and
+<code>8</code> is yielded. Here is an example that also showcases usage of <code>printin</code> to print multiple strings
+in the same line:
+</p>
+
+<pre><code class="language-smolambda">// main.s
+@include std.core
+
+service main()
+    @on Heap.dynamic()
+    print(add(@all 1 2 3))
+    name = "there"
+    printin(@all "Hi "name"!\n") // does not use any memory
+
+</code></pre>
+
+<pre style="background-color: #222; color: white;">> smol main.s
+<span style="color: #b072d1;">codegen</span> --workers 1 ██████████ 7/7 files  27ms
+<span style="color: #b072d1;">compile</span> --back gcc  --runtime std/runtime/auto.h  68ms
+<span style="color: #7cd15d;">running</span> tests/unit/tutorial/hello
+
+<span style="color:#5dc1b9">🔹</span> https://github.com/maniospas/smol
+<span style="color:#5dc1b9">🔹</span> single threaded
+
+6
+Hi there!
+</pre>
+
+
 
 <h2 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h2>
 
@@ -1080,32 +1121,41 @@ to write the same code conceptually.”</i>
 
 <p>
 At this point, you may be wondering how could <i>smoλ</i> run operations that consume an indeterminate 
-amount of memory, such as combining strings or managing lists of arbitrary sizes. This is where buffers and 
-<code class="language-smolambda">@include std.mem</code> come into play. We start from touching on concepts
-from the included file, which paint a general picture. Broadly, there are two memory
-devices; the <code>Stack</code> and <code>Heap</code>, corresponding to the small but fast
-memory your operating system uses to run your program, and the full extend of available memory.
-These provide memory allocation capabilities, but also grant you the ability to allocate more
-memory either dynamically or as arenas at the respective device.</p>
-
-<p>Memory follows the same pattern as
-all resources that <i>smoλ</i> uses; it is freed only when not in use by any program data.
-This is achieved with some minor restrictions that the compiler will let you know occasionally. For example,
-you need to declare memory management contexts (the <code class="language-smolambda">on</code>
-statements mentioned below) outside of loops that would leak the memory in each execution. However, the
-benefit is that there is no running overhead or bottleneck for testing when memory is no longer needed
-and freeing it. Instead, memory is released back to the operating system at function ends. Which memory
-is released is determined during compilation. That is, memory management is a zero-cost abstraction.
+amount of memory. For example, you might want to combine strings or manage lists of arbitrary sizes. 
 </p>
 
 <p>
-<b>Arenas:</b> Of the aforementioned types of memory, arenas are pre-allocated memory regions that cannot grow. 
-They are typically made to consume a safe amount of memory
-to ensure that programs can successfully run, although this often comes with some
-wastage. New allocations on arenas are 
-lightweight (they are reduced to simple additions) and therefore execute quickly. In <i>smoλ</i>, arenas
+This is where buffers and 
+<code class="language-smolambda">@include std.mem</code> come into play. 
+We start from touching on concepts of the latter, and explain about
+buffer later. Broadly, there are two memory
+"devices" exposed by <i>smoλ</i>; 
+the <code>Stack</code> and <code>Heap</code>. These correspond to the small but fast
+memory your operating system uses to run your program, and the full extend of available memory.
+Those devices provide memory allocation capabilities, but also grant you the ability to allocate more
+memory either dynamically as needed or as very fast arenas.</p>
+
+<p>Memory follows the same pattern as
+all resources that <i>smoλ</i> uses; it is automatically freed when not in use anymore.
+This is achieved with some minor restrictions that the compiler will let you know occasionally. For example,
+you can declare memory (for example to use with <code class="language-smolambda">@on</code>
+contexts) only outside of loops that would leak the memory in each iteration.
+</p>
+<p>The benefit is that there is no running overhead or bottleneck for testing when memory is no longer needed
+and freeing it. Memory is released back to the operating system at function ends without unforeseen runtime checks. 
+That is, memory management is a zero-cost abstraction.
+</p>
+
+<p>
+<b>Arenas:</b> Arenas are pre-allocated memory regions (either on the heap or the stack) that cannot grow. 
+They are typically made to consume a safe amount of memory and ensure that programs can successfully run.
+This often comes with some wastage if you cannot anticipate their size. New allocations on arenas are 
+lightweight (they are simple memory address additions) and therefore execute quickly. In <i>smoλ</i>, arenas
 that run out of space cause services to fail, which is always done safely and without leaking
-resources. Here is how to work with arenas, where the <code class="language-smolambda">on</code>
+resources.</p>
+
+<p>
+The next example shows how to work with arenas. The <code class="language-smolambda">@on</code>
 statement automatically adds the arena as a first argument to all operations inside the current code block. 
 </p>
 
@@ -1144,8 +1194,7 @@ a different runtime to the compiler.
 <p>In the above snippet, mutability is needed to allow modification of memory contents.
 However, temporary values thar have not yet been assigned to any symbol are mutable.
 You can also return a value from that block, therefore making the following equivalent syntax possible. 
-Remember that the arena's consumed memory is not released at the end of the 
-<code class="language-smolambda">on</code> block, but only when the vector is no longer needed. 
+Remember that the arena's consumed memory is released only when the vector is no longer needed. 
 </p>
 
 <pre><code class="language-smolambda">//main.s
@@ -1179,14 +1228,15 @@ You can also choose to maintain a collection of dynamically allocated memory seg
 for example by calling <code class="language-smolambda">@on Heap.dynamic()</code> instead
 of creating an arena. If multiple of those segments are attached to the same dynamic
 allocation, they are also released together, which means that they remain allocated as 
-long as any is in use. However, you can also retain one allocation per dynamic memory.
+long as any is in use. However, you can also make a new allocation each time you need some 
+dynamic memory.
 </p>
 
 
 <i>For more types of memory and operations, refer to the standard library's
-  documentation <a href="std.html">here</a>. Among other things, the
-  implemented memory model allows parameterization of functions by being able 
-  to allocate on segments of allocated memory.
+documentation <a href="std.html">here</a>. Among other things, the
+implemented memory model allows parameterization of functions by being able 
+to allocate on segments of allocated memory.
 </i>
 
 
@@ -1194,10 +1244,12 @@ long as any is in use. However, you can also retain one allocation per dynamic m
 
 <p>
 <i>Smoλ</i> provides three main string types: 
-<code class="language-smolambda">cstr</code> (a constant string enclosed in quotations during compilation, zero-terminated), 
-<code class="language-smolambda">nstr</code> (zero-terminated with length information), and 
-<code class="language-smolambda">str</code> (a string segment). For most purposes, you can use and convert results to
-<code class="language-smolambda">str</code>.
+<code class="language-smolambda">cstr</code> (a constant string enclosed in quotations during compilation, null-terminated), 
+<code class="language-smolambda">nstr</code> (null-terminated with length information), and 
+<code class="language-smolambda">str</code> (a string segment). For most purposes, you can convert the other two to
+<code class="language-smolambda">str</code>. That said, there are some places where the other two are needed, 
+as null-termination, that is, having an extra zero character at the end of strings, is needed when exchangin information
+with the operating system.
 </p>
 
 <p>
@@ -1227,8 +1279,11 @@ def Segment(String _value)
 def combine(Segment[] segments)
     @mut combined = "".str()  // mutable string with known size
     @on Stack.arena(1024)     // automatically use as argument if needed (for string operations)
-    segments.len().range().while next(@mut u64 i) 
-        combined = str(combined+segments[i].value+" ")
+    segments
+    .len()
+    .range()
+    .while next(@mut u64 i) 
+        combined = add(@all combined segments[i].value " ").str()
     return combined
 
 service main()
@@ -1255,7 +1310,7 @@ I think. Therefore I am.
 <p>
 Buffers represent collections of data that grow dynamically.  
 The simplest syntax is <code class="language-smolambda">type[]</code>, which produces 
-a resizable array of that type, though only allowed if the type is a nominal one. 
+a resizable array of that type. This is only allowed if the type is a nominal one. 
 You can grow buffers or modify their elements only as long as they remain mutable. For example,
 you can create a buffer per <code class="language-smolambda">v = u64[].push(1).push(2)</code>
 that is henceforth immutable. 
@@ -1272,8 +1327,7 @@ service main()
     .push(1)
     .push(2)
 
-    p = data[]
-    .push(data(10, vals))
+    p = data[].push(data(10, vals))
 
     print(p[0].id)
     print(p[0].values[0])
@@ -1295,7 +1349,7 @@ service main()
 </pre>
 
 <p>
-By default, buffers use dynamically sized Heap memory to store their data. However, you can
+<b>Custom buffer allocation:</b> By default, buffers use dynamically sized Heap memory to store their data. However, you can
 also create them on memory allocations provided by the standard library; all types of memory
 accept an ,<code>allocate(size)</code> function for setting aside a fixed-size region, within
 which buffers can grow. Below is an example. Do note that data can be pushed onto buffers during
@@ -1330,7 +1384,9 @@ service main()
 
 <p>
 Buffers preserve mutability rules: 
-if a buffer itself is mutable, its contents can be changed or extended.
+only if a buffer itself is mutable can its contents can be changed or extended.
+That said, you can assign immutable buffers to mutable ones and alter the contents
+of the latter.
 Strings can also be stored in buffers or arrays <b>given that they reside
 in the same memory surface</b>.
 Below is an example.
@@ -1397,6 +1453,54 @@ service main()
 <span style="color:#5dc1b9">🔹</span> single threaded
 
 42
+</pre>
+
+</details>
+
+
+
+<details>
+<summary>Sharing buffer data.</summary>
+
+<p>
+You can share the same data between multiple buffers, even if those are mutable.
+This can allow one to make changes to another. You can even use an allocated 
+memory region to declare a <code class="language-smolambda">char[]</code> buffer
+and then use the same region to allocate strings. Safety is preserved in that allocated
+memory regions accept only the same kinds of data; the compiler runs some analysis
+to determine this and creates an error if such problematic behavior is found. 
+As a result, replaced data may be modified but they will always be safe to read
+and write. Below is an example:
+</p>
+
+<pre><code class="language-smolambda">@include std.core
+@include std.mem
+
+service main()
+    @mut memory = Heap.allocate(1.KB())
+    @mut buf = char[memory]
+    .push("H".str().first)
+    .push("i".str().first)
+    .push("!".str().first)
+
+    s = memory.str(3)
+    print(s)
+
+    // now modify the buffer - it modifies the string
+    buf[2] = "#".str().first
+    print(s)
+</code></pre>
+
+<pre style="background-color: #222; color: white;">> smol main.s
+<span style="color: #b072d1;">codegen</span> --workers 1 ██████████ 7/7 files  27ms
+<span style="color: #b072d1;">compile</span> --back gcc  --runtime std/runtime/auto.h  68ms
+<span style="color: #7cd15d;">running</span> tests/unit/tutorial/hello
+
+<span style="color:#5dc1b9">🔹</span> https://github.com/maniospas/smol
+<span style="color:#5dc1b9">🔹</span> single threaded
+
+Hi!
+Hi#
 </pre>
 
 </details>
