@@ -81,8 +81,8 @@ service main()
         @mut stack = SortRange[].push(SortRange(0, arr.len() - 1))
         while stack.len().bool()
             stack.quicksort(arr)
-        accum = accum + time() - tic
+        accum = accum + (time() - tic)
         noopt = noopt + arr[0] // prevent optimizations
     
-    printin(accum*1000.0/ITER.f64())
+    printin((accum*1000.0)/ITER.f64())
     print(" ms")
