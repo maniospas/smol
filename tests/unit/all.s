@@ -17,16 +17,16 @@ service run(String command)
     @release process
 
 service std_test(String name)
-    @on Heap.dynamic() 
-    command = "./smol tests/unit/"+name+".s --workers 1 --runtime eager 2>&1"
+    @on Heap.dynamic()
+    command = add(@all "./smol tests/unit/"name".s --workers 1 --runtime eager 2>&1")
 
     // new memory surface because the previous one is made immutable by running the command
     // by feeding into a service call
     @on Heap.dynamic()
     if run(command).err.bool()
-        print("[ \033[31mERROR\033[0m ] "+name+".s")
+        printin(@all "[ \033[31mERROR\033[0m ] "name".s\n")
     else 
-        print("[ \033[32mOK\033[0m ] "+name+".s")
+        printin(@all "[ \033[32mOK\033[0m ] "name".s\n")
 
 service all()
     // services are asynchronous co-routines

@@ -12,6 +12,27 @@
 // limitations under the License.
 #include "../../def.h"
 
+size_t get_precedence_level(const std::string& name) {
+    static const std::unordered_map<std::string, size_t> prec {
+        {".", 0},
+        {"mul", 1},
+        {"div", 1},
+        {"mod", 1},
+        {"add", 2},
+        {"sub", 2},
+        {"lt", 3},
+        {"gt", 3},
+        {"leq", 3},
+        {"geq", 3},
+        {"eq", 4},
+        {"neq", 4},
+    };
+    auto it = prec.find(name);
+    if (it != prec.end())
+        return it->second;
+    return 10000;
+}
+
 
 Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos) {
     auto type = types.contains(first_token)?types.vars.find(first_token)->second:(first_token==name?shared_from_this():nullptr);
@@ -48,6 +69,8 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
         }
     }
     else if(imp->at(p)=="__consume") {
+        auto current_operator = imp->at(p-1);
+        auto operation_pos = p-1;
         if(!curry.exists()) imp->error(p-2, "Unexpected usage of operator\nThere is no left-hand-side");
         if(!contains(curry)) imp->error(first_token_pos-2, "Not found: "+pretty_var(curry.to_string())+recommend_runtype(types, curry));
         else if(vars.find(curry)->second->not_primitive()) {
@@ -57,8 +80,25 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
         else 
             unpacks.push_back(curry);
         p++;
-        string next = imp->at(p++);
+        auto next = imp->at(p++);
+        if(!operator_precedence.size()) operator_precedence.emplace_back(0);
+        if(operator_precedence[operator_precedence.size()-1]) {
+            auto precedence_at = imp->at(operator_precedence[operator_precedence.size()-1]);
+            auto prev_precedence_level = get_precedence_level(precedence_at);
+            auto current_precendence_level = get_precedence_level(current_operator);
+            if(prev_precedence_level<=current_precendence_level)
+                imp->error(operation_pos, "Ambiguous operator precedence\n"
+                    "Smoλ's parsing of operators is left-to-right, "
+                    "meaning that this operator would be parsed within the last "+imp->at(operator_precedence[operator_precedence.size()-1])+
+                    "'s argument. However this operator contradicts the assumed mathematical notation by having lower "
+                    "or the same precedence than a PREVIOUS one. "
+                    "Consider adjusting operant order, or add parentheses from the start of the expression till this point to make the "
+                    "expected behavior explicit."
+                );
+        }
+        operator_precedence[operator_precedence.size()-1] = operation_pos;
         Variable rhs = parse_expression(p, next, types);
+        operator_precedence[operator_precedence.size()-1] = 0;
         if(!contains(rhs)) 
             imp->error(--p, "Failed to parse the right-hand-side of "+first_token.to_string());
         const auto& rhsType = vars.find(rhs)->second;

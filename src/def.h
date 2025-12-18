@@ -240,6 +240,7 @@ public:
     size_t storage_size;
     static bool debug;
     static bool export_docs;
+    vector<size_t> operator_precedence; 
     vector<Type> options;
     vector<Arg> args;
     shared_ptr<Import> imp;

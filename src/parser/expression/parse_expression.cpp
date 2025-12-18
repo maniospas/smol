@@ -15,9 +15,11 @@
 Variable Def::parse_expression(size_t& p, const Variable& first_token, Types& types, const Variable& curry) {
     auto first_token_pos = p-1;
     if(first_token=="(") {
+        operator_precedence.push_back(0); // it's impossible to encounter this at position 0 of a file
         Variable ret = parse_expression(p, imp->at(p++), types, curry);
         if(imp->at(p++)!=")") 
             imp->error(first_token_pos, "Expecting closing parenthesis");
+        operator_precedence.pop_back();
         return next_var(p, ret, types);
     }
     return parse_expression_no_par(p, first_token, types, curry);
@@ -173,7 +175,7 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
 
     if(contains(first_token)) {
         if(curry.exists()) 
-            imp->error(p, "Expecting runtype but got variable: "
+            imp->error(p, "Expecting type but got variable: "
                 +first_token.to_string()
             );
         return next_var(p, first_token, types); //ASSIGNMENT TO ALREADY EXISTING VARIABLE
@@ -181,10 +183,10 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
     if(first_token=="@" && p<imp->size() && imp->at(p)=="mut") {
         p++;
         if(p >= imp->size()) 
-            imp->error(--p, "Expecting runtype after @mut");
+            imp->error(--p, "Expecting type after @mut");
         Variable runtype = imp->at(p++); 
         if(!types.contains(runtype))
-            imp->error(--p, "Unknown runtype after @mut: " + runtype.to_string());
+            imp->error(--p, "Unknown type after @mut: " + runtype.to_string());
         Variable var = parse_expression(p, runtype, types, EMPTY_VAR);
         mutables.insert(var);
         type_trackers.insert(var);
