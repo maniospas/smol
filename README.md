@@ -40,7 +40,7 @@ def Stats(
 
 def print(file_stats stats)
     // @all to use printin (print without \n ending) to reduce expressions 
-    // no commas in this syntax makes it look like string formatting
+    // no commas in this syntax makes it look like string interpolation
     printin(@all stats.lines" lines, "stats.chars" bytes\n")
 
 def file_reader(String path, @mut Memory memory) // for all String variations
@@ -58,7 +58,7 @@ def file_reader(String path, @mut Memory memory) // for all String variations
     return nominal.Stats(stat_lines, stat_chars)
 
 service main()
-    @mut memory = Stack.arena(1048576) // 1MB
+    @mut memory = Stack.arena(1.MB()) 
     stats = file_reader("README.md", memory)
     print(stats)
 ```
