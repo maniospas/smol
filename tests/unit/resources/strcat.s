@@ -13,20 +13,20 @@ service main()
     name = Heap.arena(24).read_name()
     
     @on Heap.dynamic()
-    print("Hi "+name+"!")
+    print(add(@all"Hi "name"!"))
     
     @on Stack.dynamic()
-    print("Hi "+name+"!")
+    print(add(@all"Hi "name"!"))
 
     @on Heap.arena(1024)
-    print("Hi "+name+"!")
+    print(add(@all"Hi "name"!"))
 
     @on Stack.arena(1024)
-    print("Hi "+name+"!")
+    print(add(@all"Hi "name"!"))
 
     @on Stack.circular(1024)
-    print("Hi "+name+"!")
+    print(add(@all"Hi "name"!"))
 
     @on Heap.circular(1024)
-    print("Hi "+name+"!")
+    print(add(@all"Hi "name"!"))
     

@@ -64,6 +64,13 @@ vector<Variable> Def::gather_tuple(size_t& p, Types& types, const Variable& curr
         if(next==")") 
             return ret;
     }
+    bool commaless = false;
+    if(imp->at(p)=="@" && imp->at(p+1)!="mut") {
+        p++;
+        if(imp->at(p++)!="all") imp->error(--p, "Unexpected directive.\nOnly @all or @mut allowed here.");
+        commaless = true;
+    }
+    
     while(true) {
         size_t expression_start = p;
         string next = imp->at(p++);
@@ -101,8 +108,13 @@ vector<Variable> Def::gather_tuple(size_t& p, Types& types, const Variable& curr
             --p;
             break;
         }
-        if(next!=",") 
-            imp->error(--p, "Missing comma");
+        if(commaless) {
+            if(next==",")  imp->error(--p, "Comma not allowed after @all");
+            --p;
+        }
+        else {
+            if(next!=",")  imp->error(--p, "Missing comma");
+        }
     }
     return ret;
 }

@@ -53,6 +53,7 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
         return parse_buffer_create(p, first_token, types, curry, first_token_pos, type);
     }
     vector<Variable> unpacks;
+    bool autoreduce = false;
     if(p>=imp->size()-1) {
         if(curry.exists()) {
             if(!contains(curry)) 
@@ -302,9 +303,31 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
     else {
         if(imp->at(p++)!="(") 
             imp->error(--p, "Expecting opening parenthesis");
+        autoreduce = imp->at(p)=="@" && imp->at(p+1)=="all";
         unpacks = gather_tuple(p, types, curry);
         if(imp->at(p++)!=")") 
             imp->error(--p, "Expecting closing parenthesis");
     }
-    return call_type(p, type, unpacks, first_token_pos, first_token, types);
+    if(!autoreduce)
+        return call_type(p, type, unpacks, first_token_pos, first_token, types, false);
+
+    auto leftover_unpacks_size = unpacks.size();
+    auto ret = EMPTY_VAR;
+    auto prev_type = type;
+    while(true) {
+        //cout << signature_like(types, unpacks) << "\n";
+        type = prev_type; // type is modified by the call
+        ret = call_type(p, type, unpacks, first_token_pos, first_token, types, true);
+        if(!unpacks.size()) return ret;
+        if(ret.exists())
+            for(size_t i=0;i<vars[ret]->packs.size();++i)
+                unpacks.insert(unpacks.begin()+i, ret+vars[ret]->packs[i]);
+        leftover_unpacks_size--;
+        if(leftover_unpacks_size<=0) 
+            imp->error(first_token_pos, "Reduction via @all is too slow"
+                "\nThe reduction's converge to a stable state is too stable for this function; perhaps it never converges."
+            );
+    }
+
+    return ret;
 }

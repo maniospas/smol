@@ -14,13 +14,13 @@
 
 
 Variable Def::call_type(
-    
     size_t& p, 
     Type& type, 
     vector<Variable>& unpacks, 
     const size_t first_token_pos, 
     const Variable& first_token, 
-    Types& types
+    Types& types,
+    bool allow_leftovers
 ) {
     // manually handle some primitive conversions to help with safety
     if(type->_is_primitive) {
@@ -80,6 +80,7 @@ Variable Def::call_type(
     type->number_of_calls++;
     auto max_arg_progress = size_t{0};
     auto arg_progress = size_t{0};
+    auto has_used_context = false;
     for(const auto& type : previousType->get_options()) { // options encompass all overloads, in case of unions it may not have the base overload
         if(!type) 
             imp->error(--p, "Internal error: obtained a null option for "
@@ -89,11 +90,17 @@ Variable Def::call_type(
             continue;
         try {
             //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
-            auto type_args = type->not_primitive()?type->args.size():1;
-            if(unpacks.size()!=type_args) 
-                throw runtime_error(type->signature(types));
+            const auto type_args = (type->not_primitive()?type->args.size():1);
+            if(allow_leftovers) {
+                if(unpacks.size()<type_args) 
+                    throw runtime_error(type->signature(types));
+            }
+            else {
+                if(unpacks.size()!=type_args) 
+                    throw runtime_error(type->signature(types));
+            }
             arg_progress = 0;
-            for(size_t i=0;i<unpacks.size();++i) {
+            for(size_t i=0;i<type_args;++i) {
                 arg_progress++;
                 auto arg_type = type->_is_primitive?type:type->args[i].type;
                 if(type->not_primitive() && arg_type->not_primitive()) 
@@ -186,11 +193,17 @@ Variable Def::call_type(
                 continue;
             try {
                 //if(type->lazy_compile) throw runtime_error("Failed to resolve parametric type: "+type->signature());//+"\nParameters need to be determined by arguments");
-                size_t type_args = type->not_primitive()?type->args.size():1;
-                if(unpacks.size()!=type_args) 
-                    throw runtime_error(type->signature(types));
+                const auto type_args = (type->not_primitive()?type->args.size():1);
+                if(allow_leftovers) {
+                    if(unpacks.size()<type_args) 
+                        throw runtime_error(type->signature(types));
+                }
+                else {
+                    if(unpacks.size()!=type_args) 
+                        throw runtime_error(type->signature(types));
+                }
                 arg_progress = 0;
-                for(size_t i=0;i<unpacks.size();++i) {
+                for(size_t i=0;i<type_args;++i) {
                     arg_progress++;
                     auto arg_type = type->_is_primitive?type:type->args[i].type;
                     if(type->not_primitive() && arg_type->not_primitive()) 
@@ -250,6 +263,7 @@ Variable Def::call_type(
                 if(type->choice_power<highest_choice_power) 
                     continue;
                 successfulType = type;
+                has_used_context = true;
                 if(lsp) 
                     multipleFound += "\n";
                 else 
@@ -295,11 +309,10 @@ Variable Def::call_type(
         );
     if(type->lazy_compile) 
         imp->error(pos, "Internal error: Function has not been compiled");
-
     
     // check buffer type compatibility
     if(!type->_is_primitive)
-        for (size_t i = 0; i < unpacks.size(); ++i) {
+        for (size_t i = 0; i < type->args.size(); ++i) {
             auto expected = type->extract_buffer_type(type->args[i].name, p-1);
             auto actual = extract_buffer_type(unpacks[i], p-1);
             if (expected.get() && actual.get() != expected.get() && actual.get())
@@ -333,7 +346,7 @@ Variable Def::call_type(
     }
 
     // repeat here to properly handle nominal alignment (which we couldn't previously)
-    for(size_t i=0;i<unpacks.size();++i) {
+    for(size_t i=0;i<(type->not_primitive()?type->args.size():1);++i) {
         auto arg_type = type->_is_primitive?type:type->args[i].type;
         if(type->not_primitive() && arg_type->not_primitive()) 
             throw runtime_error(type->signature(types)+": Cannot unpack abstract " 
@@ -508,17 +521,27 @@ Variable Def::call_type(
         impl += Code(Variable("__smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks,"), var+TASK_VAR, RPAR_VAR, SEMICOLON_VAR);
         implementation +=impl;
         vars[var] = type->alias_for.exists()?type->vars[type->alias_for]:type;
+        if(allow_leftovers) 
+            unpacks.erase(unpacks.begin(), unpacks.begin()
+                +(type->not_primitive()?type->args.size():1)
+                
+            );
         return next_var(p, var, types);
     }
     if(type->_is_primitive) {
-        if(unpacks.size()!=1) imp->error(--p, "Primitive types only accept one argument");
+        if(unpacks.size()!=1 && !allow_leftovers) imp->error(--p, "Primitive types only accept one argument");
         auto fp = first_token_pos;
         assign_variable(type, var, unpacks[0], fp);
+        if(allow_leftovers) 
+            unpacks.erase(unpacks.begin(), unpacks.begin()
+                +(type->not_primitive()?type->args.size():1)
+                
+            );
         return next_var(p, var, types);
     }
     for(const auto& it : type->alignments) if(it.second) alignments[var+it.first] = it.second; 
     Code immediate_finals;
-    for(size_t i=0;i<unpacks.size();++i) {
+    for(size_t i=0;i<(type->not_primitive()?type->args.size():1);++i) {
         auto fp = first_token_pos;
         assign_variable(type->args[i].type, var+type->args[i].name, unpacks[i], fp);
         if(type->args[i].mut) {
@@ -555,6 +578,13 @@ Variable Def::call_type(
                 imp->error(--p, type->name.to_string()+"."+pretty_var(it.first.to_string())+" is undefined");
             vars[var+it.first] = it.second;
         }
+    
+    if(allow_leftovers) {
+        unpacks.erase(unpacks.begin(), unpacks.begin()
+            +(type->not_primitive()?type->args.size():1)
+            
+        );
+    }
     //finals[""] += immediate_finals; // TODO maybe it's a good idea to have some deallocations at the end of runtype implementations
     if(type->packs.size()==1) 
         return next_var(p, var+type->packs[0], types);

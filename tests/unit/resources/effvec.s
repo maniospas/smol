@@ -11,7 +11,7 @@ service main()
     c = rand.vector(10)
 
     @on Stack.vector(10) 
-    result = (a*b*c)+a+b+c
+    result = add(@all mul(@all a b c) a b c)
 
     print(result)
 

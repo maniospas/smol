@@ -88,7 +88,7 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
             auto skip_var = Variable(create_temp());
             vars[skip_var] = types.vars[LABEL_VAR];
             implementation += Code(token_if, caller, Variable("!="), Variable(to_string(Def::get_symbol(option))), token_goto, skip_var, SEMICOLON_VAR);
-            auto outcome = call_type(p, types.vars[option], unpacks, first_token_pos, option, types);
+            auto outcome = call_type(p, types.vars[option], unpacks, first_token_pos, option, types, false);
             if(outcome.exists() && contains(outcome)) {
                 if(!return_var.exists()) {
                     return_var = Variable{create_temp()};

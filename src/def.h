@@ -190,7 +190,7 @@ class Def : public enable_shared_from_this<Def> {
     Variable parse_runtype(size_t& p, const Variable& first_token, Types& types, Variable curry, size_t first_token_pos);
     Variable parse_expression(size_t& p, const Variable& first_token, Types& types, const Variable &curry=EMPTY_VAR);
     Variable parse_expression_no_par(size_t& p, const Variable& first_token, Types& types, Variable curry=EMPTY_VAR);
-    Variable call_type(size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, Types& types);
+    Variable call_type(size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, Types& types, bool allow_leftovers);
 
     // parse directives inlined in code (@head, @link, @body, @finally, @fail, @release, @noborrow, @noshare, @buffer)
     void parse_directive(size_t& p, string next, Types& types);

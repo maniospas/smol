@@ -151,7 +151,7 @@ Variable Def::next_var_at(Variable next, size_t& p, Types& types) {
     if(end.size()) 
         unpacks.push_back(end);
     string inherit_buffer = "";
-    next = call_type(p, type, unpacks, p-1, method, types);
+    next = call_type(p, type, unpacks, p-1, method, types, false);
     if(imp->at(p++)!="]") 
         imp->error(--p, "Failed to close square brackets\nPerhaps the expression to allocate the buffer memory concluded early");
     return next;
