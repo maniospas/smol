@@ -109,6 +109,14 @@
 "allowed. Fails on zero divisor. Overloads the corresponding operator. "
 "Example: <pre>print(1%2)</pre>"
 
+@about lshift
+"Performs a left shift on a signed or unsigned integer given an unsigned number of shifted "
+"bits. Example: <pre>print(1.lshift(2))</pre>"
+
+@about rshift
+"Performs a right shift on a signed or unsigned integer given an unsigned number of shifted "
+"bits. Example: <pre>print(8.rshift(2))</pre>"
+
 @about negative 
 "Returns the additive inverse (negation) of an i64 or f64. Does NOT overload any operation. "
 "Having u64 as the default type helps avoid many spurious negation errors, especially when "
@@ -257,6 +265,23 @@ def mod(@access u64 x, u64 y)
         @fail{printf("Error: modulo by zero\n");}
     @head{#include <stdio.h>}
     @body{u64 z=x%y;} 
+    return z
+
+def lshift(@access u64 x, u64 y)
+    @body{u64 z = x<<y;}
+    return z
+
+def rshift(@access u64 x, u64 y)
+    @body{u64 z = x>>y;}
+    return z
+
+
+def lshift(@access i64 x, u64 y)
+    @body{i64 z = x<<y;}
+    return z
+
+def rshift(@access i64 x, u64 y)
+    @body{i64 z = x>>y;}
     return z
 
 def add(@access i64 x, i64 y) 

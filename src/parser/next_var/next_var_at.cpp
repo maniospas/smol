@@ -95,6 +95,8 @@ Variable Def::next_var_at(Variable next, size_t& p, Types& types) {
     if(!types.contains(method)) 
         imp->error(--p, "No implementation for "+method);
     Type type = types.vars[method];
+    if(type->alias_for.exists()) 
+        type = type->vars[type->alias_for];
     vector<Variable> unpacks;
 
     if(active_calls[next].exists()) {
@@ -142,14 +144,27 @@ Variable Def::next_var_at(Variable next, size_t& p, Types& types) {
             active_calls[active_calls[next]] = EMPTY_VAR;
     }
 
-    if(vars[next]->not_primitive()) 
-        for(const Variable& pack : vars[next]->packs) 
+    
+    if(vars[next]->not_primitive()) {
+        for(const Variable& pack : vars[next]->packs)
             unpacks.push_back(next+pack);
+    }
     else 
         unpacks.push_back(next);
-    unpacks.push_back(arg);
-    if(end.size()) 
-        unpacks.push_back(end);
+    if(vars[arg]->not_primitive()) {
+        for(const Variable& pack : vars[arg]->packs)
+            unpacks.push_back(arg+pack);
+    }
+    else 
+        unpacks.push_back(arg);
+    if(end.size()) {
+        if(vars[end]->not_primitive()) {
+            for(const Variable& pack : vars[end]->packs)
+                unpacks.push_back(Variable(end)+pack);
+        }
+        else 
+            unpacks.push_back(end);
+    }
     string inherit_buffer = "";
     next = call_type(p, type, unpacks, p-1, method, types, false);
     if(imp->at(p++)!="]") 

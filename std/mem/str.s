@@ -49,11 +49,10 @@ def copy(@access @mut Memory allocator, String _s)
     s = _s.str()
     mem = allocator.allocate(s.length+1)
     @body{
-        char first = 0;
         memcpy((char*)mem__mem, s__contents, s__length);
         ((char*)mem__mem)[s__length] = 0;
     }
-    return nominal.nstr(mem.mem, s.length, first, mem.underlying)
+    return nominal.nstr(mem.mem, s.length, s.first, mem.underlying)
 
 def add(@access @mut Memory allocator, String _x, IndependentString _y)
     x = _x.str()
