@@ -27,6 +27,40 @@ function sendErrorToClient(msg) {
 process.on("uncaughtException", (err) => { sendErrorToClient("Uncaught Exception: " + err.message); console.error("Uncaught Exception:", err); });
 process.on("unhandledRejection", (reason) => { sendErrorToClient("Unhandled Rejection: " + reason); console.error("Unhandled Rejection:", reason); });
 
+function findEnclosingFunction(lines, line) {
+  for (let i = line; i >= 0; i--) {
+    const m = lines[i].match(/^\s*(def|service)\s+([A-Za-z_][A-Za-z0-9_]*)/);
+    if (m) {
+      const baseIndent = lines[i].match(/^\s*/)[0].length;
+      let end = lines.length - 1;
+      for (let j = i + 1; j < lines.length; j++) {
+        const indent = lines[j].match(/^\s*/)[0].length;
+        if (lines[j].trim() && indent <= baseIndent) {
+          end = j - 1;
+          break;
+        }
+      }
+      return { start: i, end };
+    }
+  }
+  return null;
+}
+
+function collectLocalWords(lines, range) {
+  const words = new Set();
+
+  for (let i = range.start + 1; i <= range.end; i++) {
+    const re = /\b[A-Za-z_][A-Za-z0-9_]*\b/g;
+    let m;
+    while ((m = re.exec(lines[i])) !== null) {
+      words.add(m[0]);
+    }
+  }
+
+  return words;
+}
+
+
 function analyzeDocument(uri, text) {
   const lines = text.split(/\r?\n/);
   const symbols = [];
@@ -103,11 +137,18 @@ connection.onInitialize((params) => {
 });
 
 connection.onCompletion((params) => {
+  function getWordBeforeCursor(lines, pos) {
+    const prefix = lines[pos.line].slice(0, pos.character);
+    const m = prefix.match(/[A-Za-z_][A-Za-z0-9_]*$/);
+    return m ? m[0] : null;
+  }
+
   const uri = params.textDocument.uri;
   const document = documents.get(uri);
   if (!document) return [];
   const pos = params.position;
   const lines = document.getText().split(/\r?\n/);
+  const currentWord = getWordBeforeCursor(lines, pos);
 
   // include / install
   {
@@ -156,6 +197,23 @@ connection.onCompletion((params) => {
     }
   }
 
+  // words in function
+  const funcRange = findEnclosingFunction(lines, pos.line);
+  let localWords = [];
+
+  if (funcRange)
+    localWords = [...collectLocalWords(lines, funcRange)]
+      .filter(w =>
+        w !== currentWord &&
+        !keywords.includes(w) &&
+        !builtins.includes(w)
+      )
+      .map(w => ({
+        label: w,
+        kind: CompletionItemKind.Variable,
+        detail: "Local (function scope)"
+      }));
+
   // normal completions
   const collectedSymbols = new Map();
   function collect(u, visited = new Set()) {
@@ -168,6 +226,7 @@ connection.onCompletion((params) => {
   }
   collect(uri);
   return [
+    ...localWords,
     ...builtins.map(k => ({ label: k, kind: CompletionItemKind.Keyword })),
     ...keywords.map(k => ({ label: k, kind: CompletionItemKind.Keyword })),
     ...[...collectedSymbols.values()].map(sym => ({
