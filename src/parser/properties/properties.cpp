@@ -225,22 +225,22 @@ bool Def::can_mutate_any_part(const Variable& var) {
 }
 
 bool Def::can_mutate(const Variable& var, size_t p) {
-    if(has_been_service_arg[var]) 
-        imp->error(p-1, "Cannot use mutable variable that has been passed to a service: "
-            +pretty_var(var.to_string())
-            +"\nStore it into an immutable intermediate if you want to use it"
-        );
+    // if(has_been_service_arg[var]) 
+    //     imp->error(p-1, "Cannot use mutable variable that has been passed to a service: "
+    //         +pretty_var(var.to_string())
+    //         +"\nStore it into an immutable intermediate if you want to use it"
+    //     );
     if(has_been_retrieved_as_immutable[var])
         return false;
     Variable prefix = var;
     for(size_t i =var.size; i>=1; --i) {
         prefix.size = i;
         if(mutables.find(prefix) != mutables.end()) {
-            if(has_been_service_arg[prefix]) 
-                    imp->error(p-1, "Cannot use mutable variable that has been passed to a service: "
-                        +pretty_var(prefix.to_string())
-                        +"\nStore it into an immutable intermediate if you want to use it"
-                    ); 
+            // if(has_been_service_arg[prefix]) 
+            //     imp->error(p-1, "Cannot use mutable variable that has been passed to a service: "
+            //         +pretty_var(prefix.to_string())
+            //         +"\nStore it into an immutable intermediate if you want to use it"
+            //     ); 
             prefix.size = var.size; // correct deallocation
             return true;
         }

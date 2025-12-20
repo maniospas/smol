@@ -9,4 +9,3 @@ service samples()
 service main()
     buf = samples()
     print(buf[0]) // prints 42
-

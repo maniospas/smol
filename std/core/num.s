@@ -275,7 +275,19 @@ def rshift(@access u64 x, u64 y)
     @body{u64 z = x>>y;}
     return z
 
+def xor(@access u64 x, u64 y)
+    @body{u64 z = x ^ y;}
+    return z
 
+def bits(@access f64 x)
+    @head{#include <stdint.h>}
+    @body{
+        union { double f; uint64_t u; } v;
+        v.f = x;
+        u64 z = v.u;
+    }
+    return z
+    
 def lshift(@access i64 x, u64 y)
     @body{i64 z = x<<y;}
     return z

@@ -326,7 +326,7 @@ bool Def::start_option_resolution(const Types& _types) {
     catch(const runtime_error& e) {
         string what = e.what();
         log_depth -= 1;
-        if(!what.starts_with("\033[33m`case` with no alternative")) 
+        if(!what.starts_with("\033[33mNot found a branch")) 
             throw e;
         return false;
     }
@@ -391,7 +391,7 @@ bool Def::complete_option_resolution(const Types& _types) {
     catch(const runtime_error& e) {
         string what = e.what();
         log_depth -= 1;
-        if(!what.starts_with("\033[33m`case` with no alternative")) 
+        if(!what.starts_with("\033[33mNot found a branch")) 
             throw e;
         return false;
     }

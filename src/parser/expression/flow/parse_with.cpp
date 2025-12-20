@@ -48,11 +48,11 @@ Variable Def::parse_with(size_t& p, Types& types, Variable curry, size_t first_t
         overloading_errors += what;
         end_block(p);
         next = imp->at(p++);
-        if(next=="qed") 
-            imp->error(with_start, "A `case` with no alternative always fails");
+        //if(next=="qed") 
+        //    imp->error(with_start, "A `case` with no alternative always fails");
     }
-    if(next=="qed" && numberOfCandidates) 
-        imp->error(with_start, "A `case` with no alternative\nCan guard parametric types but is a code smell otherwise\nHere it is redundant as enclosed code always succeeds");
+    //if(next=="qed" && numberOfCandidates) 
+    //    imp->error(with_start, "A `case` with no alternative\nCan guard parametric types but is a code smell otherwise\nHere it is redundant as enclosed code always succeeds");
     
     while(true) {
         if(next=="qed") {

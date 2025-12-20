@@ -3,7 +3,7 @@
 
 service main()
     boxes = str[]
-    :push("buffer start".str())
-    :push("buffer end".str())
+    .push("buffer start".str())
+    .push("buffer end".str())
     b = boxes[0]
     print(b) // 100
