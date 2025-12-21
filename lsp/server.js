@@ -204,6 +204,7 @@ connection.onCompletion((params) => {
   if (funcRange)
     localWords = [...collectLocalWords(lines, funcRange)]
       .filter(w =>
+        (!currentWord || w.startsWith(currentWord)) &&
         w !== currentWord &&
         !keywords.includes(w) &&
         !builtins.includes(w)

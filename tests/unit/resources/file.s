@@ -1,10 +1,13 @@
 @include std.core
+@include std.mem
 @include std.file
 
 service main()
     end_line = "\n".str().first // get `\n` as a character
 
-    @on Stack.circular(1024)
+    //@on Stack.circular(1024)
+    @on nominal
+    @on Stack.allocate(1.KB()).Circular()
     ReadFile
     .open("README.md")
     .while next_line(@mut str line)

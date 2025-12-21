@@ -195,7 +195,7 @@ def nstr (
     char first, 
     ptr memory
 )
-    @body{if(memory) (((char*)contents)[length]) = 0;}
+    @body{if(memory && contents) (((char*)contents)[length]) = 0;}
     return @args
 
 union CString = cstr or nstr
