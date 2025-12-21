@@ -4,10 +4,10 @@
 @include std.mem
 
 
-def Circle(nominal, f64 radius) 
+def Circle(new, f64 radius) 
     return @args
 
-def Square(nominal, f64 side) 
+def Square(new, f64 side) 
     return @args
 
 def area(Circle self)
@@ -23,7 +23,7 @@ def is(Shape, Shape)
 def volume(Shape base, f64 height) 
     return base.area()*height
 
-def Shapes(nominal)
+def Shapes(new)
     @mut squares = Square[]
     @mut circles = Circle[]
     @mut types = tag[]
@@ -52,11 +52,11 @@ def len(@access Shapes shapes)
     return shapes.types.len()
 
 service main()
-    @access @mut shapes = nominal.Shapes()
-    shapes.push(nominal.Square(1.0))
-    shapes.push(nominal.Circle(1.0))
-    shapes.push(nominal.Circle(2.0))
-    shapes.push(nominal.Square(5.0))
+    @access @mut shapes = new.Shapes()
+    shapes.push(new.Square(1.0))
+    shapes.push(new.Circle(1.0))
+    shapes.push(new.Circle(2.0))
+    shapes.push(new.Square(5.0))
 
     print("=== Volumes ===")
     shapes

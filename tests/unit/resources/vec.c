@@ -14,7 +14,7 @@
 #define __IS_errcode 6
 #define __IS_cstr 7
 #define __IS_bool 8
-#define __IS_nominal 9
+#define __IS_new 9
 #ifdef __cplusplus
 #define __NULL nullptr
 #else
@@ -47,7 +47,7 @@ typedef int errcode;
 typedef const char* cstr;
 typedef uint64_t u64;
 typedef long i64;
-typedef uint64_t nominal;
+typedef uint64_t new;
 typedef double f64;
 
 #include<stdlib.h>
@@ -76,8 +76,8 @@ u64 __gIB____kHB____wD=0;
 u64 __gIB____eHB__if__r=0;
 u64 __gIB____hHB=0;
 bool __gIB____gHB__z=0;
-nominal __fIB____IFB__self__contents____EF____8E=0;
-nominal __fIB____IFB__self__contents____DF=0;
+new __fIB____IFB__self__contents____EF____8E=0;
+new __fIB____IFB__self__contents____DF=0;
 u64 __fIB__i=0;
 cstr __fIB____IFB____MT=0;
 f64 __fIB____IFB____RT=0;
@@ -90,9 +90,9 @@ f64 __fIB____GFB=0;
 u64 __fIB__size=0;
 cstr __fIB____EFB=0;
 bool __fIB____DFB__z=0;
-nominal __eIB____AIB____49__self__contents____EF____8E=0;
+new __eIB____AIB____49__self__contents____EF____8E=0;
 cstr __gIB____iHB=0;
-nominal __eIB____AIB____49__self__type=0;
+new __eIB____AIB____49__self__type=0;
 ptr __eIB____DIB__contents=0;
 u64 __gIB____fHB=0;
 f64 __eIB____CIB=0;
@@ -108,7 +108,7 @@ u64 memory__contents__size=0;
 u64 __dIB=0;
 f64 __bIB____CIB=0;
 char __XIB____QW____YI____xF=0;
-nominal __fIB____IFB__self__type=0;
+new __fIB____IFB__self__type=0;
 u64 __bIB__memory__size=0;
 u64 __aIB=0;
 bool __bIB____AIB____49____LT__z=0;
@@ -123,7 +123,7 @@ u64 __gIB____mHB__self__pos=0;
 ptr __fIB____IFB___contents=0;
 f64 __bIB____AIB____49____TT____WF=0;
 u64 __gIB____kHB____xD=0;
-nominal __bIB____AIB____49__self__type=0;
+new __bIB____AIB____49__self__type=0;
 bool __eIB____AIB____49____LT__z=0;
 u64 __eIB____AIB____59____xD=0;
 cstr __gIB____xHB=0;
@@ -132,7 +132,7 @@ f64 __eIB____AIB____49____RT=0;
 u64 __bIB____AIB____79____zD=0;
 u64 __XIB__size=0;
 u64 __bIB____AIB____49__size=0;
-nominal __eIB____AIB____49__self__contents____DF=0;
+new __eIB____AIB____49__self__contents____DF=0;
 u64 __eIB__size=0;
 cstr __eIB____AIB____49____MT=0;
 u64 __bIB____AIB____49____KT__z=0;
@@ -181,12 +181,12 @@ u64 __gIB____mHB____zD=0;
 cstr __bIB____DIB____ICB=0;
 u64 __eIB____AIB____59____wD=0;
 bool __XIB____QW____YI____0F__z=0;
-nominal memory__type=0;
+new memory__type=0;
 u64 __eIB__memory__contents__bytesize=0;
-nominal memory__contents____DF=0;
-nominal __bIB____AIB____49__self__contents____DF=0;
-nominal memory__contents____EF____8E=0;
-nominal __bIB____AIB____49__self__contents____EF____8E=0;
+new memory__contents____DF=0;
+new __bIB____AIB____49__self__contents____DF=0;
+new memory__contents____EF____8E=0;
+new __bIB____AIB____49__self__contents____EF____8E=0;
 char __eIB__memory__contents____FF=0;
 ptr __eIB__memory__contents__mem=0;
 ptr __eIB__memory__contents__underlying=0;

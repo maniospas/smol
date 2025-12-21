@@ -14,7 +14,7 @@
 #define __IS_errcode 6
 #define __IS_cstr 7
 #define __IS_bool 8
-#define __IS_nominal 9
+#define __IS_new 9
 #define __IS_symbol 10
 #ifdef __cplusplus
 #define __NULL nullptr
@@ -51,7 +51,7 @@ typedef const char* cstr;
 typedef uint64_t tag;
 typedef uint64_t u64;
 typedef long i64;
-typedef uint64_t nominal;
+typedef uint64_t new;
 typedef double f64;
 
 #include<string.h>
@@ -146,10 +146,10 @@ cstr __doB=0;
 ptr __boB=0;
 u64 __aoB=0;
 ptr __ZoB=0;
-nominal __YoB=0;
-nominal __XoB=0;
-nominal __WoB=0;
-nominal __VoB=0;
+new __YoB=0;
+new __XoB=0;
+new __WoB=0;
+new __VoB=0;
 u64 __UoB=0;
 u64 __ToB=0;
 u64 __SoB=0;
@@ -164,8 +164,8 @@ ptr __TpB=0;
 ptr __FoB=0;
 u64 __EoB=0;
 ptr __DoB=0;
-nominal __CoB=0;
-nominal __BoB=0;
+new __CoB=0;
+new __BoB=0;
 ptr __AoB=0;
 u64 __LpB=0;
 

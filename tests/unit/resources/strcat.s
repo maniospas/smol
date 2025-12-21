@@ -10,7 +10,7 @@ def read_name(@mut Arena arn)
     // --return name
 
 service main()
-    name = Heap.arena(24).read_name()
+    name = Heap.allocate(24).arena().read_name()
     
     @on Heap.dynamic()
     print(add(@all"Hi "name"!"))
@@ -18,15 +18,15 @@ service main()
     @on Stack.dynamic()
     print(add(@all"Hi "name"!"))
 
-    @on Heap.arena(1024)
+    @on Heap.allocate(1.KB()).arena()
     print(add(@all"Hi "name"!"))
 
-    @on Stack.arena(1024)
+    @on Stack.allocate(1.KB()).arena()
     print(add(@all"Hi "name"!"))
 
-    @on Stack.circular(1024)
+    @on Stack.allocate(1.KB()).circular()
     print(add(@all"Hi "name"!"))
 
-    @on Heap.circular(1024)
+    @on Heap.allocate(1.KB()).circular()
     print(add(@all"Hi "name"!"))
     

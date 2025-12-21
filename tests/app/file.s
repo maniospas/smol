@@ -5,7 +5,7 @@
     return File
 
 def file_stats(
-    nominal, 
+    new, 
     u64 lines,
     u64 chars
 ) 
@@ -31,7 +31,7 @@ def file_reader(
         stat_chars = stat_chars + line.len()
         printin("| ") // print without ending line
         print(line)
-    return nominal.file_stats(stat_lines, stat_chars)
+    return new.file_stats(stat_lines, stat_chars)
 
 service main()
     @mut memory = Stack.arena(1.MB()) // 1MB

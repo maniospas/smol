@@ -36,7 +36,7 @@ void Def::assert_options_validity(size_t& p) {
             count_nonnom++;
     }
     if(count_nom>1 && count_nonnom)
-        imp->error(p, "More than one nominal declarations for: "+name.to_string());
+        imp->error(p, "More than one new declarations for: "+name.to_string());
     if(is_service && is_not_service)
         imp->error(p, "Cannot have both service and non-service declarations for: "+name.to_string());
 }

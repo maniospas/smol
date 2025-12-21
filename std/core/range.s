@@ -21,7 +21,7 @@
 "Standard library implementation of u64 ranges."
 
 @about range 
-"Defines a u64 range as a structural type (instead of nominal type). When directly using variables as ranges, the position should be mutable. A couple of calling conventions are provided for default values of 0 for start and 1 for step."
+"Defines a u64 range as a structural type (instead of new type). When directly using variables as ranges, the position should be mutable. A couple of calling conventions are provided for default values of 0 for start and 1 for step."
 
 @about next  
 "Obtains the next element in the range. Using a combination of a range and next element traversal is safer than manually checking bounds."

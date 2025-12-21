@@ -19,7 +19,7 @@
 // @unsafe
 
 // def MemoryGrid (
-//         nominal type,
+//         new type,
 //         @mut Memory memory,
 //         Primitive,
 //         u64 size, 
@@ -29,14 +29,14 @@
 //     return type, surface, size, squares
 
 // def GridEntry (
-//         nominal,
+//         new,
 //         @mut MemoryGrid grid,
 //         u64 id
 //     ) 
 //     return @args
 
 // def at(@mut MemoryGrid self, u64 id) 
-//     return nominal.GridEntry(self, id)
+//     return new.GridEntry(self, id)
 
 // def at(@access GridEntry self, u64 pos) 
 //     true_pos = pos
@@ -62,4 +62,4 @@
 //     return self.grid.size
 
 // def grid(@mut Memory memory, u64 size, u64 squares, Primitive)
-//     return nominal.MemoryGrid(memory, Primitive, size, squares)
+//     return new.MemoryGrid(memory, Primitive, size, squares)

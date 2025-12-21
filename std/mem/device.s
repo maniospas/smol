@@ -64,10 +64,10 @@
 "generally work with this type, as it is highly unsafe to get its pointer fields and "
 "requires annotation for the language to allow that."
 
-def Stack(nominal)
+def Stack(new)
     return @args 
 
-def Heap(nominal)
+def Heap(new)
     return @args
 
 union MemoryDevice = Stack or Heap
@@ -79,7 +79,7 @@ def KB(u64 value)
     return 1024*value
 
 def ContiguousMemory (
-    nominal type,
+    new type,
     u64 size,
     ptr mem,
     ptr underlying
@@ -100,7 +100,7 @@ def allocate(@access Heap, u64 size)
             __runtime_free(mem);
         mem=0;
     }
-    return nominal.ContiguousMemory(size, mem, mem)
+    return new.ContiguousMemory(size, mem, mem)
 
 def allocate(@access Stack, u64 size)
     @head{#include <stdlib.h>}
@@ -111,6 +111,6 @@ def allocate(@access Stack, u64 size)
     if mem.bool().not() 
         fail("Insufficient stack for allocation (too much recursion or stack allocation, or zero size requested)")
     @noshare mem
-    return nominal.ContiguousMemory(size, mem, mem)
+    return new.ContiguousMemory(size, mem, mem)
 
 def __device_file_end() // TODO: find why imports fail without this

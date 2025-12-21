@@ -180,7 +180,7 @@
 
 
 def str (
-    nominal, 
+    new, 
     ptr contents, 
     u64 length, 
     char first, 
@@ -189,7 +189,7 @@ def str (
     return @args
 
 def nstr (
-    nominal, 
+    new, 
     ptr contents, 
     u64 length, 
     char first, 
@@ -206,7 +206,7 @@ def is(@access String self, String)
     return self
 
 def str(@access nstr other)
-    return nominal.str(other.contents, other.length, other.first, other.memory)
+    return new.str(other.contents, other.length, other.first, other.memory)
 
 def str(@access cstr raw)
     @head{#include <string.h>}
@@ -216,7 +216,7 @@ def str(@access cstr raw)
         char first=raw[0];
         ptr noptr=0; // use this to indicate a cstr
     }
-    return nominal.str(contents, length, first, noptr)
+    return new.str(contents, length, first, noptr)
 
 def nstr(@access cstr raw)
     @head{#include <string.h>}
@@ -226,7 +226,7 @@ def nstr(@access cstr raw)
         char first=raw[0];
         ptr noptr = 0; // use this to indicate a cstr
     }
-    return nominal.nstr(contents, length, first, noptr)
+    return new.nstr(contents, length, first, noptr)
 
 def str(@access bool value) 
     @head{cstr __smol_true_str = "true";}
@@ -288,7 +288,7 @@ def slice(@access String self, u64 from, u64 to)
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from==to?0:((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
     }
-    return nominal.str(contents, to-from, first, s.contents)
+    return new.str(contents, to-from, first, s.contents)
     
 def slice(@access String self, u64 from) 
     return self.slice(from, 0)
@@ -356,7 +356,7 @@ def at(@access str x, u64 pos)
 def at(@access nstr x, u64 pos) 
     return at(x.str(), pos)
 
-def Split(nominal, 
+def Split(new, 
     str query,
     str sep, 
     @mut u64 pos
@@ -364,7 +364,7 @@ def Split(nominal,
     return @args
     
 def Split(@access String _query, @access IndependentString _sep) 
-    return nominal.Split(_query.str(), _sep.str(), u64 &pos) // splits are str (not cstr or nstr)
+    return new.Split(_query.str(), _sep.str(), u64 &pos) // splits are str (not cstr or nstr)
 
 def next(
     @access @mut Split self, 
@@ -396,13 +396,13 @@ def print(@access str[] messages)
         print(messages[i])
         i = i+1
 
-def key(nominal, i64 data)
+def key(new, i64 data)
     return @args
 
 def getch()
     @head{#include "std/oscommon.h"}
     @body{i64 ch = __smo_next_key_press();}
-    return nominal.key(ch)
+    return new.key(ch)
 
 def is_enter(key input)
     return input.data==i64(10)

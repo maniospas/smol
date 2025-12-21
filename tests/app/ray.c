@@ -14,7 +14,7 @@
 #define __IS_errcode 6
 #define __IS_cstr 7
 #define __IS_bool 8
-#define __IS_nominal 9
+#define __IS_new 9
 #define __IS_symbol 10
 #ifdef __cplusplus
 #define __NULL nullptr
@@ -51,7 +51,7 @@ typedef const char* cstr;
 typedef uint64_t tag;
 typedef uint64_t u64;
 typedef long i64;
-typedef uint64_t nominal;
+typedef uint64_t new;
 typedef double f64;
 
 #include<string.h>
@@ -104,7 +104,7 @@ f64 __XhI=0;
 f64 __WhI=0;
 bool __VhI=0;
 bool __ShI=0;
-nominal __RhI=0;
+new __RhI=0;
 f64 __QhI=0;
 bool __PhI=0;
 cstr __OhI=0;
@@ -128,8 +128,8 @@ u64 __ygI=0;
 f64 __xgI=0;
 f64 __wgI=0;
 f64 __vgI=0;
-nominal __ugI=0;
-nominal __tgI=0;
+new __ugI=0;
+new __tgI=0;
 ptr __rgI=0;
 u64 __pgI=0;
 char __ogI=0;
@@ -152,12 +152,12 @@ ptr __SgI=0;
 f64 __RgI=0;
 u64 __QgI=0;
 cstr __PgI=0;
-nominal __OgI=0;
-nominal __NgI=0;
-nominal __MgI=0;
-nominal __LgI=0;
-nominal __KgI=0;
-nominal __JgI=0;
+new __OgI=0;
+new __NgI=0;
+new __MgI=0;
+new __LgI=0;
+new __KgI=0;
+new __JgI=0;
 bool __FgI=0;
 bool __DgI=0;
 ptr __CgI=0;
@@ -180,7 +180,7 @@ ptr __sfI=0;
 ptr __rfI=0;
 char __qfI=0;
 u64 __pfI=0;
-nominal __ofI=0;
+new __ofI=0;
 f64 __nfI=0;
 cstr __lfI=0;
 bool __ifI=0;
@@ -230,15 +230,15 @@ u64 __geI=0;
 u64 __feI=0;
 u64 __eeI=0;
 u64 __deI=0;
-nominal __ceI=0;
+new __ceI=0;
 bool __beI=0;
 cstr __aeI=0;
 f64 __ZeI=0;
 f64 __YeI=0;
 bool __XeI=0;
 bool __TeI=0;
-nominal __ReI=0;
-nominal window____EDI=0;
+new __ReI=0;
+new window____EDI=0;
 bool __NeI=0;
 bool __MeI=0;
 u64 __KeI=0;
@@ -298,7 +298,7 @@ u64 spheres__dynamic____buffer_prev_capacity=0;
 bool __8ZI=0;
 cstr __6ZI=0;
 ptr __2ZI=0;
-nominal __sgI=0;
+new __sgI=0;
 f64 __1ZI=0;
 f64 __0ZI=0;
 ptr __zZI=0;

@@ -121,17 +121,17 @@
 "Deletes a file from the system. May cause service failure due to external factors, "
 "or if the file is already open."
 
-def ReadFile(nominal, ptr contents)
+def ReadFile(new, ptr contents)
     @noborrow
     return @args
 
-def WriteFile(nominal, ptr contents)
+def WriteFile(new, ptr contents)
     @noborrow
     return @args
 
 union File = ReadFile or WriteFile
 
-def open(@access @mut ReadFile, String _path) 
+def open(@access @mut ReadFile, String _path)
     path = _path.str()
     @head{#include <stdio.h>}
     @head{#include <string.h>}
@@ -144,7 +144,7 @@ def open(@access @mut ReadFile, String _path)
     }
     if contents.exists().not() 
         @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);}
-    return nominal.ReadFile(contents)
+    return new.ReadFile(contents)
 
 def to_start(@access @mut File f) 
     if f.contents.exists().not() 
@@ -201,7 +201,7 @@ def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
             fclose((FILE*)contents);
         contents=0;
     }
-    return nominal.WriteFile(contents)
+    return new.WriteFile(contents)
     
 def next_chunk (
     @mut Circular reader, 
@@ -221,7 +221,7 @@ def next_chunk (
         char first = ((char*)contents)[0];
         reader__length = reader__length + bytes_read;
     }
-    value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = new.nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret.bool()
 
 def next_line (
@@ -246,7 +246,7 @@ def next_line (
         }
         reader__length = reader__length + bytes_read;
     }
-    value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = new.nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret.bool()
 
 def next_chunk (
@@ -264,7 +264,7 @@ def next_chunk (
         char first = ((char*)reader__contents__mem)[0];
         reader__length = reader__length + bytes_read;
     }
-    value = nominal.nstr(ret, bytes_read, first, reader.contents.mem.ptr())
+    value = new.nstr(ret, bytes_read, first, reader.contents.mem.ptr())
     return ret.bool()
 
 def next_line(
@@ -286,7 +286,7 @@ def next_line(
         }
         reader__length = reader__length + bytes_read;
     }
-    value = nominal.nstr(ret, bytes_read, first, reader.contents.mem.ptr())
+    value = new.nstr(ret, bytes_read, first, reader.contents.mem.ptr())
     return ret.bool()
 
 def next_line (
@@ -361,7 +361,7 @@ def open(@access @mut WriteFile, String _path)
     }
     if contents.exists().not() 
         @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
-    return nominal.WriteFile(contents)
+    return new.WriteFile(contents)
 
 def create_dir(String _path)
     path = _path.str()
@@ -434,4 +434,4 @@ def console(@access @mut WriteFile)
         SMOLAMBDA_CONSOLE_CLOSE(f)
         f = 0;
     }
-    return nominal.WriteFile(f)
+    return new.WriteFile(f)

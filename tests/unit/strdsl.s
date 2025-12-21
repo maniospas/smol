@@ -1,22 +1,22 @@
 @include std.core
 @include std.mem
 
-def StrDSL(nominal, str[] elements)
+def StrDSL(new, str[] elements)
     if elements.len()>=8
         fail("Up to 8 base strings are allowed")
     return @args
 
-def Map(nominal, StrDSL dsl)
+def Map(new, StrDSL dsl)
     @mut values = u64[].expect(512)
     return @args, values
 
-def StrDSLString(nominal, StrDSL dsl, u64[] indexes)
+def StrDSLString(new, StrDSL dsl, u64[] indexes)
     if indexes.len()>=4 
         fail("String too complicated")
     return @args
 
 def str(StrDSL dsl, u64[] indexes)
-    return nominal.StrDSLString(dsl, indexes)
+    return new.StrDSLString(dsl, indexes)
 
 def print(StrDSLString s)
     s
@@ -28,7 +28,7 @@ def print(StrDSLString s)
     print("")
 
 service main()
-    dsl = nominal.StrDSL(str[]
+    dsl = new.StrDSL(str[]
         .push(str("my"))
         .push(str("name"))
         .push(str("is"))

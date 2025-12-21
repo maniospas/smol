@@ -95,7 +95,7 @@ void Def::parse_signature(size_t& p, Types& types) {
                 "\nor the argument of dependent types"
             );
         if(next==NOM_VAR && mut) 
-            imp->error(p-2, "Cannot have a @mut nominal argument");
+            imp->error(p-2, "Cannot have a @mut new argument");
         Type argType = types.vars[next];
         if(arg_name=="," || arg_name==")") {
             arg_name = create_temp();

@@ -50,7 +50,7 @@ service test()
     spheres.push(Sphere(100.0, 100.0, 30.0, 450.0, 600.0))
 
     @mut dt = 0.0
-    @access @mut window = nominal.Window(800.0, 450.0, "Hello from smoλ+raylib")
+    @access @mut window = new.Window(800.0, 450.0, "Hello from smoλ+raylib")
     @mut prev_t = time()
     @mut accum_fps = 60.0
     on Heap.volatile(1024)

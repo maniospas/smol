@@ -2,7 +2,7 @@
 @include std.mem
 
 // TODO: if we can make this work properly, we have finished implementing buffers properly
-def HTML(nominal, @mut char[] output_buffer)
+def HTML(new, @mut char[] output_buffer)
     @mut to_close = str[]
     return @args, to_close  // TODO: returning output_buffer twice create an issue when returning the __dynamic part
 
@@ -53,7 +53,7 @@ def child(@access @mut HTML self, u64 index, String _element)
 service main()
     @mut memory = Heap.allocate(64.KB())
     @mut buf = char[memory]
-    @on nominal.HTML(buf)
+    @on new.HTML(buf)
     
     body = push("body")
 

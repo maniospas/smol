@@ -71,7 +71,7 @@
 
   <pre><code class="language-smolambda">// from std/mem.device.s
 def ContiguousMemory (
-        nominal, 
+        new, 
         MemoryDevice, 
         u64 size,
         Primitive,
@@ -81,7 +81,7 @@ def ContiguousMemory (
     -> @args
 
 // from std/mem/arena.s
-def Arena(nominal type, ContiguousMemory contents)
+def Arena(new type, ContiguousMemory contents)
     @noborrow
     length = 0
     size = contents.size
@@ -115,22 +115,22 @@ def Arena(nominal type, ContiguousMemory contents)
   <p>
     <b>Runtypes -</b> Before starting, a brief recap that <i>smoλ</i> is centered 
     around <i>runtypes</i>; functions whose returned values serve
-    as both tuples and type fields. For example, the following declares a nominal
-    type, so that if you write <code class="language-smolambda">p=nominal:point2(x,y)</code> 
+    as both tuples and type fields. For example, the following declares a new
+    type, so that if you write <code class="language-smolambda">p=new:point2(x,y)</code> 
     you can access fields <code  class="language-smolambda">p.x</code> and <code  class="language-smolambda">p.y</code>.
   </p>
 
-  <pre><code class="language-smolambda">def point2(nominal, f64 _x, f64 _y) 
+  <pre><code class="language-smolambda">def point2(new, f64 _x, f64 _y) 
     x = 2*_x 
     y = 2*_y 
     -> x,y // return statement</code></pre>
   
   <p>
-    <b>Nominal types -</b> I shamelessly forced upon you a couple more concepts in the above explanation, 
+    <b>new types -</b> I shamelessly forced upon you a couple more concepts in the above explanation, 
     because they are pretty important. First is
-    <code class="language-smolambda">nominal</code>, which is a value indicating a type
+    <code class="language-smolambda">new</code>, which is a value indicating a type
     matched to its name instead of structure (two <code class="language-smolambda">f64</code> values).
-    The language's typing is static, so <code class="language-smolambda">nominal</code> indicators
+    The language's typing is static, so <code class="language-smolambda">new</code> indicators
     are checked during compilation but removed and do not affect execution.
   </p>
   <p>
@@ -192,7 +192,7 @@ def Arena(nominal type, ContiguousMemory contents)
 <pre><code class="language-smolambda">// from std/builtins/str.s
 
 def str (
-        nominal, // no storage or runtime cost
+        new, // no storage or runtime cost
         ptr contents, 
         u64 length, 
         char first, 
@@ -389,7 +389,7 @@ def allocate(Heap, u64 size, Primitive)
             __runtime_free(mem); // free usually
         mem=0;
     }
-    -> nominal:ContiguousMemory(
+    -> new:ContiguousMemory(
         Heap, // track type as zero-valued object (optimized away later)
         size, // size of region within underlying memory
         Primitive, // track type as zero-valued object (optimized away later)
@@ -459,7 +459,7 @@ Prism.languages.smolambda = {
     pattern: /&/,
     alias: 'operator' // optional, gives Prism’s operator style too
   },
-  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\b/,
+  'builtin': /\b(?:i64|u64|f64|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|new)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

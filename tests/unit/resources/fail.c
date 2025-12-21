@@ -14,7 +14,7 @@
 #define __IS_errcode 6
 #define __IS_cstr 7
 #define __IS_bool 8
-#define __IS_nominal 9
+#define __IS_new 9
 #ifdef __cplusplus
 #define __NULL nullptr
 #else
@@ -47,7 +47,7 @@ typedef int errcode;
 typedef const char* cstr;
 typedef uint64_t u64;
 typedef long i64;
-typedef uint64_t nominal;
+typedef uint64_t new;
 typedef double f64;
 
 #include <stdio.h>

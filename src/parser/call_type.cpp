@@ -32,7 +32,7 @@ Variable Def::call_type(
                 if(contains(unpack)) {
                     if(vars[unpack]->name==NOM_VAR) {
                         if(!alignments.contains(unpack))
-                            imp->error(--p, "Cannot extract a tag for unknown nominal type of variable: "
+                            imp->error(--p, "Cannot extract a tag for unknown new type of variable: "
                                 +pretty_var(unpack.to_string())
                             );
                         if(unpack_pos)
@@ -80,7 +80,6 @@ Variable Def::call_type(
     type->number_of_calls++;
     auto max_arg_progress = size_t{0};
     auto arg_progress = size_t{0};
-    auto has_used_context = false;
     for(const auto& type : previousType->get_options()) { // options encompass all overloads, in case of unions it may not have the base overload
         if(!type) 
             imp->error(--p, "Internal error: obtained a null option for "
@@ -263,7 +262,6 @@ Variable Def::call_type(
                 if(type->choice_power<highest_choice_power) 
                     continue;
                 successfulType = type;
-                has_used_context = true;
                 if(lsp) 
                     multipleFound += "\n";
                 else 
@@ -345,7 +343,7 @@ Variable Def::call_type(
                 );
     }
 
-    // repeat here to properly handle nominal alignment (which we couldn't previously)
+    // repeat here to properly handle new alignment (which we couldn't previously)
     for(size_t i=0;i<(type->not_primitive()?type->args.size():1);++i) {
         auto arg_type = type->_is_primitive?type:type->args[i].type;
         if(type->not_primitive() && arg_type->not_primitive()) 

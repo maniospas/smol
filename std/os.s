@@ -48,7 +48,7 @@
 @about next_line
 "Reads the next line of process output into a provided buffer."
 
-def Process(nominal, ptr contents)
+def Process(new, ptr contents)
     @noborrow
     return @args
 
@@ -79,7 +79,7 @@ def open(@access @mut Process, CString _command)
             goto __failsafe; // already cleaned resources will not have an issue with this
         }
     }
-    return nominal.Process(contents)
+    return new.Process(contents)
 
 def to_end(@access @mut Process p)
     @head{#include <string.h>}
@@ -106,7 +106,7 @@ def next_chunk(
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
-    value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = new.nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret.bool()
 
 def next_line(
@@ -120,7 +120,7 @@ def next_line(
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
     }
-    value = nominal.nstr(ret, bytes_read, first, reader.contents.underlying)
+    value = new.nstr(ret, bytes_read, first, reader.contents.underlying)
     return ret.bool()
 
 def next_chunk(

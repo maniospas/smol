@@ -1266,7 +1266,7 @@ Similarly, conversion of <code class="language-smolambda">cstr</code> to the oth
 @include std.core
 @include std.mem
 
-def Segment(nominal, str value)
+def Segment(new, str value)
     // return all inputs 
     // function returns are tuples of named elements
     return @args
@@ -1274,7 +1274,7 @@ def Segment(nominal, str value)
 def Segment(String _value)
     // convert from many string types
     value = _value.str()
-    return nominal.Segment(value)
+    return new.Segment(value)
 
 def combine(Segment[] segments)
     @mut combined = "".str()  // mutable string with known size
@@ -1310,7 +1310,7 @@ I think. Therefore I am.
 <p>
 Buffers represent collections of data that grow dynamically.  
 The simplest syntax is <code class="language-smolambda">type[]</code>, which produces 
-a resizable array of that type. This is only allowed if the type is a nominal one. 
+a resizable array of that type. This is only allowed if the type is a new one. 
 You can grow buffers or modify their elements only as long as they remain mutable. For example,
 you can create a buffer per <code class="language-smolambda">v = u64[].push(1).push(2)</code>
 that is henceforth immutable. 
@@ -1654,7 +1654,7 @@ Prism.languages.smolambda = {
     pattern: /&/,
     alias: 'operator' // optional, gives Prism’s operator style too
   },
-  'builtin': /\b(?:i64|u64|f64|ok|true|false|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal|tag)\b/,
+  'builtin': /\b(?:i64|u64|f64|ok|true|false|ptr|cstr|nstr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|new|tag)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': {

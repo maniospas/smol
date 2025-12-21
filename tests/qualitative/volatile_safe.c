@@ -14,7 +14,7 @@
 #define __IS_errcode 6
 #define __IS_cstr 7
 #define __IS_bool 8
-#define __IS_nominal 9
+#define __IS_new 9
 #define __IS_symbol 10
 #ifdef __cplusplus
 #define __NULL nullptr
@@ -51,7 +51,7 @@ typedef const char* cstr;
 typedef uint64_t tag;
 typedef uint64_t u64;
 typedef long i64;
-typedef uint64_t nominal;
+typedef uint64_t new;
 typedef double f64;
 
 #include<string.h>
@@ -88,12 +88,12 @@ u64 __sqB=0;
 cstr __rqB=0;
 cstr __qqB=0;
 bool __pqB=0;
-nominal __oqB=0;
+new __oqB=0;
 u64 __nqB=0;
 u64 __mqB=0;
 ptr mem__mem=0;
 cstr __kqB=0;
-nominal __FrB=0;
+new __FrB=0;
 bool __hqB=0;
 u64 __yqB=0;
 ptr mem__underlying=0;
@@ -104,7 +104,7 @@ u64 __aqB=0;
 bool __ZqB=0;
 u64 arn____6i__length=0;
 cstr __QqB=0;
-nominal arn____6i__type=0;
+new arn____6i__type=0;
 ptr __ZmB__mem=0;
 u64 __8qB=0;
 u64 mem__size=0;
@@ -114,7 +114,7 @@ u64 __TpB=0;
 char __RpB=0;
 u64 __OpB=0;
 u64 __NpB=0;
-nominal arn____6i__contents__type=0;
+new arn____6i__contents__type=0;
 u64 __MpB=0;
 char __LpB=0;
 u64 __KpB=0;
@@ -127,9 +127,9 @@ ptr __BpB=0;
 u64 __ApB=0;
 ptr __9oB=0;
 ptr __PpB=0;
-nominal __8oB=0;
+new __8oB=0;
 ptr __SpB=0;
-nominal __7oB=0;
+new __7oB=0;
 u64 __dpB=0;
 ptr __QpB=0;
 

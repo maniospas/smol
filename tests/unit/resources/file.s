@@ -1,13 +1,13 @@
 @include std.core
 @include std.mem
+    return Stack, KB, circular
 @include std.file
+    return ReadFile
 
 service main()
     end_line = "\n".str().first // get `\n` as a character
 
-    //@on Stack.circular(1024)
-    @on nominal
-    @on Stack.allocate(1.KB()).Circular()
+    @on Stack.allocate(1.KB()).circular()
     ReadFile
     .open("README.md")
     .while next_line(@mut str line)

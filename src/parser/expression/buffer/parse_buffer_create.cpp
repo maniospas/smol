@@ -34,7 +34,7 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
     if(type->options.size()==0) 
         imp->error(--p, "No options to determine buffer elements "
             +type->name.to_string()
-            +"\nAdding `nominal` as first argument in the type's function definition"
+            +"\nAdding `new` as first argument in the type's function definition"
             +" and returning that (e.g., with @args) may fix this issue; this would"
             +" enforce a specific selection among variations overloaded with the same name/union."
             +" This annoation directly interleaves the type in the definition"

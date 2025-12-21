@@ -1,7 +1,7 @@
 @include std.core
 @include std.mem
 
-def Segment(nominal, str value)
+def Segment(new, str value)
     // return all inputs 
     // function returns are tuples of named elements
     return @args
@@ -9,7 +9,7 @@ def Segment(nominal, str value)
 def Segment(String _value)
     // convert from many string types
     value = _value.str()
-    return nominal.Segment(value)
+    return new.Segment(value)
 
 def combine(Segment[] segments)
     @mut combined = "".str()  // mutable string with known size

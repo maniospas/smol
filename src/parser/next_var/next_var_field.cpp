@@ -68,7 +68,7 @@ Variable Def::next_var_field(Variable next, size_t& p, const Variable& first_tok
             && contains(next) 
             && vars[next]->name==NOM_VAR
         )
-            imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+            imp->error(--p, "Direct access of `new` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         skip = true;
         return next;
     }
@@ -113,7 +113,7 @@ Variable Def::next_var_field(Variable next, size_t& p, const Variable& first_tok
             assign_variable(type, next, ZERO_VAR, p, true);
         type_trackers.insert(next);
         if(!imp->allow_unsafe && contains(next) && vars[next]->name==NOM_VAR)
-            imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+            imp->error(--p, "Direct access of `new` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     }
     else if(next.exists() && contains(next) && !vars[next]->contains(next_token))
         imp->error(--p, "Not found: "
@@ -159,7 +159,7 @@ Variable Def::next_var_field(Variable next, size_t& p, const Variable& first_tok
                 "\nDeclare the file as @unsafe by placing this at the top level (typically after imports)"
             );
         if(!imp->allow_unsafe && contains(next) && vars[next]->name==NOM_VAR)
-            imp->error(--p, "Direct access of `nominal` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+            imp->error(--p, "Direct access of `new` fields is unsafe.\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     }
     return next;
 }

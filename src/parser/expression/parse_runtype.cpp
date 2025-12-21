@@ -190,13 +190,13 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
         if(num_choices!=1) {
             if(!highest_choice_power) 
                 imp->error(--p, "Overloaded or union runtype names are ambiguous."
-                    "\nConsider defining exactly one of them as nominal (with nom first argument)"
+                    "\nConsider defining exactly one of them as new (with nom first argument)"
                     "\nto break the priority stalemate."
                     "\nCandidates:"+candidates
                 );
             else 
                 imp->error(--p, "Overloaded or union runtype names are ambiguous."
-                    "\nYou have already defined several of those as nominal (with nom first argument)."
+                    "\nYou have already defined several of those as new (with nom first argument)."
                     "\nCandidates:"+candidates
                 );
         }
@@ -259,13 +259,13 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
         if(num_choices!=1) {
             if(!highest_choice_power) 
                 imp->error(--p, "Type names are ambiguous."
-                    "\nConsider defining exactly one of them as nominal (with nom first argument)"
+                    "\nConsider defining exactly one of them as new (with nom first argument)"
                     " to break the priority stalemate."
                     " Candidates:"+candidates
                 );
             else 
                 imp->error(--p, "Type names are ambiguous."
-                    " You have already defined several of those as nominal (with nom first argument)."
+                    " You have already defined several of those as new (with nom first argument)."
                     " Candidates:"+candidates
                 );
         } 

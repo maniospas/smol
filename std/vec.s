@@ -55,7 +55,7 @@
 "if the provided Memory cannot allocate the required space. Example where "
 "an <code>on</code> context is used to allow operator overloading:"
 "<pre>@mut rnd = Rand()"
-"\n@on Heap:dynamic"
+"\n@on Heap.dynamic()"
 "\nv1 = rnd.vector(10)"
 "\nv2 = rnd.vector(10)"
 "\nv3 = v1+v2</pre>"
@@ -80,8 +80,8 @@
 "context is used to allow operator overloading:"
 "<pre>@mut rnd = Rand()"
 "\n@on Heap.dynamic()"
-"\nv1 = rnd:vector(10)"
-"\nv2 = rnd:vector(10)"
+"\nv1 = rnd.vector(10)"
+"\nv2 = rnd.vector(10)"
 "\nv3 = v1-v2</pre>"
 
 @about div
@@ -106,7 +106,7 @@
 "<pre>vec = Rand().vector(Heap.dynamic(), 10)"
 "\nprint(vev[0])</pre>"
 
-def Vec(nominal, ptr contents, u64 size, ptr surface) 
+def Vec(new, ptr contents, u64 size, ptr surface) 
     return @args
 
 def vector(@mut Memory memory, u64 size)
@@ -114,7 +114,7 @@ def vector(@mut Memory memory, u64 size)
     range(size)
     .while next(@mut u64 i)
         @body{((f64*)mem__mem)[i] = 0;}
-    return nominal.Vec(mem.mem, size, mem.mem)
+    return new.Vec(mem.mem, size, mem.mem)
 
 def len(@access Vec v) 
     return v.size
@@ -124,7 +124,7 @@ def slice(@access Vec v, u64 from, u64 to)
     if to > v.size fail("Vec out of bounds")
     // so we have 0<=from < to <= v.size
     @body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
-    return nominal.Vec(contents, to-from, v.surface)
+    return new.Vec(contents, to-from, v.surface)
 
 def vector(@mut Memory memory, @mut Rand rand, u64 size)
     mem = memory.allocate(size*4)
@@ -132,7 +132,7 @@ def vector(@mut Memory memory, @mut Rand rand, u64 size)
     .while next(@mut u64 i)
         value = rand.next()
         @body{((f64*)mem__mem)[i] = value;}
-    return nominal.Vec(mem.mem, size, mem.mem)
+    return new.Vec(mem.mem, size, mem.mem)
 
 def vector(@mut Rand rand, @mut Memory memory, u64 size) 
     return vector(memory, rand, size)
@@ -181,7 +181,7 @@ def add(@mut Memory memory, @access Vec x1, @access Vec x2)
         for(u64 i=0;i<size;++i)
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];
     }
-    return nominal.Vec(mem.mem, size, mem.mem)
+    return new.Vec(mem.mem, size, mem.mem)
 
 def sub(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
@@ -193,7 +193,7 @@ def sub(@mut Memory memory, @access Vec x1, @access Vec x2)
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];
     }
-    return nominal.Vec(mem.mem, size, mem.mem)
+    return new.Vec(mem.mem, size, mem.mem)
 
 def mul(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
@@ -205,7 +205,7 @@ def mul(@mut Memory memory, @access Vec x1, @access Vec x2)
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];
     }
-    return nominal.Vec(mem.mem, size, mem.mem)
+    return new.Vec(mem.mem, size, mem.mem)
 
 def div(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
@@ -217,7 +217,7 @@ def div(@mut Memory memory, @access Vec x1, @access Vec x2)
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]/((f64*)x2__contents)[i];
     }
-    return nominal.Vec(mem.mem, size, mem.mem)
+    return new.Vec(mem.mem, size, mem.mem)
 
 def add(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if result.size!=x1.size 

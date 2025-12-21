@@ -81,7 +81,7 @@ def Position(f64 x, f64 y)
 def Size(f64 w, f64 h)
     return @args
 
-def Window(nominal, Size size, cstr title)
+def Window(new, Size size, cstr title)
     @nozero // always require an instantiated window
     @noother "std.ray.Window" // exactly one window per program
     @noborrow
@@ -137,7 +137,7 @@ def text(@mut Window window, CString _txt, Position pos, f64 size, Color color)
 def Color(u64 r, u64 g, u64 b)
     return Color(r, g, b, 255)
 
-def Texture(nominal, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
+def Texture(new, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
     return @args
 
 def open(Texture, CString _path)
@@ -152,7 +152,7 @@ def open(Texture, CString _path)
         __smolambda_ray_texture(id,width,heigh,mipmaps,format);
     }
     @finally mipmaps {UnloadTexture((Texture2D){id, width, height, mipmaps, format});}
-    return nominal.Texture(id, width, height, mipmaps, format)
+    return new.Texture(id, width, height, mipmaps, format)
 
 def draw(@mut Window window, Texture tex, Position pos, Color color)
     @body{ 

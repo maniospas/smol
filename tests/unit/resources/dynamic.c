@@ -14,7 +14,7 @@
 #define __IS_errcode 6
 #define __IS_cstr 7
 #define __IS_bool 8
-#define __IS_nominal 9
+#define __IS_new 9
 #define __IS_symbol 10
 #ifdef __cplusplus
 #define __NULL nullptr
@@ -51,7 +51,7 @@ typedef const char* cstr;
 typedef uint64_t tag;
 typedef uint64_t u64;
 typedef long i64;
-typedef uint64_t nominal;
+typedef uint64_t new;
 typedef double f64;
 
 #include<stdio.h>
@@ -79,8 +79,8 @@ u64 __k0G=0;
 u64 __j0G=0;
 u64 __i0G=0;
 f64 __h0G=0;
-nominal __g0G=0;
-nominal shapes____anG=0;
+new __g0G=0;
+new shapes____anG=0;
 ptr __e0G=0;
 u64 __d0G=0;
 u64 __c0G=0;
@@ -96,7 +96,7 @@ u64 __T0G=0;
 u64 __S0G=0;
 u64 __R0G=0;
 f64 __Q0G=0;
-nominal __P0G=0;
+new __P0G=0;
 u64 __O0G=0;
 u64 __N0G=0;
 u64 __M0G=0;
@@ -114,7 +114,7 @@ u64 __D0G=0;
 u64 __C0G=0;
 u64 __B0G=0;
 f64 __A0G=0;
-nominal __9zG=0;
+new __9zG=0;
 u64 __8zG=0;
 ptr __6zG=0;
 u64 __5zG=0;
@@ -128,7 +128,7 @@ u64 __xzG=0;
 u64 __wzG=0;
 u64 __vzG=0;
 ptr __uzG=0;
-nominal __szG=0;
+new __szG=0;
 ptr __pzG=0;
 u64 __rzG=0;
 ptr __8pG__types__dynamic=0;

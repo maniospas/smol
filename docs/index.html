@@ -73,12 +73,12 @@
 <pre><code class="language-smolambda">@include std.core
 @include std.mem
 
-def Segment(nominal, str value)
+def Segment(new, str value)
     return @args // return all inputs
 
 def Segment(String _value)
     value = _value.str()  // convert from all String types
-    return nominal.Segment(value)
+    return new.Segment(value)
 
 def combine(Segment[] segments)
     @mut s = str("")      // convert "" to mutable str
@@ -108,9 +108,9 @@ service main()
     In the example, freeing the arena is safely delayed until printing. All operations are also zero-cost abstractions
     over performant implementations at the core of the standard library. Code blocks are identified by indentation. Furthermore:
     <ul>
-      <li><code class="language-smolambda">def</code> functions that can fail and produce nominal values.</li>
+      <li><code class="language-smolambda">def</code> functions that can fail and produce new values.</li>
       <li><code class="language-smolambda">service</code> functions run safely; if a def fails, resources are cleaned up.</li>
-      <li><code class="language-smolambda">nominal</code> declares a nominal type variation.</li>
+      <li><code class="language-smolambda">new</code> declares a new type variation.</li>
       <li><code class="language-smolambda">@mut</code> denotes mutable variables (their values change as the program runs).</li>
       <li><code class="language-smolambda">@on</code> is automatically added as first argument - here to store string addition on a fast arena allocator.</li>
       <li><code class="language-smolambda">@all</code> iteratively applies a function to reduce a bunch of expression outcomes to one value.</li>
@@ -130,7 +130,7 @@ Prism.languages.smolambda = {
     { pattern: /(?:\|\|\|->|\|\|->|\|\|--|\|->|\|--|->|--|:|=)/, greedy: true }
   ],
   'special-amp': { pattern: /&/, alias: 'operator' },
-  'builtin': /\b(?:i64|u64|f64|nominal|ptr|str|buffer|main|copy|bool|concat|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div)\b/,
+  'builtin': /\b(?:i64|u64|f64|new|ptr|str|buffer|main|copy|bool|concat|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div)\b/,
   'punctuation': /[{}();,\[\]]/,
   'number': /\b\d+\b/,
   'string': { pattern: /"(?:\\.|[^"\\])*"/, greedy: true }

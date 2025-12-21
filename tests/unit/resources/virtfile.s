@@ -8,6 +8,6 @@ service main()
     file.print("hello world!")
     file.to_start()
 
-    @on Stack.circular(1024)
+    @on Stack.allocate(1.KB()).circular()
     file.next_line(str& s)
     print(s)

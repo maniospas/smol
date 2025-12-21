@@ -52,7 +52,7 @@ def copy(@access @mut Memory allocator, String _s)
         memcpy((char*)mem__mem, s__contents, s__length);
         ((char*)mem__mem)[s__length] = 0;
     }
-    return nominal.nstr(mem.mem, s.length, s.first, mem.underlying)
+    return new.nstr(mem.mem, s.length, s.first, mem.underlying)
 
 def add(@access @mut Memory allocator, String _x, IndependentString _y)
     x = _x.str()
@@ -75,7 +75,7 @@ def add(@access @mut Memory allocator, String _x, IndependentString _y)
         memcpy((char*)_contents + len_x, (char*)y__contents, len_y);
         ((char*)_contents)[total_len] = 0;
     }
-    return nominal.nstr(_contents, total_len, first, mem.underlying)
+    return new.nstr(_contents, total_len, first, mem.underlying)
 
 def nstr(@access @mut Memory allocator, i64 number)
     @head{#include <stdio.h>}
@@ -98,7 +98,7 @@ def nstr(@access @mut Memory allocator, i64 number)
     }
     if contents.exists().not() 
         @fail{printf("Failed to allocate str from number\n");}
-    return nominal.nstr(contents, length, first, mem.underlying)
+    return new.nstr(contents, length, first, mem.underlying)
 
 def nstr(@access @mut Memory allocator, u64 number)
     @head{#include <stdio.h>}
@@ -121,7 +121,7 @@ def nstr(@access @mut Memory allocator, u64 number)
     }
     if contents.exists().not() 
         @fail{printf("Failed to allocate str from number\n");}
-    return nominal.nstr(contents, length, first, mem.underlying)
+    return new.nstr(contents, length, first, mem.underlying)
 
 def nstr(@access @mut Memory allocator, f64 number)
     @head{#include <stdio.h>}
@@ -144,17 +144,17 @@ def nstr(@access @mut Memory allocator, f64 number)
     }
     if contents.exists().not() 
         @fail{printf("Failed to allocate str from number\n");}
-    return nominal.nstr(contents, length, first, mem.underlying)
+    return new.nstr(contents, length, first, mem.underlying)
 
 def str(@access ContiguousMemory region)
     @body{char first=region__size?((char*)region__mem)[0]:0;}
-    return nominal.str(region.mem, region.size, first, region.underlying)
+    return new.str(region.mem, region.size, first, region.underlying)
 
 def str(@access ContiguousMemory region, u64 size)
     if size>region.size
         fail("Cannot allocate more than the available memory")
     @body{char first=region__size?((char*)region__mem)[0]:0;}
-    return nominal.str(region.mem, size, first, region.underlying)
+    return new.str(region.mem, size, first, region.underlying)
 
 def str(@access @mut Memory allocator, u64 number)
     return nstr(allocator, number).str()

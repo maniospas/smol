@@ -41,13 +41,13 @@
 "Clears an Arena or Circular arena by resetting its occupied length to zero. This can "
 "lead to overwriting previous data."
 
-def Arena(nominal type, ContiguousMemory contents)
+def Arena(new, ContiguousMemory contents)
     length = 0 
-    return type, contents, length
+    return @args, length
 
-def Circular(nominal type, ContiguousMemory contents)
+def Circular(new, ContiguousMemory contents)
     length = 0
-    return type, contents, length
+    return @args, length
 
 def clear(@access @mut Circular self)
     @body{self__length=0;}
@@ -60,7 +60,7 @@ union Buffer = Arena or Circular
 def len(@access @mut Buffer self) 
     return self.contents.size
 
-def Dynamic(nominal) 
+def Dynamic(new) 
     @noborrow
     @body{
         ptr acquired = __runtime_alloc(sizeof(ptr**));
@@ -82,10 +82,10 @@ def Dynamic(nominal)
     return @args, acquired, size, allocated, __dynamic_entry // TODO. investigate what __dynamic_entry needs to be tracked when calling Heap.dynamic
 
 def dynamic(@access Heap) 
-    return nominal.Dynamic()
+    return new.Dynamic()
 
 def dynamic(@access Stack) 
-    return nominal.Stack()
+    return new.Stack()
     
 def allocate(@access @mut Dynamic self, u64 size)
     @head{#include <stdlib.h>}
@@ -110,7 +110,7 @@ def allocate(@access @mut Dynamic self, u64 size)
     }
     if success.not() 
         fail("Failed a Dynamic allocation")
-    return nominal.ContiguousMemory(size, mem, self.acquired)
+    return new.ContiguousMemory(size, mem, self.acquired)
 
 def used(@access @mut Buffer self)
     return self.length
@@ -120,7 +120,7 @@ def allocate(@access @mut Arena self, u64 size)
         fail("Failed an Arena allocation")
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    return nominal.ContiguousMemory(size, _contents, self.contents.underlying)
+    return new.ContiguousMemory(size, _contents, self.contents.underlying)
 
 def allocate(@access @mut Circular self, u64 size)
     if size>self.contents.size 
@@ -128,7 +128,7 @@ def allocate(@access @mut Circular self, u64 size)
     @body{if(self__length+size>self__contents__size) {self__length = 0;}}
     @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @body{self__length = self__length+size;}
-    return nominal.ContiguousMemory(size, _contents, self.contents.underlying)
+    return new.ContiguousMemory(size, _contents, self.contents.underlying)
 
 def read(@access @mut Arena self)
     @acquire "std.terminal.read"
@@ -159,21 +159,15 @@ def read(@access @mut Arena self)
     }
     if _contents.exists().not() 
         fail("Error: Tried to read more elements than remaining Arena size or read failed")
-    return nominal.str(_contents, length, first, self__contents__mem)
+    return new.str(_contents, length, first, self__contents__mem)
 
 union Memory = MemoryDevice or Buffer or Dynamic
 
 def is(@access @mut Memory self, @mut Memory) 
     return self
 
-def arena(@access @mut Memory self, u64 size) 
-    return nominal.Arena(self.allocate(size))
-    
-def circular(@access @mut Memory self, u64 size) 
-    return nominal.Circular(self.allocate(size))
-
 def arena(@access @mut ContiguousMemory self) 
-    return nominal.Arena(self)
+    return new.Arena(self)
     
 def circular(@access @mut ContiguousMemory self) 
-    return nominal.Circular(self)
+    return new.Circular(self)

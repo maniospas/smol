@@ -480,15 +480,18 @@ shared_ptr<Import> tokenize(const string& path) {
                 }
                 if(start < i) {
                     auto substr = line.substr(start, i - start);
-
-                    if(substr=="elif") {
+                    
+                    if(substr=="new" && !in_brackets) {
+                        tokens.emplace_back("__new", line_num, start_col, main_file);
+                    }
+                    else if(substr=="elif") {
                         tokens.emplace_back("else", line_num, start_col, main_file);
                         tokens.emplace_back("then", line_num, start_col, main_file);
                         tokens.emplace_back("if", line_num, start_col, main_file);
                     }
                     else tokens.emplace_back(substr, line_num, start_col, main_file);
                     if(main_file->indentation_mode && substr=="then")
-                            main_file->error(tokens.size() - 1, "`then` is available only in `@serial` mode");
+                        main_file->error(tokens.size() - 1, "`then` is available only in `@serial` mode");
                     if (main_file->indentation_mode && (substr == "if" || substr == "while") && !in_brackets) {
                         bool valid =
                             (start_col == indent + 1) || 

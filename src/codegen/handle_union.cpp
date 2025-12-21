@@ -49,8 +49,8 @@ void handle_union(const shared_ptr<Import>& imp, size_t& p, Types& types) {
             }
         }
         if(!added)
-            imp->error(--p, "Missing nominal variation"
-                "\nCannot create a union that includes non-nominal types (those would be ignored)"
+            imp->error(--p, "Missing new variation"
+                "\nCannot create a union that includes non-new types (those would be ignored)"
             );
         
         next = imp->at(p++);

@@ -3,7 +3,7 @@
 @include std.file
 
 def test(@mut File file)
-    @on Heap.circular(32)
+    @on Heap.allocate(32).circular()
     while file.next_chunk(@mut str chunk) 
         printin(chunk)
     print("")

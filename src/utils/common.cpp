@@ -59,8 +59,10 @@ string pretty_var(const string& name) {
 }
 
 string pretty_runtype(const string& name) {
+    if(name=="__new")
+        return "\033[35mnew\033[0m";
     if(name=="i64" || name=="f64" || name=="ptr" || name=="bool" ||
-       name=="nominal" || name=="char" || name=="u64" || name=="cstr" || name=="tag") 
+       name=="char" || name=="u64" || name=="cstr" || name=="tag") 
         return "\033[35m" + name + "\033[0m";
     return "\033[36m" + name + "\033[0m";
 }

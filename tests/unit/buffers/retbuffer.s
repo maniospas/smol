@@ -1,11 +1,11 @@
 @include std.core
 
 
-def strbuf(nominal, @mut str[] ref)
+def strbuf(new, @mut str[] ref)
     return @args
 
 def strbuf(String value)
-    return nominal.strbuf(str[].push(value.str()))
+    return new.strbuf(str[].push(value.str()))
 
 def put(@access @mut strbuf buf, String value)
     return buf.ref[0] = value.str()

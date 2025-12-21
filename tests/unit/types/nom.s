@@ -1,7 +1,7 @@
 @include std.core
 @unsafe
 
-def point(nominal type, u64 x, u64 y)
+def point(new type, u64 x, u64 y)
     z = 0
     return @args, z
 
@@ -11,5 +11,5 @@ def print(point p)
     print(p.z)
 
 service main()
-    p = nominal.point(1,2)
+    p = new.point(1,2)
     print(p.type,1,2,2)

@@ -15,7 +15,7 @@ def TPoint(f64 px, f64 py)
     y = py
     return x, y
 
-def IPoint(nominal, f64 x, f64 y) 
+def IPoint(new, f64 x, f64 y) 
     return @args
 
 def scale(@access @mut Point p, f64 factor) 
@@ -26,7 +26,7 @@ def zero(@access @mut Point p)
     p = Point(0.0, 0.0)
 
 def zero(@mut IPoint p)
-    p = nominal.IPoint(0.0, 0.0)
+    p = new.IPoint(0.0, 0.0)
     // p.x = 0.0 // creates an ERROR (p is mutable as a whole only)
 
 service main()
@@ -36,7 +36,7 @@ service main()
     zero(p)
     print(p) // 0
     
-    @mut ip = nominal.IPoint(1.0,1.0)
+    @mut ip = new.IPoint(1.0,1.0)
     print(ip.x) // 1 
     zero(ip)
     print(ip.x) // 0

@@ -14,7 +14,7 @@
 #define __IS_errcode 6
 #define __IS_cstr 7
 #define __IS_bool 8
-#define __IS_nominal 9
+#define __IS_new 9
 #define __IS_symbol 10
 #ifdef __cplusplus
 #define __NULL nullptr
@@ -51,7 +51,7 @@ typedef const char* cstr;
 typedef uint64_t tag;
 typedef uint64_t u64;
 typedef long i64;
-typedef uint64_t nominal;
+typedef uint64_t new;
 typedef double f64;
 
 #include<stdlib.h>
@@ -62,7 +62,7 @@ typedef double f64;
 
 struct main__380__state{errcode err;};
 __externc void main__380(void *__void__state);
-struct read_str__379__state{errcode err;nominal *__0jC____ret;ptr *contents____ret;u64 *length____ret;char *first____ret;ptr *memory____ret;};
+struct read_str__379__state{errcode err;new *__0jC____ret;ptr *contents____ret;u64 *length____ret;char *first____ret;ptr *memory____ret;};
 __externc void read_str__379(void *__void__state);
 
 void read_str__379(void *__void__state){
@@ -363,7 +363,7 @@ ptr __0z0B__contents=0;
 u64 __0s4B=0;
 char __0r4B=0;
 ptr __0q4B=0;
-nominal __0p4B=0;
+new __0p4B=0;
 ptr __0o4B=0;
 errcode __0n4B=0;
 

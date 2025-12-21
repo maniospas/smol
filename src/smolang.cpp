@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     builtins.vars[BOOL_VAR]->storage_size = 1;
     builtins.vars[Variable("char")] = make_shared<Def>("char");
     builtins.vars[Variable("char")]->storage_size = 1;
-    builtins.vars[NOM_VAR] = make_shared<Def>("nominal");
+    builtins.vars[NOM_VAR] = make_shared<Def>("__new");
     builtins.vars[NOM_VAR]->storage_size = 0;
     builtins.vars[LABEL_VAR] = make_shared<Def>("__label");
     builtins.vars[LABEL_VAR]->storage_size = 0;
@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
                 "  'keyword': [\n"
                 "    { pattern: /\\b(?:smo|service|if|else|elif|with|case|qed|include|while|on|union|to|upto|lento|len|and|or|then|return)\\b/, greedy: true },\n"
                 "  ],\n"
-                "  'builtin': /\\b(?:i64|u64|f64|symbol|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|nominal)\\b/,\n"
+                "  'builtin': /\\b(?:i64|u64|f64|symbol|ptr|str|buffer|main|copy|bool|not|cos|sin|tan|acos|asin|atan|pi|exp|log|pow|sqrt|add|mul|sub|div|new)\\b/,\n"
                 "  'punctuation': /[{}();,\\[\\]]/,\n"
                 "  'number': /\\b\\d+\\b/,\n"
                 "  'string': { pattern: /\"(?:\\\\.|[^\"\\\\])*\"/, greedy: true }\n"
@@ -331,7 +331,7 @@ int main(int argc, char* argv[]) {
                 "#define __IS_errcode 6\n"
                 "#define __IS_cstr 7\n"
                 "#define __IS_bool 8\n"
-                "#define __IS_nominal 9\n"
+                "#define __IS_new 9\n"
                 "#define __IS_symbol 10\n"
                 "#ifdef __cplusplus\n"
                 "#define __NULL nullptr\n"
@@ -368,7 +368,7 @@ int main(int argc, char* argv[]) {
                 "typedef uint64_t tag;\n"
                 "typedef uint64_t u64;\n"
                 "typedef long i64;\n"
-                "typedef uint64_t nominal;\n"
+                "typedef uint64_t __new;\n"
                 "typedef double f64;\n\n";
 
             for(const string& pre : preamble) 

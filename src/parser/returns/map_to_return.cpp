@@ -43,9 +43,9 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                 for(const Variable& pack : vars[next]->packs) {
                     packs.push_back(next+pack);
                     if(contains(next+pack) && vars[next+pack]->name==NOM_VAR && !alignments[next+pack]) 
-                        imp->error(--p, "Returned an unset nominal value "
+                        imp->error(--p, "Returned an unset new value "
                             +pretty_var(next.to_string()+"__"+pack.to_string())
-                            +"\nAdd a nominal variable as the first argument to the signature and return that instead."
+                            +"\nAdd a new variable as the first argument to the signature and return that instead."
                         );
                 }
                 for(const auto& it : vars[next]->buffer_types) 
@@ -188,9 +188,9 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                             );
                     }
                     if(contains(next_pack) && vars[next_pack]->name==NOM_VAR && !alignments[next_pack]) 
-                        imp->error(--p, "Returned an unset nominal value "
+                        imp->error(--p, "Returned an unset new value "
                             +pretty_var(next.to_string()+"__"+pack.to_string())
-                            +"\nAdd a nominal variable as the first argument to the signature and return that instead."
+                            +"\nAdd a new variable as the first argument to the signature and return that instead."
                         );
                 }
             }

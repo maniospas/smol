@@ -2,7 +2,7 @@
 @include std.map
 
 def run()
-    @mut keys = nominal.StringHash(100)
+    @mut keys = new.StringHash(100)
     @mut values = u64[].expect(keys.size)
     @on Heap.dynamic()
     values.put(keys["a".copy()], 1)
@@ -12,6 +12,6 @@ def run()
 
 service main()
     @access map = run()
-    if map.keys.contains("a".str(), @mut u64 pos)
+    if map.keys.find("a".str(), @mut u64 pos)
         print(map.values[pos])
     
