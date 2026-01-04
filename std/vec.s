@@ -113,7 +113,7 @@ def vector(@mut Memory memory, u64 size)
     mem = memory.allocate(size*4)
     range(size)
     .while next(@mut u64 i)
-        @body{((f64*)mem__mem)[i] = 0;}
+        @c_body{((f64*)mem__mem)[i] = 0;}
     return new.Vec(mem.mem, size, mem.mem)
 
 def len(@access Vec v) 
@@ -123,7 +123,7 @@ def slice(@access Vec v, u64 from, u64 to)
     if from >= to fail("Empty Vec slice")
     if to > v.size fail("Vec out of bounds")
     // so we have 0<=from < to <= v.size
-    @body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
+    @c_body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
     return new.Vec(contents, to-from, v.surface)
 
 def vector(@mut Memory memory, @mut Rand rand, u64 size)
@@ -131,7 +131,7 @@ def vector(@mut Memory memory, @mut Rand rand, u64 size)
     range(size)
     .while next(@mut u64 i)
         value = rand.next()
-        @body{((f64*)mem__mem)[i] = value;}
+        @c_body{((f64*)mem__mem)[i] = value;}
     return new.Vec(mem.mem, size, mem.mem)
 
 def vector(@mut Rand rand, @mut Memory memory, u64 size) 
@@ -140,13 +140,13 @@ def vector(@mut Rand rand, @mut Memory memory, u64 size)
 def at(@access Vec v, u64 pos) 
     if pos>=v.size 
         fail("Vec out of bounds")
-    @body{f64 value = ((f64*)v__contents)[pos];} 
+    @c_body{f64 value = ((f64*)v__contents)[pos];} 
     return value
 
 def put(@access @mut Vec v, u64 pos, f64 value)
     if pos>=v.size 
         fail("Vec out of bounds")
-    @body{((f64*)v__contents)[pos] = value;}
+    @c_body{((f64*)v__contents)[pos] = value;}
     return v
 
 def dot(@access Vec x1, @access Vec x2)
@@ -164,9 +164,9 @@ def dot(@access Vec x1, @access Vec x2)
 def put(@access @mut Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         fail("Incompatible Vec sizes")
-    @body{__builtin_assume(x1__size==x2__size);}
+    @c_body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
-    @body{
+    @c_body{
         for(u64 i=0;i<size;++i) 
             ((f64*)x1__contents)[i] = ((f64*)x2__contents)[i];
     }
@@ -174,10 +174,10 @@ def put(@access @mut Vec x1, @access Vec x2)
 def add(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         fail("Incompatible Vec sizes")
-    @body{__builtin_assume(x1__size==x2__size);}
+    @c_body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = memory.allocate(size*4)
-    @body{
+    @c_body{
         for(u64 i=0;i<size;++i)
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];
     }
@@ -186,10 +186,10 @@ def add(@mut Memory memory, @access Vec x1, @access Vec x2)
 def sub(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         fail("Incompatible Vec sizes")
-    @body{__builtin_assume(x1__size==x2__size);}
+    @c_body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = memory.allocate(size*4)
-    @body{
+    @c_body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];
     }
@@ -198,10 +198,10 @@ def sub(@mut Memory memory, @access Vec x1, @access Vec x2)
 def mul(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         fail("Incompatible Vec sizes")
-    @body{__builtin_assume(x1__size==x2__size);}
+    @c_body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = memory.allocate(size*4)
-    @body{
+    @c_body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];
     }
@@ -210,10 +210,10 @@ def mul(@mut Memory memory, @access Vec x1, @access Vec x2)
 def div(@mut Memory memory, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         fail("Incompatible Vec sizes")
-    @body{__builtin_assume(x1__size==x2__size);}
+    @c_body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = memory.allocate(size*4)
-    @body{
+    @c_body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem__mem)[i] = ((f64*)x1__contents)[i]/((f64*)x2__contents)[i];
     }
@@ -224,11 +224,11 @@ def add(@access @mut Vec result, @access Vec x1, @access Vec x2)
         fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
         fail("Incompatible Vec sizes")
-    @body{__builtin_assume(result__size==x1__size);}
-    @body{__builtin_assume(x1__size==x2__size);}
+    @c_body{__builtin_assume(result__size==x1__size);}
+    @c_body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = result.contents
-    @body{
+    @c_body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem)[i] = ((f64*)x1__contents)[i]+((f64*)x2__contents)[i];
     }
@@ -239,11 +239,11 @@ def sub(@access @mut Vec result, @access Vec x1, @access Vec x2)
         fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
         fail("Incompatible Vec sizes")
-    @body{__builtin_assume(result__size==x1__size);}
-    @body{__builtin_assume(x1__size==x2__size);}
+    @c_body{__builtin_assume(result__size==x1__size);}
+    @c_body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = result.contents
-    @body{
+    @c_body{
         for(u64 i=0;i<size;++i)
             ((f64*)mem)[i] = ((f64*)x1__contents)[i]-((f64*)x2__contents)[i];
     }
@@ -255,11 +255,11 @@ def mul(@access @mut Vec result, @access Vec x1, @access Vec x2)
     if x1.size!=x2.size 
         fail("Incompatible Vec sizes")
         
-    @body{__builtin_assume(result__size==x1__size);}
-    @body{__builtin_assume(x1__size==x2__size);}
+    @c_body{__builtin_assume(result__size==x1__size);}
+    @c_body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = result.contents
-    @body{
+    @c_body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem)[i] = ((f64*)x1__contents)[i]*((f64*)x2__contents)[i];
     }
@@ -270,11 +270,11 @@ def div(@access @mut Vec result, @access Vec x1, @access Vec x2)
         fail("Incompatible Vec sizes")
     if x1.size!=x2.size 
         fail("Incompatible Vec sizes")
-    @body{__builtin_assume(result__size==x1__size);}
-    @body{__builtin_assume(x1__size==x2__size);}
+    @c_body{__builtin_assume(result__size==x1__size);}
+    @c_body{__builtin_assume(x1__size==x2__size);}
     size = x1.size
     mem = result.contents
-    @body{
+    @c_body{
         for(u64 i=0;i<size;++i) 
             ((f64*)mem)[i] = ((f64*)x1__contents)[i]/((f64*)x2__contents)[i];
     }

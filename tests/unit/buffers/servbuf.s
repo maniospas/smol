@@ -1,6 +1,6 @@
-@include std.core
+@include std.core 
     return print
-
+    
 service samples()
     buf = u64[]
     .push(42)

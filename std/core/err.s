@@ -41,38 +41,38 @@
 "Prints a string interpretation of an error code."
 
 def assert_ok(errcode error)
-    @body{bool is_user = (error==__USER__ERROR);}
-    @body{bool is_buffer = (error==__BUFFER__ERROR);}
-    @body{bool is_stack = (error==__STACK__ERROR);}
-    @body{bool is_error = (error);}
-    @body{bool is_stack = (error==__STACK__ERROR);}
-    @body{bool is_unhandled = (error==__UNHANDLED__ERROR);}
+    @c_body{bool is_user = (error==__USER__ERROR);}
+    @c_body{bool is_buffer = (error==__BUFFER__ERROR);}
+    @c_body{bool is_stack = (error==__STACK__ERROR);}
+    @c_body{bool is_error = (error);}
+    @c_body{bool is_stack = (error==__STACK__ERROR);}
+    @c_body{bool is_unhandled = (error==__UNHANDLED__ERROR);}
     if is_user 
-        @fail{printf("User error\n");} 
+        @c_fail{printf("User error\n");} 
     elif is_buffer
-        @fail{printf("Buffer error\n");} 
+        @c_fail{printf("Buffer error\n");} 
     elif is_unhandled
-        @fail{printf("Unhandled error\n");}
+        @c_fail{printf("Unhandled error\n");}
     elif is_stack 
-        @fail{printf("Stack error\n");}
+        @c_fail{printf("Stack error\n");}
     elif is_error 
-        @fail{printf("Unknown error\n");}
+        @c_fail{printf("Unknown error\n");}
 
 def fail(cstr error)
-    @head{#include <stdio.h>}
-    @fail {printf("%s\n", error);}
+    @c_head{#include <stdio.h>}
+    @c_fail {printf("%s\n", error);}
 
 def fail(nstr error)
-    @head{#include <stdio.h>}
-    @fail {printf("%s\n", (char*)error__contents);}
+    @c_head{#include <stdio.h>}
+    @c_fail {printf("%s\n", (char*)error__contents);}
 
 def fail(str error)
-    @head{#include <stdio.h>}
-    @fail {printf("%.*s\n", (int)error__length, (char*)error__contents);}
+    @c_head{#include <stdio.h>}
+    @c_fail {printf("%.*s\n", (int)error__length, (char*)error__contents);}
 
 def print(errcode error)
-    @head{#include <stdio.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_body{
         if(error==__USER__ERROR)
             printf("User error\n"); 
         else if(error==__BUFFER__ERROR)

@@ -14,7 +14,7 @@
 
 void Def::parse_directive_body(size_t& p, string next, Types& types) {
     if(!imp->allow_unsafe) 
-        imp->error(--p, "@body is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+        imp->error(--p, "@c_body is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     next = imp->at(p++);
     if(next!="{") 
         imp->error(--p, "Expected brackets");

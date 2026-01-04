@@ -122,47 +122,47 @@
 "or if the file is already open."
 
 def ReadFile(new, ptr contents)
-    @noborrow
+    @c_noborrow
     return @args
 
 def WriteFile(new, ptr contents)
-    @noborrow
+    @c_noborrow
     return @args
 
 union File = ReadFile or WriteFile
 
 def open(@access @mut ReadFile, String _path)
     path = _path.str()
-    @head{#include <stdio.h>}
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{ptr contents = fopen((char*)path__contents, "r");}
-    @finally contents {
+    @c_head{#include <stdio.h>}
+    @c_head{#include <string.h>}
+    @c_head{#include <stdlib.h>}
+    @c_body{ptr contents = fopen((char*)path__contents, "r");}
+    @c_finally contents {
         if(contents)
             fclose((FILE*)contents);
         contents=0;
     }
     if contents.exists().not() 
-        @fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);}
+        @c_fail{printf("Failed to open file: %.*s\n", (int)path__length, (char*)path__contents);}
     return new.ReadFile(contents)
 
 def to_start(@access @mut File f) 
     if f.contents.exists().not() 
-        @fail{printf("Failed to move to start of closed file");}
-    @body{fseek((FILE*)f__contents, 0, SEEK_SET);}
+        @c_fail{printf("Failed to move to start of closed file");}
+    @c_body{fseek((FILE*)f__contents, 0, SEEK_SET);}
 
 def to_end(@access @mut WriteFile f) 
     // only useful for moving to the end of write files. For read files, @release them instead.
-    @body{
+    @c_body{
         if(f__contents) 
             fseek((FILE*)f__contents, 0, SEEK_END);
     }
     return f.contents.exists()
 
 def len(@access @mut File f)
-    @head{#include "std/oscommon.h"}
-    @head{#include <stdio.h>}
-    @body{
+    @c_head{#include "std/oscommon.h"}
+    @c_head{#include <stdio.h>}
+    @c_body{
         u64 size = 0;
         if(f__contents)
             size = __smo_file_size((FILE*)f__contents);
@@ -179,24 +179,24 @@ def len(@access @mut File f)
 def print(@access @mut WriteFile f, String _s)
     s = _s.str()
     if f.contents.exists().not() 
-        @fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
-    @head{#include <stdio.h>}
-    @body{
+        @c_fail{printf("Failed to write to closed file: %.*s\n", (int)s__length, (char*)s__contents);}
+    @c_head{#include <stdio.h>}
+    @c_body{
         u64 bytes_written = fwrite((char*)s__contents, 1, s__length, (FILE*)f__contents);
         bool success = (bytes_written == s__length);
     }
     if success.not() 
-        @fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
+        @c_fail{printf("Failed to write to file: %.*s\n", (int)s__length, (char*)s__contents);}
 
 def temp(@mut Memory memory, @access @mut WriteFile, u64 size)
     // using temporary files can be exceptional
-    @head{#include <stdio.h>}
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @head{#include "std/oscommon.h"}
+    @c_head{#include <stdio.h>}
+    @c_head{#include <string.h>}
+    @c_head{#include <stdlib.h>}
+    @c_head{#include "std/oscommon.h"}
     mem = memory.allocate(size)
-    @body{ptr contents = fmemopen(mem__mem, size, "w+");}
-    @finally contents {
+    @c_body{ptr contents = fmemopen(mem__mem, size, "w+");}
+    @c_finally contents {
         if(contents)
             fclose((FILE*)contents);
         contents=0;
@@ -210,10 +210,10 @@ def next_chunk (
 )
     contents = reader.contents.mem
     size = reader.contents.size
-    @head{#include <stdio.h>}
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_head{#include <string.h>}
+    @c_head{#include <stdlib.h>}
+    @c_body{
         u64 bytes_read = f__contents?fread((char*)contents, 1, size, (FILE*)f__contents):0;
         if(!bytes_read) 
             ((char*)contents)[bytes_read] = 0; // Null-terminate for cstr compatibility of `first`
@@ -231,10 +231,10 @@ def next_line (
 )
     contents = reader.contents.mem
     size = reader.contents.size
-    @head{#include <stdio.h>}
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_head{#include <string.h>}
+    @c_head{#include <stdlib.h>}
+    @c_body{
         ptr ret = f__contents?(ptr)fgets((char*)contents, size, (FILE*)f__contents):f__contents;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)contents)[0];
@@ -254,10 +254,10 @@ def next_chunk (
     @access @mut File f,
     @mut nstr value
 )
-    @head{#include <stdio.h>}
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_head{#include <string.h>}
+    @c_head{#include <stdlib.h>}
+    @c_body{
         u64 bytes_read = f__contents?fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)f__contents):0;
         if(!bytes_read) ((char*)reader__contents__mem)[bytes_read] = 0; // Null-terminate for cstr compatibility of `first`
         ptr ret = bytes_read ? (ptr)reader__contents__mem : 0;
@@ -272,10 +272,10 @@ def next_line(
     @access @mut File f,
     @mut nstr value
 )
-    @head{#include <stdio.h>}
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_head{#include <string.h>}
+    @c_head{#include <stdlib.h>}
+    @c_body{
         ptr ret = f__contents?(ptr)fgets((char*)reader__contents__mem, reader__contents__size, (FILE*)f__contents):f__contents;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
@@ -308,8 +308,8 @@ def next_chunk (
     return ret
 
 def ended(@access @mut File f)
-    @head{#include <stdio.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_body{
         char c = fgetc((FILE*)f__contents);
         bool has_ended = (c == EOF);
         if(!has_ended) ungetc(c, (FILE*)f__contents); 
@@ -318,8 +318,8 @@ def ended(@access @mut File f)
 
 def is_file(CString _path)
     path = _path.nstr()
-    @head{#include <stdio.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_body{
         ptr f = fopen((char*)path__contents, "r");
         bool exists = (f != 0);
         if(f) fclose((FILE*)f);
@@ -328,8 +328,8 @@ def is_file(CString _path)
 
 def is_dir(CString _path)
     path = _path.nstr()
-    @head{#include <sys/stat.h> #ifdef _WIN32 #define stat _stat #endif}
-    @body{
+    @c_head{#include <sys/stat.h> #ifdef _WIN32 #define stat _stat #endif}
+    @c_body{
         ptr info = (ptr)malloc(sizeof(struct stat));
         i64 status = stat((char*)path__contents, (struct stat*)info);
         bool result = (status == 0 && (((struct stat*)info)->st_mode & S_IFMT) == S_IFDIR);
@@ -339,15 +339,15 @@ def is_dir(CString _path)
 
 def remove_file(String _path)
     path = _path.str()
-    @head{#include <stdio.h>}
-    @body{u64 status = remove((char*)path__contents);}
+    @c_head{#include <stdio.h>}
+    @c_body{u64 status = remove((char*)path__contents);}
     if status.bool() 
-        @fail{printf("Failed to remove file - make sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
+        @c_fail{printf("Failed to remove file - make sure that it's not open: %.*s\n", (int)path__length, (char*)path__contents);}
 
 def open(@access @mut WriteFile, String _path)
     path = _path.str()
-    @head{#include <stdio.h>}
-    @head{
+    @c_head{#include <stdio.h>}
+    @c_head{
         #if defined(_WIN32) || defined(_WIN64)
             #include <direct.h>
             #define __SMOLANG_CREATE_FILE(path_cstr, out_file) fopen_s((FILE**)&(out_file), (char*)(path_cstr), "wx+")
@@ -355,17 +355,17 @@ def open(@access @mut WriteFile, String _path)
             #define __SMOLANG_CREATE_FILE(path_cstr, out_file) (out_file) = fopen((char*)(path_cstr), "wx+")
         #endif
     }
-    @body{
+    @c_body{
         ptr contents = 0;
         __SMOLANG_CREATE_FILE(path__contents, contents);
     }
     if contents.exists().not() 
-        @fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
+        @c_fail{printf("Failed to create file - make sure that it does not exist: %.*s\n", (int)path__length, (char*)path__contents);}
     return new.WriteFile(contents)
 
 def create_dir(String _path)
     path = _path.str()
-    @head{#if defined(_WIN32) || defined(_WIN64)
+    @c_head{#if defined(_WIN32) || defined(_WIN64)
     #include <direct.h>
     #define __SMOLANG_CREATE_DIR(path_cstr, status) (status) = _mkdir((char*)(path_cstr))
     #else
@@ -373,19 +373,19 @@ def create_dir(String _path)
     #include <sys/types.h>
     #define __SMOLANG_CREATE_DIR(path_cstr, status) (status) = mkdir((char*)(path_cstr), 0777)
     #endif}
-    @body{
+    @c_body{
         int status = -1;
         __SMOLANG_CREATE_DIR(path__contents, status);
         bool created = (status == 0);
     }
     if created.not()
-        @fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
+        @c_fail{printf("Failed to create directory. It may already exist (add an is_dir check) or operation unsupported.\n");}
     
 def console(@access @mut WriteFile)
-    @head{#include <stdio.h>}
-    @head{#include <stdlib.h>}
-    @head{#include <unistd.h>}
-    @head{
+    @c_head{#include <stdio.h>}
+    @c_head{#include <stdlib.h>}
+    @c_head{#include <unistd.h>}
+    @c_head{
         #if defined(_WIN32) || defined(_WIN64)
             #include <windows.h>
             #include <io.h>
@@ -401,7 +401,7 @@ def console(@access @mut WriteFile)
             #define SMOLAMBDA_CONSOLE_CLOSE(f) if(f)fclose((FILE*)f);
         #endif
     }
-    @body{
+    @c_body{
         bool has_display = getenv("DISPLAY") || getenv("WAYLAND_DISPLAY");
         bool has_gui = has_display;
         if(getenv("SSH_CONNECTION") && !has_display) 
@@ -426,11 +426,11 @@ def console(@access @mut WriteFile)
     }
     if has_gui.not() 
         fail("Cannot open a console in the current environment")
-    @body{
+    @c_body{
         ptr f = 0;
         SMOLAMBDA_CONSOLE(f)
     }
-    @finally f {
+    @c_finally f {
         SMOLAMBDA_CONSOLE_CLOSE(f)
         f = 0;
     }

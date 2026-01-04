@@ -3,7 +3,7 @@
 @unsafe
 
 def copy_state(@mut Arena arn) 
-    return arn  // this is a workarround to dodge the @noborrow constraint of arenas when @unsafe is enabled
+    return arn  // this is a workarround to dodge the @c_noborrow constraint of arenas when @unsafe is enabled
 
 service main()
     @mut memory1 = Heap.allocate(128).arena() // allocate 128 bytes, & indicates a mutable variable

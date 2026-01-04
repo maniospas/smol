@@ -77,7 +77,7 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                 +"\nA previous @release has already ran any attached finalization and invalidataed the variable."
             );
         if(is_service && finals.find(next)!=finals.end() && finals[next].find(TRANSIENT_VAR) != std::string::npos) 
-            imp->error(--p, "You are returning @noshare data from a service: "
+            imp->error(--p, "You are returning @c_noshare data from a service: "
                 +pretty_var(next.to_string())
                 +"\nThose use service-local resources, such as its stack memory. Create these data externally and pass them as arguments."
             );
@@ -85,7 +85,7 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
             nozero = true;
         if(!vars[next]->not_primitive()) {
             if(contains(next) && vars[next]->name==NOM_VAR && !alignments[next]) 
-                imp->error(--p, "You are returning @noshare data from a service: "
+                imp->error(--p, "You are returning @c_noshare data from a service: "
                     +pretty_var(next.to_string())
                     +"\nAdd an align first variable to the signature and return that instead"
                 );
@@ -114,7 +114,7 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                 noborrow = vars[alias_for]->noborrow;
                 noassign = vars[alias_for]->noassign;
                 if(noborrow && !imp->allow_unsafe) 
-                    imp->error(--p, "Rerurned a @noborrow variable "
+                    imp->error(--p, "Rerurned a @c_noborrow variable "
                         +pretty_var(alias_for.to_string())
                         +"\nThis is unsafe behavior. Declare the file as @unsafe by placing this at the top level (typically right after imports)."
                     );
@@ -144,7 +144,7 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                         coalesce_finals(next+pack);
                         if(finals.find(next+pack)!=finals.end() && finals[next+pack].find(TRANSIENT_VAR) != std::string::npos) 
                             imp->error(--p, 
-                                "Returned @noshare data from a service: "
+                                "Returned @c_noshare data from a service: "
                                 +pretty_var(next.to_string()+"__"+pack.to_string())
                                 +"\nThose use service-local resources, such as its stack memory. Create these data externally and pass them as arguments."
                             );
@@ -174,7 +174,7 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                             +"\nA previous @release has already ran any attached finalization and invalidataed the variable."
                         );
                     if(contains(next_pack) && vars[next_pack]->noborrow) 
-                        imp->error(--p, "Rerurned a @noborrow variable "
+                        imp->error(--p, "Rerurned a @c_noborrow variable "
                             +pretty_var(next.to_string()+"__"+pack.to_string())
                             +"\nThis is unsafe behavior. Declare the file as @unsafe by placing this at the top level (typically right after imports)."
                         );
@@ -182,7 +182,7 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
                     if(is_service) {
                         coalesce_finals(next_pack);
                         if(finals.find(next_pack)!=finals.end() && finals[next_pack].find(TRANSIENT_VAR) != std::string::npos) 
-                            imp->error(--p, "Returned @noshare data from a service: "
+                            imp->error(--p, "Returned @c_noshare data from a service: "
                                 +pretty_var((next+pack).to_string())
                                 +"\nThose use service-local resources, such as its stack memory. Create these data externally and pass them as arguments."
                             );

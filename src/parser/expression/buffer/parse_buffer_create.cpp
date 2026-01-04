@@ -25,7 +25,7 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
             imp->error(first_token_pos, "Given that "
                 +pretty_var(first_token.to_string())
                 +" is a function (not a local variable), [] is expected to declare a buffer of its defined type here"
-                +" or a @buffer type must be returned to serve as the buffer's allocation"
+                +" or a @c_buffer type must be returned to serve as the buffer's allocation"
             );
         if(!can_mutate(surface, p) && !imp->allow_unsafe)
             imp->error(--p, "Buffer surface is not mutable: "+pretty_var(surface.to_string())+"\nIt might have been used elsewhere. Mark this file as @unsafe to allow a union view.");

@@ -14,7 +14,7 @@
 
 void Def::parse_directive_finally(size_t& p, string next, Types& types) {
     if(!imp->allow_unsafe) 
-        imp->error(--p, "@finally is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+        imp->error(--p, "@c_finally is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     Code finals;
     string conditioned("");
     next = imp->at(p++);

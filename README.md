@@ -45,7 +45,7 @@ def file_reader(String path, @mut Memory memory) // for all String variations
     @mut stat_chars = 0
     @mut file = ReadFile.open(path) // pass the ReadFile type as first argument
     endl = "\n".str().first
-    @on memory.arena(1024)
+    @on memory.allocate(1.KB()).arena()
     file
     .while next_line(@mut str line)
         stat_lines = stat_lines + 1
@@ -55,7 +55,7 @@ def file_reader(String path, @mut Memory memory) // for all String variations
     return new.Stats(stat_lines, stat_chars)
 
 service main()
-    @mut memory = Stack.arena(1.MB()) 
+    @mut memory = Stack.allocate(1.MB()).arena()
     stats = file_reader("README.md", memory)
     print(stats)
 ```

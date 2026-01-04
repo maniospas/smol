@@ -14,21 +14,23 @@
 
 void Def::parse_directive(size_t& p, string next, Types& types) {
     next = imp->at(p++);
-    if(next=="body")  // do this first for speedup (it's the most frequent kind)
+    if(next=="c_body")  // do this first for speedup (it's the most frequent kind)
         parse_directive_body(p, next, types);
-    else if(next=="head") 
+    else if(next=="c_head") 
         parse_directive_head(p, next);
-    else if(next=="noborrow") 
+    else if(next=="c_noborrow") 
         noborrow = true;
-    else if(next=="noassign") 
+    else if(next=="c_noassign") 
         noassign = true;
-    else if(next=="nozero") 
+    else if(next=="c_nozero") 
         nozero = true;
-    else if(next=="noleftover") 
+    else if(next=="c_noleftover") 
         noleftover = true;
+    else if(next=="zipped") 
+        zipped = true;
     else if(next=="invalid") 
         imp->error(p-1, "Not found correct path: "+imp->at(p));
-    else if(next=="noother") {
+    else if(next=="unique") {
         next = imp->at(p++);
         if(next.size()<2 || next[0]!='"' || next[next.size()-1]!='"')
             imp->error(--p, "A cstr is required to indicate a resource family id");
@@ -36,7 +38,7 @@ void Def::parse_directive(size_t& p, string next, Types& types) {
         if(singletons.find(next_query)!=singletons.end())
             imp->error(--p, "This resource family "
                 +next
-                +" has been claimed by a previous @noother (e.g., in a call)"
+                +" has been claimed by a previous @unique (e.g., in a call)"
             );
         singletons.insert(next_query);
     }
@@ -52,7 +54,7 @@ void Def::parse_directive(size_t& p, string next, Types& types) {
             );
         acquired.insert(next_query);
     }
-    else if(next=="noshare") {
+    else if(next=="c_noshare") {
         static const Variable token_transient_end = Variable(")\n");
         next = imp->at(p++);
         this->finals[next] += Code(
@@ -61,11 +63,11 @@ void Def::parse_directive(size_t& p, string next, Types& types) {
             token_transient_end
         );
     }
-    else if(next=="link") 
+    else if(next=="c_link") 
         parse_directive_link(p, next);
-    else if(next=="buffer") {
+    else if(next=="c_buffer") {
         if(!imp->allow_unsafe) 
-            imp->error(--p, "@body is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+            imp->error(--p, "@c_buffer is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
         buffer_ptr = imp->at(p++);
         if(!contains(buffer_ptr) || vars[buffer_ptr]->name!=PTR_VAR)
             imp->error(--p, "Expecting ptr for buffer pointer interpretation");
@@ -76,9 +78,9 @@ void Def::parse_directive(size_t& p, string next, Types& types) {
         if(!contains(buffer_release) || vars[buffer_release]->name!=PTR_VAR)
             imp->error(--p, "Expecting ptr for buffer release pointer interpretation");
     }
-    else if(next=="finally") 
+    else if(next=="c_finally") 
         parse_directive_finally(p, next, types);
-    else if(next=="fail") 
+    else if(next=="c_fail") 
         parse_directive_fail(p, next, types);
     else if(next=="release") 
         parse_directive_release(p, next, types);

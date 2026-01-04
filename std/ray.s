@@ -82,48 +82,51 @@ def Size(f64 w, f64 h)
     return @args
 
 def Window(new, Size size, cstr title)
-    @nozero // always require an instantiated window
-    @noother "std.ray.Window" // exactly one window per program
-    @noborrow
-    @head{#include "raylib.h"}
-    @link{-Istd/raylib/raylib-5.5_linux_amd64/include}
-    @link{-Lstd/raylib/raylib-5.5_linux_amd64/lib}
-    @link{-lraylib}
-    @link{-ldl}
-    @link{-lpthread}
-    @link{-lGL}
-    @link{-lX11}
-    @body{ SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title); }
+    @unique "std.ray.Window" // exactly one window per program
+    @c_nozero // always require an instantiated window
+    @c_noborrow
+    @c_head{#include "raylib.h"}
+    @c_link{-Istd/raylib/raylib-5.5_linux_amd64/include}
+    @c_link{-Lstd/raylib/raylib-5.5_linux_amd64/lib}
+    @c_link{-lraylib}
+    @c_link{-ldl}
+    @c_link{-lpthread}
+    @c_link{-lGL}
+    @c_link{-lX11}
+    @c_body{ 
+        SetTraceLogLevel(LOG_WARNING); 
+        InitWindow(size__w, size__h, (char*)title); 
+    }
     @mut ready = bool
     return @args, ready
 
 def close(@mut Window window)
 
 def is_open(@mut Window)
-    @body{ bool ret = WindowShouldClose(); }
+    @c_body{ bool ret = WindowShouldClose(); }
     return ret.not()
 
 def begin(@access @mut Window window)
     if window.ready 
         fail("Window.begin() already called without closing it with Window.end()")
     window.ready = true
-    @body{ BeginDrawing(); }
+    @c_body{ BeginDrawing(); }
     return window
 
 def end(@access @mut Window window)
     if window.ready.not() 
         fail("Window.begin() must be called before a matching Window.end()")
     window.ready = false
-    @body{ EndDrawing(); }
+    @c_body{ EndDrawing(); }
     return window
 
 def clear(@mut Window window, Color color)
-    @body{ ClearBackground((Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}); }
+    @c_body{ ClearBackground((Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}); }
     return window
 
 def text(@mut Window window, CString _txt, Position pos, f64 size, Color color)
     txt = _txt.nstr()
-    @body{
+    @c_body{
         DrawText(
             (char*)txt__contents, 
             pos__x, 
@@ -142,8 +145,8 @@ def Texture(new, u64 id, u64 width, u64 height, ptr mipmaps, ptr format)
 
 def open(Texture, CString _path)
     path = _path.nstr()
-    @head{#define __smolambda_ray_texture(id,width,height,mipmaps,format) {Texture2D ret = LoadTexture((char*)path__contents);id=ret.id;width=ret.width;height=ret.height;mipmaps=ret.mimpas;format=ret.format;}}
-    @body{
+    @c_head{#define __smolambda_ray_texture(id,width,height,mipmaps,format) {Texture2D ret = LoadTexture((char*)path__contents);id=ret.id;width=ret.width;height=ret.height;mipmaps=ret.mimpas;format=ret.format;}}
+    @c_body{
         u64 id = 0;
         u64 width = 0;
         u64 height = 0;
@@ -151,11 +154,11 @@ def open(Texture, CString _path)
         ptr format = 0;
         __smolambda_ray_texture(id,width,heigh,mipmaps,format);
     }
-    @finally mipmaps {UnloadTexture((Texture2D){id, width, height, mipmaps, format});}
+    @c_finally mipmaps {UnloadTexture((Texture2D){id, width, height, mipmaps, format});}
     return new.Texture(id, width, height, mipmaps, format)
 
 def draw(@mut Window window, Texture tex, Position pos, Color color)
-    @body{ 
+    @c_body{ 
         DrawTexture(
             (Texture2D){tex__id, tex__width, tex__height, tex__mipmaps, tex__format},
             pos__x, pos__y,
@@ -165,7 +168,7 @@ def draw(@mut Window window, Texture tex, Position pos, Color color)
     return window
 
 def circ(@mut Window window, Position pos, f64 radius, Color color)
-    @body{
+    @c_body{
         DrawCircleV(
             (Vector2){(float)pos__x, (float)pos__y}, 
             (float)radius,
@@ -175,7 +178,7 @@ def circ(@mut Window window, Position pos, f64 radius, Color color)
     return window
 
 def rect(@mut Window window, Position pos, Size size, Color color)
-    @body{
+    @c_body{
         DrawRectangle(
             pos__x, pos__y,
             size__w, size__h,
@@ -185,11 +188,11 @@ def rect(@mut Window window, Position pos, Size size, Color color)
     return window
 
 def rect_line(@mut Window window, Position pos, Size size, u64 thickness, Color color)
-    @body{DrawRectangleLinesEx((Rectangle){(float)pos__x, (float)pos__y, (float)size__w, (float)size__h}, (int)thickness, (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a});}
+    @c_body{DrawRectangleLinesEx((Rectangle){(float)pos__x, (float)pos__y, (float)size__w, (float)size__h}, (int)thickness, (Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a});}
     return window
 
 def circ_line(@mut Window window, Position pos, u64 radius, u64 thickness, Color color)
-    @body{
+    @c_body{
         f64 inner = (radius > thickness) ? (float)(radius - thickness) : 0.0f;
         f64 outer = (float)radius;
         DrawRing(

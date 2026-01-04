@@ -192,7 +192,7 @@ class Def : public enable_shared_from_this<Def> {
     Variable parse_expression_no_par(size_t& p, const Variable& first_token, Types& types, Variable curry=EMPTY_VAR);
     Variable call_type(size_t& p, Type& type, vector<Variable>& unpacks, const size_t first_token_pos, const Variable& first_token, Types& types, bool allow_leftovers);
 
-    // parse directives inlined in code (@head, @link, @body, @finally, @fail, @release, @noborrow, @noshare, @buffer)
+    // parse directives inlined in code (@c_head, @c_link, @c_body, @c_finally, @c_fail, @release, @c_noborrow, @c_noshare, @c_buffer)
     void parse_directive(size_t& p, string next, Types& types);
     void parse_directive_head(size_t& p, string next);
     void parse_directive_link(size_t& p, string next);
@@ -237,6 +237,7 @@ public:
     bool has_tried_to_resolve_before;
     bool noassign;
     bool noleftover;
+    bool zipped;
     size_t storage_size;
     static bool debug;
     static bool export_docs;
@@ -275,8 +276,8 @@ public:
     string raw_signature_state_name() const;
 
     // constructors
-    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), noleftover(false), storage_size(8), name(builtin), number_of_calls(0) {}
-    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), noleftover(false), storage_size(8), name(""), number_of_calls(0) {
+    Def(const string& builtin): choice_power(1), is_service(false), _is_primitive(true), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), noleftover(false), zipped(false), storage_size(8), name(builtin), number_of_calls(0) {}
+    Def(Types& types): choice_power(0), is_service(false), _is_primitive(false), lazy_compile(false), noborrow(false), nozero(false), unresolved_options(false), has_tried_to_resolve_before(false), noassign(false), noleftover(false), zipped(false), storage_size(8), name(""), number_of_calls(0) {
         Types::last_type_id++;//  ensure that zero alignment has no associated type
         types.reverse_alignment_labels[Types::last_type_id] = this;
         types.alignment_labels[this] = Types::last_type_id;

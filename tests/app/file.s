@@ -25,7 +25,7 @@ def file_reader(
     @mut stat_chars = 0
     @mut file = ReadFile.open(path)
     endl = "\n".str().first
-    @on memory.arena(1024)
+    @on memory.allocate(1024).arena()
     while file.next_line(@mut str line) 
         stat_lines = stat_lines + 1
         stat_chars = stat_chars + line.len()
@@ -34,6 +34,6 @@ def file_reader(
     return new.file_stats(stat_lines, stat_chars)
 
 service main()
-    @mut memory = Stack.arena(1.MB()) // 1MB
+    @mut memory = Stack.allocate(1.MB()).arena() // 1MB
     stats = file_reader("README.md", memory)
     print(stats)

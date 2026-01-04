@@ -12,3 +12,4 @@ def norm(vec2d v)
 service main()
     v = new.vec3d(new.vec2d(1,2),3)
     print(v.super.norm())
+    

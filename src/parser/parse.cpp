@@ -187,7 +187,7 @@ void Def::parse_implementation(size_t& p, bool with_signature) {
             if(imp->at(p++)!="=") {
                 --p;
                 if(var.is_private() && contains(var) && vars[var]->noleftover)
-                    imp->error(--p, "The expression's computed type is marked as `@noleftover` but is not assigned to a named variable");
+                    imp->error(--p, "The expression's computed type is marked as `@c_noleftover` but is not assigned to a named variable");
                 continue;
             }//imp->error(--p, "Missing assignment");
             next = imp->at(p++);

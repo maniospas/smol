@@ -71,22 +71,19 @@
 
   <pre><code class="language-smolambda">// from std/mem.device.s
 def ContiguousMemory (
-        new, 
-        MemoryDevice, 
-        u64 size,
-        Primitive,
-        ptr mem,
-        ptr underlying
-    ) 
-    -> @args
+    new type,
+    u64 size,
+    ptr mem,
+    ptr underlying
+)
+    //@noassign
+    @c_buffer mem size underlying
+    return @args
 
 // from std/mem/arena.s
-def Arena(new type, ContiguousMemory contents)
-    @noborrow
-    length = 0
-    size = contents.size
-    with contents.Primitive:is(char)
-    ---> type, contents, length, size</code></pre>
+def Arena(new, ContiguousMemory contents)
+    length = 0 
+    return @args, length</code></pre>
 
   <p>
     Don't feel guilty if your first reaction was to skip the above snippet.
@@ -113,8 +110,8 @@ def Arena(new type, ContiguousMemory contents)
   <h2 id="recap">Recap on language concepts<a class="anchor-link" href="#recap">#</a></h2>
 
   <p>
-    <b>Runtypes -</b> Before starting, a brief recap that <i>smoλ</i> is centered 
-    around <i>runtypes</i>; functions whose returned values serve
+    <b>Types -</b> Before starting, a brief recap that <i>smoλ</i> is centered 
+    around functions whose returned values serve
     as both tuples and type fields. For example, the following declares a new
     type, so that if you write <code class="language-smolambda">p=new:point2(x,y)</code> 
     you can access fields <code  class="language-smolambda">p.x</code> and <code  class="language-smolambda">p.y</code>.
@@ -123,10 +120,10 @@ def Arena(new type, ContiguousMemory contents)
   <pre><code class="language-smolambda">def point2(new, f64 _x, f64 _y) 
     x = 2*_x 
     y = 2*_y 
-    -> x,y // return statement</code></pre>
+    return x,y</code></pre>
   
   <p>
-    <b>new types -</b> I shamelessly forced upon you a couple more concepts in the above explanation, 
+    <b>New types -</b> I shamelessly forced upon you a couple more concepts in the above explanation, 
     because they are pretty important. First is
     <code class="language-smolambda">new</code>, which is a value indicating a type
     matched to its name instead of structure (two <code class="language-smolambda">f64</code> values).
@@ -134,16 +131,16 @@ def Arena(new type, ContiguousMemory contents)
     are checked during compilation but removed and do not affect execution.
   </p>
   <p>
-    <b>Currying -</b> The language's currying symbol <code class="language-smolambda">:</code> 
+    <b>Currying -</b> The language's currying symbol <code class="language-smolambda">.</code> 
     transfers the left-hand-sight as the first argument to the right. For example, 
-    <code class="language-smolambda">obj:fun</code> means <code class="language-smolambda">fun(obj)</code>
-    and <code class="language-smolambda">obj:fun(arg1,arg2)</code> means <code class="language-smolambda">fun(obj,arg1,arg2)</code>,
+    <code class="language-smolambda">obj.fun()</code> means <code class="language-smolambda">fun(obj)</code>
+    and <code class="language-smolambda">obj.fun(arg1,arg2)</code> means <code class="language-smolambda">fun(obj,arg1,arg2)</code>,
     and so on.
   </p>
   
   <p>
-    <b>def vs services -</b> In general, there are two ways to declare runtypes; as <code class="language-smolambda">smo</code> declarations,
-    like above, or as <code class="language-smolambda">service</code>s. The main difference is that the former are inlined,
+    <b>Definitions vs services -</b> In general, there are two types of functions; <code class="language-smolambda">def</code> declarations,
+    like above, or <code class="language-smolambda">service</code>s. The main difference is that the former are inlined,
     whereas services are implemented as co-routines and give the opportunity of error handling when errors occur inside - to be addressed in
     another post.
   </p>
@@ -151,9 +148,9 @@ def Arena(new type, ContiguousMemory contents)
 
   <h2 id="no-memory">Where memory is <i>not</i> used <a class="anchor-link" href="#no-memory">#</a></h2>
   <p>
-    A nice feature of <i>smoλ</i> is that its default runtype manipulation mechanism does not use heap memory. Instead,
+    A nice feature of <i>smoλ</i> is that its default type instance manipulation mechanism does not use heap memory. Instead,
     registers and the stack store fields as local variables. For example, the previous <code class="language-smolambda">point2</code>
-    runtype is simply stored into underlying variables <code class="language-smolambda">p__x.p__y</code>.
+    type is simply stored into underlying variables <code class="language-smolambda">p__x.p__y</code>.
   </p>
   </p>
     Remember that def definitions are inlined, so we can have very complex data transfers be zero cost (or faster-than-zero-cost, depending
@@ -167,8 +164,8 @@ def Arena(new type, ContiguousMemory contents)
   <p>
     As an example, if the value <code class="language-smolambda">p.y</code> is never used, <code class="language-smolambda">p__y</code> 
     will be eliminated by the compilation process completely. Even if used elsewhere, inlining eventually means that we
-    do not need to load <code class="language-smolambda">p.y</code> from memory because if it is already in the cache. Of course,
-    cache locality is still key. But our implementation is equipped with the tools to allow compilation to actually optimize for that.
+    do not need to load <code class="language-smolambda">p.y</code> from memory if it is already in the cache. Of course,
+    cache locality is still key, but the language enables allows more intensive usage.
   </p>
   <p>
     The end result: <b>we are free to keep "metadata" variables
@@ -192,21 +189,22 @@ def Arena(new type, ContiguousMemory contents)
 <pre><code class="language-smolambda">// from std/builtins/str.s
 
 def str (
-        new, // no storage or runtime cost
-        ptr contents, 
-        u64 length, 
-        char first, 
-        ptr memory 
-    ) 
-    -> @args
+    new, 
+    ptr contents, 
+    u64 length, 
+    char first, 
+    ptr memory
+)
+    return @args
 </code></pre>
   </div>
 
   <h2 id="release">Release timing <a class="anchor-link" href="#release">#</a></h2>
   <p>
-    Concurency aside, the main difference between <code class="language-smolambda">smo</code>
+    Concurrency aside, the main difference between <code class="language-smolambda">def</code>
     and <code class="language-smolambda">service</code> is that resources like memory are gathered
-    by the compiler and their release code is inserted at the end of service calls. Those working in domains 
+    by the compiler and safely released at the end of services that fail. If no errors occur, 
+    resources are released -if not used anymore- at the exist point of functions. Those working in domains 
     where delays are critical are now aware of exactly when systems are going to do work. But we also
     have the benefit that, upon failures like invalid file reads, 
     we can safely terminate the service without leaking resources. 
@@ -241,14 +239,14 @@ def str (
 
 service samples()
     buf = u64[]
-    :push(42)
-    :push(10)
-    -> buf // return statement
+    .push(42)
+    .push(10)
+    return buf // return statement
 
 service main()
     buf = samples()
     print(buf[0]) // prints 42
-    -- // end block, buffer is deallocated here
+    //buffer is deallocated at function end
 </code></pre>
   </div>
 
@@ -297,14 +295,14 @@ service main()
 @include std.mem
 
 service greet(str name)
-    on Heap:arena(1024) // preallocate 1kB on the heap
-        greeting = "Hi "+name+"!"
-    ---> greeting
+    @on Heap.allocate(1.KB()).arena()
+    greeting = add(@all "Hi "name"!")
+    return greeting
 
 service main()
-    greeting = greet("there":str)
+    greeting = "there".str().greet()
     print(greeting)
-    -- // end block, arena is deallocated here
+    //the returned arena is deallocated here
 </code></pre>
   </div>
 
@@ -362,34 +360,34 @@ def allocate(Heap, u64 size, Primitive)
     // Usually optimized away if, for example
     // one called Heap:allocate(1024, char)
     if size==0 
-        -> fail("Cannot allocate zero size")
+        fail("Cannot allocate zero size")
 
     // C header
-    @head{#include &lt;stdlib.h>}
+    @c_head{#include &lt;stdlib.h>}
 
     // A hack to declare a local variable with the 
     // appropriate builtin type (among char,f64,u64,
-    // i64) that the C code in @body below can see.
+    // i64) that the C code in @c_body below can see.
     // Optimized away.
     Primitive = Primitive 
 
     // Direct C code here.
-    @body{ptr mem=__runtime_alloc(size*sizeof(Primitive));} // malloc usually
+    @c_body{ptr mem=__runtime_alloc(size*sizeof(Primitive));} // malloc usually
 
     // Allocation safety - just fail services whenever.
-    if mem:bool:not 
-        -> fail("Failed a Heap allocation")
+    if mem.bool().not() 
+        fail("Failed a Heap allocation")
 
     // Attach freeing C code to the mem ptr address.
     // That is managed by the compiler and is curated to run correctly
     // even if the code above fails triggering the release (unitilized
     // variables are always set to zero).
-    @finally mem { 
+    @c_finally mem { 
         if(mem)
             __runtime_free(mem); // free usually
         mem=0;
     }
-    -> new:ContiguousMemory(
+    -> new.ContiguousMemory(
         Heap, // track type as zero-valued object (optimized away later)
         size, // size of region within underlying memory
         Primitive, // track type as zero-valued object (optimized away later)

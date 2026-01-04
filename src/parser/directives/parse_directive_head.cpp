@@ -14,7 +14,7 @@
 
 void Def::parse_directive_head(size_t& p, string next) {
     if(!imp->allow_unsafe) 
-        imp->error(--p, "@head is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+        imp->error(--p, "@c_head is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     next = imp->at(p++);
     if(next!="{") 
         imp->error(--p, "Expected brackets");

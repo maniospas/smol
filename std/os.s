@@ -49,24 +49,24 @@
 "Reads the next line of process output into a provided buffer."
 
 def Process(new, ptr contents)
-    @noborrow
+    @c_noborrow
     return @args
 
 def open(@access @mut Process, CString _command)
     command = _command.nstr().contents
-    @head{#include <stdio.h>}
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @head{
+    @c_head{#include <stdio.h>}
+    @c_head{#include <string.h>}
+    @c_head{#include <stdlib.h>}
+    @c_head{
         #if defined(_WIN32) || defined(_WIN64)
         #define popen  _popen
         #define pclose _pclose
         #endif
     }
-    @body{ptr contents = (ptr)popen((cstr)command, "r");}
+    @c_body{ptr contents = (ptr)popen((cstr)command, "r");}
     if contents.exists().not() 
-        @fail{printf("Error: Failed to start process\n");} 
-    @finally contents { 
+        @c_fail{printf("Error: Failed to start process\n");} 
+    @c_finally contents {
         i64 status = 0;
         if(contents) 
             status = pclose((FILE*)contents);
@@ -82,9 +82,9 @@ def open(@access @mut Process, CString _command)
     return new.Process(contents)
 
 def to_end(@access @mut Process p)
-    @head{#include <string.h>}
-    @head{#include <sys/wait.h>}
-    @body{
+    @c_head{#include <string.h>}
+    @c_head{#include <sys/wait.h>}
+    @c_body{
         if(p__contents) {
             char buf[1024];
             while(fread(buf, 1, sizeof(buf), (FILE*)p__contents)) {}
@@ -96,10 +96,10 @@ def next_chunk(
     @access @mut Process p,
     @mut nstr value
 )
-    @head{#include <stdio.h>}
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_head{#include <string.h>}
+    @c_head{#include <stdlib.h>}
+    @c_body{
         u64 bytes_read = p__contents ? fread((char*)reader__contents__mem, 1, reader__contents__size, (FILE*)p__contents) : 0;
         if(reader__contents__size) 
             ((char*)reader__contents__mem)[ (bytes_read < reader__contents__size) ? bytes_read : (reader__contents__size - 1) ] = 0;
@@ -114,8 +114,8 @@ def next_line(
     @access @mut Process p, 
     @mut nstr value
 )
-    @head{#include <stdio.h> #include <string.h> #include <stdlib.h>}
-    @body{
+    @c_head{#include <stdio.h> #include <string.h> #include <stdlib.h>}
+    @c_body{
         ptr ret = p__contents ? (ptr)fgets((char*)reader__contents__mem, reader__contents__size, (FILE*)p__contents) : 0;
         u64 bytes_read = ret ? strlen((char*)ret) : 0;
         char first = ((char*)reader__contents__mem)[0];
@@ -142,8 +142,8 @@ def next_line(
     return ret
 
 def system(cstr command)
-    @head{#include <stdlib.h>}
-    @body{u64 result = system((char*)command);}
+    @c_head{#include <stdlib.h>}
+    @c_body{u64 result = system((char*)command);}
     if result!=0 fail("Error: System call failed")
 
 def system(str command) 
@@ -151,14 +151,14 @@ def system(str command)
 
 def open(@access @mut Process, str command)
     mem = Stack.allocate(command.length+1)
-    @body{
+    @c_body{
         char first = 0;
         if(mem__mem) {
             memcpy((char*)mem__mem, command__contents, command__length);
             ((char*)mem__mem)[command__length] = 0;
         }
         // we need the following line as a means of casting void* to const char*
-        // but we can do this only because Process is @noborrow so that the allocated
+        // but we can do this only because Process is @c_noborrow so that the allocated
         // stack cannot be leaked (by the way, this would finalize Heap memory, so
         // we don't do it)
         cstr mem = (const char*)mem__mem; 

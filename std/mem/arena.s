@@ -50,10 +50,10 @@ def Circular(new, ContiguousMemory contents)
     return @args, length
 
 def clear(@access @mut Circular self)
-    @body{self__length=0;}
+    @c_body{self__length=0;}
 
 def clear(@access @mut Arena self)
-    @body{self__length=0;}
+    @c_body{self__length=0;}
 
 union Buffer = Arena or Circular
 
@@ -61,14 +61,14 @@ def len(@access @mut Buffer self)
     return self.contents.size
 
 def Dynamic(new) 
-    @noborrow
-    @body{
+    @c_noborrow
+    @c_body{
         ptr acquired = __runtime_alloc(sizeof(ptr**));
         if(acquired)((ptr**)acquired)[0]=0;
     }
     size = 0
     allocated = 0
-    @finally acquired {
+    @c_finally acquired {
         if(acquired) {
             for(u64 __dynamic_entry=0;__dynamic_entry<size;++__dynamic_entry) {
                 __runtime_free(((ptr**)acquired)[0][__dynamic_entry]);                
@@ -88,10 +88,10 @@ def dynamic(@access Stack)
     return new.Stack()
     
 def allocate(@access @mut Dynamic self, u64 size)
-    @head{#include <stdlib.h>}
+    @c_head{#include <stdlib.h>}
     if self.acquired.bool().not()
         fail("Did not initialize Dynamic")
-    @body{
+    @c_body{
         u64 next_size = self__size+1;
         bool success = true;
         u64 self__allocated__prev = self__allocated;
@@ -118,24 +118,24 @@ def used(@access @mut Buffer self)
 def allocate(@access @mut Arena self, u64 size)
     if(self.length+size)>self.contents.size
         fail("Failed an Arena allocation")
-    @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
-    @body{self__length = self__length+size;}
+    @c_body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
+    @c_body{self__length = self__length+size;}
     return new.ContiguousMemory(size, _contents, self.contents.underlying)
 
 def allocate(@access @mut Circular self, u64 size)
     if size>self.contents.size 
         fail("Failed an Circular allocation")
-    @body{if(self__length+size>self__contents__size) {self__length = 0;}}
-    @body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
-    @body{self__length = self__length+size;}
+    @c_body{if(self__length+size>self__contents__size) {self__length = 0;}}
+    @c_body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
+    @c_body{self__length = self__length+size;}
     return new.ContiguousMemory(size, _contents, self.contents.underlying)
 
 def read(@access @mut Arena self)
     @acquire "std.terminal.read"
-    @head{#include <stdio.h>}
-    @head{#include <stdlib.h>}
-    @head{#include <string.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_head{#include <stdlib.h>}
+    @c_head{#include <string.h>}
+    @c_body{
         if(self__length >= self__contents__size) {
             ptr _contents = 0;
         } else {

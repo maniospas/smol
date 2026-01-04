@@ -210,7 +210,7 @@ void Def::parse_signature(size_t& p, Types& types) {
                 if(!mut && argType->noborrow) 
                     imp->error(--p, "Argument's "
                         +arg_name.to_string()
-                        +" runtype has been set as @noborrow\nThis means that arguments and variables of it can only be mutable"
+                        +" runtype has been set as @c_noborrow\nThis means that arguments and variables of it can only be mutable"
                         +"\nand therefore it becomes impossible to share it with service\n(mutables cannot be assinged anywhere)."
                         +"\nAdd & before the argument name to make it mutable"
                     );

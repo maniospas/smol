@@ -195,7 +195,7 @@ def nstr (
     char first, 
     ptr memory
 )
-    @body{if(memory && contents) (((char*)contents)[length]) = 0;}
+    @c_body{if(memory && contents) (((char*)contents)[length]) = 0;}
     return @args
 
 union CString = cstr or nstr
@@ -209,8 +209,8 @@ def str(@access nstr other)
     return new.str(other.contents, other.length, other.first, other.memory)
 
 def str(@access cstr raw)
-    @head{#include <string.h>}
-    @body{
+    @c_head{#include <string.h>}
+    @c_body{
         u64 length=strlen(raw);
         ptr contents=(ptr)raw;
         char first=raw[0];
@@ -219,8 +219,8 @@ def str(@access cstr raw)
     return new.str(contents, length, first, noptr)
 
 def nstr(@access cstr raw)
-    @head{#include <string.h>}
-    @body{
+    @c_head{#include <string.h>}
+    @c_body{
         u64 length=strlen(raw);
         ptr contents=(ptr)raw;
         char first=raw[0];
@@ -229,62 +229,62 @@ def nstr(@access cstr raw)
     return new.nstr(contents, length, first, noptr)
 
 def str(@access bool value) 
-    @head{cstr __smol_true_str = "true";}
-    @head{cstr __smol_false_str = "false";}
+    @c_head{cstr __smol_true_str = "true";}
+    @c_head{cstr __smol_false_str = "false";}
     if value 
-        @body{cstr _contents=__smol_true_str;} 
+        @c_body{cstr _contents=__smol_true_str;} 
     else 
-        @body{cstr _contents=__smol_false_str;}
+        @c_body{cstr _contents=__smol_false_str;}
     return str(_contents)
 
 def nstr(@access bool value)
-    @head{cstr __smol_true_str = "true";}
-    @head{cstr __smol_false_str = "false";}
+    @c_head{cstr __smol_true_str = "true";}
+    @c_head{cstr __smol_false_str = "false";}
     if value 
-        @body{cstr _contents=__smol_true_str;} 
+        @c_body{cstr _contents=__smol_true_str;} 
     else
-        @body{cstr _contents=__smol_false_str;}
+        @c_body{cstr _contents=__smol_false_str;}
     return nstr(_contents)
 
 def print(@access cstr message)
-    @head{#include <stdio.h>}
-    @body{printf("%s\n", message);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%s\n", message);}
 
 def print(@access nstr message)
-    @head{#include <stdio.h>}
-    @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
 
 def print(@access str message)
-    @head{#include <stdio.h>}
-    @body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%.*s\n", (int)message__length, (char*)message__contents);}
 
 def printin(@access cstr message)
-    @head{#include <stdio.h>}
-    @body{printf("%s", message);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%s", message);}
 
 def printin(@access nstr message)
-    @head{#include <stdio.h>}
-    @body{printf("%.*s", (int)message__length, (char*)message__contents);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%.*s", (int)message__length, (char*)message__contents);}
 
 def printin(@access str message)
-    @head{#include <stdio.h>}
-    @body{printf("%.*s", (int)message__length, (char*)message__contents);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%.*s", (int)message__length, (char*)message__contents);}
 
 def eq(@access char x, char y)  
-    @body{bool z=(x==y);} 
+    @c_body{bool z=(x==y);} 
     return z
 
 def neq(@access char x, char y)
-    @body{bool z=(x!=y);}
+    @c_body{bool z=(x!=y);}
     return z
 
 def slice(@access String self, u64 from, u64 to) 
     s = self.str()
     if to<from 
-        @fail{printf("String slice cannot end before it starts\n");} 
+        @c_fail{printf("String slice cannot end before it starts\n");} 
     if to>s.length
-        @fail{printf("String slice must end at most at the length of the base string\n");} 
-    @body{
+        @c_fail{printf("String slice must end at most at the length of the base string\n");} 
+    @c_body{
         ptr contents = (ptr)((char*)s__contents+from*sizeof(char));
         char first = from==to?0:((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
     }
@@ -295,7 +295,7 @@ def slice(@access String self, u64 from)
 
 def strip(@access String _s)
     s = _s.str()
-    @body{
+    @c_body{
         u64 start = 0;
         u64 end_pos = s__length;
         while(start < end_pos) {
@@ -316,15 +316,15 @@ def strip(@access String _s)
 def eq(@access String _x, IndependentString _y)
     x = _x.str()
     y = _y.str()
-    @head{#include <string.h>}
-    @body{bool z = x__first==y__first && (x__length == y__length) && (memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) == 0);}
+    @c_head{#include <string.h>}
+    @c_body{bool z = x__first==y__first && (x__length == y__length) && (memcmp((char*)x__contents+1, (char*)y__contents+1, x__length-1) == 0);}
     return z
 
 def neq(@access String _x, IndependentString _y)
     x = _x.str()
     y = _y.str()
-    @head{#include <string.h>}
-    @body{
+    @c_head{#include <string.h>}
+    @c_body{
         //printf("x. '%s', length. %zu\n", ((char*)x__contents), x__length - 1);
         //printf("y. '%s', length. %zu\n", ((char*)y__contents), y__length - 1);
 
@@ -341,16 +341,16 @@ def len(@access nstr x)
     return x.length
 
 def len(@access cstr x)
-    @head{#include <string.h>}
-    @head{#include <stdlib.h>}
-    @body{u64 z = strlen(x);}
+    @c_head{#include <string.h>}
+    @c_head{#include <stdlib.h>}
+    @c_body{u64 z = strlen(x);}
     return z
 
 def at(@access str x, u64 pos) 
     if x__length<=pos 
-        @fail{printf("String index out of bounds\n");}
+        @c_fail{printf("String index out of bounds\n");}
     // trying to help the compiler below, but maybe it's too clever and it can optimize that
-    @body{char z= (__builtin_constant_p(pos) && pos == 0) ? x__first: ((char*)x__contents)[pos];} 
+    @c_body{char z= (__builtin_constant_p(pos) && pos == 0) ? x__first: ((char*)x__contents)[pos];} 
     return z
 
 def at(@access nstr x, u64 pos) 
@@ -400,8 +400,8 @@ def key(new, i64 data)
     return @args
 
 def getch()
-    @head{#include "std/oscommon.h"}
-    @body{i64 ch = __smo_next_key_press();}
+    @c_head{#include "std/oscommon.h"}
+    @c_body{i64 ch = __smo_next_key_press();}
     return new.key(ch)
 
 def is_enter(key input)
@@ -434,7 +434,7 @@ def is_char(key input)
     
 def to_char(key input)
     if(input.data<i64(0))or(input.data>=i64(255)) 
-        @fail{printf("Cannot convert a non-character key input to a characters\n");}
+        @c_fail{printf("Cannot convert a non-character key input to a characters\n");}
     return char(input.data)
 
 def is_printable(key input)

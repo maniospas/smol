@@ -14,7 +14,7 @@
 
 void Def::parse_directive_fail(size_t& p, string next, Types& types) {
     if(!imp->allow_unsafe) 
-        imp->error(--p, "@fail is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+        imp->error(--p, "@c_fail is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     Variable fail_label = create_temp();
     vars[fail_label] = types.vars[LABEL_VAR];
     Code directive_errors = Code(fail_label, COLON_VAR);

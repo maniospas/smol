@@ -202,8 +202,8 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
         }
 
         if(type->nozero && !imp->allow_unsafe)
-            imp->error(--p, "Cannot create empty runtype marked as @nozero"
-                "\nThe runtype definition is marked as @nozero or contains such data."
+            imp->error(--p, "Cannot create empty runtype marked as @c_nozero"
+                "\nThe runtype definition is marked as @c_nozero or contains such data."
                 " That annotation makes empty ('zero') initialization to be considered unsafe."
                 " Mark this file @unsafe to enable this option."
             );
@@ -285,7 +285,7 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
         if(type->nozero && !imp->allow_unsafe)
             imp->error(--p, "Cannot create empty type for: "
                 +pretty_runtype(type->name.to_string())
-                +"\nThe type's function definition is marked as `@nozero` or returns such data."
+                +"\nThe type's function definition is marked as `@c_nozero` or returns such data."
                 " That annotation makes empty ('zero') initialization to be considered unsafe."
                 " Mark this file @unsafe to enable this option."
             );

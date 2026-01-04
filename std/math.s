@@ -104,76 +104,76 @@
 
 
 def cos(f64 x)
-    @head{#include <math.h>}
-    @body{f64 z = cos(x);}
+    @c_head{#include <math.h>}
+    @c_body{f64 z = cos(x);}
     return z
 
 def acos(f64 x)
-    @head{#include <math.h>} 
-    @body{f64 z = acos(x);}
+    @c_head{#include <math.h>} 
+    @c_body{f64 z = acos(x);}
     return z
 
 def sin(f64 x)
-    @head{#include <math.h>}
-    @body{f64 z = sin(x);}
+    @c_head{#include <math.h>}
+    @c_body{f64 z = sin(x);}
     return z
 
 def asin(f64 x)
-    @head{#include <math.h>} 
-    @body{f64 z = asin(x);}
+    @c_head{#include <math.h>} 
+    @c_body{f64 z = asin(x);}
     return z
 
 def exp(f64 x) 
-    @head{#include <math.h>} 
-    @body{f64 z = exp(x);}
+    @c_head{#include <math.h>} 
+    @c_body{f64 z = exp(x);}
     return z
 
 def pi(f64 x) 
-    @head{#include <math.h>} 
-    @body{f64 z = x * M_PI;} 
+    @c_head{#include <math.h>} 
+    @c_body{f64 z = x * M_PI;} 
     return z
 
 def tan(f64 x)
-    @head{#include <math.h>}
-    @body{f64 z = tan(x);}
+    @c_head{#include <math.h>}
+    @c_body{f64 z = tan(x);}
     return z
 
 def atan(f64 x) 
-    @head{#include <math.h>} 
-    @body{f64 z = atan(x);}
+    @c_head{#include <math.h>} 
+    @c_body{f64 z = atan(x);}
     return z
 
 def atan2(f64 y, f64 x) 
-    @head{#include <math.h>} 
-    @body{f64 z = atan2(y, x);} 
+    @c_head{#include <math.h>} 
+    @c_body{f64 z = atan2(y, x);} 
     return z
 
 def is_nan(f64 x) 
-    @body{bool z=(x!=x);} 
+    @c_body{bool z=(x!=x);} 
     return z
 
 def is_inf(f64 x) 
-    @head{#include <cmath>} 
-    @body{bool z=isinf(x);}
+    @c_head{#include <cmath>} 
+    @c_body{bool z=isinf(x);}
     return z
 
 def sqrt(f64 x)
     // if x<0.0
-    //     @fail{printf("Root requires positive inputs\n");}
-    @head{#include <math.h>}
-    @body{f64 z = sqrt(x);}
+    //     @c_fail{printf("Root requires positive inputs\n");}
+    @c_head{#include <math.h>}
+    @c_body{f64 z = sqrt(x);}
     return z
 
 def pow(f64 base, f64 exponent)
     // if base<0.0
-    //     @fail{printf("Exponentiation requires non-negative base\n");} 
-    @head{#include <math.h>}
-    @body{f64 z = pow(base, exponent);}
+    //     @c_fail{printf("Exponentiation requires non-negative base\n");} 
+    @c_head{#include <math.h>}
+    @c_body{f64 z = pow(base, exponent);}
     return z
     
 def log(f64 x)
     // if x<=0.0 
-    //     @fail{printf("Logarithm needs positive inputs\n");}
-    @head{#include <math.h>}
-    @body{f64 z = log(x);}
+    //     @c_fail{printf("Logarithm needs positive inputs\n");}
+    @c_head{#include <math.h>}
+    @c_body{f64 z = log(x);}
     return z

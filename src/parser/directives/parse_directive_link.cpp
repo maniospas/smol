@@ -14,7 +14,7 @@
 
 void Def::parse_directive_link(size_t& p, string next) {
     if(!imp->allow_unsafe) 
-        imp->error(--p, "@link is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
+        imp->error(--p, "@c_link is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
     next = imp->at(p++);
     if(next!="{") 
         imp->error(--p, "Expected brackets");

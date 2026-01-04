@@ -137,151 +137,151 @@ def ok()
 //     return x
 
 def print(@access f64 message)
-    @head{#include <stdio.h>}
-    @body{printf("%.6f\n", message);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%.6f\n", message);}
     
 def print(@access i64 message)
-    @head{#include <stdio.h>}
-    @body{printf("%lld\n", (long long)message);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%lld\n", (long long)message);}
     
 def print(@access u64 message)
-    @head{#include <stdio.h>}
-    @body{printf("%llu\n", (unsigned long long)message);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%llu\n", (unsigned long long)message);}
     
 def print(@access bool message)
-    @head{#include <stdio.h>}
-    @body{message?printf("true\n"):printf("false\n");}
+    @c_head{#include <stdio.h>}
+    @c_body{message?printf("true\n"):printf("false\n");}
     
 def print(@access char message)
-    @head{#include <stdio.h>}
-    @body{printf("%c\n", message);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%c\n", message);}
     
 def printin(@access f64 message)
-    @head{#include <stdio.h>}
-    @body{printf("%.6f", message);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%.6f", message);}
     
 def printin(@access i64 message)
-    @head{#include <stdio.h>}
-    @body{printf("%ld", message);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%ld", message);}
     
 def printin(@access u64 message)
-    @head{#include <stdio.h>}
-    @body{printf("%lu", message);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%lu", message);}
     
 def printin(@access bool message)
-    @head{#include <stdio.h>}
-    @body{message?printf("true"):printf("false");}
+    @c_head{#include <stdio.h>}
+    @c_body{message?printf("true"):printf("false");}
     
 def printin(@access char message)
-    @head{#include <stdio.h>}
-    @body{printf("%c", message);}
+    @c_head{#include <stdio.h>}
+    @c_body{printf("%c", message);}
 
 def print()
-    @head{#include <stdio.h>}
-    @body{fflush(stdout);}
+    @c_head{#include <stdio.h>}
+    @c_body{fflush(stdout);}
 
 def le(@access Number x, Number y)
-    @body{bool z=x<=y;}
+    @c_body{bool z=x<=y;}
     return z
 
 def ge(@access Number x, Number y)  
-    @body{bool z=x>=y;}
+    @c_body{bool z=x>=y;}
     return z
 
 def lt(@access Number x, Number y)  
-    @body{bool z=x<y;}
+    @c_body{bool z=x<y;}
     return z
 
 def gt(@access Number x, Number y)
-    @body{bool z=x>y;}
+    @c_body{bool z=x>y;}
     return z
 
 def leq(@access Number x, Number y)
-    @body{bool z=x<=y;}
+    @c_body{bool z=x<=y;}
     return z
 
 def geq(@access Number x, Number y)
-    @body{bool z=x>=y;}
+    @c_body{bool z=x>=y;}
     return z
 
 def eq(@access Number x, Number y)
-    @body{bool z=(x==y);} 
+    @c_body{bool z=(x==y);} 
     return z
 
 def neq(@access Number x, Number y)
-    @body{bool z=(x!=y);}
+    @c_body{bool z=(x!=y);}
     return z
 
 def eq(@access ptr x, ptr y)
-    @body{bool z=(x==y);}
+    @c_body{bool z=(x==y);}
     return z
 
 def neq(@access ptr x, ptr y)
-    @body{bool z=(x!=y);} 
+    @c_body{bool z=(x!=y);} 
     return z
 
 def eq(@access bool x, bool y)
-    @body{bool z=(x==y);} 
+    @c_body{bool z=(x==y);} 
     return z
 
 def neq(@access bool x, bool y)
-    @body{bool z=(x!=y);} 
+    @c_body{bool z=(x!=y);} 
     return z
 
 def not(@access bool x)
-    @body{bool z=(!x);}
+    @c_body{bool z=(!x);}
     return z
 
 def exists(@access ptr x)
-    @body{bool z=(x);} 
+    @c_body{bool z=(x);} 
     return z
 
 def add(@access u64 x, u64 y)
-    @body{u64 z=x+y;} 
+    @c_body{u64 z=x+y;} 
     return z
 
 def mul(@access u64 x, u64 y)
-    @body{u64 z=x*y;}
+    @c_body{u64 z=x*y;}
     return z
  
 def div(@access u64 x, u64 y)
-    @head{#include <stdio.h>}
+    @c_head{#include <stdio.h>}
     if y==0 
-        @fail{printf("Error: division by zero\n");} 
-    @head{#include <stdio.h>}
-    @body{u64 z=x/y;}
+        @c_fail{printf("Error: division by zero\n");} 
+    @c_head{#include <stdio.h>}
+    @c_body{u64 z=x/y;}
     return z
 
 def sub(@access u64 x, u64 y)
-    @head{#include <stdio.h>}
+    @c_head{#include <stdio.h>}
     if y>x 
-        @fail{printf("Error: unsigned subtraction yielded a negative\n");}
-    @body{u64 z=x-y;}
+        @c_fail{printf("Error: unsigned subtraction yielded a negative\n");}
+    @c_body{u64 z=x-y;}
     return z
 
 def mod(@access u64 x, u64 y) 
-    @head{#include <stdio.h>}
+    @c_head{#include <stdio.h>}
     if y==0 
-        @fail{printf("Error: modulo by zero\n");}
-    @head{#include <stdio.h>}
-    @body{u64 z=x%y;} 
+        @c_fail{printf("Error: modulo by zero\n");}
+    @c_head{#include <stdio.h>}
+    @c_body{u64 z=x%y;} 
     return z
 
 def lshift(@access u64 x, u64 y)
-    @body{u64 z = x<<y;}
+    @c_body{u64 z = x<<y;}
     return z
 
 def rshift(@access u64 x, u64 y)
-    @body{u64 z = x>>y;}
+    @c_body{u64 z = x>>y;}
     return z
 
 def xor(@access u64 x, u64 y)
-    @body{u64 z = x ^ y;}
+    @c_body{u64 z = x ^ y;}
     return z
 
 def bits(@access f64 x)
-    @head{#include <stdint.h>}
-    @body{
+    @c_head{#include <stdint.h>}
+    @c_body{
         union { double f; uint64_t u; } v;
         v.f = x;
         u64 z = v.u;
@@ -289,67 +289,67 @@ def bits(@access f64 x)
     return z
     
 def lshift(@access i64 x, u64 y)
-    @body{i64 z = x<<y;}
+    @c_body{i64 z = x<<y;}
     return z
 
 def rshift(@access i64 x, u64 y)
-    @body{i64 z = x>>y;}
+    @c_body{i64 z = x>>y;}
     return z
 
 def add(@access i64 x, i64 y) 
-    @body{i64 z=x+y;} 
+    @c_body{i64 z=x+y;} 
     return z
 
 def mod(@access i64 x, i64 y)
-    @head{#include <stdio.h>}
+    @c_head{#include <stdio.h>}
     if y<=i64(0) 
-        @fail{printf("Error: modulo by non-positive\n");}
-    @head{#include <stdio.h>}
-    @body{i64 z=x%y;}
+        @c_fail{printf("Error: modulo by non-positive\n");}
+    @c_head{#include <stdio.h>}
+    @c_body{i64 z=x%y;}
     return z
 
 def sub(@access i64 x, i64 y)
-    @body{i64 z=x-y;}
+    @c_body{i64 z=x-y;}
     return z
 
 def negative(@access i64 x)
     return sub(i64(0), x)
 
 def mul(@access i64 x, i64 y)
-    @body{i64 z=x*y;}
+    @c_body{i64 z=x*y;}
     return z
 
 def div(@access i64 x, i64 y)
-    @head{#include <stdio.h>}
+    @c_head{#include <stdio.h>}
     if y==i64(0) 
-        @fail{printf("Error: division by zero\n");}
-    @head{#include <stdio.h>}
-    @body{i64 z=x/y;}
+        @c_fail{printf("Error: division by zero\n");}
+    @c_head{#include <stdio.h>}
+    @c_body{i64 z=x/y;}
     return z
 
 def add(@access f64 x, f64 y) 
-    @body{f64 z=x+y;} 
+    @c_body{f64 z=x+y;} 
     return z
 
 def sub(@access f64 x, f64 y)
-    @body{f64 z=x-y;} 
+    @c_body{f64 z=x-y;} 
     return z
 
 def mul(@access f64 x, f64 y)
-    @body{f64 z=x*y;} 
+    @c_body{f64 z=x*y;} 
     return z
 
 def negative(@access f64 x) 
     return sub(0.0, x)
 
 def div(@access f64 x, f64 y) 
-    @body{f64 z=x/y;} 
+    @c_body{f64 z=x/y;} 
     return z
 
 def eq(@access tag x, tag y)
-    @body{bool z=(x==y);}
+    @c_body{bool z=(x==y);}
     return z
 
 def neq(@access tag x, tag y)
-    @body{bool z=(x!=y);}
+    @c_body{bool z=(x!=y);}
     return z

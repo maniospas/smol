@@ -85,17 +85,17 @@ def ContiguousMemory (
     ptr underlying
 )
     //@noassign
-    @buffer mem size underlying
+    @c_buffer mem size underlying
     return @args
 
 def allocate(@access Heap, u64 size)
     if size==0 
         fail("Cannot allocate zero size")
-    @head{#include <stdlib.h>}
-    @body{ptr mem=__runtime_alloc(size);}
+    @c_head{#include <stdlib.h>}
+    @c_body{ptr mem=__runtime_alloc(size);}
     if mem.bool().not() 
         fail("Failed a Heap allocation")
-    @finally mem {
+    @c_finally mem {
         if(mem)
             __runtime_free(mem);
         mem=0;
@@ -103,14 +103,14 @@ def allocate(@access Heap, u64 size)
     return new.ContiguousMemory(size, mem, mem)
 
 def allocate(@access Stack, u64 size)
-    @head{#include <stdlib.h>}
-    @body{
+    @c_head{#include <stdlib.h>}
+    @c_body{
         u64 size_bytes = size; // also serves as a position pointer to check stack size (use >= to create error for zero size too)
         ptr mem=(size_bytes+__service_stack_floor>=(char*)&size_bytes)?0:alloca(size_bytes);
     }
     if mem.bool().not() 
         fail("Insufficient stack for allocation (too much recursion or stack allocation, or zero size requested)")
-    @noshare mem
+    @c_noshare mem
     return new.ContiguousMemory(size, mem, mem)
 
 def __device_file_end() // TODO: find why imports fail without this

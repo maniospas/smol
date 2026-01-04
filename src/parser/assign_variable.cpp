@@ -50,7 +50,7 @@ void Def::assign_variable(
         && vars[to]->noborrow 
         && mutables.find(to)!=mutables.end()
     ) 
-        imp->error(--p, "Cannot reassign from @noborrow: "
+        imp->error(--p, "Cannot reassign from @c_noborrow: "
             +pretty_var(to.to_string())+"\nArguments and variables of its runtype can only be mutable"
             +"\nand therefore it becomes impossible to share it with services"
             +"\n(mutable variables cannot be assinged anywhere).\nAdd & before the variable name to make it mutable"

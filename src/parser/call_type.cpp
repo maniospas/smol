@@ -328,7 +328,7 @@ Variable Def::call_type(
         else
             imp->error(--p, "This resource family "
                 +singleton.to_string()
-                +" has been claimed by a previous @noother (e.g., in a call)"
+                +" has been claimed by a previous @unique (e.g., in a call)"
             );
     
     // acquired resources should never be called twice by services because they require sequential execution

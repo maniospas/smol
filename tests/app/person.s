@@ -1,9 +1,10 @@
 @include std.core
 
-def Person(str name, u64 age)
-    return @args
+def Person(String _name, u64 age)
+    name = _name.str()
+    return name, age
 
 service main()
-    p = Person("bob".str(), 50)
+    p = Person("bob", 50)
     print(p.name)
     print(p.age)

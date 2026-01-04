@@ -34,7 +34,7 @@
 "<br><br>"
 "For safety against sharing random implementations between services or repeatedly "
 "initializing them, state variables are marked as a leaking resource. The whole "
-"data type is marked as @noborrow too, to prevent sharing mutable random states "
+"data type is marked as @c_noborrow too, to prevent sharing mutable random states "
 "across different services. These safety mechanisms help safeguard speed and "
 "prevent common mistakes, for example by making impossible to directly "
 "re-initialize Rand in each loop to get a next number."
@@ -61,11 +61,11 @@
 "\n    print(rnd.splitmix64()) // rnd is the state, the result is f64</pre>"
 
 def __rotl(u64 x, u64 k)
-    @body{u64 z = (x << k) | (x >> (64 - k));}
+    @c_body{u64 z = (x << k) | (x >> (64 - k));}
     return z
 
 def splitmix64(@mut u64 x)
-    @body {
+    @c_body {
         u64 z = (x += 0x9E3779B97F4A7C15ULL);
         z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
         z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
@@ -74,35 +74,35 @@ def splitmix64(@mut u64 x)
     return z
 
 def Rand(u64 seed)
-    @nozero
+    @c_nozero
     @mut modifying_seed = seed
     @mut s0 = splitmix64(modifying_seed)
     @mut s1 = splitmix64(modifying_seed)
     @mut s2 = splitmix64(modifying_seed)
     @mut s3 = splitmix64(modifying_seed)
-    @finally s0 {}
-    @finally s1 {}
-    @finally s2 {}
-    @finally s3 {}
+    @c_finally s0 {}
+    @c_finally s1 {}
+    @c_finally s2 {}
+    @c_finally s3 {}
     return s0,s1,s2,s3
 
 def splitmix64()
-    @head{#include <time.h>}
-    @head{#include <stdlib.h>}
-    @body {
+    @c_head{#include <time.h>}
+    @c_head{#include <stdlib.h>}
+    @c_body {
         ptr ts = (struct timespec *)alloca(sizeof(struct timespec));
         clock_gettime(CLOCK_REALTIME, (struct timespec*)ts);
         u64 seed = (u64)((struct timespec*)ts)->tv_sec * (u64)1000000000 + ((struct timespec*)ts)->tv_nsec;
     }
-    @finally seed {}
+    @c_finally seed {}
     return seed
 
 def Rand() 
-    @nozero
+    @c_nozero
     return Rand(splitmix64())
 
 def next(@access @mut Rand self)
-    @body{
+    @c_body{
         u64 result = self__s0 + self__s3;
         u64 t = self__s1 << 17;
         self__s2 ^= self__s0;
@@ -112,6 +112,6 @@ def next(@access @mut Rand self)
         self__s2 ^= t;
     }
     self.s3 = __rotl(self.s3, 45)
-    @body{f64 value = ((f64)(result >> 11)) / ((f64)((unsigned long long)(1) << 53));}
+    @c_body{f64 value = ((f64)(result >> 11)) / ((f64)((unsigned long long)(1) << 53));}
     return value
 

@@ -41,21 +41,21 @@
 
 def read(@access i64)
     @acquire "std.terminal.read"
-    @head{#include <stdio.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_body{
         i64 number = 0;
         char ch = 0;
         i64 result = scanf("%ld%c", &number, &ch);
         bool success = (result == 2 && (ch == 13 || ch == 10));
     }
     if success.not()
-        @fail{printf("Error: invalid integer read\n");} 
+        @c_fail{printf("Error: invalid integer read\n");} 
     return number
 
 def read(@access u64)
     @acquire "std.terminal.read"
-    @head{#include <stdio.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_body{
         u64 number = 0;
         char ch = 0;
         bool success = false;
@@ -67,25 +67,25 @@ def read(@access u64)
         }
     }
     if success.not() 
-        @fail{printf("Error: invalid unsigned integer read\n");}
+        @c_fail{printf("Error: invalid unsigned integer read\n");}
     return number
 
 def read(@access f64)
     @acquire "std.terminal.read"
-    @head{#include <stdio.h>}
-    @body{
+    @c_head{#include <stdio.h>}
+    @c_body{
         f64 number = 0;
         char ch = 0;
         i64 result = scanf("%lf%c", &number, &ch);
         bool success = (result == 2 && (ch == 13 || ch == 10));
     }
     if success.not() 
-        @fail{printf("Error: invalid number read\n");}
+        @c_fail{printf("Error: invalid number read\n");}
     return number
 
 def convert(@access i64, String _s)
     s = _s.str()
-    @body{
+    @c_body{
         i64 number = 0;
         bool success = true;
         bool negative = false;
@@ -114,12 +114,12 @@ def convert(@access i64, String _s)
         }
     }
     if success.not() 
-        @fail{printf("Error: invalid integer conversion from string\n");} 
+        @c_fail{printf("Error: invalid integer conversion from string\n");} 
     return number
 
 def convert(@access u64, String _s)
     s = _s.str()
-    @body{
+    @c_body{
         u64 number = 0;
         bool success = true;
 
@@ -139,13 +139,13 @@ def convert(@access u64, String _s)
         }
     }
     if success.not() 
-        @fail{printf("Error: invalid unsigned integer conversion from string\n");}
+        @c_fail{printf("Error: invalid unsigned integer conversion from string\n");}
     return number
 
 
 def convert(@access f64, String _s)
     s = _s.str()
-    @body{
+    @c_body{
         f64 number = 0.0;
         bool success = true;
         bool negative = false;
@@ -203,5 +203,5 @@ def convert(@access f64, String _s)
         }
     }
     if success.not() 
-        @fail{printf("Error: invalid floating-point conversion from string\n");}
+        @c_fail{printf("Error: invalid floating-point conversion from string\n");}
     return number

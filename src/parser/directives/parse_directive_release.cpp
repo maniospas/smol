@@ -72,7 +72,7 @@ void Def::parse_directive_release(size_t& p, string next, Types& types) {
         //found = true;
     }
     notify_release(next);
-    //if(!found) imp->error(--p, "There is no @finally to @release for the data of variable: "+pretty_var(next));
+    //if(!found) imp->error(--p, "There is no @c_finally to @release for the data of variable: "+pretty_var(next));
     //vars[next] = types.vars[RELEASED_VAR];
     //if(!imp->allow_unsafe) imp->error(--p, "@release is unsafe\nDeclare the file as @unsafe by placing this at the top level (typically after imports)");
 }
