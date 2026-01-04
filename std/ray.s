@@ -22,7 +22,7 @@
 @include std.core.str
 @include std.core.err
 @include std.mem
-@install std.rayget
+//@install std.ray
 
 @unsafe
 
@@ -93,32 +93,21 @@ def Window(new, Size size, cstr title)
     @c_link{-lpthread}
     @c_link{-lGL}
     @c_link{-lX11}
-    @c_body{ 
-        SetTraceLogLevel(LOG_WARNING); 
-        InitWindow(size__w, size__h, (char*)title); 
-    }
+    @c_body{SetTraceLogLevel(LOG_WARNING); InitWindow(size__w, size__h, (char*)title); }
     @mut ready = bool
     return @args, ready
-
-def close(@mut Window window)
 
 def is_open(@mut Window)
     @c_body{ bool ret = WindowShouldClose(); }
     return ret.not()
 
-def begin(@access @mut Window window)
-    if window.ready 
+def draw(@access @mut Window window)
+    if window.ready
         fail("Window.begin() already called without closing it with Window.end()")
-    window.ready = true
+    is_drawing = true
     @c_body{ BeginDrawing(); }
-    return window
-
-def end(@access @mut Window window)
-    if window.ready.not() 
-        fail("Window.begin() must be called before a matching Window.end()")
-    window.ready = false
-    @c_body{ EndDrawing(); }
-    return window
+    @c_finally is_drawing { EndDrawing(); }
+    return is_drawing
 
 def clear(@mut Window window, Color color)
     @c_body{ ClearBackground((Color){(unsigned char)color__r,(unsigned char)color__g,(unsigned char)color__b,(unsigned char)color__a}); }

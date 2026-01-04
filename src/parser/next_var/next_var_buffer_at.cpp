@@ -174,7 +174,7 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
     for(const auto& it : buffer_types[next]->buffer_types)
         buffer_types[elem+it.first] = it.second;
 
-    // parse buff[element].=call(args)
+    // parse buff[element] = .call(args)
     if(p<imp->size()-2 && imp->at(p+1)=="." && imp->at(p)=="=") {
         p += 2;
         if(mutables.find(buffer_var)==mutables.end())
@@ -187,6 +187,16 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
             mutables.insert(elem+it);
         Variable first_element = imp->at(p++);
         Variable ret = parse_expression(p, first_element, types, elem);
+        if(ret.is_empty() || !vars.contains(ret) || vars[ret]->packs.size()==0)
+            imp->error(--p, "Cannot modify a buffer value with an expression that does not return a value (use . instead of =. )");
+        if(vars[ret]->alias_for.exists()) {
+            if(vars[ret]->vars[vars[ret]->alias_for]!=buffer_types[next]) 
+                imp->error(--p, "Cannot modify a buffer value with an expression of different return type"
+                    "\nExpected "+buffer_types[next]->name.to_string()+" but got "+vars[ret]->vars[vars[ret]->alias_for]->name.to_string());
+        }
+        else if(vars[ret]!=buffer_types[next]) 
+            imp->error(--p, "Cannot modify a buffer value with an expression of different return type"
+                "\nExpected "+buffer_types[next]->name.to_string()+" but got "+vars[ret]->name.to_string());
         size_t count_alignment_bytes_offset = 0;
         for(const auto& pack : buffer_types[next]->packs) {
             if(!buffer_types[next]->contains(pack)) 
@@ -196,18 +206,18 @@ Variable Def::next_var_buffer_at(Variable next, size_t& p, Types& types) {
             else if(buffer_types[next]->vars[pack]->name != NOM_VAR) {
                 implementation += Code(
                     Variable("memcpy("), 
-                    REF_VAR,
-                    next+pack,
-                    COMMA_VAR,
                     Variable("&((char*)"),
                     next+Variable("__buffer_contents"), 
                     Variable(")["), 
-                    next+Variable("__buffer_size"), 
+                    idx, 
                     MUL_VAR, 
                     next+Variable("__buffer_alignment"),
                     PLUS_VAR,
                     Variable(to_string(count_alignment_bytes_offset)),
                     Variable("]"),
+                    COMMA_VAR,
+                    REF_VAR,
+                    ret+pack,
                     COMMA_VAR,
                     Variable(to_string(buffer_types[next]->vars[pack]->storage_size)),
                     RPAR_VAR, 

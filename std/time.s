@@ -30,7 +30,7 @@
 "\n\nWhile yielding, other services may be called asynchronously to fill in "
 "the missing time. There is no guarantee for this, though. "
 "Sleeping for 0.0 duration does not incur delays, but may still run "
-"other services. Negative durations skip over this. Use exact_slepp "
+"other services. Negative durations skip over this. Use exact_sleep "
 "to sleep without yielding and thus get a guarantee on the sleep "
 "duration. This method's exact implementation is ported from the runtime."
 "\n\nExample: <pre>sleep(1.0) // yields for at least 1 sec</pre> "
