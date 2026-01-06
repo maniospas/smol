@@ -19,7 +19,8 @@
 // - __runtime_apply_linked
 
 // ----------------------- ABOUT ------------------------------------------
-// This is the default runtime. You can explicitly set it by compiling
+// This runtime implements services as asynchronous co-routines. 
+// You can explicitly set it by compiling
 //     smol main.s --runtime threads
 
 // ----------------------- LICENSE ------------------------------------------

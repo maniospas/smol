@@ -516,13 +516,13 @@ Variable Def::call_type(
         impl += Code(var+TASK_VAR, ASSIGN_VAR, Variable("__smolambda_add_task"),LPAR_VAR)
                 +Code(type->name+Variable(to_string(type->identifier)), COMMA_VAR, var+STATE_VAR)
                 +Code(RPAR_VAR, SEMICOLON_VAR);
+        impl += Code(token_if, var+TASK_VAR, Variable(")")); // add this so that eager runtimes optimize away task management code
         impl += Code(Variable("__smolambda_all_tasks = __runtime_prepend_linked(__smolambda_all_tasks,"), var+TASK_VAR, RPAR_VAR, SEMICOLON_VAR);
         implementation +=impl;
         vars[var] = type->alias_for.exists()?type->vars[type->alias_for]:type;
         if(allow_leftovers) 
             unpacks.erase(unpacks.begin(), unpacks.begin()
                 +(type->not_primitive()?type->args.size():1)
-                
             );
         return next_var(p, var, types);
     }

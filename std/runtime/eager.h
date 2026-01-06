@@ -70,8 +70,7 @@ static void *__runtime_stack_bottom(void)
     return (char *)tib->StackLimit + si.dwPageSize;
 }
 
-#elif defined(__APPLE__) || defined(__MACH__) || defined(__FreeBSD__) \
-   || defined(__OpenBSD__) || defined(__NetBSD__)
+#elif defined(__APPLE__) || defined(__MACH__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 /* -------- macOS and the BSD family -------- */
 #include <pthread.h>
 #include <unistd.h>   /* for sysconf */
@@ -114,8 +113,7 @@ static void *__runtime_stack_bottom(void)
 #else
 /* ----------- Fallback / unsupported -------- */
 #warning "__runtime_stack_bottom: platform not supported (will not detect low-stack condition)"
-static void *__runtime_stack_bottom(void)
-{
+static void *__runtime_stack_bottom(void) {
     return 0; /* or abort(), depending on your needs */
 }
 #endif
@@ -147,7 +145,10 @@ static inline void __runtime_apply_linked(__SmolambdaLinkedMemory* memory, void 
 }
 
 
-static inline void* __smolambda_add_task(void (*func)(void *), void *arg) {func(arg);return 0;}
+static inline void* __smolambda_add_task(void (*func)(void *), void *arg) {
+    func(arg);
+    return 0;
+}
 
 static inline void __smolambda_task_wait(void *task_ptr) {}
 

@@ -74,6 +74,7 @@ void Def::parse_return(size_t& p, Variable next, Types& types) {
             +" vs last "+signature_like(types, tentative)
         );
     else for(size_t i=0;i<packs.size();++i) {
+        if(is_service) cout << packs[i] << "--------------------------"<<"\n";
         if(vars[packs[i]]!=vars[tentative[i]]) 
             imp->error(return_p, 
                 "Incompatible returns\nprevious "

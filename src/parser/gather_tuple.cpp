@@ -25,7 +25,7 @@ vector<Variable> Def::gather_tuple(size_t& p, Types& types, const Variable& curr
                 +recommend_variable(types, var)
             );
         const auto& type = vars.find(var)->second;
-        if(!type->not_primitive()) 
+        if(!type->not_primitive())
             ret.push_back(var);
         else if(type->is_service) {
             if(active_calls[var].exists() && active_calls[active_calls[var]].exists()) {

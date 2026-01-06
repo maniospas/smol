@@ -13,6 +13,34 @@
 #include "../../def.h"
 
 Variable Def::next_var_at(Variable next, size_t& p, Types& types) {
+    if(active_calls[next].exists() && active_calls[active_calls[next]].exists()) {
+        static const Variable token_print = Variable(":\n__result__error_code=__UNHANDLED__ERROR;\ngoto __failsafe;\n");
+        const Variable& call_var = active_calls[next];
+        implementation += Code(Variable("__smolambda_task_wait"),LPAR_VAR,call_var+TASK_VAR,RPAR_VAR,SEMICOLON_VAR);
+        vars[next+ERR_VAR] = types.vars[ERRCODE_VAR];
+        implementation += Code(
+            call_var+ERR_VAR, 
+            ASSIGN_VAR, 
+            call_var+STATE_VAR, 
+            ARROW_VAR, 
+            ERR_VAR, 
+            SEMICOLON_VAR
+        );
+        implementation += Code(
+            next+ERR_VAR, 
+            ASSIGN_VAR, 
+            call_var+ERR_VAR,
+            SEMICOLON_VAR
+        );
+        Variable fail_var = create_temp();
+        vars[fail_var] = types.vars[LABEL_VAR];
+        implementation += Code(token_if, call_var+ERR_VAR, token_goto, fail_var, SEMICOLON_VAR);
+        errors.insert(Code(fail_var, token_print));
+        add_preamble("#include <stdio.h>");
+        if(active_calls[next].exists() && active_calls[active_calls[next]].exists()) 
+            active_calls[active_calls[next]] = EMPTY_VAR;
+    }
+
     if(!contains(next)) 
         imp->error(--p, "Not found: "
             +pretty_var(next.to_string())

@@ -1,5 +1,5 @@
 @include std.core 
-    return print
+    return print, fail, ok
     
 service samples()
     buf = u64[]
