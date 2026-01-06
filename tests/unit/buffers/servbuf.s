@@ -1,5 +1,4 @@
-@include std.core 
-    return print, fail, ok
+@include std.core
     
 service samples()
     buf = u64[]
@@ -8,5 +7,5 @@ service samples()
     return buf // return statement
 
 service main()
-    buf = samples()
+    @mut buf = samples()
     print(buf[0]) // prints 42
