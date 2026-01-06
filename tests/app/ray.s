@@ -45,7 +45,7 @@ def process(@mut Sphere[] spheres, f64 dt)
         spheres[i] = .process(dt)
 
 def draw(Sphere[] spheres, @mut Window window, CString message)
-    window.draw() // automatically ends scene on function end
+    window.draw() // automatically ends scene on function end because this is where unreturned resources are released
     window.clear(Color(50,50,80))
     spheres
     .len()
@@ -54,7 +54,7 @@ def draw(Sphere[] spheres, @mut Window window, CString message)
         spheres[i].draw(window)
     window.text(message, Position(10.0, 10.0), 20.0, Color(255, 255, 255))
     
-service test()
+service main()
     @mut spheres = Sphere[]
     spheres.push(Sphere(100.0, 100.0, 30.0, 1000.0, 650.0))
     spheres.push(Sphere(100.0, 100.0, 30.0, 450.0, 600.0))
@@ -74,7 +74,3 @@ service test()
         // process
         spheres.process(dt)
         exact_sleep(0.015-(t-prev_t))
-
-service main()
-    test()
-    //print("running") // services are async, this will be printed

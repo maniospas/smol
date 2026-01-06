@@ -26,8 +26,6 @@ void Def::parse_directive(size_t& p, string next, Types& types) {
         nozero = true;
     else if(next=="c_noleftover") 
         noleftover = true;
-    else if(next=="zipped") 
-        zipped = true;
     else if(next=="invalid") 
         imp->error(p-1, "Not found correct path: "+imp->at(p));
     else if(next=="unique") {
