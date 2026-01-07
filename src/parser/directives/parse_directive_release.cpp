@@ -39,15 +39,17 @@ void Def::parse_directive_release(size_t& p, string next, Types& types) {
         );
     }
     if(has_been_service_arg[released_var]) 
-        imp->error(--p, "Cannot release a variable that has been previously passed to a service: "
+        imp->error(--p, "Cannot release a variable that has been previously passed as an `@own` argument: "
             +pretty_var(released_var.to_string())
         );
     //for(const auto& arg : args) if(arg.name==next) imp->error(--p, "Cannot @release an argument");
-    for(const auto& arg : args) if(arg.name==released_var) imp->error(--p, "Cannot @release an argument: "+pretty_var(arg.name.to_string()));
+    for(const auto& arg : args) 
+        if(arg.name==released_var) 
+            imp->error(--p, "Cannot @release an argument: "+pretty_var(arg.name.to_string()));
     for(const auto& it : vars[next]->vars) {
         Variable var = released_var+it.first;
         if(has_been_service_arg[var]) 
-            imp->error(--p, "Cannot release a variable that has been previously passed to a service: "+pretty_var(var.to_string()));
+            imp->error(--p, "Cannot @release a variable that has been previously passed as an `@own` argument: "+pretty_var(var.to_string()));
         coalesce_finals(var);
         if(finals[var].exists()) {
             implementation += finals[var];

@@ -41,11 +41,11 @@
 "Clears an Arena or Circular arena by resetting its occupied length to zero. This can "
 "lead to overwriting previous data."
 
-def Arena(new, ContiguousMemory contents)
-    length = 0 
+def Arena(new, @own ContiguousMemory contents)
+    length = 0
     return @args, length
 
-def Circular(new, ContiguousMemory contents)
+def Circular(new, @own ContiguousMemory contents)
     length = 0
     return @args, length
 
@@ -57,7 +57,7 @@ def clear(@access @mut Arena self)
 
 union Buffer = Arena or Circular
 
-def len(@access @mut Buffer self) 
+def len(@access Buffer self) 
     return self.contents.size
 
 def Dynamic(new) 
@@ -88,9 +88,9 @@ def dynamic(@access Stack)
     return new.Stack()
     
 def allocate(@access @mut Dynamic self, u64 size)
-    @c_head{#include <stdlib.h>}
     if self.acquired.bool().not()
         fail("Did not initialize Dynamic")
+    @c_head{#include <stdlib.h>}
     @c_body{
         u64 next_size = self__size+1;
         bool success = true;
@@ -116,16 +116,17 @@ def used(@access @mut Buffer self)
     return self.length
 
 def allocate(@access @mut Arena self, u64 size)
-    if(self.length+size)>self.contents.size
+    if self.contents.size<self.length+size
         fail("Failed an Arena allocation")
     @c_body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @c_body{self__length = self__length+size;}
     return new.ContiguousMemory(size, _contents, self.contents.underlying)
 
 def allocate(@access @mut Circular self, u64 size)
-    if size>self.contents.size 
-        fail("Failed an Circular allocation")
-    @c_body{if(self__length+size>self__contents__size) {self__length = 0;}}
+    if self.contents.size<size
+        fail("Failed a Circular allocation")
+    if self.contents.size<self.length+size
+        @c_body{self__length = 0;}
     @c_body{ptr _contents = (ptr)((char*)self__contents__mem+self__length*sizeof(char));}
     @c_body{self__length = self__length+size;}
     return new.ContiguousMemory(size, _contents, self.contents.underlying)
@@ -166,8 +167,8 @@ union Memory = MemoryDevice or Buffer or Dynamic
 def is(@access @mut Memory self, @mut Memory) 
     return self
 
-def arena(@access @mut ContiguousMemory self) 
+def arena(@own @access @mut ContiguousMemory self) 
     return new.Arena(self)
     
-def circular(@access @mut ContiguousMemory self) 
+def circular(@own @access @mut ContiguousMemory self) 
     return new.Circular(self)

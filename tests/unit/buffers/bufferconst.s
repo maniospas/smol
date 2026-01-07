@@ -1,6 +1,5 @@
 @include std.core
 @include std.mem
-@unsafe 
 
 def point(f64 x, f64 y) 
     return @args

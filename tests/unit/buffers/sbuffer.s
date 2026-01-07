@@ -6,4 +6,4 @@ service main()
     .push("buffer start".str())
     .push("buffer end".str())
     b = boxes[0]
-    print(b) // 100
+    print(b) // buffer start

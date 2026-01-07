@@ -38,6 +38,7 @@ void Def::parse_signature(size_t& p, Types& types) {
         auto autoconstruct = false;
         auto mut = false;
         auto can_access_mutables = false;
+        auto needs_to_own = false;
         auto next = imp->at(p++);
         if(next==")") 
             break;
@@ -48,27 +49,35 @@ void Def::parse_signature(size_t& p, Types& types) {
         }
         if(next==",") 
             next = imp->at(p++);//spaghetios
-        if(next=="@") {
+        while (next == "@") {
             next = imp->at(p++);
-            if(next!="access" && next!="mut")
-                imp->error(p, "Only a `@mut` or `@access` directive is allowed here");
-            if(next=="access")
+            if (next == "own") {
+                if (needs_to_own)
+                    imp->error(--p, "Already declared `@own`");
+                if (can_access_mutables || mut)
+                    imp->error(--p, "`@own` must appear before `@access` and `@mut`");
+                needs_to_own = true;
+            }
+            else if (next == "access") {
+                if (can_access_mutables)
+                    imp->error(--p, "Already declared `@access`");
+                if (mut)
+                    imp->error(--p, "`@access` must appear before `@mut`");
                 can_access_mutables = true;
-            else 
+            }
+            else if (next == "mut") {
+                if (mut)
+                    imp->error(--p, "Already declared `@mut`");
                 mut = true;
+            }
+            else 
+                imp->error(--p, "Only `@own`, `@access`, `@mut` directives are allowed here");
             next = imp->at(p++);
         }
-        if(next=="@") {
-            next = imp->at(p++);
-            if(next=="access")
-                imp->error(--p, "`@access` should be placed before `@mut`");
-            if(mut)
-                imp->error(--p, "Already declared `@mut`");
-            mut = true;
-            if(next!="mut")
-                imp->error(--p, "Only a `@mut` directive is allowed here");
-            next = imp->at(p++);
-        }
+        if(is_service && !needs_to_own)
+            imp->error(--p, "All service arguments must also have an `@own` modifier."
+                "\nYou can still return these values for follow-up use, but this prevents race conditions while services run."
+            );
         if(!accepted_var_name(next)) 
             imp->error(--p, "Not a valid name: "+next);
         if(types.vars.find(next)==types.vars.end()) 
@@ -127,7 +136,7 @@ void Def::parse_signature(size_t& p, Types& types) {
                 argType = prev_argType;
         }
         if(argType->lazy_compile) {
-            args.emplace_back(arg_name, argType, mut);
+            args.emplace_back(arg_name, argType, mut, needs_to_own);
             mutables.insert(arg_name);
             vars[arg_name] = argType;
             parametric_types[argType->name] = argType;
@@ -172,14 +181,14 @@ void Def::parse_signature(size_t& p, Types& types) {
             buffer_types[arg_name+Variable("dynamic")] = argType;
             if(mut) 
                 mutables.insert(arg_name);
-            args.emplace_back(arg_name+Variable("dynamic"), types.vars[PTR_VAR], mut); // order matters
-            args.emplace_back(arg_name+Variable("surface"), types.vars[PTR_VAR], mut);
+            args.emplace_back(arg_name+Variable("dynamic"), types.vars[PTR_VAR], mut, needs_to_own); // order matters
+            args.emplace_back(arg_name+Variable("surface"), types.vars[PTR_VAR], mut, needs_to_own);
         }
         else if(argType->not_primitive()) {
             retrievable_parameters[argType->name] = argType;
             vars[arg_name] = argType;
             if(autoconstruct) for(const auto& it : argType->args) {
-                args.emplace_back(arg_name+it.name, it.type, mut || it.mut);
+                args.emplace_back(arg_name+it.name, it.type, mut || it.mut, needs_to_own || it.owned);
                 vars[arg_name+it.name] = it.type;
                 implementation += it.type->rebase(it.type->implementation, arg_name);
                 for(const string& pre : it.type->preamble) 
@@ -221,7 +230,8 @@ void Def::parse_signature(size_t& p, Types& types) {
                     args.emplace_back(
                         arg_name+itarg, 
                         argType->vars[itarg], 
-                        (mut || (argType->mutables.find(itarg)!=argType->mutables.end()))
+                        (mut || (argType->mutables.find(itarg)!=argType->mutables.end())),
+                        needs_to_own
                     );
                     vars[arg_name+itarg] = argType->vars[itarg];
                     for(const auto& it : argType->alignments) if(it.second) 
@@ -240,7 +250,7 @@ void Def::parse_signature(size_t& p, Types& types) {
             if(mut) 
                 mutables.insert(arg_name);
             retrievable_parameters[argType->name] = argType;
-            args.emplace_back(arg_name, argType, mut);
+            args.emplace_back(arg_name, argType, mut, needs_to_own);
             vars[arg_name] = argType;
             if(argType->name==NOM_VAR) {
                 choice_power += 1;

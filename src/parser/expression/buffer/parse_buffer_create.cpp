@@ -29,6 +29,17 @@ Variable Def::parse_buffer_create(size_t& p, const Variable& first_token, Types&
             );
         if(!can_mutate(surface, p) && !imp->allow_unsafe)
             imp->error(--p, "Buffer surface is not mutable: "+pretty_var(surface.to_string())+"\nIt might have been used elsewhere. Mark this file as @unsafe to allow a union view.");
+        
+        if(has_been_service_arg[surface]) 
+            imp->error(--p, "Cannot set a buffer surface that has been previously passed as an `@own` argument: "
+                +pretty_var(surface.to_string())
+            );
+        if(vars[surface]->not_primitive()) 
+            for(const auto& pack : vars[surface]->packs)
+                if(has_been_service_arg[surface+pack]) 
+                    imp->error(--p, "Cannot set a buffer surface that has been previously passed as an `@own` argument: "
+                        +pretty_var((surface+pack).to_string())
+                    );
     }
     p++;
     if(type->options.size()==0) 

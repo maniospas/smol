@@ -6,7 +6,7 @@
 @include std.time
     return time
 
-service run(String command)
+service run(@own String command)
     @mut process = Process.open(command)
     // read everything there is from the process
     process.to_end()
@@ -16,7 +16,7 @@ service run(String command)
     // status or non-zero exit code.
     @release process
 
-service std_test(String name)
+service std_test(@own String name)
     @on Heap.dynamic()
     command = add(@all "./smol tests/unit/"name".s --workers 1 --runtime eager 2>&1")
 

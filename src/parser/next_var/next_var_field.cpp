@@ -144,8 +144,8 @@ Variable Def::next_var_field(Variable next, size_t& p, const Variable& first_tok
                 +" this check considers only the original runtype declaration, even if mutability qualifiers have been lost."
                 +" Add `@access` to argument variables to be able to access their mutable fields."
             );
-        if(vars[next]->can_mutate_any_part(next_token))
-            has_been_service_arg[next+next_token] = true;
+        //if(vars[next]->can_mutate_any_part(next_token))
+        //    has_been_service_arg[next+next_token] = true;
         next = next+next_token;
         if(p>=imp->size()) 
             return first_token;

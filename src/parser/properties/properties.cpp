@@ -203,8 +203,12 @@ void Def::notify_service_arg(const Variable& original) {
     //for(const Variable& name : group) 
     //    mutables.erase(name);
     for(const Variable& name : group) 
-        if(can_mutate_any_part(name))
+        //if(can_mutate_any_part(name))
             has_been_service_arg[name] = true;
+    for(const auto& arg : args)
+        if(!arg.owned && group.contains(arg.name))
+            imp->error(--p, "Cannot `@own` argument: "+pretty_var(original.to_string())
+                + "\nThat is transferred from this function's argument that has not been declared as `@own` itself. A quick fix could be to set `@own` to the argument: "+pretty_var(arg.name.to_string()));
 }
 
 bool Def::can_mutate_any_part(const Variable& var) {

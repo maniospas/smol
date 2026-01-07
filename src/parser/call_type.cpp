@@ -71,6 +71,11 @@ Variable Def::call_type(
                 +pretty_var(unpacks[i].to_string())
                 +recommend_variable(types, unpacks[i])
             );
+        
+        if(has_been_service_arg[unpacks[i]]) 
+            imp->error(--p, "Cannot use a variable that has been previously passed as an `@own` argument: "
+                +pretty_var(unpacks[i].to_string())
+            );
         if(released[unpacks[i]])
             imp->error(p-1, "Already released (this includes implicit releases): "
                 +pretty_var(unpacks[i].to_string())
@@ -454,6 +459,10 @@ Variable Def::call_type(
         mutables.insert(var+mut);
     mutables.insert(var); // MAKE ALL CALL OUTCOMES MUTABLE BY DEFAULT
 
+
+    for(size_t i=0;i<type->args.size();++i) 
+        if(type->args[i].owned) 
+            notify_service_arg(unpacks[i]);
     // make actual call
     if(type->is_service) {
         vardecl += Code(STRUCT_VAR, Variable(type->raw_signature_state_name()+"*"), var+STATE_VAR, ASSIGN_VAR, ZERO_VAR, SEMICOLON_VAR);
@@ -504,7 +513,6 @@ Variable Def::call_type(
         for(const auto& it : type->vars) 
             vars[var+it.first] = it.second;
         for(size_t i=0;i<type->args.size();++i) {
-            notify_service_arg(unpacks[i]);
             if(type->args[i].mut) {
                 impl += Code(var+STATE_VAR, ARROW_VAR, type->args[i].name, ASSIGN_VAR, REF_VAR, unpacks[i],SEMICOLON_VAR);
                 type->coalesce_finals(type->args[i].name);
