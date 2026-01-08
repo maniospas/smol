@@ -3,52 +3,52 @@
 @include std.mem
 @include std.map
 
-def tokenize(@mut Memory memory, @mut ReadFile f)
+def tokenize(@mut Arena memory, @mut ReadFile source)
     program_size = 100000
     map_size = 1000
 
     space = " ".str().first
+    quote = "\"".str().first
     endl = "\n".str().first
     slash = "/".str().first
     lpar = "(".str().first
     rpar = ")".str().first
+    meta = "@".str().first
 
-    @mut names = memory.Map(map_size, u64, str)
-    @mut names2tokens = memory.Map(map_size, str, u64)
-    @mut tokens = memory.allocate(program_size, u64)
-    @mut num_tokens = 0
+    N = 1024*1024
+    @mut name2id = new.StringHash(N)
+    @mut names = str[].expect(N)
+    @mut tokens = u64[]
 
-    @on memory.volatile(1024)
-    controlled_corrupt()
-    f
-    .while next_line(@mut str line)
+    @on memory
+    while source.next_line(@mut str line)
         @mut pos = 0
-        @mut prev = 0
-        algorithm 
-            while pos<line.len
-                @next pos = pos+1
-                if(line[pos]==slash)and(pos<line.len-1)and(line[pos+1]==slash)
-                    return ok
-                if(line[pos]==space)or(line[pos]==endl)or(line[pos]==lpar)or(line[pos]==rpar)
-                    @next prev = pos+1
-                    if prev<pos 
-                        @next num_tokens = num_tokens + 1
-                        token = line[prev to pos]
-                        if names2tokens.has(token).not
-                            tokens.__unsafe_put(num_tokens, names.len+1)
-                            names2tokens.put(token, names.len+1)
-                            names.put(names.len+1, token)
-                        else 
-                            tokens.__unsafe_put(num_tokens, names2tokens.at(token))
-                return ok
-    return tokens, num_tokens, names, names2tokens
+        if line.len().bool()
+            while line[pos]==space
+                pos = pos+1
+        start_spaces = pos
+        @mut prev = pos
+        while pos<line.len()
+            if(line[pos]==slash)and(pos<line.len()-1)and(line[pos+1]==slash)
+                pos = line.len()
+            elif(line[pos]==space)or(line[pos]==endl)or(line[pos]==lpar)or(line[pos]==rpar)or(line[pos]==quote)or(line[pos]==meta)
+                if prev<pos
+                    token = line[prev to pos]
+                    id = name2id[token]
+                    print(id)
+                    print(token)
+                    names[id] = token
+                    tokens.push(id)
+                prev = pos+1
+            pos = pos+1
+    return tokens, names, name2id
 
 
 service main()
-    path = "tests/main.s"
-    tok = Heap
-        .arena(1000000)
-        .tokenize(ReadFile.open(path))
-    range(tok.num_tokens)
+    path = "tests/app/file.s"
+    @access @mut tok = Heap.allocate(10.MB()).arena().tokenize(ReadFile.open(path))
+    print(tok.tokens.len())
+    tok.tokens.len().range()
     .while next(u64& i) 
-        print(tok.names[tok.tokens[i]])
+        id = tok.tokens[i]
+        //print(tok.names[id])

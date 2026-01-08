@@ -41,11 +41,11 @@
 "Clears an Arena or Circular arena by resetting its occupied length to zero. This can "
 "lead to overwriting previous data."
 
-def Arena(new, @own ContiguousMemory contents)
+def Arena(new, ContiguousMemory contents)
     length = 0
     return @args, length
 
-def Circular(new, @own ContiguousMemory contents)
+def Circular(new, ContiguousMemory contents)
     length = 0
     return @args, length
 
@@ -167,8 +167,8 @@ union Memory = MemoryDevice or Buffer or Dynamic
 def is(@access @mut Memory self, @mut Memory) 
     return self
 
-def arena(@own @access @mut ContiguousMemory self) 
+def arena(@access @mut ContiguousMemory self) 
     return new.Arena(self)
     
-def circular(@own @access @mut ContiguousMemory self) 
+def circular(@access @mut ContiguousMemory self) 
     return new.Circular(self)

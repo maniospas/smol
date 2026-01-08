@@ -1,6 +1,5 @@
 @include std.core
-@include std.mem 
-    return Memory
+@include std.mem
 @include std.os  
     return Process
 @include std.time

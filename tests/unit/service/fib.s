@@ -3,7 +3,7 @@
 @include std.time 
     return sleep, time
 
-service fib(@own u64 n) 
+service fib(u64 n) 
     // It is very inefficient to set up this as a service.
     // The main premise of services is that they are slow 
     // to start but safe for large operations.

@@ -1,6 +1,6 @@
 @include std.core
 
-service test(@own u64 n, @own u64 last)
+service test(u64 n, u64 last)
     if n==last
         return @args
     ret = test(n+1, last)
