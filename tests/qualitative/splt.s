@@ -16,4 +16,4 @@ def split(str query, str sep)
 
 service main()
     print("Write some text to split:")
-    Heap.arena(4096).read().split(" ".str())
+    Heap.allocate(4096).arena().read().split(" ".str())

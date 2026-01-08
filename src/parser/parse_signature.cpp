@@ -74,10 +74,6 @@ void Def::parse_signature(size_t& p, Types& types) {
                 imp->error(--p, "Only `@own`, `@access`, `@mut` directives are allowed here");
             next = imp->at(p++);
         }
-        if(is_service && !needs_to_own)
-            imp->error(--p, "All service arguments must also have an `@own` modifier."
-                "\nYou can still return these values for follow-up use, but this prevents race conditions while services run."
-            );
         if(!accepted_var_name(next)) 
             imp->error(--p, "Not a valid name: "+next);
         if(types.vars.find(next)==types.vars.end()) 
@@ -92,9 +88,9 @@ void Def::parse_signature(size_t& p, Types& types) {
             arg_name = imp->at(p++);
         }
         if(mut && is_service) 
-            imp->error(p-2, "Services do not accept values by reference"
-                "\nThis ensures failsafe-compliant extensibility."
-                "\nDid you mean to declare a function instead?"
+            imp->error(p-2, "Services do not accept mutable arguments"
+                "\nThis prevents data races when writing back values."
+                " Did you mean to declare a def function instead?"
             );
         
         if(!types.contains(next)) 
@@ -148,10 +144,14 @@ void Def::parse_signature(size_t& p, Types& types) {
                 imp->error(--p, "No options to determine buffer elements "
                     +argType->name.to_string()
                     +"\nAdding before the argument's type may resolve this issue"
-                    +"\nby forcing usage of the a runtype with ->in its return"
-                    +"\namong those overloaded with the same name/union."
-                    +"\nThis annoation directly interleaves the type in the definition"
-                    +"\nand removes its lexical scoping."
+                    +" by forcing usage of the a runtype with ->in its return"
+                    +" among those overloaded with the same name/union."
+                    +" This annotation directly interleaves the type in the definition"
+                    +" and removes its lexical scoping."
+                );
+            if(is_service && !needs_to_own)
+                imp->error(--p, "All service arguments involving memory must also have an `@own` modifier."
+                    "\nYou can still return these values for follow-up use, but this prevents race conditions while services run."
                 );
             double option_power = -1;
             int conflicts = 0;
@@ -188,6 +188,10 @@ void Def::parse_signature(size_t& p, Types& types) {
             retrievable_parameters[argType->name] = argType;
             vars[arg_name] = argType;
             if(autoconstruct) for(const auto& it : argType->args) {
+                if(is_service && !needs_to_own && it.type->name==PTR_VAR)
+                    imp->error(--p, "All service arguments involving memory must also have an `@own` modifier."
+                        "\nYou can still return these values for follow-up use, but this prevents race conditions while services run."
+                    );
                 args.emplace_back(arg_name+it.name, it.type, mut || it.mut, needs_to_own || it.owned);
                 vars[arg_name+it.name] = it.type;
                 implementation += it.type->rebase(it.type->implementation, arg_name);
@@ -213,6 +217,10 @@ void Def::parse_signature(size_t& p, Types& types) {
                     vars[arg_name+it2.first] = it2.second;
             }
             else {
+                if(is_service && !needs_to_own && argType->name==PTR_VAR)
+                    imp->error(--p, "All service arguments involving memory must also have an `@own` modifier."
+                        "\nYou can still return these values for follow-up use, but this prevents race conditions while services run."
+                    );
                 vars[arg_name] = argType;
                 if(mut) 
                     mutables.insert(arg_name);
@@ -226,6 +234,10 @@ void Def::parse_signature(size_t& p, Types& types) {
                 if(mut) for(const Variable& mut : argType->mutables) 
                     mutables.insert(arg_name+mut);
                 for(const auto& itarg : argType->packs) {
+                    if(is_service && !needs_to_own && (argType->vars[itarg]->name==PTR_VAR || argType->buffer_types.contains(itarg)))
+                        imp->error(--p, "All service arguments involving memory must also have an `@own` modifier."
+                            "\nYou can still return these values for follow-up use, but this prevents race conditions while services run."
+                        );
                     //cout << name << " " <<itarg << " " << mut << " "<<(argType->mutables.find(itarg)!=argType->mutables.end())<<"\n";
                     args.emplace_back(
                         arg_name+itarg, 

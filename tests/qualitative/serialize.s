@@ -2,7 +2,8 @@
 @include std.mem
 @include std.vec
 
-def Point(f64 x, f64 y) return @args
+def Point(f64 x, f64 y) 
+    return @args
 
 // def Points(@mut Memorymemory, u64 size)
 //     x = memory:vector(size)
@@ -24,13 +25,12 @@ def iter(@mut Point points)
 
 def len(Points points) 
     if points.x.len()<points.y.len() 
-        |->points.x.len() 
+        return points.x.len() 
     return points.y.len()
 
 def put(@mut Points points, u64 state, Point p) 
     points.x.put(state, p.x)
     points.y.put(state, p.y)
-    end
 
 def next(@mut Points points, @mut u64 state, @mut Point ret)
     ret = points[state]
@@ -42,7 +42,6 @@ service main()
     range(10)
     .while next(u64& i)
         points.put(i, Point(i:f64, i:f64))
-        end
     p = points[5]
     @release points
     print(p.x)

@@ -3,6 +3,7 @@
 
 service main()
     rand = Rand()
-    range(10).while next(@mut u64 i)
-        then rand.next().print()
+    range(10)
+    .while next(@mut u64 i)
+        rand.next().print()
     

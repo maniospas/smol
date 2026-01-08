@@ -16,6 +16,9 @@ service main()
     print(chars.str(3)) // this is SAFE because we have complete control and no out-of-bounds for `chars`
 
 
-    @mut y = u64[mem].expect(2) // ERROR: mem.arena() transfers ownership to the arena
-    print(y[0])
+    // @mut y = str[mem].expect(2) // ERROR: mem.arena() transfers ownership to the arena
+    // print(y[0])
+
+    //@mut y = str[char_buffer].expect(2) // ERROR: char_buffer stores char[] not str[]
+    //print(y[0])
     

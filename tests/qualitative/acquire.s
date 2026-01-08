@@ -12,9 +12,8 @@ service main()
     x = reader()
     x.err.assert_ok()
     messages.push("a number indeed: ".str())
-    on Heap.dynamic()
-        messages.push(str(x).str())
-        end
+    @on Heap.dynamic()
+    messages.push(str(x).str())
     messages.print()
     // y = reader() // creates an error - async reading in services not allowed
     end

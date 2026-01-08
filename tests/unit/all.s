@@ -16,7 +16,7 @@ service run(@own String command)
     // status or non-zero exit code.
     @release process
 
-service std_test(@own String name)
+service std_test(cstr name)
     @on Heap.dynamic()
     command = add(@all "./smol tests/unit/"name".s --workers 1 --runtime eager 2>&1")
 

@@ -5,9 +5,9 @@
 service main()
     @mut cons = WriteFile.console()
     cons.print("what's your name? ")
-    on Stack.arena(1024)
+    @on Stack.allocate(1024).arena()
     cons.next_line(@mut str s)
-    print("Hi "+s.strip()+"!")
+    print(@all "Hi "s.strip()"!")
     print("Press enter...")
     @release cons
-    Heap.arena(2).read()
+    Heap.allocate(2).arena().read()

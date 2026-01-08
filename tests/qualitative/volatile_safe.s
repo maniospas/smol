@@ -3,5 +3,5 @@
 
 
 service main()
-    on Stack.circular(12) // run operations on circular buffer on the stack
-    print("aa"+"1234"+"567")
+    @on Stack.allocate(12).circular() // run operations on circular buffer on the stack
+    add(@all "aa".str() "1234".str() "567".str()).print()

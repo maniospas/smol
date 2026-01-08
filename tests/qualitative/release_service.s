@@ -3,12 +3,10 @@
 
 // ALL RELEASES IN THIS FILE SHOULD CREATE ERRORS IF UNCOMMENTED
 
-service test(u64 x) 
+service test(@own u64 x) 
     // @release x  // cannot release an argument
-    then ok
 
 service main()
     x = 1
     test(x)
     //@release x  // cannot release a service argument
-    then ok

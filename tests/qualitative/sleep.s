@@ -2,7 +2,7 @@
 @include std.mem
 @include std.time
 
-service test(f64 duration)
+service test(@own f64 duration)
     // The exact_sleep(duration) call sleeps for exactly the set
     // duration, but sleep(duration) yields for AT LEAST so long 
     // but may eagerly interleave other tasks to avoid idle statuses. 
@@ -11,8 +11,8 @@ service test(f64 duration)
     start = time()
     sleep(duration)
     eta = time()-start
-    on Heap.volatile(512)
-    print("sleep target "+duration.str()+" but actual is "+eta.str())
+    @on Heap.allocate(512).circular()
+    printin(@all "sleep target "duration" but actual is "eta"\n")
 
 service main()
     n = 30      // can comfortable go up to 100000
