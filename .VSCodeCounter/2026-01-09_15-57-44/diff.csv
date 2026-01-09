@@ -1,9 +1,0 @@
-"filename", "language", "C++", "smoλ", "comment", "blank", "total"
-"/home/maniospas/Desktop/p4ot/smol/src/function.cpp", "C++", 19, 0, 1, 3, 23
-"/home/maniospas/Desktop/p4ot/smol/src/function.h", "C++", -19, 0, -1, -1, -21
-"/home/maniospas/Desktop/p4ot/smol/src/importer.cpp", "C++", 3, 0, 0, 0, 3
-"/home/maniospas/Desktop/p4ot/smol/src/importer.h", "C++", 13, 0, 0, 2, 15
-"/home/maniospas/Desktop/p4ot/smol/src/module.cpp", "C++", 44, 0, 4, 2, 50
-"/home/maniospas/Desktop/p4ot/smol/src/module.h", "C++", -2, 0, 0, 0, -2
-"/home/maniospas/Desktop/p4ot/smol/std/core/num.s", "smoλ", 0, 3, 0, 1, 4
-"Total", "-", 58, 3, 4, 7, 72
