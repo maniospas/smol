@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     for(const auto& it : builtins.vars) 
         it.second->options.push_back(it.second);
-    for(const auto& it : builtins.vars) 
+    for(const auto& it : builtins.vars)     
         all_types.push_back(it.second);
 
 
