@@ -1,7 +1,6 @@
 @include std.core
 @include std.mem
-@include std.file 
-    return File
+@include std.file
 
 def file_stats(
     new, 

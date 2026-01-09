@@ -130,6 +130,10 @@
 @c_primitive u64 {unsigned long long}
 @c_primitive i64 {long long}
 @c_primitive f64 {double}
+@c_primitive bool {bool}
+@c_primitive char {char}
+@c_primitive ptr {void*}
+@c_primitive tag {u64}
 
 union Number = u64 or f64 or i64
 def ok()
@@ -209,7 +213,7 @@ def geq(@access Number x, Number y)
     return z
 
 def eq(@access Number x, Number y)
-    @c_body{bool z=(x==y);} 
+    @c_body{bool z=(x==y);}
     return z
 
 def neq(@access Number x, Number y)

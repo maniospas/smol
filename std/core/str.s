@@ -178,6 +178,7 @@
 "Converts a <code>key</code> object representing a printable ASCII character "
 "to its <code>char</code> value. Fails if the key is not a character."
 
+@c_primitive cstr {const char*}
 
 def str (
     new, 

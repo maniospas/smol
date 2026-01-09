@@ -12,6 +12,147 @@ void cleanup_modules() {
     all_functions.clear();
 }
 
+class SpecializedFunction {
+public:
+    Function* function;
+    std::unordered_map<Token, Function*> poly;
+    SpecializedFunction(Function* function) : function(function) {}
+};
+
+class UnresolvedArg {
+public:
+    Token name;
+    Union* uni;
+    bool is_own;
+    bool is_mut;
+    bool is_access;
+    bool is_buffer;
+    UnresolvedArg(Token name, Union* uni, bool is_own, bool is_mut, bool is_access, bool is_buffer)
+        : name(name), uni(uni), is_own(is_own), is_mut(is_mut), is_access(is_access), is_buffer(is_buffer) {}
+};
+
+int temp_vars = 0;
+std::string create_temp() {
+    std::string ret = "__tmp"+std::to_string(temp_vars);
+    temp_vars++;
+    return ret;
+}
+
+void Module::import_function(Importer& importer, bool is_service) {
+    // parse name
+    auto name = std::string{importer.next()};
+    auto name_id = get_token_id(name);
+    if(name.empty() || is_delim(name[0]))
+        importer.syntax_error("Invalid function name");
+
+    // gather arguments and construct variations
+    std::vector<SpecializedFunction> variations;
+    {
+        // gather unresolved arguments
+        std::vector<UnresolvedArg> args;
+        if(importer.next()!="(") {
+            importer.syntax_error("Expecting opening parenthesis");
+            importer.rollback_token();
+        }
+        auto next = importer.next();
+        while(next!=")" && !next.empty()) {
+            bool is_own = false;
+            bool is_mut = false;
+            bool is_access = false;
+            bool is_buffer = false;
+            while(next=="@") {
+                next = importer.next();
+                if(next=="mut") {
+                    is_mut = true;
+                }
+                else if(next=="own") {
+                    is_own = true;
+                    if(is_mut) importer.format_error("@own must be placed before @mut");
+                }
+                else if(next=="access") {
+                    is_access = true;
+                    if(is_mut) importer.format_error("@access must be placed after @mut");
+                    if(is_own) importer.format_error("@access must be placed after @mut");
+                }
+                else importer.syntax_error("Only @own @access @mut can be argument directives");
+                next = importer.next();
+            }
+            if(next=="new") {
+                next = std::string_view{"__new"+name};
+                auto type_id = get_token_id(std::string{next});
+                auto it = unions.find(type_id);
+                Function* nominal_type = new Function(type_id);
+                all_functions.push_back(nominal_type);
+                if(it==unions.end()) unions[type_id] = (new Union(type_id))->add(nominal_type);
+                else it->second->add(nominal_type);
+            }
+            auto type_id = get_token_id(std::string{next});
+            auto type_it = unions.find(type_id);
+            if(type_it==unions.end()) importer.type_error("This type does not exist or is not visible here");
+            next = importer.next();
+            if(next=="[") {
+                if(importer.next()!="]") importer.syntax_error("Buffer arguments must be annotated by [] after their type without contents");
+                is_buffer = true;
+                next = importer.next();
+            }
+
+            Token arg_name;
+            if(next==",") 
+                arg_name = get_token_id(create_temp());
+            else {
+                arg_name = get_token_id(std::string{next});
+                next = importer.next();
+            }
+            args.emplace_back(arg_name, type_it->second, is_own, is_mut, is_access, is_buffer);
+            if(next==")") break;
+            if(next!=",") importer.syntax_error("Expected comma between function arguments");
+            next = importer.next();
+        }
+        if(next!=")") {
+            importer.syntax_error("Expecting closing parenthesis");
+            importer.rollback_token();
+        }
+    }
+
+    variations.reserve(1);
+    {
+        Function* function = new Function(name_id);
+        function->is_service = is_service;
+        all_functions.push_back(function);
+        variations.emplace_back(function);
+    }
+
+    auto next = importer.next();
+    int depth = 0;
+    while(!next.empty()) {
+        if(!depth && (next=="def" || next=="service" || next=="union")) {
+            importer.rollback_token();
+            break;
+        }
+        if(next=="{") depth++;
+        if(next=="(") depth++;
+        if(next=="[") depth++;
+        if(next=="}") depth--;
+        if(next==")") depth--;
+        if(next=="]") depth--;
+        if(depth<0) importer.syntax_error("Imbalanced parenthesis or bracket");
+
+        auto next_id = get_token_id(std::string{next});
+        for(const auto& variation : variations) 
+            variation.function->token(next_id);
+
+        next = importer.next();
+    }
+    //if(depth) importer.syntax_error("Imbalanced parenthesis or bracket");
+
+    for(const auto& variation : variations) {
+        auto it = unions.find(variation.function->info.name);
+        if(it!=unions.end()) it->second->add(variation.function);
+        else unions[variation.function->info.name] = (new Union(variation.function->info.name))->add(variation.function);
+    }
+
+}
+
 void Module::import() {
     //std::cout << "Importing: " << id2token[source] << "\n";
     auto importer = Importer{id2token[source]};
@@ -22,7 +163,7 @@ void Module::import() {
             if(!token.size())
                 break;
             if(importer.get_token_start() && !recovering)
-                importer.syntax_error("Top-level instructions or definitions must start at the beginning of a new line");
+                importer.format_error("Top-level instructions or definitions must start at the beginning of a new line");
             if(token=="@") {
                 auto instruction = importer.next();
                 if(instruction=="unsafe") {
@@ -67,8 +208,14 @@ void Module::import() {
                     importer.rollback_token();
                     path += ".s";
                     auto path_token = get_token_id(path);
-                    if(!source2module.contains(path_token)) 
-                        (new Module(path_token))->import();
+                    auto imported = source2module[path_token];
+                    if(!imported) 
+                        (imported = new Module(path_token))->import();
+                    for(auto [name, u] : imported->unions) {
+                        auto it = unions.find(name);
+                        if(it!=unions.end()) it->second->add_all(u);
+                        else unions[name] = (new Union(name))->add_all(u);
+                    }
                 }
                 else if(instruction=="about") {
                     recovering = false;
@@ -92,12 +239,7 @@ void Module::import() {
             }
             else if(token=="def" || token=="service") {
                 recovering = false;
-                auto function = new Function(get_token_id("unnamed"));
-                all_functions.push_back(function);
-                function->import(importer, token=="service");
-                auto it = unions.find(function->info.name);
-                if(it!=unions.end()) it->second->add(function);
-                else unions[function->info.name] = (new Union(function->info.name))->add(function);
+                import_function(importer, token=="service");
             }
             else if(token=="union") {
                 recovering = false;
@@ -122,6 +264,7 @@ void Module::import() {
         }
         catch (const std::runtime_error&) {
             recovering = true;
+            count_errors++;
         }
 
     }

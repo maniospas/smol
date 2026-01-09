@@ -55,6 +55,7 @@ public:
     void rollback_token();
     const std::string_view _next_token();
     inline void error(const char* message, const char* description) {error(message, description, ansi::yellow);}
+    inline void format_error(const char* description) {error("Format error", description, ansi::green);}
     inline void syntax_error(const char* description) {error("Syntax error", description, ansi::yellow);}
     inline void type_error(const char* description) {error("Type error", description, ansi::purple);}
     void error(const char* message, const char* description, const char* color);

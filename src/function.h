@@ -24,9 +24,16 @@ static inline Token get_token_id(const std::string& name) {
     return next_id;
 }
 
+class Function;
 class Arg {
+public:
     Token name;
+    Function* type;
+    bool is_own;
     bool is_mut;
+    bool is_access;
+    Arg(Token name, Function* type, bool is_own, bool is_mut, bool is_access)
+        : name(name), type(type), is_own(is_own), is_mut(is_mut), is_access(is_access){}
 };
 
 class Variable {
@@ -70,18 +77,18 @@ struct Signature {
     bool is_nominal;
 };
 
+class Module;
 class Function {
+public:
     std::vector<bool> is_var;
     std::vector<size_t> id;   // refers to VariableId or Token
     std::vector<Variable> variables;
     std::vector<Token> header;
     std::vector<Token> linker;
-    std::vector<Token> raw_tokens;
     bool is_service;
-public:
     Signature info;
     Function(Token name) {info.name = name;}
-    void import(Importer& importer, bool is_service);
+    std::vector<Function*> import(Importer& importer, bool is_service);
     std::string to_string() const {
         auto ret = std::string{""};
         for(size_t i=0;i<id.size();++i) {

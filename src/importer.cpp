@@ -1,7 +1,10 @@
 #include "importer.h"
 
 bool is_delim(char c) {
-    return c == '(' || c == ')' || c == '[' || c == ']' || c == '@' || c == '.' || c == ',' || c=='/' || c=='"' || c=='=' || c=='<' || c=='>' || c=='+' || c=='-' || c=='*' || c=='>' || c=='<' || c=='{' || c=='}';
+    return c == '(' || c == ')' || c == '[' || c == ']' || c == '@' 
+        || c == '.' || c == ',' || c=='/' || c=='"' || c=='=' || c=='<' 
+        || c=='>' || c=='+' || c=='-' || c=='*' || c=='>' || c=='<' || c=='{' || c=='}'
+        || c==';' || c==':';
 }
 
 namespace ansi {
@@ -129,7 +132,7 @@ const std::string_view Importer::_next_token() {
     if(is_delim(c)) {
         if(start == column) {
             end = ++column;
-            if(column<current_line.size()-11 && current_line[column]=='=') {
+            if(column<current_line.size()-1 && current_line[column+1]=='=') {
                 ++column;
                 ++end;
             }
@@ -170,35 +173,33 @@ const std::string_view Importer::_next_token() {
 
 
 void Importer::error(const char* message, const char* description, const char* color) {
-    std::ostringstream caret;
-    for (size_t i = 0; i < start; ++i) caret << ' ';
-    for (size_t i = start; i < end; ++i) caret << '^';
-    const std::string header_text = std::string(" ")+message+" ";
-    const std::string description_text = std::string(description);
-    const std::string location = (current_line.size() || line || column)?"at " + path + " line " + std::to_string(line):path;
-    size_t content_width = std::max({
+    const auto caret = std::string(start, ' ') + std::string(end-start, '^');
+    const auto header_text = std::string(" ")+message+" ";
+    const auto description_text = std::string(description);
+    const auto location = (current_line.size() || line || column)?"at " + path + " line " + std::to_string(line):path;
+    auto content_width = std::max({
         header_text.size(),
         description_text.size(),
         location.size(),
         current_line.size(),
-        caret.str().size(),
+        caret.size(),
         size_t{60}
     });
     auto repeat = [](const std::string& s, size_t n) {
         std::string out;
         out.reserve(s.size() * n);
-        for (size_t i = 0; i < n; ++i) out += s;
+        for(size_t i = 0; i < n; ++i) out += s;
         return out;
     };
-    size_t left_pad  = 2;
-    size_t right_pad = content_width - header_text.size();
+    auto left_pad = size_t{2};
+    auto right_pad = content_width - header_text.size();
     std::cout << color << "╭" << repeat("─", left_pad) << header_text << repeat("─", right_pad) << "╮\n";
     auto line_box = [&](const std::string& s, const char* text_color) {
         std::cout << color << "│ " << text_color << s << std::string(content_width - s.size(), ' ') << color << " │\n";
     };
     line_box(location, ansi::gray);
     if(current_line.size()) line_box(current_line, ansi::gray);
-    if(current_line.size()) line_box(caret.str(), ansi::red);
+    if(current_line.size()) line_box(caret, ansi::red);
     line_box(description_text, ansi::reset);
     std::cout << color << "╰" << repeat("─", content_width + 2) << "╯" << ansi::reset << "\n";
     throw std::runtime_error(message);
