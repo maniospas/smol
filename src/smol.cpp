@@ -9,6 +9,6 @@ int main(int argc, char* argv[]) {
         auto arg = std::string{argv[i]};
         source = arg;
     }
-    (new Module(source))->import();
+    (new Module(get_token_id(source)))->import();
     cleanup_modules();
 }

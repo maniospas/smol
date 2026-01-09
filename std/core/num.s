@@ -127,6 +127,10 @@
 @about Number
 "One of u64, f64, i64"
 
+@c_primitive u64 {unsigned long long}
+@c_primitive i64 {long long}
+@c_primitive f64 {double}
+
 union Number = u64 or f64 or i64
 def ok()
 // def int(i64 x) 
@@ -184,11 +188,11 @@ def le(@access Number x, Number y)
     @c_body{bool z=x<=y;}
     return z
 
-def ge(@access Number x, Number y)  
+def ge(@access Number x, Number y)
     @c_body{bool z=x>=y;}
     return z
 
-def lt(@access Number x, Number y)  
+def lt(@access Number x, Number y)
     @c_body{bool z=x<y;}
     return z
 

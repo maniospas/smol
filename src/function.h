@@ -11,8 +11,18 @@
 
 typedef size_t Token;
 typedef size_t VariableId;
-static std::unordered_map<Token, std::string> id2token;
-static std::unordered_map<std::string, Token> token2id;
+extern std::unordered_map<Token, std::string> id2token;
+extern std::unordered_map<std::string, Token> token2id;
+
+static inline Token get_token_id(const std::string& name) {
+    const auto it = token2id.find(name);
+    if(it!=token2id.end()) 
+        return it->second;
+    Token next_id = id2token.size();
+    id2token[next_id] = name;
+    token2id[name] = next_id;
+    return next_id;
+}
 
 class Arg {
     Token name;
@@ -32,15 +42,7 @@ public:
         add(name);
     }
     Variable& add(const std::string& name) {
-        const auto it = token2id.find(name);
-        if(it!=token2id.end()) 
-            segments.push_back(it->second);
-        else {
-            Token next_id = id2token.size();
-            id2token[next_id] = name;
-            token2id[name] = next_id;
-            segments.push_back(next_id);
-        }
+        segments.push_back(get_token_id(name));
         return *this;
     }
     std::string to_string() const {
@@ -65,42 +67,21 @@ struct Signature {
     Token name;
     std::vector<Arg> args;
     std::vector<VariableId> outputs;
+    bool is_nominal;
 };
 
-
 class Function {
-    Signature info;
     std::vector<bool> is_var;
     std::vector<size_t> id;   // refers to VariableId or Token
     std::vector<Variable> variables;
+    std::vector<Token> header;
+    std::vector<Token> linker;
+    std::vector<Token> raw_tokens;
     bool is_service;
 public:
-    Function(const std::string& name) {
-        const auto it = token2id.find(name);
-        if(it!=token2id.end()) 
-            info.name = it->second;
-        else {
-            Token next_id = id2token.size();
-            id2token[next_id] = name;
-            token2id[name] = next_id;
-            info.name = next_id;
-        }
-    }
-    Function(Importer& importer, bool is_service) : is_service(is_service) {
-        // parse name
-        auto name = std::string{importer.next_token_autoline()};
-        if(name.empty())
-            importer.error("Syntax error", "Failed to find function name");
-        const auto it = token2id.find(name);
-        if(it!=token2id.end()) 
-            info.name = it->second;
-        else {
-            Token next_id = id2token.size();
-            id2token[next_id] = name;
-            token2id[name] = next_id;
-            info.name = next_id;
-        }
-    }
+    Signature info;
+    Function(Token name) {info.name = name;}
+    void import(Importer& importer, bool is_service);
     std::string to_string() const {
         auto ret = std::string{""};
         for(size_t i=0;i<id.size();++i) {
@@ -110,17 +91,9 @@ public:
         }
         return ret;
     }
-    Function& token(const std::string& t) {
-        const auto it = token2id.find(t);
+    Function& token(Token t) {
         is_var.emplace_back(false);
-        if(it!=token2id.end()) 
-            id.emplace_back(it->second);
-        else {
-            Token next_id = id2token.size();
-            id2token[next_id] = t;
-            token2id[t] = next_id;
-            id.emplace_back(next_id);
-        }
+        id.emplace_back(t);
         return *this;
     }
     Function& var(const Variable& t) {
