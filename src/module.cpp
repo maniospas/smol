@@ -17,18 +17,13 @@ public:
     Function* function;
     std::unordered_map<Token, Function*> poly;
     SpecializedFunction(Function* function) : function(function) {}
-};
-
-class UnresolvedArg {
-public:
-    Token name;
-    Union* uni;
-    bool is_own;
-    bool is_mut;
-    bool is_access;
-    bool is_buffer;
-    UnresolvedArg(Token name, Union* uni, bool is_own, bool is_mut, bool is_access, bool is_buffer)
-        : name(name), uni(uni), is_own(is_own), is_mut(is_mut), is_access(is_access), is_buffer(is_buffer) {}
+    SpecializedFunction(Function* function, 
+        const SpecializedFunction& prototype, Token specialize_name, Function* specialize_function
+    ) : function(function) {
+        for(auto [name, fun] : prototype.poly)
+            poly[name] = fun;
+        poly[specialize_name] = specialize_function;
+    }
 };
 
 int temp_vars = 0;
@@ -38,6 +33,84 @@ std::string create_temp() {
     return ret;
 }
 
+std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const std::string& name) {
+    // gather unresolved arguments
+    auto args = std::vector<UnresolvedArg>{};
+    if(importer.next()!="(") {
+        importer.syntax_error("Expecting opening parenthesis");
+        importer.rollback_token();
+    }
+    auto next = importer.next();
+    while(next!=")" && !next.empty()) {
+        bool is_own = false;
+        bool is_mut = false;
+        bool is_access = false;
+        bool is_buffer = false;
+
+        // qualifiers
+        while(next=="@") {
+            next = importer.next();
+            if(next=="mut") {
+                is_mut = true;
+            }
+            else if(next=="own") {
+                is_own = true;
+                if(is_mut) importer.format_error("@own must be placed before @mut");
+            }
+            else if(next=="access") {
+                is_access = true;
+                if(is_mut) importer.format_error("@access must be placed after @mut");
+                if(is_own) importer.format_error("@access must be placed after @mut");
+            }
+            else importer.syntax_error("Only @own @access @mut can be argument directives");
+            next = importer.next();
+        }
+
+        // new handling
+        if(next=="new") {
+            // unique new type
+            next = std::string_view{"__new"+name+create_temp()};
+            auto type_id = get_token_id(std::string{next});
+            auto it = unions.find(type_id);
+            Function* nominal_type = new Function(type_id);
+            nominal_type->info.custom_name = get_token_id(name);
+            all_functions.push_back(nominal_type);
+            if(it==unions.end()) unions[type_id] = (new Union(type_id))->add(nominal_type);
+            else it->second->add(nominal_type);
+        }
+
+        // actually find type
+        auto type_id = get_token_id(std::string{next});
+        auto type_it = unions.find(type_id);
+        if(type_it==unions.end()) importer.type_error("This type does not exist or is not visible here");
+        next = importer.next();
+
+        // buffer types
+        if(next=="[") {
+            if(importer.next()!="]") importer.syntax_error("Buffer arguments must be annotated by [] after their type without contents");
+            is_buffer = true;
+            next = importer.next();
+        }
+
+        // handle name or be nameless with a comma (in this case create a temporary variable)
+        Token arg_name;
+        if(next==",") 
+            arg_name = get_token_id(create_temp());
+        else {
+            arg_name = get_token_id(std::string{next});
+            next = importer.next();
+        }
+        args.emplace_back(arg_name, type_it->second, is_own, is_mut, is_access, is_buffer);
+        if(next==")") break;
+        if(next!=",") importer.syntax_error("Expected comma between function arguments");
+        next = importer.next();
+    }
+    if(next!=")") {
+        importer.syntax_error("Expecting closing parenthesis");
+        importer.rollback_token();
+    }
+    return args;
+}
 void Module::import_function(Importer& importer, bool is_service) {
     // parse name
     auto name = std::string{importer.next()};
@@ -45,75 +118,11 @@ void Module::import_function(Importer& importer, bool is_service) {
     if(name.empty() || is_delim(name[0]))
         importer.syntax_error("Invalid function name");
 
-    // gather arguments and construct variations
+    // gather arguments
+    auto args = _gather_arguments(importer, name);
+
+    // construct variations
     std::vector<SpecializedFunction> variations;
-    {
-        // gather unresolved arguments
-        std::vector<UnresolvedArg> args;
-        if(importer.next()!="(") {
-            importer.syntax_error("Expecting opening parenthesis");
-            importer.rollback_token();
-        }
-        auto next = importer.next();
-        while(next!=")" && !next.empty()) {
-            bool is_own = false;
-            bool is_mut = false;
-            bool is_access = false;
-            bool is_buffer = false;
-            while(next=="@") {
-                next = importer.next();
-                if(next=="mut") {
-                    is_mut = true;
-                }
-                else if(next=="own") {
-                    is_own = true;
-                    if(is_mut) importer.format_error("@own must be placed before @mut");
-                }
-                else if(next=="access") {
-                    is_access = true;
-                    if(is_mut) importer.format_error("@access must be placed after @mut");
-                    if(is_own) importer.format_error("@access must be placed after @mut");
-                }
-                else importer.syntax_error("Only @own @access @mut can be argument directives");
-                next = importer.next();
-            }
-            if(next=="new") {
-                next = std::string_view{"__new"+name};
-                auto type_id = get_token_id(std::string{next});
-                auto it = unions.find(type_id);
-                Function* nominal_type = new Function(type_id);
-                all_functions.push_back(nominal_type);
-                if(it==unions.end()) unions[type_id] = (new Union(type_id))->add(nominal_type);
-                else it->second->add(nominal_type);
-            }
-            auto type_id = get_token_id(std::string{next});
-            auto type_it = unions.find(type_id);
-            if(type_it==unions.end()) importer.type_error("This type does not exist or is not visible here");
-            next = importer.next();
-            if(next=="[") {
-                if(importer.next()!="]") importer.syntax_error("Buffer arguments must be annotated by [] after their type without contents");
-                is_buffer = true;
-                next = importer.next();
-            }
-
-            Token arg_name;
-            if(next==",") 
-                arg_name = get_token_id(create_temp());
-            else {
-                arg_name = get_token_id(std::string{next});
-                next = importer.next();
-            }
-            args.emplace_back(arg_name, type_it->second, is_own, is_mut, is_access, is_buffer);
-            if(next==")") break;
-            if(next!=",") importer.syntax_error("Expected comma between function arguments");
-            next = importer.next();
-        }
-        if(next!=")") {
-            importer.syntax_error("Expecting closing parenthesis");
-            importer.rollback_token();
-        }
-    }
-
     variations.reserve(1);
     {
         Function* function = new Function(name_id);
@@ -121,6 +130,53 @@ void Module::import_function(Importer& importer, bool is_service) {
         all_functions.push_back(function);
         variations.emplace_back(function);
     }
+    auto has_been_named = std::unordered_set<Token>{};
+    for(size_t arg_pos=0; arg_pos<args.size(); ++arg_pos) {
+        const auto& arg = args[arg_pos];
+        // if we have resolved the argument type name before, get the previous choice
+        if(has_been_named.contains(arg.uni->name)) {
+            for(auto variation : variations) 
+                variation.function->info.args.emplace_back(arg.name, 
+                    variation.poly[arg.uni->name], arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer);
+            continue;
+        }
+        has_been_named.insert(arg.uni->name);
+        // all combinations of existing variations with new type alternatives (arg union functions)
+        if(arg.uni->functions.size()>1) variations.reserve(variations.size()*arg.uni->functions.size());
+        auto is_first_type = true;
+        auto prev_variation_size = variations.size();
+        for(auto type : arg.uni->functions) {// >1 element
+            if(is_first_type) {
+                // if we have only one type alternative, we remain here and just add an argument
+                for(auto variation : variations) {
+                    variation.function->info.args.emplace_back(arg.name, 
+                        type, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer);
+                    variation.poly[arg.uni->name] = type;
+                }
+                is_first_type = false;
+                continue;
+            }
+            // if we ahve more than one type candidates, expand only previous variations
+            for(size_t variation_pos=0; variation_pos<prev_variation_size; ++variation_pos) { 
+                auto& variation = variations[variation_pos];
+                Function* function = new Function(name_id);
+                // copy existing args
+                for(size_t i=0; i<arg_pos; ++i) {
+                    const auto& a = variation.function->info.args[i];
+                    function->info.args.emplace_back(a.name, 
+                        a.type, a.is_own, a.is_mut, a.is_access, a.is_buffer); 
+                }
+                // add the new argument
+                variation.function->info.args.emplace_back(arg.name, 
+                    type, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer);
+                function->is_service = is_service;
+                all_functions.push_back(function);
+                variations.emplace_back(function, variation, arg.uni->name, type);
+            }
+        }
+    }
+
+    // std::cout << variations.size() << " variations for "<<name << "\n";
 
     auto next = importer.next();
     int depth = 0;
@@ -145,12 +201,12 @@ void Module::import_function(Importer& importer, bool is_service) {
     }
     //if(depth) importer.syntax_error("Imbalanced parenthesis or bracket");
 
+    // add all variations to the target union
     for(const auto& variation : variations) {
         auto it = unions.find(variation.function->info.name);
         if(it!=unions.end()) it->second->add(variation.function);
         else unions[variation.function->info.name] = (new Union(variation.function->info.name))->add(variation.function);
     }
-
 }
 
 void Module::import() {

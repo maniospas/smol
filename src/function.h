@@ -32,8 +32,9 @@ public:
     bool is_own;
     bool is_mut;
     bool is_access;
-    Arg(Token name, Function* type, bool is_own, bool is_mut, bool is_access)
-        : name(name), type(type), is_own(is_own), is_mut(is_mut), is_access(is_access){}
+    bool is_buffer;
+    Arg(Token name, Function* type, bool is_own, bool is_mut, bool is_access, bool is_buffer)
+        : name(name), type(type), is_own(is_own), is_mut(is_mut), is_access(is_access), is_buffer(is_buffer) {}
 };
 
 class Variable {
@@ -72,6 +73,7 @@ public:
 
 struct Signature {
     Token name;
+    Token custom_name;
     std::vector<Arg> args;
     std::vector<VariableId> outputs;
     bool is_nominal;
@@ -87,7 +89,10 @@ public:
     std::vector<Token> linker;
     bool is_service;
     Signature info;
-    Function(Token name) {info.name = name;}
+    Function(Token name) {
+        info.name = name; 
+        info.custom_name = name;
+    }
     std::vector<Function*> import(Importer& importer, bool is_service);
     std::string to_string() const {
         auto ret = std::string{""};

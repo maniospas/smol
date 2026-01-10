@@ -38,12 +38,25 @@ public:
     }
 };
 
+class UnresolvedArg {
+public:
+    Token name;
+    Union* uni;
+    bool is_own;
+    bool is_mut;
+    bool is_access;
+    bool is_buffer;
+    UnresolvedArg(Token name, Union* uni, bool is_own, bool is_mut, bool is_access, bool is_buffer)
+        : name(name), uni(uni), is_own(is_own), is_mut(is_mut), is_access(is_access), is_buffer(is_buffer) {}
+};
+
 class Module {
     Token source;
     std::string description;
     std::unordered_map<Token, std::string> function_descriptions;
     bool unsafe;
     int count_errors;
+    std::vector<UnresolvedArg> _gather_arguments(Importer& importer, const std::string& name);
 public:
     std::unordered_map<Token, Union*> unions;
     Module(Token source) : source(source), unsafe(false), count_errors(0) {

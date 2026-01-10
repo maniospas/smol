@@ -171,7 +171,6 @@ const std::string_view Importer::_next_token() {
     return std::string_view(current_line.data()+start, end - start);
 }
 
-
 void Importer::error(const char* message, const char* description, const char* color) {
     const auto caret = std::string(start, ' ') + std::string(end-start, '^');
     const auto header_text = std::string(" ")+message+" ";
@@ -186,9 +185,10 @@ void Importer::error(const char* message, const char* description, const char* c
         size_t{60}
     });
     auto repeat = [](const std::string& s, size_t n) {
+        // unicode "characters" span more than one char
         std::string out;
         out.reserve(s.size() * n);
-        for(size_t i = 0; i < n; ++i) out += s;
+        for(size_t i=0; i<n; ++i) out += s;
         return out;
     };
     auto left_pad = size_t{2};
