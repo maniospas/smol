@@ -7,16 +7,7 @@
 #include <algorithm>
 #include <sstream>
 #include <unordered_map>
-
-namespace ansi {
-    extern const char* red;
-    extern const char* purple;
-    extern const char* cyan;
-    extern const char* green;
-    extern const char* yellow;
-    extern const char* gray;
-    extern const char* reset;
-}
+#include "console.h"
 
 class Importer {
     std::ifstream file;
@@ -24,13 +15,9 @@ class Importer {
     size_t column;
     std::string current_line;
     std::string path;
+    bool _has_changed_line;
     size_t start, end; // track these for errors
-public:
-    Importer(const std::string& path): file(path), line(0), column(0), current_line(""), path(path) {}
-    ~Importer() = default;
-    size_t get_token_start() const {
-        return start;
-    }
+    const std::string_view _next_token();
     bool next_line() {
         if(!line && !column && !file.is_open()) {
             error("Broken import", "The file does not exist");
@@ -44,20 +31,29 @@ public:
             ++column;
         return true;
     }
+public:
+    Importer(const std::string& path): file(path), line(0), column(0), current_line(""), path(path), _has_changed_line(false) {}
+    ~Importer() = default;
+    size_t get_token_start() const {
+        return start;
+    }
     const std::string_view next() {
+        _has_changed_line = false;
         auto ret = _next_token();
         while(ret.empty()) {
             if(!next_line()) return ret;
             ret = _next_token();
+            _has_changed_line = true;
         }
         return ret;
     }
+    bool has_changed_line() const {return _has_changed_line;}
     void rollback_token();
-    const std::string_view _next_token();
     inline void error(const char* message, const char* description) {error(message, description, ansi::yellow);}
     inline void format_error(const char* description) {error("Format error", description, ansi::green);}
     inline void syntax_error(const char* description) {error("Syntax error", description, ansi::yellow);}
     inline void type_error(const char* description) {error("Type error", description, ansi::purple);}
+    inline void internal_error(const char* description) {error("Internal error (compiler bug)", description, ansi::red);}
     void error(const char* message, const char* description, const char* color);
 };
 

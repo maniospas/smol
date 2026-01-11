@@ -1,4 +1,4 @@
 @include std.core
 
 service main()
-    print(1+2)
+    print(1)

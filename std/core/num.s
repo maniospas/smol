@@ -133,7 +133,8 @@
 @c_primitive bool {bool}
 @c_primitive char {char}
 @c_primitive ptr {void*}
-@c_primitive tag {u64}
+@c_primitive tag {unsigned long long}
+@c_primitive errcode {unsigned long long}
 
 union Number = u64 or f64 or i64
 def ok()

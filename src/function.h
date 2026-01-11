@@ -13,16 +13,7 @@ typedef size_t Token;
 typedef size_t VariableId;
 extern std::unordered_map<Token, std::string> id2token;
 extern std::unordered_map<std::string, Token> token2id;
-
-static inline Token get_token_id(const std::string& name) {
-    const auto it = token2id.find(name);
-    if(it!=token2id.end()) 
-        return it->second;
-    Token next_id = id2token.size();
-    id2token[next_id] = name;
-    token2id[name] = next_id;
-    return next_id;
-}
+Token get_token_id(const std::string& name);
 
 class Function;
 class Arg {
@@ -33,8 +24,9 @@ public:
     bool is_mut;
     bool is_access;
     bool is_buffer;
-    Arg(Token name, Function* type, bool is_own, bool is_mut, bool is_access, bool is_buffer)
-        : name(name), type(type), is_own(is_own), is_mut(is_mut), is_access(is_access), is_buffer(is_buffer) {}
+    bool is_new;
+    Arg(Token name, Function* type, bool is_own, bool is_mut, bool is_access, bool is_buffer, bool is_new)
+        : name(name), type(type), is_own(is_own), is_mut(is_mut), is_access(is_access), is_buffer(is_buffer), is_new(is_new) {}
 };
 
 class Variable {
@@ -75,8 +67,12 @@ struct Signature {
     Token name;
     Token custom_name;
     std::vector<Arg> args;
+    std::vector<Arg> returns;
     std::vector<VariableId> outputs;
     bool is_nominal;
+    bool is_primitive;
+    bool is_service;
+    std::string to_string() const;
 };
 
 class Module;
@@ -87,11 +83,13 @@ public:
     std::vector<Variable> variables;
     std::vector<Token> header;
     std::vector<Token> linker;
-    bool is_service;
     Signature info;
     Function(Token name) {
         info.name = name; 
         info.custom_name = name;
+        info.is_nominal = false;
+        info.is_primitive = false;
+        info.is_service = false;
     }
     std::vector<Function*> import(Importer& importer, bool is_service);
     std::string to_string() const {

@@ -3,7 +3,11 @@
 std::unordered_map<Token, Module*> source2module;
 std::vector<Function*> all_functions;
 
+Function* NOMINAL_FUNCTION = new Function(0);
+
+
 void cleanup_modules() {
+    delete NOMINAL_FUNCTION;
     for(auto const [source, mod] : source2module)
         delete mod;
     source2module.clear();
@@ -22,7 +26,7 @@ public:
     ) : function(function) {
         for(auto [name, fun] : prototype.poly)
             poly[name] = fun;
-        poly[specialize_name] = specialize_function;
+        if(specialize_function) poly[specialize_name] = specialize_function;
     }
 };
 
@@ -33,7 +37,7 @@ std::string create_temp() {
     return ret;
 }
 
-std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const std::string& name) {
+std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const std::string& name, bool& set_as_nominal) {
     // gather unresolved arguments
     auto args = std::vector<UnresolvedArg>{};
     if(importer.next()!="(") {
@@ -46,6 +50,7 @@ std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const s
         bool is_mut = false;
         bool is_access = false;
         bool is_buffer = false;
+        bool is_nominal = false;
 
         // qualifiers
         while(next=="@") {
@@ -66,18 +71,18 @@ std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const s
             next = importer.next();
         }
 
-        // new handling
+        // new nominal type handling
         if(next=="new") {
+            is_nominal = true;
             // unique new type
             next = std::string_view{"__new"+name+create_temp()};
             auto type_id = get_token_id(std::string{next});
             auto it = unions.find(type_id);
-            Function* nominal_type = new Function(type_id);
-            nominal_type->info.custom_name = get_token_id(name);
-            all_functions.push_back(nominal_type);
-            if(it==unions.end()) unions[type_id] = (new Union(type_id))->add(nominal_type);
-            else it->second->add(nominal_type);
+            if(it!=unions.end()) importer.internal_error("Temporary union that would be create for a new nominal type already exists");
+            unions[type_id] = (new Union(type_id))->add(NOMINAL_FUNCTION);
         }
+        if(is_nominal && args.size()) importer.format_error("The new nominal type indicator can only be the first argument");
+        if(is_nominal) set_as_nominal = true;
 
         // actually find type
         auto type_id = get_token_id(std::string{next});
@@ -87,6 +92,7 @@ std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const s
 
         // buffer types
         if(next=="[") {
+            if(is_nominal) importer.type_error("Cannot annotate the new nominal type indicator as a buffer");
             if(importer.next()!="]") importer.syntax_error("Buffer arguments must be annotated by [] after their type without contents");
             is_buffer = true;
             next = importer.next();
@@ -100,7 +106,7 @@ std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const s
             arg_name = get_token_id(std::string{next});
             next = importer.next();
         }
-        args.emplace_back(arg_name, type_it->second, is_own, is_mut, is_access, is_buffer);
+        args.emplace_back(arg_name, type_it->second, is_own, is_mut, is_access, is_buffer, is_nominal);
         if(next==")") break;
         if(next!=",") importer.syntax_error("Expected comma between function arguments");
         next = importer.next();
@@ -119,14 +125,16 @@ void Module::import_function(Importer& importer, bool is_service) {
         importer.syntax_error("Invalid function name");
 
     // gather arguments
-    auto args = _gather_arguments(importer, name);
+    auto set_as_nominal = false;
+    auto args = _gather_arguments(importer, name, set_as_nominal);
 
     // construct variations
     std::vector<SpecializedFunction> variations;
     variations.reserve(1);
     {
         Function* function = new Function(name_id);
-        function->is_service = is_service;
+        function->info.is_service = is_service;
+        function->info.is_nominal = set_as_nominal;
         all_functions.push_back(function);
         variations.emplace_back(function);
     }
@@ -135,9 +143,13 @@ void Module::import_function(Importer& importer, bool is_service) {
         const auto& arg = args[arg_pos];
         // if we have resolved the argument type name before, get the previous choice
         if(has_been_named.contains(arg.uni->name)) {
-            for(auto variation : variations) 
+            for(const auto& variation : variations) {
+                auto found_existing = variation.poly.find(arg.uni->name);
+                if(found_existing==variation.poly.end()) 
+                    importer.internal_error(("Failed to find already resolved type "+id2token[arg.uni->name]).c_str());
                 variation.function->info.args.emplace_back(arg.name, 
-                    variation.poly[arg.uni->name], arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer);
+                    found_existing->second, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer, arg.is_nominal);
+                }
             continue;
         }
         has_been_named.insert(arg.uni->name);
@@ -148,33 +160,46 @@ void Module::import_function(Importer& importer, bool is_service) {
         for(auto type : arg.uni->functions) {// >1 element
             if(is_first_type) {
                 // if we have only one type alternative, we remain here and just add an argument
-                for(auto variation : variations) {
+                for(auto& variation : variations) {
                     variation.function->info.args.emplace_back(arg.name, 
-                        type, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer);
+                        type, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer, arg.is_nominal);
                     variation.poly[arg.uni->name] = type;
                 }
                 is_first_type = false;
                 continue;
             }
-            // if we ahve more than one type candidates, expand only previous variations
+            // if we have more than one type candidates, expand only previous variations
             for(size_t variation_pos=0; variation_pos<prev_variation_size; ++variation_pos) { 
-                auto& variation = variations[variation_pos];
+                const auto& variation = variations[variation_pos];
                 Function* function = new Function(name_id);
+                function->info.is_nominal = set_as_nominal;
+                function->info.is_service = is_service;
                 // copy existing args
                 for(size_t i=0; i<arg_pos; ++i) {
                     const auto& a = variation.function->info.args[i];
                     function->info.args.emplace_back(a.name, 
-                        a.type, a.is_own, a.is_mut, a.is_access, a.is_buffer); 
+                        a.type, a.is_own, a.is_mut, a.is_access, a.is_buffer, a.is_new); 
                 }
                 // add the new argument
-                variation.function->info.args.emplace_back(arg.name, 
-                    type, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer);
-                function->is_service = is_service;
+                function->info.args.emplace_back(arg.name, 
+                    type, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer, arg.is_nominal);
                 all_functions.push_back(function);
                 variations.emplace_back(function, variation, arg.uni->name, type);
             }
         }
     }
+
+    // replace temporary nominal functions with references to the actual function
+    if(set_as_nominal)
+        for(auto& variation : variations) {
+            if(variation.function->info.args.size() 
+                && variation.function->info.args[0].type==NOMINAL_FUNCTION)
+                variation.function->info.args[0].type = variation.function;
+            if(variation.function->info.returns.size() 
+                && variation.function->info.returns[0].type==NOMINAL_FUNCTION)
+                variation.function->info.returns[0].type = variation.function;
+        }
+        
 
     // std::cout << variations.size() << " variations for "<<name << "\n";
 
@@ -203,6 +228,9 @@ void Module::import_function(Importer& importer, bool is_service) {
 
     // add all variations to the target union
     for(const auto& variation : variations) {
+        std::cout << variation.function->info.to_string()<<"\n";
+        std::cout << variation.function->to_string()<<"\n";
+
         auto it = unions.find(variation.function->info.name);
         if(it!=unions.end()) it->second->add(variation.function);
         else unions[variation.function->info.name] = (new Union(variation.function->info.name))->add(variation.function);
@@ -236,6 +264,7 @@ void Module::import() {
                     // create the function
                     auto function = new Function(name);
                     all_functions.push_back(function);
+                    function->info.is_primitive = true;
                     // parse now
                     while(true) {
                         if(next.empty())
