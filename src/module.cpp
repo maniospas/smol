@@ -4,6 +4,8 @@ std::unordered_map<Token, Module*> source2module;
 std::vector<Function*> all_functions;
 std::unordered_map<std::string, Token> failure2code;
 std::unordered_map<Token, std::string> code2failure;
+std::unordered_set<Token> temporaries;
+int temp_vars = 0;
 
 Function* NOMINAL_FUNCTION = new Function(0);
 
@@ -17,24 +19,15 @@ void cleanup_modules() {
     all_functions.clear();
 }
 
-class SpecializedFunction {
-public:
-    Function* function;
-    Module* base_module;
-    std::unordered_map<Token, Function*> poly;
+Token create_temp() {
+    std::string ret = "__tmp"+std::to_string(temp_vars);
+    temp_vars++;
+    auto ret_id = get_token_id(ret);
+    temporaries.insert(ret_id);
+    return ret_id;
+}
 
-    Function* helper_function; // used by the parser when a different type needs to be stored per variation
-
-    SpecializedFunction(Function* function, Module* base_module) : function(function), base_module(base_module), helper_function(nullptr) {}
-    SpecializedFunction(Function* function, 
-        const SpecializedFunction& prototype, Token specialize_name, Function* specialize_function
-    ) : function(function), base_module(prototype.base_module), helper_function(nullptr) {
-        for(auto [name, fun] : prototype.poly)
-            poly[name] = fun;
-        if(specialize_function) poly[specialize_name] = specialize_function;
-    }
-
-    Function* get_type(const Importer& importer, Token name, bool allow_failure=false) const {
+Function* SpecializedFunction::get_type(const Importer& importer, Token name, bool allow_failure) const {
         auto it = poly.find(name);
         if(it!=poly.end()) 
             return it->second;
@@ -49,14 +42,6 @@ public:
         importer.internal_error("The compiler thinks that this type does not exist or is not visible here, but it should be available");
         return nullptr;
      }
-};
-
-int temp_vars = 0;
-std::string create_temp() {
-    std::string ret = "__tmp"+std::to_string(temp_vars);
-    temp_vars++;
-    return ret;
-}
 
 std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const std::string& name, bool& set_as_nominal) {
     // gather unresolved arguments
@@ -96,7 +81,7 @@ std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const s
         if(next=="new") {
             is_nominal = true;
             // unique new type
-            next = std::string_view{"__new"+name+create_temp()};
+            next = std::string_view{"__new"+name+id2token[create_temp()]};
             auto type_id = get_token_id(std::string{next});
             auto it = unions.find(type_id);
             if(it!=unions.end()) importer.internal_error("Temporary union that would be create for a new nominal type already exists");
@@ -122,7 +107,7 @@ std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const s
         // handle name or be nameless with a comma (in this case create a temporary variable)
         Token arg_name;
         if(next==",") 
-            arg_name = get_token_id(create_temp());
+            arg_name = create_temp();
         else {
             arg_name = get_token_id(std::string{next});
             next = importer.next();
@@ -138,6 +123,85 @@ std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const s
     }
     return args;
 }
+
+
+void Module::parse_expression(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next) {
+    // handle redundant parentheses
+    if(next=="(") {
+        parse_expression(importer, variations, importer.next());
+        if(importer.next()!=")") importer.syntax_error("Needed to close the expression's opening parenthesis here");
+        return;
+    }
+    // handle inline directives
+    if(next=="@") {
+        next = importer.next();
+        if(next=="args") {
+            // copy all arguments here
+            for(auto& variation : variations) {
+                variation.returned.clear();
+                for(auto arg : variation.function->info.args) 
+                    variation.returned.emplace_back(arg);
+            }
+        }
+        else importer.syntax_error("Within expression you are only allowed to use the @dynamic, @mut, and @args directives");
+    }
+    // handle return statements
+    if(next=="return") {
+        parse_expression(importer, variations, importer.next());
+        for(auto& variation : variations) {
+            auto f = variation.function;
+            // if(f->has_returned) {
+            //     continue;
+            // }
+            for(auto var : variation.returned) {
+                auto it = f->vars.find(var);
+                if(it==f->vars.end() || !it->first) importer.internal_error("Failed to find type for returned variable "+var);
+                //variation.function->var(importer, var, it->second.type, it->second.is_mut, it->second.is_buffer);
+                f->info.returns.emplace_back(var);
+            }
+        }
+        return;
+    }
+
+    // check if the current expression is just a variable
+    auto next_id = get_token_id(std::string{next});
+    auto count_is_variable = size_t{0};
+    for(auto& variation : variations) {
+        auto f = variation.function;
+        auto it_collection = f->collections.find(next_id);
+        variation.returned.clear();
+        if(it_collection!=f->collections.end()) {
+            for(auto token : it_collection->second)
+                variation.returned.emplace_back(token);
+        }
+        else {
+            auto it = f->vars.find(next_id);
+            if(it==f->vars.end()) continue;
+            variation.returned.emplace_back(next_id);
+        }
+        ++count_is_variable;
+    }
+    if(count_is_variable && count_is_variable!=variations.size()) importer.internal_error("This variable is missing in at least one variation");
+    if(count_is_variable) {
+        next = importer.next();
+        if(next==".") {}
+        else if(next=="<") {}
+        else if(next==">") {}
+        else if(next=="<=") {}
+        else if(next==">=") {}
+        else if(next=="+") {}
+        else if(next=="-") {}
+        else if(next=="*") {}
+        else if(next=="/") {}
+        else if(next=="==") {}
+        else if(next=="!=") {}
+        else {
+            importer.rollback_token();
+        }
+        return;
+    }
+}
+
 void Module::import_function(Importer& importer, bool is_service) {
     // parse name
     auto name = std::string{importer.next()};
@@ -168,8 +232,8 @@ void Module::import_function(Importer& importer, bool is_service) {
                 auto found_existing = variation.poly.find(arg.uni->name);
                 if(found_existing==variation.poly.end()) 
                     importer.internal_error(("Failed to find already resolved type "+id2token[arg.uni->name]).c_str());
-                variation.function->info.args.emplace_back(arg.name, 
-                    found_existing->second, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer, arg.is_nominal);
+                variation.function->info.args.emplace_back(arg.name);
+                variation.function->vars[arg.name] = Arg(arg.name, found_existing->second, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer, arg.is_nominal);
                 }
             continue;
         }
@@ -182,8 +246,8 @@ void Module::import_function(Importer& importer, bool is_service) {
             if(is_first_type) {
                 // if we have only one type alternative, we remain here and just add an argument
                 for(auto& variation : variations) {
-                    variation.function->info.args.emplace_back(arg.name, 
-                        type, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer, arg.is_nominal);
+                    variation.function->info.args.emplace_back(arg.name);
+                    variation.function->vars[arg.name] = Arg(arg.name, type, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer, arg.is_nominal);
                     variation.poly[arg.uni->name] = type;
                 }
                 is_first_type = false;
@@ -197,13 +261,14 @@ void Module::import_function(Importer& importer, bool is_service) {
                 function->info.is_service = is_service;
                 // copy existing args
                 for(size_t i=0; i<arg_pos; ++i) {
-                    const auto& a = variation.function->info.args[i];
-                    function->info.args.emplace_back(a.name, 
-                        a.type, a.is_own, a.is_mut, a.is_access, a.is_buffer, a.is_new); 
+                    auto var = variation.function->info.args[i];
+                    function->info.args.emplace_back(var);
+                    const auto& a = function->vars[var]; 
+                    function->vars[a.name] = Arg(a.name, a.type, a.is_own, a.is_mut, a.is_access, a.is_buffer, a.is_new); 
                 }
                 // add the new argument
-                function->info.args.emplace_back(arg.name, 
-                    type, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer, arg.is_nominal);
+                function->info.args.emplace_back(arg.name);
+                function->vars[arg.name] = Arg(arg.name, type, arg.is_own, arg.is_mut, arg.is_access, arg.is_buffer, arg.is_nominal);
                 all_functions.push_back(function);
                 variations.emplace_back(function, variation, arg.uni->name, type);
             }
@@ -213,12 +278,12 @@ void Module::import_function(Importer& importer, bool is_service) {
     // replace temporary nominal functions with references to the actual function
     if(set_as_nominal)
         for(auto& variation : variations) {
-            if(variation.function->info.args.size() 
-                && variation.function->info.args[0].type==NOMINAL_FUNCTION)
-                variation.function->info.args[0].type = variation.function;
-            if(variation.function->info.returns.size() 
-                && variation.function->info.returns[0].type==NOMINAL_FUNCTION)
-                variation.function->info.returns[0].type = variation.function;
+            auto f = variation.function;
+            if(f->info.args.size()){
+                auto& var = f->vars[f->info.args[0]];
+                if(var.type==NOMINAL_FUNCTION)
+                    var.type = variation.function;
+            }
         }
         
     // actual parsing from hereon
@@ -229,8 +294,8 @@ void Module::import_function(Importer& importer, bool is_service) {
         importer.syntax_error("Much start a new line after argument declaration ends");
     nesting.emplace_back(current_nesting);
     while(!next.empty() && current_nesting) {
-        if(next=="def" || next=="service" || next=="union") 
-            importer.syntax_error("Cannot nest this definition within another function");
+        if(next=="def" || next=="service" || next=="union") break;
+            //importer.syntax_error("Cannot nest this definition within another function");
         if(next=="@") {
             next = importer.next();
             if(next=="c_head") {
@@ -282,7 +347,7 @@ void Module::import_function(Importer& importer, bool is_service) {
                         }
                         else {
                             if(variation.helper_function) {
-                                variation.function->var(importer, next_id, variation.helper_function);
+                                variation.function->var(importer, next_id, variation.helper_function, false, false);
                                 variation.helper_function = nullptr;
                             }
                             variation.function->token(next_id);
@@ -294,15 +359,7 @@ void Module::import_function(Importer& importer, bool is_service) {
             }
             else importer.syntax_error("This kind of directive is not valid within function definitions");
         }
-        else if(next=="fail") {
-            next = importer.next();
-            if(!is_string(next)) importer.syntax_error("Fail must be followed by a string message to be printed - directly run commands like custom prints beforehand");
-            for(auto& variation : variations) 
-                variation.function->call_failure(std::string{next});
-        }
-        else {
-            
-        }
+        else parse_expression(importer, variations, next);
         
         next = importer.next();
         if(importer.has_changed_line()) {
@@ -314,7 +371,7 @@ void Module::import_function(Importer& importer, bool is_service) {
 
     // add all variations to the target union
     for(const auto& variation : variations) {
-        std::cout << variation.function->info.to_string()<<"\n";
+        std::cout << variation.function->export_signature()<<"\n";
         std::cout << variation.function->export_inits("");
         std::cout << variation.function->export_body();
         std::cout << variation.function->export_fail();

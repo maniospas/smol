@@ -51,6 +51,27 @@ public:
         : name(name), uni(uni), is_own(is_own), is_mut(is_mut), is_access(is_access), is_buffer(is_buffer), is_nominal(is_nominal) {}
 };
 
+class SpecializedFunction {
+public:
+    Function* function;
+    Module* base_module;
+    std::unordered_map<Token, Function*> poly;
+
+    Function* helper_function; // used by the parser when a different type needs to be stored per variation
+    std::vector<Token> returned;
+
+    SpecializedFunction(Function* function, Module* base_module) 
+        : function(function), base_module(base_module), helper_function(nullptr) {}
+    SpecializedFunction(Function* function, 
+        const SpecializedFunction& prototype, Token specialize_name, Function* specialize_function
+    ) : function(function), base_module(prototype.base_module), helper_function(nullptr) {
+        for(auto [name, fun] : prototype.poly)
+            poly[name] = fun;
+        if(specialize_function) poly[specialize_name] = specialize_function;
+    }
+    Function* get_type(const Importer& importer, Token name, bool allow_failure=false) const;
+};
+
 class Module {
     Token source;
     std::string description;
@@ -58,6 +79,8 @@ class Module {
     bool unsafe;
     int count_errors;
     std::vector<UnresolvedArg> _gather_arguments(Importer& importer, const std::string& name, bool& set_as_nominal);
+    // returned value inside variations, next is not const to use as temporary storage inside
+    void parse_expression(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next); 
 public:
     std::unordered_map<Token, Union*> unions;
     Module(Token source) : source(source), unsafe(false), count_errors(0) {

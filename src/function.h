@@ -28,6 +28,7 @@ public:
     bool is_access;
     bool is_buffer;
     bool is_new;
+    Arg(): name(0), type(nullptr), is_own(false), is_mut(false), is_access(false), is_buffer(false), is_new(false) {}
     Arg(Token name, Function* type, bool is_own, bool is_mut, bool is_access, bool is_buffer, bool is_new)
         : name(name), type(type), is_own(is_own), is_mut(is_mut), is_access(is_access), is_buffer(is_buffer), is_new(is_new) {}
 };
@@ -69,13 +70,12 @@ public:
 struct Signature {
     Token name;
     Token custom_name;
-    std::vector<Arg> args;
-    std::vector<Arg> returns;
+    std::vector<Token> args;
+    std::vector<Token> returns;
     std::vector<VariableId> outputs;
     bool is_nominal;
     bool is_primitive;
     bool is_service;
-    std::string to_string() const;
 };
 
 
@@ -86,10 +86,12 @@ public:
     std::vector<Token> header;
     std::vector<Token> linker;
     std::unordered_map<Token, std::vector<Token>> releases;
-    std::unordered_map<Token, Function*> vars;
+    std::unordered_map<Token, Arg> vars;
     std::unordered_set<Token> used_failure_codes;
+    std::unordered_map<Token, std::vector<Token>> collections;
     Signature info;
-    Function(Token name) {
+    bool has_returned;
+    Function(Token name) : has_returned(false) {
         info.name = name; 
         info.custom_name = name;
         info.is_nominal = false;
@@ -97,51 +99,17 @@ public:
         info.is_service = false;
     }
     std::vector<Function*> import(Importer& importer, bool is_service);
-    std::string export_inits(const std::string& prefix) const {
-        auto ret = std::string{""};
-        for(const auto& [token, function] : vars) {
-            if(function->info.is_primitive) ret += function->export_body()+" "+prefix+id2token[token]+"=0;\n";
-            else ret += function->export_inits(id2token[token]+"__");
-        }
-        return ret;
-    }
-    std::string export_fail() const {
-        auto ret = std::string{""};
-        for(auto release_label : used_failure_codes) {
-            const auto& message = code2failure[release_label];
-            ret += id2token[release_label]+": printf(\"Error: "+message.substr(1, message.size()-2)+"\\n\"); goto __failsafe;\n";
-        }
-        return ret;
-    }
-    std::string export_release() const {
-        auto ret = std::string{"__failsafe:\n"}; 
-        // TODO: add returned releases
-        ret += std::string{"__return:\n"};
-        // TODO: add all the rest of release
-        return ret;
-    }
-    std::string export_body() const {
-        auto ret = std::string{""};
-        bool is_prev_symbol = true;
-        for(size_t i=0;i<body.size();++i) {
-            auto next = id2token[body[i]];
-            auto is_symbol = next.size()==1 && is_delim(next[0]);
-            if(!is_symbol && !is_prev_symbol) ret += " ";
-            is_prev_symbol = is_symbol;
-            ret += next;
-        }
-        return ret;
-    }
-    inline Function& token(const std::string& t) {
-        return token(get_token_id(t));
-    }
+    std::string export_inits(const std::string& prefix) const;
+    std::string export_fail() const;
+    std::string export_release() const;
+    std::string export_body() const;
+    std::string export_signature() const;
+    inline Function& token(const std::string& t) { return token(get_token_id(t)); }
     inline Function& token(Token t) {
         body.emplace_back(t);
         return *this;
     }
-    inline void direct_inline(Function* f) {
-        body.insert(body.end(), f->body.begin(), f->body.end());
-    }
+    inline void direct_inline(Function* f) { body.insert(body.end(), f->body.begin(), f->body.end()); }
     Token call_failure(const std::string& message) {
         auto it = failure2code.find(message);
         token("goto");
@@ -161,10 +129,12 @@ public:
         used_failure_codes.insert(new_id);
         return new_id;
     }
-    inline void var(const Importer& importer, Token name, Function* f) {
+    inline void var(const Importer& importer, Token name, Function* f, bool is_mut, bool is_buffer) {
         auto& prev_f = vars[name];
-        if(prev_f==f) return;
-        if(prev_f) importer.type_error("Variable already has a type");
-        prev_f = f;
+        if(prev_f.type) importer.type_error("Variable already has a type");
+        prev_f.name = name;
+        prev_f.type = f;
+        prev_f.is_mut = is_mut;
+        prev_f.is_buffer = is_buffer;
     }
 };

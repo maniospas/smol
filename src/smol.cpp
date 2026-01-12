@@ -9,6 +9,7 @@ int main(int argc, char* argv[]) {
         auto arg = std::string{argv[i]};
         source = arg;
     }
+    get_token_id(""); // this will always be our 0 token to allow it to be invalid everywhere
     Module* main_module = new Module(get_token_id(source));
     main_module->import();
 
