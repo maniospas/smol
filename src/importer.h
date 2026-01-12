@@ -34,7 +34,7 @@ class Importer {
 public:
     Importer(const std::string& path): file(path), line(0), column(0), current_line(""), path(path), _has_changed_line(false) {}
     ~Importer() = default;
-    size_t get_token_start() const {
+    inline size_t get_token_start() const {
         return start;
     }
     const std::string_view next() {
@@ -49,12 +49,12 @@ public:
     }
     bool has_changed_line() const {return _has_changed_line;}
     void rollback_token();
-    inline void error(const char* message, const char* description) {error(message, description, ansi::yellow);}
-    inline void format_error(const char* description) {error("Format error", description, ansi::green);}
-    inline void syntax_error(const char* description) {error("Syntax error", description, ansi::yellow);}
-    inline void type_error(const char* description) {error("Type error", description, ansi::purple);}
-    inline void internal_error(const char* description) {error("Internal error (compiler bug)", description, ansi::red);}
-    void error(const char* message, const char* description, const char* color);
+    inline void error(const char* message, const char* description) const {error(message, description, ansi::yellow);}
+    inline void format_error(const char* description) const {error("Format error", description, ansi::green);}
+    inline void syntax_error(const char* description) const {error("Syntax error", description, ansi::yellow);}
+    inline void type_error(const char* description) const {error("Type error", description, ansi::purple);}
+    inline void internal_error(const char* description) const {error("Internal error (compiler bug)", description, ansi::red);}
+    void error(const char* message, const char* description, const char* color) const;
 };
 
 bool is_delim(char c);

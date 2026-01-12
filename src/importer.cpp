@@ -4,7 +4,8 @@ bool is_delim(char c) {
     return c == '(' || c == ')' || c == '[' || c == ']' || c == '@' 
         || c == '.' || c == ',' || c=='/' || c=='"' || c=='=' || c=='<' 
         || c=='>' || c=='+' || c=='-' || c=='*' || c=='>' || c=='<' || c=='{' || c=='}'
-        || c==';' || c==':';
+        || c==';' || c==':' || c=='?'|| c=='%'|| c=='!'|| c=='^' // we have here both smoλ and C symbols on which to tokenize (# can be ignored)
+        || c=='\n'; // the newline character is useful later for having C new lines not have spaces in exported code (the importer handles it through other means)
 }
 
 namespace ansi {
@@ -171,7 +172,7 @@ const std::string_view Importer::_next_token() {
     return std::string_view(current_line.data()+start, end - start);
 }
 
-void Importer::error(const char* message, const char* description, const char* color) {
+void Importer::error(const char* message, const char* description, const char* color) const {
     const auto caret = std::string(start, ' ') + std::string(end-start, '^');
     const auto header_text = std::string(" ")+message+" ";
     const auto description_text = std::string(description);

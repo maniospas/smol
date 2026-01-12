@@ -130,7 +130,7 @@
 @c_primitive u64 {unsigned long long}
 @c_primitive i64 {long long}
 @c_primitive f64 {double}
-@c_primitive bool {bool}
+@c_primitive bool {int}
 @c_primitive char {char}
 @c_primitive ptr {void*}
 @c_primitive tag {unsigned long long}
@@ -256,23 +256,21 @@ def mul(@access u64 x, u64 y)
 def div(@access u64 x, u64 y)
     @c_head{#include <stdio.h>}
     if y==0 
-        @c_fail{printf("Error: division by zero\n");} 
-    @c_head{#include <stdio.h>}
+        fail "division by zero"
     @c_body{u64 z=x/y;}
     return z
 
 def sub(@access u64 x, u64 y)
     @c_head{#include <stdio.h>}
     if y>x 
-        @c_fail{printf("Error: unsigned subtraction yielded a negative\n");}
+        fail "unsigned subtraction yielded a negative"
     @c_body{u64 z=x-y;}
     return z
 
 def mod(@access u64 x, u64 y) 
     @c_head{#include <stdio.h>}
     if y==0 
-        @c_fail{printf("Error: modulo by zero\n");}
-    @c_head{#include <stdio.h>}
+        fail "modulo by zero\n"
     @c_body{u64 z=x%y;} 
     return z
 
@@ -312,8 +310,7 @@ def add(@access i64 x, i64 y)
 def mod(@access i64 x, i64 y)
     @c_head{#include <stdio.h>}
     if y<=i64(0) 
-        @c_fail{printf("Error: modulo by non-positive\n");}
-    @c_head{#include <stdio.h>}
+        fail "modulo by non-positive"
     @c_body{i64 z=x%y;}
     return z
 
@@ -331,8 +328,7 @@ def mul(@access i64 x, i64 y)
 def div(@access i64 x, i64 y)
     @c_head{#include <stdio.h>}
     if y==i64(0) 
-        @c_fail{printf("Error: division by zero\n");}
-    @c_head{#include <stdio.h>}
+        fail "division by zero"
     @c_body{i64 z=x/y;}
     return z
 
