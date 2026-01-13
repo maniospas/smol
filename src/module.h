@@ -15,6 +15,7 @@
 class Module;
 extern std::unordered_map<Token, Module*> source2module;
 extern std::vector<Function*> all_functions;
+extern Function* NOMINAL_FUNCTION;
 
 static inline bool is_string(const std::string_view& token) {
     return token.size()>=2 && token[0]=='"' && token[token.size()-1]=='"';

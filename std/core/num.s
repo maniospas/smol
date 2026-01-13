@@ -139,6 +139,22 @@
 union Number = u64 or f64 or i64
 def ok()
 
+def i64(u64 x)
+    @c_body{i64 z=x;}
+    return z
+
+def f64(u64 x)
+    @c_body{f64 z=x;}
+    return z
+
+def f64(i64 x)
+    @c_body{i64 z=x;}
+    return z
+
+def u64(i64 x)
+    @c_body{u64 z=x;}
+    return z
+
 def print(@access f64 message)
     @c_head{#include <stdio.h>}
     @c_body{printf("%.6f\n", message);}

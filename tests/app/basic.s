@@ -1,4 +1,6 @@
 @include std.core.num
 
 service main()
-    print(add(1,2))
+    x = add(f64(1),f64(2))
+    print(x)
+    print(f64(1))
