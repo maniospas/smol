@@ -19,7 +19,7 @@ std::string Function::export_signature() const {
     for(size_t i=0;i<info.args.size();++i) {
         if(ars.size()) ars += ansi::cyan+std::string{", "};
         auto it = vars.find(info.args[i]);
-        if(it==vars.end()) {
+        if(it==vars.end() || !it->second.type) {
             ars += ansi::green;
             ars += "unknown";
             ars += ansi::reset;
@@ -41,7 +41,7 @@ std::string Function::export_signature() const {
     auto ret = std::string{""};
     for(size_t i=0;i<info.returns.size();++i) {
         auto it = vars.find(info.returns[i]);
-        if(it==vars.end()) {
+        if(it==vars.end() || !it->second.type) {
             ars += ansi::green;
             ars += "unknown";
             ars += ansi::reset;

@@ -120,7 +120,8 @@ public:
                 auto it = other->vars.find(ret);
                 if(it==other->vars.end())
                     importer.internal_error(("Failed to find variable: "+id2token[ret]).c_str());
-                var(importer, ret, it->second.type, it->second.is_mut, it->second.is_buffer);
+                const auto& a = it->second;
+                var(importer, get_token_id(newname), a.type, a.is_mut, a.is_buffer);
             }
         }
 

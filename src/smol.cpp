@@ -21,8 +21,5 @@ int main(int argc, char* argv[]) {
         }
     }
     catch(std::runtime_error&) {}
-    //for(auto function : it->second->functions)
-    //    std::cout << function->to_string() << "\n";
-
     cleanup_modules();
 }

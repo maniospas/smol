@@ -31,6 +31,14 @@ bool is_unsigned_long_long(const std::string& s, unsigned long long& value) {
     return ec == std::errc{} && ptr == s.data() + s.size();
 }
 
+bool is_double(const std::string& s, double& value)
+{
+    if (s.empty()) return false;
+    if (s[0] == '+' || s[0] == '-') return false;
+    auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), value, std::chars_format::general);
+    return ec == std::errc{} && ptr == s.data() + s.size();
+}
+
 Token create_temp() {
     std::string ret = "__tmp"+std::to_string(temp_vars);
     temp_vars++;
@@ -220,12 +228,28 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
     auto next_as_string = std::string{next};
     auto next_id = get_token_id(next_as_string);
     unsigned long long parsed_unsigned;
+    double parsed_double;
     if(is_unsigned_long_long(next_as_string, parsed_unsigned)) {
         for(auto& variation : variations) {
-            auto f = variation.get_type(importer, get_token_id("u64"));
+            auto type = variation.get_type(importer, get_token_id("u64"));
+            auto f = variation.function;
             auto temp = f->get_constant(next_as_string);
-            if(!f->vars.contains(temp)) f->var(importer, temp, f, false, false);
+            if(!f->vars.contains(temp)) f->var(importer, temp, type, false, false);
+            variation.returned.clear();
+            variation.returned.emplace_back(temp);
         }
+        return;
+    }
+    if(is_double(next_as_string, parsed_double)) {
+        for(auto& variation : variations) {
+            auto type = variation.get_type(importer, get_token_id("f64"));
+            auto f = variation.function;
+            auto temp = f->get_constant(next_as_string);
+            if(!f->vars.contains(temp)) f->var(importer, temp, type, false, false);
+            variation.returned.clear();
+            variation.returned.emplace_back(temp);
+        }
+        return;
     }
 
     // parse calls
@@ -263,18 +287,18 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
             next = importer.next();
             while(next!=")") {
                 auto saved_arguments = std::vector<std::vector<Token>>{};
-                auto saved_candidates = std::vector<std::unordered_set<Function*>>{};
+                auto saved_candidates = std::vector<std::vector<Function*>>{};
                 for(size_t i=0;i<variations.size();++i) {
                     auto& variation = variations[i];
                     variation.returned.clear();
                     saved_arguments.emplace_back();
                     saved_candidates.emplace_back();
                     saved_arguments[i].reserve(variation.arguments.size());
-                    saved_candidates[i].reserve(variation.arguments.size());
+                    saved_candidates[i].reserve(variation.candidates.size());
                     for(auto arg : variation.arguments)
                         saved_arguments[i].emplace_back(arg);
                     for(auto func : variation.candidates)
-                        saved_candidates[i].insert(func);
+                        saved_candidates[i].emplace_back(func);
                     variation.arguments.clear();
                     variation.candidates.clear();
                 }
@@ -297,24 +321,29 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                         auto pos = variation.arguments.size();
                         // check compatibility only for new candidates
                         for(auto candidate : variation.candidates) {
-                            if(pos>=candidate->info.args.size()) 
+                            if(pos>=candidate->info.args.size()) {
+                                //std::cout << "Wrong number of arguments\n";
                                 continue;
+                            }
                             auto it1 = candidate->vars.find(candidate->info.args[pos]);
                             auto it2 = f->vars.find(arg);
-                            if(it1==candidate->vars.end() 
-                                || it2==f->vars.end() 
-                                || it1->second.type!=it2->second.type
-                                || it1->second.is_buffer!=it2->second.is_buffer) 
+                            if(it1==candidate->vars.end()) continue;
+                            if(it2==f->vars.end()) {
+                                //std::cout << "no type for var "+id2token[arg] << "\n";
+                                continue; 
+                            }
+                            if(it1->second.type!=it2->second.type
+                                || it1->second.is_buffer!=it2->second.is_buffer) {
+                                // std::cout << "Incompatible types (function vs given argument):\n";
+                                // std::cout << it1->second.type->export_signature() << "\n";
+                                // std::cout << it2->second.type->export_signature() << "\n";
                                 continue;
+                            }
                             new_candidates.emplace_back(candidate);
                         }
                         // move new candidates to the candidate list
-                        if(new_candidates.empty()) {
-                            auto error_message = std::string{"Failed to resolve "}+id2token[f->info.name]+ " to any viable function. Candidates:";
-                            for(auto candidate : variation.candidates) 
-                                error_message += " "+candidate->export_signature();
-                            importer.type_error(error_message.c_str());
-                        }
+                        if(new_candidates.empty()) 
+                            importer.type_error("Failed to resolve to any viable function call.");
                         variation.candidates.clear();
                         for(auto candidate : new_candidates) 
                             variation.candidates.insert(candidate);
@@ -330,15 +359,28 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
         for(auto& variation : variations) {
             Function* selected = nullptr;
             // select exactly complete argument lists
-            for(auto candidate : variation.candidates) 
+            for(auto candidate : variation.candidates) {
                 if(candidate->info.args.size()==variation.arguments.size()) {
                     if(selected) 
                         importer.type_error("More than one candidates");
+                    selected = candidate;
                 }
-            if(!selected) {
-                importer.type_error("Not enough arguments");
             }
-            
+            if(!selected) 
+                importer.type_error("Failed to resolve to any viable function call.");
+            auto temp = create_temp();
+            auto f = variation.function;
+            for(size_t i=0; i<variation.arguments.size();++i) {
+                f->token(id2token[temp]+"__"+id2token[selected->info.args[i]]);
+                f->token("=");
+                f->token(variation.arguments[i]);
+                f->token(";");
+                f->token("\n");
+            }
+            f->bring_in(importer, selected, temp); // also handles collections and injects all vars
+            variation.returned.clear();
+            for(auto ret : selected->info.returns)
+                variation.returned.emplace_back(get_token_id(id2token[temp]+"__"+id2token[ret]));
         }
         return;
     }
