@@ -8,16 +8,6 @@ bool is_delim(char c) {
         || c=='\n'; // the newline character is useful later for having C new lines not have spaces in exported code (the importer handles it through other means)
 }
 
-namespace ansi {
-    const char* red = "\033[31m";
-    const char* yellow = "\033[33m";
-    const char* cyan = "\033[36m";
-    const char* green = "\033[32m";
-    const char* purple = "\033[35m";
-    const char* gray = "\033[90m";
-    const char* reset = "\033[0m";
-}
-
 static size_t parse_integer_suffix(std::string_view line, size_t i) {
     bool found_u = false;
     int l_count = 0;

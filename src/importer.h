@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include "console.h"
 
+bool is_delim(char c);
+
 class Importer {
     std::ifstream file;
     size_t line;
@@ -49,5 +51,3 @@ public:
     inline void internal_error(const char* description) const {error("Internal error (compiler bug)", description, ansi::red);}
     void error(const char* message, const char* description, const char* color) const;
 };
-
-bool is_delim(char c);

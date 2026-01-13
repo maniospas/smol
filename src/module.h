@@ -73,6 +73,7 @@ public:
         if(specialize_function) poly[specialize_name] = specialize_function;
     }
     Function* get_type(const Importer& importer, Token name, bool allow_failure=false) const;
+    void print_debug() const;
 };
 
 class Module {

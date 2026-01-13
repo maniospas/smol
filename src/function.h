@@ -94,57 +94,7 @@ public:
     std::unordered_map<Token, std::vector<Token>> collections;
     Signature info;
 
-    void bring_in(const Importer& importer, Function * other, Token prefix) {
-        // update collections, variable types, and (TODO) releases
-        auto collection = collections.find(prefix);
-        if(collection!=collections.end()) {
-            if(collection->second.size()!=other->info.returns.size())
-                importer.type_error("This has a different type than previous variable with the same name");
-            for(size_t i=0;i<collection->second.size();++i) {
-                auto it1 = vars.find(collection->second[i]);
-                auto it2 = other->vars.find(other->info.returns[i]);
-                if(it1==vars.end() || it2==other->vars.end() 
-                    || it1->second.type!=it2->second.type 
-                    || it1->second.is_buffer!=it2->second.is_buffer)
-                    importer.type_error("This has a different type than previous variable with the same name");
-                auto newname = id2token[prefix]+"__"+id2token[it2->first];
-                if(newname!=id2token[it1->first])
-                    importer.type_error("This has a different type than previous variable with the same name");
-            }
-        }
-        else {
-            collections[prefix].clear();
-            for(const auto& ret : other->info.returns) {
-                auto newname = id2token[prefix]+"__"+id2token[ret];
-                collections[prefix].emplace_back(get_token_id(newname));
-                auto it = other->vars.find(ret);
-                if(it==other->vars.end())
-                    importer.internal_error(("Failed to find variable: "+id2token[ret]).c_str());
-                const auto& a = it->second;
-                var(importer, get_token_id(newname), a.type, a.is_mut, a.is_buffer);
-            }
-        }
-
-        // bring in headers
-        header.reserve(header.size()+other->header.size());
-        for(const auto& token : other->header)
-            header.emplace_back(token);
-
-        // bring in body while renaming
-        body.reserve(body.size()+other->body.size());
-        for(const auto& token : other->body) {
-            auto it = other->vars.find(token);
-            if(it==other->vars.end()) body.emplace_back(token);
-            else body.emplace_back(get_token_id(id2token[prefix]+"__"+id2token[token]));
-        }
-
-        // merge constants and failure codes
-        for(auto token : other->used_failure_codes)
-            used_failure_codes.insert(token);
-        for(auto token : other->used_constants)
-            used_constants.insert(token);
-    }
-
+    void bring_in(const Importer& importer, Function * other, Token prefix);
     bool has_returned;
     Function(Token name) : has_returned(false) {
         info.name = name; 
@@ -207,4 +157,5 @@ public:
         prev_f.is_mut = is_mut;
         prev_f.is_buffer = is_buffer;
     }
+    std::string export_service() const;
 };

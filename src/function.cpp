@@ -14,6 +14,59 @@ Token get_token_id(const std::string& name) {
     return next_id;
 }
 
+void Function::bring_in(const Importer& importer, Function * other, Token prefix) {
+    // update collections, variable types, and (TODO) releases
+    auto collection = collections.find(prefix);
+    if(collection!=collections.end()) {
+        if(collection->second.size()!=other->info.returns.size())
+            importer.type_error("This has a different type than previous variable with the same name");
+        for(size_t i=0;i<collection->second.size();++i) {
+            auto it1 = vars.find(collection->second[i]);
+            auto it2 = other->vars.find(other->info.returns[i]);
+            if(it1==vars.end() || it2==other->vars.end() 
+                || it1->second.type!=it2->second.type 
+                || it1->second.is_buffer!=it2->second.is_buffer)
+                importer.type_error("This has a different type than previous variable with the same name");
+            auto newname = id2token[prefix]+"__"+id2token[it2->first];
+            if(newname!=id2token[it1->first])
+                importer.type_error("This has a different type than previous variable with the same name");
+        }
+    }
+    else {
+        collections[prefix].clear();
+        for(const auto& ret : other->info.returns) {
+            auto newname = id2token[prefix]+"__"+id2token[ret];
+            collections[prefix].emplace_back(get_token_id(newname));
+            auto it = other->vars.find(ret);
+            if(it==other->vars.end())
+                importer.internal_error(("Failed to find variable: "+id2token[ret]).c_str());
+        }
+        for(const auto& [name, a] : other->vars) {
+            auto newname = id2token[prefix]+"__"+id2token[a.name];
+            var(importer, get_token_id(newname), a.type, a.is_mut, a.is_buffer);
+        }
+    }
+
+    // bring in headers
+    header.reserve(header.size()+other->header.size());
+    for(const auto& token : other->header)
+        header.emplace_back(token);
+
+    // bring in body while renaming
+    body.reserve(body.size()+other->body.size());
+    for(const auto& token : other->body) {
+        auto it = other->vars.find(token);
+        if(it==other->vars.end()) body.emplace_back(token);
+        else body.emplace_back(get_token_id(id2token[prefix]+"__"+id2token[token]));
+    }
+
+    // merge constants and failure codes
+    for(auto token : other->used_failure_codes)
+        used_failure_codes.insert(token);
+    for(auto token : other->used_constants)
+        used_constants.insert(token);
+}
+
 std::string Function::export_signature() const {
     auto ars = std::string{""};
     for(size_t i=0;i<info.args.size();++i) {
@@ -73,9 +126,11 @@ std::string Function::export_inits(const std::string& prefix) const {
         if(it!=vars.end()) it->second.name = 0;
     }
     for(const auto& constant : used_constants) {
-        ret += id2token[constant]+"="+code2constant[constant]+";\n";
         auto it = vars.find(constant);
-        if(it!=vars.end()) it->second.name = 0;
+        if(it==vars.end()) continue;
+        if(!it->second.type->info.is_primitive) continue;
+        ret += it->second.type->export_body()+" "+id2token[constant]+"="+code2constant[constant]+";\n";
+        it->second.name = 0;
     }
     for(const auto& [token, var] : vars) {
         if(!var.name) continue;
@@ -88,16 +143,14 @@ std::string Function::export_fail() const {
     auto ret = std::string{""};
     for(auto release_label : used_failure_codes) {
         const auto& message = code2failure[release_label];
-        ret += id2token[release_label]+": printf(\"Error: "+message.substr(1, message.size()-2)+"\\n\"); goto __failsafe;\n";
+        ret += id2token[release_label]+": printf(\"Error: "+message.substr(1, message.size()-2)+"\\n\");";
+        ret += "__error_code="+std::to_string(release_label);
+        ret += "goto __failsafe;\n";
     }
     return ret;
 }
 std::string Function::export_release() const {
-    auto ret = std::string{"__failsafe:\n"}; 
-    // TODO: add returned releases
-    ret += std::string{"__return:\n"};
-    // TODO: add all the rest of release
-    return ret;
+    return "";
 }
 std::string Function::export_body() const {
     auto ret = std::string{""};
@@ -109,5 +162,25 @@ std::string Function::export_body() const {
         is_prev_symbol = is_symbol;
         ret += next;
     }
+    return ret;
+}
+
+std::string Function::export_service() const {
+    auto ret = std::string{""};
+    for(auto h : header)
+        ret += id2token[h]+"\n";
+    ret += "int "+id2token[info.name]+"(){\n";
+    ret += "int __error_code = 0;\n";
+    ret += export_inits("");
+    ret += export_body();
+    ret += export_fail();
+    ret += export_release();
+
+    ret += "__failsafe:\n"; 
+    // TODO: add returned releases
+    ret += "__return:\n";
+    // TODO: add all the rest of release
+    ret += "return __error_code;\n";
+    ret += "}";
     return ret;
 }
