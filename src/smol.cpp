@@ -14,24 +14,24 @@ int main(int argc, char* argv[]) {
     for(int i = 1; i < argc; ++i) {
         auto arg = std::string{argv[i]};
         if(arg=="--task") {
-            if(i>=argc-1)  argument_error("Missing --task value");
+            if(i>=argc-1)  argument_error("Missing --task value.");
             compiler_options.task = argv[++i];
         }
         else if(arg=="--link") {
-            if(i>=argc-1)  argument_error("Missing --link value");
+            if(i>=argc-1)  argument_error("Missing --link value.");
             compiler_options.linker = argv[++i];
         }
         else if(arg=="--back") {
-            if(i>=argc-1)  argument_error("Missing --back value");
+            if(i>=argc-1)  argument_error("Missing --back value.");
             compiler_options.back = argv[++i];
         }
         else if(arg=="--runtime") {
-            if(i>=argc-1)  argument_error("Missing --runtime value");
+            if(i>=argc-1)  argument_error("Missing --runtime value.");
             compiler_options.runtime = argv[++i];
         }
         else {
             if(!arg.ends_with(".s")) argument_error("Compiled files can only end in .s but given: "+arg);
-            if(compiler_options.source.size()) argument_error("Can only compile one source");
+            if(compiler_options.source.size()) argument_error("Can only compile one source.");
             compiler_options.source = arg;
         }
     }
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
         main_module->import();
         auto it = main_module->unions.find(get_token_id("main"));
         if(it==main_module->unions.end()) 
-            error_handler.error("Build error", "No main function");
+            error_handler.error("Build error", "No main function in this file.");
 
         // for(auto func : it->second->functions)
         //     std::cout << func->export_service();
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
         else if(compiler_options.task=="transpile") {
             auto out_name = compiler_options.source.substr(0, compiler_options.source.size() - 2) + ".c";
             auto out = std::ofstream{out_name};
-            if(!out) error_handler.error("Build error", ("Failed to open: " + out_name).c_str());
+            if(!out) error_handler.error("Build error", ("Failed to open file: " + out_name).c_str());
             out << transpiled.str();
             out.close();
             std::cout << "Created: " << out_name << "\n";

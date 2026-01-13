@@ -154,11 +154,42 @@ std::vector<UnresolvedArg> Module::_gather_arguments(Importer& importer, const s
 }
 
 
+
+void Module::parse_expression_for_arguments(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next) {
+    auto saved_arguments = std::vector<std::vector<Token>>{};
+    auto saved_candidates = std::vector<std::vector<Function*>>{};
+    for(size_t i=0;i<variations.size();++i) {
+        auto& variation = variations[i];
+        variation.returned.clear();
+        saved_arguments.emplace_back();
+        saved_candidates.emplace_back();
+        saved_arguments[i].reserve(variation.arguments.size());
+        saved_candidates[i].reserve(variation.candidates.size());
+        for(auto arg : variation.arguments)
+            saved_arguments[i].emplace_back(arg);
+        for(auto func : variation.candidates)
+            saved_candidates[i].emplace_back(func);
+        variation.arguments.clear();
+        variation.candidates.clear();
+    }
+    parse_expression(importer, variations, next);
+    for(size_t i=0;i<variations.size();++i) {
+        auto& variation = variations[i];
+        variation.arguments.clear();
+        variation.candidates.clear();
+        for(auto arg : saved_arguments[i])
+            variation.arguments.emplace_back(arg);
+        for(auto func : saved_candidates[i])
+            variation.candidates.insert(func);
+    }
+}
+
+
 void Module::parse_expression(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next) {
     // handle redundant parentheses
     if(next=="(") {
         parse_expression(importer, variations, importer.next());
-        if(importer.next()!=")") importer.syntax_error("Needed to close the expression's opening parenthesis here");
+        if(importer.next()!=")") importer.syntax_error("Needed to close an opened parenthesis here.");
         return;
     }
     // handle inline directives
@@ -172,7 +203,8 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                     variation.returned.emplace_back(arg);
             }
         }
-        else importer.syntax_error("Within expression you are only allowed to use the @dynamic, @mut, and @args directives");
+        else importer.syntax_error("Within expression you are only allowed to use the @dynamic, @mut, and @args directives.");
+        return;
     }
     // handle return statements
     if(next=="return") {
@@ -191,7 +223,7 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                         f->info.returns.emplace_back(var);
                     else {
                         if(variation.counter>=f->info.returns.size()) 
-                            importer.type_error("Returned different type than the first one");
+                            importer.type_error("Returned different type than the first one.");
                         auto prev = f->info.returns[variation.counter];
                         auto temp_var = temporaries.contains(var);
                         auto temp_prev = temporaries.contains(prev);
@@ -205,7 +237,7 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                             if(it1==f->vars.end() || it2==f->vars.end() 
                                 || it1->second.type!=it2->second.type
                                 || it1->second.is_buffer!=it2->second.is_buffer) 
-                                importer.type_error("This mismatches a previous return");
+                                importer.type_error("This mismatches a previous return.");
                             f->token(prev);
                             f->token("=");
                             f->token(var);
@@ -213,7 +245,7 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                             f->token("\n");
                         }
                         if(temp_prev)
-                            importer.format_error("Cannot return an explicit name when the first time you returned an anonymous object here");
+                            importer.format_error("Cannot return an explicit name when the first time you returned an anonymous object here.");
                     }
                     ++variation.counter;
                 }
@@ -227,8 +259,11 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
     }
 
     // parse numbers
-    auto next_as_string = std::string{next};
-    auto next_id = get_token_id(next_as_string);
+    const auto next_as_string = std::string{next};
+    if(next_as_string.size() && is_delim(next_as_string[0]))
+        return; //  TODO: find why this works but the error does not
+        //importer.syntax_error("Unexpected symbol at the expression starting here. The previous expression has already ended.");
+    const auto next_id = get_token_id(next_as_string);
     unsigned long long parsed_unsigned;
     double parsed_double;
     if(is_unsigned_long_long(next_as_string, parsed_unsigned)) {
@@ -288,32 +323,7 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                 variation.arguments.clear();
             next = importer.next();
             while(next!=")") {
-                auto saved_arguments = std::vector<std::vector<Token>>{};
-                auto saved_candidates = std::vector<std::vector<Function*>>{};
-                for(size_t i=0;i<variations.size();++i) {
-                    auto& variation = variations[i];
-                    variation.returned.clear();
-                    saved_arguments.emplace_back();
-                    saved_candidates.emplace_back();
-                    saved_arguments[i].reserve(variation.arguments.size());
-                    saved_candidates[i].reserve(variation.candidates.size());
-                    for(auto arg : variation.arguments)
-                        saved_arguments[i].emplace_back(arg);
-                    for(auto func : variation.candidates)
-                        saved_candidates[i].emplace_back(func);
-                    variation.arguments.clear();
-                    variation.candidates.clear();
-                }
-                parse_expression(importer, variations, next);
-                for(size_t i=0;i<variations.size();++i) {
-                    auto& variation = variations[i];
-                    variation.arguments.clear();
-                    variation.candidates.clear();
-                    for(auto arg : saved_arguments[i])
-                        variation.arguments.emplace_back(arg);
-                    for(auto func : saved_candidates[i])
-                        variation.candidates.insert(func);
-                }
+                parse_expression_for_arguments(importer, variations, next);
                 // add all new arguments to the variation, but also remove incompatible candidates immediately
                 for(auto& variation : variations) 
                     for(auto& arg : variation.returned) {
@@ -356,7 +366,7 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                 if(next!=",") break;
                 next = importer.next();
             }
-            if(next!=")") importer.syntax_error("Missing closing parenthesis after function call - maybe an argument expression ended prematurely");
+            if(next!=")") importer.syntax_error("Missing closing parenthesis after function call. maybe an argument expression ended prematurely.");
         }
         for(auto& variation : variations) {
             Function* selected = nullptr;
@@ -364,7 +374,7 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
             for(auto candidate : variation.candidates) {
                 if(candidate->info.args.size()==variation.arguments.size()) {
                     if(selected) 
-                        importer.type_error("More than one candidates");
+                        importer.type_error("More than one candidates.");
                     selected = candidate;
                 }
             }
@@ -387,7 +397,65 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
         return;
     }
 
-    // check if the current expression is just a variable
+    // handle assignment (peek at next symbol and rollback)
+    next = importer.next();
+    if(next=="=") {
+        for(auto& variation : variations)  
+            variation.arguments.clear();
+        next = importer.next();
+        // gather arguments
+        while(true) {
+            parse_expression_for_arguments(importer, variations, next);
+            for(auto& variation : variations) {
+                if(variation.returned.empty())
+                    importer.type_error("The right side of the assignment evaluates to an empty type. It can therefore NOT be assigned to a variable");
+                for(auto ret : variation.returned)
+                    variation.arguments.emplace_back(ret);
+            }
+            next = importer.next();
+            if(next!=",") 
+                break;
+            next = importer.next();
+        }
+        importer.rollback_token();
+        // gather
+        for(auto& variation : variations) {
+            auto f = variation.function;
+            auto it_collection = f->collections.find(next_id);
+            if(it_collection!=f->collections.end()) {
+                if(it_collection->second.size()!=variation.arguments.size())
+                    importer.type_error("Cannot assign to incompatible variable.");
+                // type checking in implemented in the next `for` for clarity
+            } 
+            for(size_t i=0;i<variation.arguments.size();++i) {
+                auto& ret = variation.arguments[i];
+                auto new_name = next_as_string+"__"+id2token[ret];
+                auto new_name_id = get_token_id(new_name);
+                if(it_collection==f->collections.end()) 
+                    f->collections[next_id].emplace_back(new_name_id);
+                else
+                    new_name_id = f->collections[next_id][i];
+                auto rhs = f->vars.find(ret);
+                if(rhs==f->vars.end())
+                    importer.internal_error("Right side of the assignment contains a value that does not exist.");
+                auto& a = rhs->second;
+                auto it = f->vars.find(new_name_id);
+                if(it==f->vars.end())
+                    f->var(importer, new_name_id, a.type, a.is_mut, a.is_buffer);
+                f->token(new_name_id);
+                f->token("=");
+                f->token(a.name);
+                f->token(";");
+                f->token("\n");
+            }
+        }
+        return;
+    }
+
+
+    importer.rollback_token(); // because we tried to peek at next symbol (e.g. to check for assignment with "=")
+    // check if the current expression is just a variable and return that
+    // in this case we need every variation to have the variable
     auto count_is_variable = size_t{0};
     for(auto& variation : variations) {
         auto f = variation.function;
@@ -404,25 +472,8 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
         }
         ++count_is_variable;
     }
-    if(count_is_variable && count_is_variable!=variations.size()) importer.internal_error("This variable is missing in at least one variation");
-    // if(count_is_variable) {
-    //     next = importer.next();
-    //     if(next==".") {}
-    //     else if(next=="<") {}
-    //     else if(next==">") {}
-    //     else if(next=="<=") {}
-    //     else if(next==">=") {}
-    //     else if(next=="+") {}
-    //     else if(next=="-") {}
-    //     else if(next=="*") {}
-    //     else if(next=="/") {}
-    //     else if(next=="==") {}
-    //     else if(next=="!=") {}
-    //     else {
-    //         importer.rollback_token();
-    //     }
-    //     return;
-    // }
+    if(count_is_variable && count_is_variable!=variations.size()) 
+        importer.internal_error("This variable is missing in at least one variation.");
 }
 
 void SpecializedFunction::print_debug() const {

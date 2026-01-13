@@ -1,6 +1,10 @@
 @include std.core.num
 
 service main()
-    x = add(f64(1),f64(2))
-    print(x)
+    x = f64(1)
+    args = x,f64(2)
+    args = f64(3),f64(3)
+    //print(args.x)
+    foo = add(args)
+    print(foo)
     print(f64(1))

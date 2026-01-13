@@ -86,6 +86,7 @@ class Module {
     std::vector<UnresolvedArg> _gather_arguments(Importer& importer, const std::string& name, bool& set_as_nominal);
     // returned value inside variations, next is not const to use as temporary storage inside
     void parse_expression(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next); 
+    void parse_expression_for_arguments(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next);
 public:
     std::unordered_map<Token, Union*> unions;
     Module(Token source) : source(source), unsafe(false), count_errors(0) {

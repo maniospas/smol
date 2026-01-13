@@ -177,7 +177,8 @@ void Module::import_function(Importer& importer, bool is_service) {
                 for(auto& variation : variations) 
                     variation.function->token(get_token_id("\n"));
             }
-            else importer.syntax_error("This kind of directive is not valid within function definitions");
+            else 
+                importer.syntax_error("This kind of directive is not valid within function definitions");
         }
         else parse_expression(importer, variations, next);
         

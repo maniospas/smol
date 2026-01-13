@@ -86,7 +86,7 @@ void Module::import() {
                         next = importer.next();
                     }
                     if(!is_string(next))
-                        importer.syntax_error("About directives must be followed by a string description");
+                        importer.syntax_error("About directives must be followed by a string description.");
                     while(is_string(next)) {
                         if(name.empty()) description += std::string_view{next.data()+1, next.size()-2};
                         else function_descriptions[get_token_id(name)] += std::string_view{next.data()+1, next.size()-2};
@@ -106,12 +106,12 @@ void Module::import() {
                 auto name = get_token_id(std::string{importer.next()});
                 auto it = unions.find(name);
                 //if(it!=unions.end()) importer.type_error("This type already exists and cannot be set as a union");
-                if(importer.next()!="=") importer.syntax_error("Union names must be followed by = to be assigned a value");
+                if(importer.next()!="=") importer.syntax_error("Union names must be followed by = to be assigned a value.");
                 Union* base_union = (it!=unions.end())?it->second:(unions[name] = new Union(name));
                 while(true) {
                     name = get_token_id(std::string{importer.next()});
                     it = unions.find(name);
-                    if(it==unions.end()) importer.type_error("This type does not exist or is not visible here");
+                    if(it==unions.end()) importer.type_error("This type does not exist or is not visible here.");
                     base_union->add_all(it->second);
                     if(importer.next()!="or") {
                         importer.rollback_token();
