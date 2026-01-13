@@ -138,12 +138,6 @@
 
 union Number = u64 or f64 or i64
 def ok()
-// def int(i64 x) 
-//     return x
-// def float(f64 x)
-//     return x
-// def size(u64 x)
-//     return x
 
 def print(@access f64 message)
     @c_head{#include <stdio.h>}

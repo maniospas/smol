@@ -58,13 +58,16 @@ public:
     std::unordered_map<Token, Function*> poly;
 
     Function* helper_function; // used by the parser when a different type needs to be stored per variation
-    std::vector<Token> returned;
+    std::vector<Token> returned; // used when needing to return tuples
+    size_t counter; // used by various temporary counters
+    std::unordered_set<Function*> candidates; // used during polymorphic type resolution
+    std::vector<Token> arguments; // used when accumulating `returned` as arguments in polymorphic type resolution
 
     SpecializedFunction(Function* function, Module* base_module) 
-        : function(function), base_module(base_module), helper_function(nullptr) {}
+        : function(function), base_module(base_module), helper_function(nullptr), counter(0) {}
     SpecializedFunction(Function* function, 
         const SpecializedFunction& prototype, Token specialize_name, Function* specialize_function
-    ) : function(function), base_module(prototype.base_module), helper_function(nullptr) {
+    ) : function(function), base_module(prototype.base_module), helper_function(nullptr), counter(0) {
         for(auto [name, fun] : prototype.poly)
             poly[name] = fun;
         if(specialize_function) poly[specialize_name] = specialize_function;

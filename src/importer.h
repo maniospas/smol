@@ -20,7 +20,7 @@ class Importer {
     const std::string_view _next_token();
     bool next_line() {
         if(!line && !column && !file.is_open()) {
-            error("Broken import", "The file does not exist");
+            error("Build error", "This file does not exist");
             return false;
         }
         if(!std::getline(file, current_line)) 
@@ -32,23 +32,16 @@ class Importer {
         return true;
     }
 public:
-    Importer(const std::string& path): file(path), line(0), column(0), current_line(""), path(path), _has_changed_line(false) {}
+    inline bool is_open() const {return file.is_open();}
+    Importer(const std::string& path): file(path), line(0), column(0), current_line(""), path(path), _has_changed_line(false), start(0), end(0) {}
     ~Importer() = default;
     inline size_t get_token_start() const {
         return start;
     }
-    const std::string_view next() {
-        _has_changed_line = false;
-        auto ret = _next_token();
-        while(ret.empty()) {
-            if(!next_line()) return ret;
-            ret = _next_token();
-            _has_changed_line = true;
-        }
-        return ret;
-    }
-    bool has_changed_line() const {return _has_changed_line;}
+    inline bool has_changed_line() const {return _has_changed_line;}
     void rollback_token();
+    void invalidate_state_for_file_errors();
+    const std::string_view next();
     inline void error(const char* message, const char* description) const {error(message, description, ansi::yellow);}
     inline void format_error(const char* description) const {error("Format error", description, ansi::green);}
     inline void syntax_error(const char* description) const {error("Syntax error", description, ansi::yellow);}

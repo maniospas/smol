@@ -66,12 +66,17 @@ std::string Function::export_signature() const {
 }
 
 std::string Function::export_inits(const std::string& prefix) const {
+    auto ret = std::string{""};
     auto vars = this->vars;
     for(auto arg : info.args) {
         auto it = vars.find(arg);
         if(it!=vars.end()) it->second.name = 0;
     }
-    auto ret = std::string{""};
+    for(const auto& constant : used_constants) {
+        ret += id2token[constant]+"="+code2constant[constant]+";\n";
+        auto it = vars.find(constant);
+        if(it!=vars.end()) it->second.name = 0;
+    }
     for(const auto& [token, var] : vars) {
         if(!var.name) continue;
         if(var.type->info.is_primitive) ret += var.type->export_body()+" "+prefix+id2token[token]+"=0;\n";

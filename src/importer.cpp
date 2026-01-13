@@ -36,6 +36,17 @@ static size_t parse_integer_suffix(std::string_view line, size_t i) {
     return i;
 }
 
+const std::string_view Importer::next() {
+    _has_changed_line = false;
+    auto ret = _next_token();
+    while(ret.empty()) {
+        if(!next_line()) return ret;
+        ret = _next_token();
+        _has_changed_line = true;
+    }
+    return ret;
+}
+
 void Importer::rollback_token() {
     column = start;
 }
@@ -79,6 +90,8 @@ const std::string_view Importer::_next_token() {
         }
         if(column < n) ++column;
         end = column;
+        if(end > current_line.size()) end = current_line.size();
+        if(end<=start) return {};
         return { current_line.data() + start, end - start };
     }
 
@@ -124,6 +137,7 @@ const std::string_view Importer::_next_token() {
 
         i = parse_integer_suffix(current_line, i);
         column = end = i;
+        if(end<=start) return {};
         return { current_line.data() + start, end - start };
     }
 
@@ -172,11 +186,27 @@ const std::string_view Importer::_next_token() {
     return std::string_view(current_line.data()+start, end - start);
 }
 
+void Importer::invalidate_state_for_file_errors() {
+    current_line = "";
+    line = 0;
+    start = end = 0;
+}
+
 void Importer::error(const char* message, const char* description, const char* color) const {
-    const auto caret = std::string(start, ' ') + std::string(end-start, '^');
-    const auto header_text = std::string(" ")+message+" ";
+    auto start = this->start;
+    auto end = this->end;
     const auto description_text = std::string(description);
+    if(start>=description_text.size()) {
+        start = end = 0;
+        //std::cout << "IMPORTER STATE IS BROKEN\n";
+    }
+    const auto header_text = std::string(" ")+message+" ";
     const auto location = (current_line.size() || line || column)?"at " + path + " line " + std::to_string(line):path;
+    auto caret = std::string{""};
+    if(start)
+        caret += std::string(start, ' ');
+    if(end>start)
+        caret += std::string(end-start, '^');
     auto content_width = std::max({
         header_text.size(),
         description_text.size(),
@@ -196,11 +226,16 @@ void Importer::error(const char* message, const char* description, const char* c
     auto right_pad = content_width - header_text.size();
     std::cout << color << "╭" << repeat("─", left_pad) << header_text << repeat("─", right_pad) << "╮\n";
     auto line_box = [&](const std::string& s, const char* text_color) {
-        std::cout << color << "│ " << text_color << s << std::string(content_width - s.size(), ' ') << color << " │\n";
+        std::cout << color << "│ " << text_color << s;
+        if(content_width>s.size())
+            std::cout << std::string(content_width - s.size(), ' ');
+        std::cout << color << " │\n";
     };
     line_box(location, ansi::gray);
-    if(current_line.size()) line_box(current_line, ansi::gray);
-    if(current_line.size()) line_box(caret, ansi::red);
+    if(current_line.size()) {
+        line_box(current_line, ansi::gray);
+        line_box(caret, ansi::red);
+    }
     line_box(description_text, ansi::reset);
     std::cout << color << "╰" << repeat("─", content_width + 2) << "╯" << ansi::reset << "\n";
     throw std::runtime_error(message);
