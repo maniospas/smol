@@ -28,7 +28,8 @@ void Function::bring_in(const Importer& importer, Function * other, Token prefix
                 || it1->second.is_buffer!=it2->second.is_buffer)
                 importer.type_error("This has a different type than previous variable with the same name");
             auto newname = id2token[prefix]+"__"+id2token[it2->first];
-            if(newname!=id2token[it1->first])
+            auto newname_id = get_token_id(newname);
+            if(newname_id!=it1->first)
                 importer.type_error("This has a different type than previous variable with the same name");
         }
     }
@@ -43,7 +44,17 @@ void Function::bring_in(const Importer& importer, Function * other, Token prefix
         }
         for(const auto& [name, a] : other->vars) {
             auto newname = id2token[prefix]+"__"+id2token[a.name];
-            var(importer, get_token_id(newname), a.type, a.is_mut, a.is_buffer);
+            auto newname_id = get_token_id(newname);
+            if(other->used_constants.contains(a.name)) {
+                token(newname_id);
+                token("=");
+                token(a.name);
+                token(";");
+                token("\n");
+                if(!used_constants.contains(a.name))
+                    var(importer, a.name, a.type, a.is_mut, a.is_buffer);
+            }
+            var(importer, newname_id, a.type, a.is_mut, a.is_buffer);
         }
     }
 
@@ -52,6 +63,12 @@ void Function::bring_in(const Importer& importer, Function * other, Token prefix
     for(const auto& token : other->header)
         header.emplace_back(token);
 
+    // merge constants and failure codes
+    for(auto token : other->used_failure_codes)
+        used_failure_codes.insert(token);
+    for(auto token : other->used_constants)
+        used_constants.insert(token);
+
     // bring in body while renaming
     body.reserve(body.size()+other->body.size());
     for(const auto& token : other->body) {
@@ -59,12 +76,6 @@ void Function::bring_in(const Importer& importer, Function * other, Token prefix
         if(it==other->vars.end()) body.emplace_back(token);
         else body.emplace_back(get_token_id(id2token[prefix]+"__"+id2token[token]));
     }
-
-    // merge constants and failure codes
-    for(auto token : other->used_failure_codes)
-        used_failure_codes.insert(token);
-    for(auto token : other->used_constants)
-        used_constants.insert(token);
 }
 
 std::string Function::export_signature() const {

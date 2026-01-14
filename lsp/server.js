@@ -559,42 +559,57 @@ function runCompilerAndSendDiagnostics(document) {
     let stderr = "";
     proc.stderr.on("data", chunk => { stderr += chunk.toString(); });
     proc.on("close", () => {
-      const lines = stderr.split(/\r?\n/);
       const diagnostics = [];
       const diagnostics_no_text = [];
-      let messageLines = [];
-      for (let i = 0; i < lines.length; i++) {
-        const line = stripAnsi(lines[i]);
-        if (line.startsWith("at")) {
-          const locMatch = line.match(/^at\s+(.*)\s+line\s+(\d+)\s+col\s+(\d+)/);
-          if (!locMatch) continue;
-          const [, filePath, lineStr, colStr] = locMatch;
-          if (!filePath.includes(tempFilePath)) {
-            messageLines = []; // clear collected message lines
-            continue; // skip to next line
-          }
-          const lineNum = parseInt(lineStr, 10) - 1;
-          const colNum = parseInt(colStr, 10) - 1;
-          const caretLine = lines[i + 2] || "";
-          const caretMatch = caretLine.match(/\^+/);
-          const tokenLength = caretMatch ? caretMatch[0].length : 1;
-          const message = messageLines.slice(1).join("\n\n") || "";
+      const clean = stripAnsi(stderr);
+      const blocks = clean.split(/\n---\n/);
+      for (const block of blocks) {
+        if (!block.trim()) continue;
+        const lines = block.split(/\r?\n/).map(l => l.trim());
+        const kind = lines.find(l => l.length > 0) || "Error";
+        let file = null;
+        let lineNum = null;
+        let startCol = null;
+        let endCol = null;
+        const messageLines = [];
+        for(let i = 0; i < lines.length; i++) {
+          const l = lines[i];
+          if(l.startsWith("|file ")) 
+            file = l.slice(5).trim();
+          else if(l.startsWith("|line ")) 
+            lineNum = parseInt(l.slice(5).trim(), 10) - 1;
+          else if(l.startsWith("|start ")) 
+            startCol = parseInt(l.slice(6).trim(), 10) - 1;
+          else if(l.startsWith("|end ")) 
+            endCol = parseInt(l.slice(4).trim(), 10) - 1;
+          else if(l !== kind) 
+            messageLines.push(l);
+        }
+        if(file && file.includes(tempFilePath) && lineNum != null && startCol != null) {
+          if (endCol == null || endCol <= startCol) 
+            endCol = startCol + 1;
+          const message = messageLines.join("\n");
           diagnostics.push({
             severity: 1,
-            range: { start: { line: lineNum, character: colNum }, end: { line: lineNum, character: colNum + tokenLength } },
+            range: {
+              start: { line: lineNum, character: startCol },
+              end: { line: lineNum, character: endCol }
+            },
             message: message,
             source: "smol"
           });
           diagnostics_no_text.push({
             severity: 1,
-            range: { start: { line: lineNum, character: colNum }, end: { line: lineNum, character: colNum + tokenLength } },
-            message: "ERROR - " + messageLines[0],
+            range: {
+              start: { line: lineNum, character: startCol },
+              end: { line: lineNum, character: endCol }
+            },
+            message: kind,
             source: "smol"
           });
-          messageLines = [];
-          i += 2;
-        } else messageLines.push(line);
+        }
       }
+
       try { fs.unlinkSync(tempFilePath); }
       catch (e) { console.error("Failed to remove temp file:", tempFilePath); }
       connection.sendDiagnostics({ uri, diagnostics: diagnostics_no_text });

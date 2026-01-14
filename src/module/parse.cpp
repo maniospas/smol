@@ -9,8 +9,13 @@ std::unordered_map<std::string, Token> failure2code;
 std::unordered_map<Token, std::string> code2failure;
 std::unordered_map<std::string, Token> constant2code;
 std::unordered_map<Token, std::string> code2constant;
-std::unordered_set<Token> temporaries;
 int temp_vars = 0;
+
+bool is_temp(Token token) {
+    const std::string& name = id2token[token];
+    if(name.size()<5) return false;
+    return name[0]=='_' && name[1]=='_' && name[2]=='t' && name[3]=='m' && name[4]=='p';
+}
 
 bool is_unsigned_long_long(const std::string& s, unsigned long long& value) {
     if(s.empty()) return false;
@@ -30,7 +35,6 @@ Token create_temp() {
     std::string ret = "__tmp"+std::to_string(temp_vars);
     temp_vars++;
     auto ret_id = get_token_id(ret);
-    temporaries.insert(ret_id);
     return ret_id;
 }
 
@@ -184,6 +188,25 @@ void Module::parse_expression_for_arguments(Importer& importer, std::vector<Spec
     }
 }
 
+void Module::parse_code_block(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next) {
+    auto indentation = importer.get_token_start();
+    while(!next.empty()) {
+        if(!importer.has_changed_line())
+            importer.format_error("This expression is unrelated to the previous one. It should start in a new line.");
+        else {
+            // keep this otherwise useless else statement in case we want to skip the previous format error
+            auto line_indentation = importer.get_token_start();
+            if(line_indentation>indentation)
+                importer.format_error("This expression should not be further indented than the previous one in the same code block.");
+            if(line_indentation<indentation) {
+                importer.rollback_token();
+                return;
+            }
+        }
+        parse_expression(importer, variations, next);
+        next = importer.next();
+    }
+}
 
 void Module::parse_expression(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next) {
     // handle redundant parentheses
@@ -206,7 +229,53 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
         else importer.syntax_error("Within expression you are only allowed to use the @dynamic, @mut, and @args directives.");
         return;
     }
+    if(next=="if") {
+        if(!importer.has_changed_line())
+            importer.syntax_error("If statements should start at the beginning of each line.");
+        auto indentation = importer.get_token_start();
+        parse_expression(importer, variations, importer.next());
+        for(auto& variation : variations) {
+            auto f = variation.function;
+            if(variation.returned.size()!=1)
+                importer.syntax_error("This condition is not a bool primitive.");
+            auto it = f->vars.find(variation.returned[0]);
+            if(it==f->vars.end())
+                importer.internal_error("This condition does not evaluate to a variable.");
+            if(!it->second.type 
+                || !it->second.type->info.is_primitive 
+                || it->second.type->info.custom_name!=get_token_id("bool"))
+                importer.syntax_error("This condition is not a bool primitive.");
+            f->token("if");
+            f->token("(");
+            f->token(variation.returned[0]);
+            f->token(")");
+            f->token("{");
+            f->token("\n");
+        }
+        next = importer.next();
+        if(!importer.has_changed_line())// && next!="return" && next!="fail")
+            importer.syntax_error("The body of if statements should start in a new line, unless it contains only return or fail.");
+        auto block_indentation = importer.get_token_start();
+        if(block_indentation<=indentation)
+            importer.syntax_error("The body of if statements should be indented further in.");
+        parse_code_block(importer, variations, next);
+        for(auto& variation : variations) {
+            variation.function->token("}");
+            variation.function->token("\n");
+            variation.returned.clear();
+        }
+        return;
+    }
     // handle return statements
+    if(next=="fail") {
+        next = importer.next();
+        if(!is_string(next)) importer.type_error("Expecting a string literal for failure");
+        for(auto& variation : variations) {
+            auto message = std::string{next};
+            variation.function->call_failure(message.c_str());
+        }
+        return;
+    }
     if(next=="return") {
         for(auto& variation : variations) 
             variation.counter = 0;
@@ -225,8 +294,8 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                         if(variation.counter>=f->info.returns.size()) 
                             importer.type_error("Returned different type than the first one.");
                         auto prev = f->info.returns[variation.counter];
-                        auto temp_var = temporaries.contains(var);
-                        auto temp_prev = temporaries.contains(prev);
+                        auto temp_var = is_temp(var);
+                        auto temp_prev = is_temp(prev);
                         if(f->info.returns[variation.counter]!=var 
                             && !temp_var
                             && !temp_prev)
@@ -252,8 +321,10 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
             }
             if(importer.next()!=",") break;
         }
-        for(auto& variation : variations)
+        for(auto& variation : variations) {
             variation.function->has_returned = true;
+            variation.returned.clear();
+        }
         importer.rollback_token(); // rollback our attempt to get the last comma
         return;
     }
@@ -293,14 +364,15 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
     auto count_is_call = size_t{0};
     for(auto& variation : variations) {
         variation.candidates.clear();
-        auto it = variation.poly.find(next_id);
+        //auto it = variation.poly.find(next_id);
         bool is_call = false;
-        if(it!=variation.poly.end()) {
-            variation.candidates.insert(it->second);
-            is_call = true;
-        }
-        // base_module is `this` but leaving it this way in case we move the code
-        else {
+        // if(it!=variation.poly.end()) {
+        //     variation.candidates.insert(it->second);
+        //     is_call = true;
+        // }
+        // // base_module is `this` but leaving it this way in case we move the code
+        //else 
+        {
             auto ut = variation.base_module->unions.find(next_id);
             if(ut!=variation.base_module->unions.end()) {
                 for(auto func : ut->second->functions)
@@ -366,7 +438,7 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                 if(next!=",") break;
                 next = importer.next();
             }
-            if(next!=")") importer.syntax_error("Missing closing parenthesis after function call. maybe an argument expression ended prematurely.");
+            if(next!=")") importer.syntax_error("Missing closing parenthesis of function call. Perhaps an argument's expression ended prematurely.");
         }
         for(auto& variation : variations) {
             Function* selected = nullptr;
@@ -408,7 +480,7 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
             parse_expression_for_arguments(importer, variations, next);
             for(auto& variation : variations) {
                 if(variation.returned.empty())
-                    importer.type_error("The right side of the assignment evaluates to an empty type. It can therefore NOT be assigned to a variable");
+                    importer.type_error("The right side of the assignment evaluates to an empty type.");
                 for(auto ret : variation.returned)
                     variation.arguments.emplace_back(ret);
             }
@@ -473,7 +545,9 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
         ++count_is_variable;
     }
     if(count_is_variable && count_is_variable!=variations.size()) 
-        importer.internal_error("This variable is missing in at least one variation.");
+        importer.syntax_error("This variable is missing.");
+    if(!count_is_variable) 
+        importer.syntax_error("This variable is missing.");
 }
 
 void SpecializedFunction::print_debug() const {

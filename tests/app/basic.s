@@ -1,10 +1,10 @@
 @include std.core.num
 
+def test(f64 x)
+    sign = 0.0
+    if le(x,1.0) 
+        return 1.0
+    return sign
+
 service main()
-    x = f64(1)
-    args = x,f64(2)
-    args = f64(3),f64(3)
-    //print(args.x)
-    foo = add(args)
-    print(foo)
-    print(f64(1))
+    print(test(1.0))

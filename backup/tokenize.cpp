@@ -177,14 +177,14 @@ shared_ptr<Import> tokenize(const string& path) {
             tokens.emplace_back(line, line_num, 1, main_file);
             main_file->error(
                 tokens.size() ? tokens.size()-1 : 0,
-                "Indentation expects tabs or multiples of 4 spaces (switch to `@serial` mode to allow this syntax)"
+                "Indentation expects tabs or multiples of 4 spaces Switch to `@serial` mode to allow this syntax."
             );
         }
         if (main_file->indentation_mode && indent>prev_indent+4) {
             tokens.emplace_back(line, line_num, 1, main_file);
             main_file->error(
                 tokens.size() ? tokens.size()-1 : 0,
-                "Cannot indent more than 4 spaces or a tab deeper than the previous line"
+                "Cannot indent more than 4 spaces or a tab deeper than the previous expression."
             );
         }
         if(main_file->indentation_mode && !in_parentheses && !in_brackets && indent <= last_nonempty_indent) {

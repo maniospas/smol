@@ -16,6 +16,13 @@ int main(int argc, char* argv[]) {
         if(arg=="--task") {
             if(i>=argc-1)  argument_error("Missing --task value.");
             compiler_options.task = argv[++i];
+            if(compiler_options.task!="compile"
+                && compiler_options.task!="run" 
+                && compiler_options.task!="verify"
+                && compiler_options.task!="lsp"
+                && compiler_options.task!="transpile"
+                && compiler_options.task!="assemble"
+                ) argument_error("Invalid --task value: "+compiler_options.task);
         }
         else if(arg=="--link") {
             if(i>=argc-1)  argument_error("Missing --link value.");
@@ -42,6 +49,13 @@ int main(int argc, char* argv[]) {
         compiler_options.runtime = "auto";
     if(compiler_options.task.empty()) 
         compiler_options.task = "run";
+    else if(compiler_options.task=="lsp") {
+        compiler_options.task = "verify";
+        compiler_options.lsp = true;
+    }
+    else 
+        compiler_options.lsp = false;
+
 
     int return_code = 0;
     auto error_handler = Importer(compiler_options.source);
@@ -49,16 +63,14 @@ int main(int argc, char* argv[]) {
     try {
         Module* main_module = new Module(get_token_id(compiler_options.source));
         main_module->import();
-        auto it = main_module->unions.find(get_token_id("main"));
-        if(it==main_module->unions.end()) 
-            error_handler.error("Build error", "No main function in this file.");
-
-        // for(auto func : it->second->functions)
-        //     std::cout << func->export_service();
         auto transpiled = std::ostringstream{};
-        for(auto func : it->second->functions)
-            transpiled << func->export_service();
-
+        if(compiler_options.task!="verify") {
+            auto it = main_module->unions.find(get_token_id("main"));
+            if(it==main_module->unions.end()) 
+                error_handler.error("Build error", "No main function in this file.");
+            for(auto func : it->second->functions)
+                transpiled << func->export_service();
+        }
         if(compiler_options.task=="compile")
             return_code = compile_from_string(error_handler, transpiled.str(), "-O2", "");
         else if(compiler_options.task=="run") {

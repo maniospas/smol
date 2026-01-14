@@ -27,18 +27,35 @@ static size_t parse_integer_suffix(std::string_view line, size_t i) {
 }
 
 const std::string_view Importer::next() {
-    _has_changed_line = false;
+    // snapshot full state
+    prev_line = line;
+    prev_column = column;
+    prev_start = start;
+    prev_end = end;
+    prev_current_line = current_line;
+
     auto ret = _next_token();
     while(ret.empty()) {
         if(!next_line()) return ret;
+        // snapshot again after line advance
+        prev_line = line;
+        prev_column = column;
+        prev_start = start;
+        prev_end = end;
+        prev_current_line = current_line;
         ret = _next_token();
-        _has_changed_line = true;
+        line_start = start;
     }
     return ret;
 }
 
 void Importer::rollback_token() {
-    column = start;
+    // not to be used excessively
+    line = prev_line;
+    column = prev_column;
+    start = prev_start;
+    end = prev_end;
+    current_line = prev_current_line;
 }
 
 const std::string_view Importer::_next_token() {
@@ -190,6 +207,18 @@ void Importer::error(const char* message, const char* description, const char* c
         start = end = 0;
         //std::cout << "IMPORTER STATE IS BROKEN\n";
     }
+
+    if(compiler_options.lsp) {
+        std::cerr << "---\n";
+        std::cerr << message << "\n";
+        std::cerr << description << "\n";
+        std::cerr << "|file "<< path << "\n";
+        std::cerr << "|line "<< line << "\n";
+        std::cerr << "|start "<< start+1 << "\n";
+        std::cerr << "|end "<< end+1 << "\n";
+        throw std::runtime_error(message);
+    }
+
     const auto header_text = std::string(" ")+message+" ";
     const auto location = (current_line.size() || line || column)?"at " + path + " line " + std::to_string(line):path;
     auto caret = std::string{""};

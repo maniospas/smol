@@ -25,6 +25,7 @@ public:
     std::string runtime;
     std::string linker;
     std::string task;
+    bool lsp;
     Options() = default;
 };
 

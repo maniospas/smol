@@ -155,6 +155,10 @@ def u64(i64 x)
     @c_body{u64 z=x;}
     return z
 
+def bool(Number x)
+    @c_body{bool z=x;}
+    return z
+
 def print(@access f64 message)
     @c_head{#include <stdio.h>}
     @c_body{printf("%.6f\n", message);}
@@ -265,21 +269,21 @@ def mul(@access u64 x, u64 y)
  
 def div(@access u64 x, u64 y)
     @c_head{#include <stdio.h>}
-    if y==0 
+    if eq(y,0) 
         fail "division by zero"
     @c_body{u64 z=x/y;}
     return z
 
 def sub(@access u64 x, u64 y)
     @c_head{#include <stdio.h>}
-    if y>x 
+    if gt(y,x)
         fail "unsigned subtraction yielded a negative"
     @c_body{u64 z=x-y;}
     return z
 
 def mod(@access u64 x, u64 y) 
     @c_head{#include <stdio.h>}
-    if y==0 
+    if eq(y,0)
         fail "modulo by zero\n"
     @c_body{u64 z=x%y;} 
     return z
@@ -319,7 +323,7 @@ def add(@access i64 x, i64 y)
 
 def mod(@access i64 x, i64 y)
     @c_head{#include <stdio.h>}
-    if y<=i64(0) 
+    if le(y, i64(0)) 
         fail "modulo by non-positive"
     @c_body{i64 z=x%y;}
     return z
@@ -337,7 +341,7 @@ def mul(@access i64 x, i64 y)
 
 def div(@access i64 x, i64 y)
     @c_head{#include <stdio.h>}
-    if y==i64(0) 
+    if eq(y, i64(0))
         fail "division by zero"
     @c_body{i64 z=x/y;}
     return z

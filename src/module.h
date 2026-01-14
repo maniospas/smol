@@ -85,6 +85,7 @@ class Module {
     int count_errors;
     std::vector<UnresolvedArg> _gather_arguments(Importer& importer, const std::string& name, bool& set_as_nominal);
     // returned value inside variations, next is not const to use as temporary storage inside
+    void parse_code_block(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next);
     void parse_expression(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next); 
     void parse_expression_for_arguments(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next);
 public:
