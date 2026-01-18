@@ -561,7 +561,7 @@ function runCompilerAndSendDiagnostics(document) {
     proc.on("close", () => {
       const diagnostics = [];
       const diagnostics_no_text = [];
-      const clean = stripAnsi(stderr);
+      const clean = stripAnsi(stderr).replace(/^---\n/, ""); // only first replacement
       const blocks = clean.split(/\n---\n/);
       for (const block of blocks) {
         if (!block.trim()) continue;
@@ -571,7 +571,7 @@ function runCompilerAndSendDiagnostics(document) {
         let lineNum = null;
         let startCol = null;
         let endCol = null;
-        const messageLines = [];
+        let messageLines = [];
         for(let i = 0; i < lines.length; i++) {
           const l = lines[i];
           if(l.startsWith("|file ")) 
@@ -586,25 +586,25 @@ function runCompilerAndSendDiagnostics(document) {
             messageLines.push(l);
         }
         if(file && file.includes(tempFilePath) && lineNum != null && startCol != null) {
-          if (endCol == null || endCol <= startCol) 
+          if(endCol == null || endCol <= startCol) 
             endCol = startCol + 1;
           const message = messageLines.join("\n");
-          diagnostics.push({
-            severity: 1,
-            range: {
-              start: { line: lineNum, character: startCol },
-              end: { line: lineNum, character: endCol }
-            },
-            message: message,
-            source: "smol"
-          });
+          // diagnostics.push({
+          //   severity: 1,
+          //   range: {
+          //     start: { line: lineNum, character: startCol },
+          //     end: { line: lineNum, character: endCol }
+          //   },
+          //   message: message,
+          //   source: "smol"
+          // });
           diagnostics_no_text.push({
             severity: 1,
             range: {
               start: { line: lineNum, character: startCol },
               end: { line: lineNum, character: endCol }
             },
-            message: kind,
+            message: kind+": "+message,
             source: "smol"
           });
         }

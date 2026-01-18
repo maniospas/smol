@@ -13,8 +13,8 @@ int temp_vars = 0;
 
 bool is_temp(Token token) {
     const std::string& name = id2token[token];
-    if(name.size()<5) return false;
-    return name[0]=='_' && name[1]=='_' && name[2]=='t' && name[3]=='m' && name[4]=='p';
+    if(name.size()<3) return false;
+    return name[0]=='_' && name[1]=='_';// && name[2]=='t' && name[3]=='m' && name[4]=='p';
 }
 
 bool is_unsigned_long_long(const std::string& s, unsigned long long& value) {
@@ -30,6 +30,13 @@ bool is_double(const std::string& s, double& value) {
     auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), value, std::chars_format::general);
     return ec == std::errc{} && ptr == s.data() + s.size();
 }
+
+
+std::string pretty_var(Token token) {
+    if(is_temp(token)) return "";
+    return " "+id2token[token];
+}
+
 
 Token create_temp() {
     std::string ret = "__tmp"+std::to_string(temp_vars);
@@ -296,25 +303,31 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                         auto prev = f->info.returns[variation.counter];
                         auto temp_var = is_temp(var);
                         auto temp_prev = is_temp(prev);
-                        if(f->info.returns[variation.counter]!=var 
-                            && !temp_var
-                            && !temp_prev)
+                        if(prev!=var && !temp_var && !temp_prev)
                             importer.type_error(("Returned different name than the first time. Expected: "+id2token[prev]).c_str());
-                        if(temp_var) {
-                            auto it1 = f->vars.find(var);
-                            auto it2 = f->vars.find(prev);
-                            if(it1==f->vars.end() || it2==f->vars.end() 
-                                || it1->second.type!=it2->second.type
-                                || it1->second.is_buffer!=it2->second.is_buffer) 
-                                importer.type_error("This mismatches a previous return.");
-                            f->token(prev);
-                            f->token("=");
-                            f->token(var);
-                            f->token(";");
-                            f->token("\n");
-                        }
-                        if(temp_prev)
-                            importer.format_error("Cannot return an explicit name when the first time you returned an anonymous object here.");
+                        auto it1 = f->vars.find(var);
+                        auto it2 = f->vars.find(prev);
+                        if(it1==f->vars.end() || it2==f->vars.end())
+                            importer.internal_error("Unknown type has been returned.");
+                        
+                        if(it1->second.type!=it2->second.type || it1->second.is_buffer!=it2->second.is_buffer) {
+                            auto message = 
+                                "Expected from previous return "
+                                + id2token[it2->second.type->info.custom_name]
+                                + (it2->second.is_buffer?"[]":"")
+                                + " but got "
+                                + id2token[it1->second.type->info.custom_name]
+                                + (it1->second.is_buffer?"[]":"")
+                                + pretty_var(it1->first)
+                                + ".";
+                            importer.type_error(message.c_str());
+                        } 
+
+                        f->token(prev);
+                        f->token("=");
+                        f->token(var);
+                        f->token(";");
+                        f->token("\n");
                     }
                     ++variation.counter;
                 }
@@ -322,7 +335,12 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
             if(importer.next()!=",") break;
         }
         for(auto& variation : variations) {
-            variation.function->has_returned = true;
+            auto f = variation.function;
+            f->token("goto");
+            f->token("__return");
+            f->token(";");
+            f->token("\n");
+            f->has_returned = true;
             variation.returned.clear();
         }
         importer.rollback_token(); // rollback our attempt to get the last comma
@@ -364,19 +382,17 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
     auto count_is_call = size_t{0};
     for(auto& variation : variations) {
         variation.candidates.clear();
-        //auto it = variation.poly.find(next_id);
         bool is_call = false;
-        // if(it!=variation.poly.end()) {
-        //     variation.candidates.insert(it->second);
-        //     is_call = true;
-        // }
-        // // base_module is `this` but leaving it this way in case we move the code
-        //else 
-        {
-            auto ut = variation.base_module->unions.find(next_id);
-            if(ut!=variation.base_module->unions.end()) {
-                for(auto func : ut->second->functions)
-                    if(func) variation.candidates.insert(func);
+        auto ut = variation.base_module->unions.find(next_id);
+        if(ut!=variation.base_module->unions.end()) {
+            for(auto func : ut->second->functions)
+                if(func) variation.candidates.insert(func);
+            is_call = true;
+        }
+        else {
+            auto it = variation.poly.find(next_id);
+            if(it!=variation.poly.end()) {
+                variation.candidates.insert(it->second);
                 is_call = true;
             }
         }
@@ -524,7 +540,6 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
         return;
     }
 
-
     importer.rollback_token(); // because we tried to peek at next symbol (e.g. to check for assignment with "=")
     // check if the current expression is just a variable and return that
     // in this case we need every variation to have the variable
@@ -546,8 +561,41 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
     }
     if(count_is_variable && count_is_variable!=variations.size()) 
         importer.syntax_error("This variable is missing.");
-    if(!count_is_variable) 
-        importer.syntax_error("This variable is missing.");
+    if(!count_is_variable) {
+        //auto message = std::string{"The symbol "}+std::string{next}+" does not exist.";
+        //importer.syntax_error(message.c_str());
+        importer.syntax_error("This symbol does not exist");
+    }
+
+    // try to peek again after determining that we got a variable, so that we apply operators
+    next = importer.next();
+    if(next==".") {
+        next = importer.next();
+        auto curry = std::string{next};
+        auto field_id = get_token_id(id2token[next_id]+"__"+curry);
+        for(auto& variation : variations) {
+            auto exists = false;
+            for(auto ret : variation.returned)
+                if(ret==field_id) {
+                    exists = true;
+                    break;
+                }
+            if(!exists) {
+                auto message = "Field "+id2token[field_id]+" does not exist among:";
+                for(auto ret : variation.returned)
+                    message += " "+id2token[ret];
+                importer.type_error(message.c_str());
+            }
+            variation.returned.clear();
+            variation.returned.push_back(field_id);
+        }
+    }
+    else if(next=="+" || next=="-" || next=="*" || next=="/" || next=="<" || next==">") 
+        importer.internal_error("Operator overloading not implemented yet");
+    else
+        importer.rollback_token();
+
+
 }
 
 void SpecializedFunction::print_debug() const {

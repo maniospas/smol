@@ -70,11 +70,23 @@ void Function::bring_in(const Importer& importer, Function * other, Token prefix
         used_constants.insert(token);
 
     // bring in body while renaming
-    body.reserve(body.size()+other->body.size());
+    bool has_returned = false;
+    body.reserve(body.size()+other->body.size()+1);
     for(const auto& token : other->body) {
         auto it = other->vars.find(token);
-        if(it==other->vars.end()) body.emplace_back(token);
+        if(id2token[token].ends_with("__return")) {
+            has_returned = true;
+            body.emplace_back(get_token_id(id2token[prefix]+"__"+id2token[token]));
+        }
+        else if(it==other->vars.end()) body.emplace_back(token);
         else body.emplace_back(get_token_id(id2token[prefix]+"__"+id2token[token]));
+    }
+
+    if(has_returned) {
+        auto retlabel = id2token[prefix]+"____return";
+        token(retlabel);
+        token(":");
+        token("\n");
     }
 }
 
