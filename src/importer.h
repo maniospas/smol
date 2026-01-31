@@ -60,10 +60,13 @@ public:
     void rollback_token();
     void invalidate_state_for_file_errors();
     const std::string_view next();
+    void type_error_partial_start(const char* description) const;
+    void type_error_partial_line(const char* description) const;
+    void type_error_partial_end(const char* description) const;
     inline void error(const char* message, const char* description) const {error(message, description, ansi::yellow);}
     inline void format_error(const char* description) const {error("Format error", description, ansi::green);}
     inline void syntax_error(const char* description) const {error("Syntax error", description, ansi::yellow);}
     inline void type_error(const char* description) const {error("Type error", description, ansi::purple);}
     inline void internal_error(const char* description) const {error("Internal error (compiler bug)", description, ansi::red);}
-    void error(const char* message, const char* description, const char* color) const;
+    void error(const char* message, const char* description, const char* color, size_t partial=0) const; // partial is the line size on early stopping
 };

@@ -1,4 +1,5 @@
 #include "importer.h"
+#include <cstring>
 
 bool is_delim(char c) {
     return c == '(' || c == ')' || c == '[' || c == ']' || c == '@' 
@@ -199,7 +200,7 @@ void Importer::invalidate_state_for_file_errors() {
     start = end = 0;
 }
 
-void Importer::error(const char* message, const char* description, const char* color) const {
+void Importer::error(const char* message, const char* description, const char* color, size_t partial) const {
     auto start = this->start;
     auto end = this->end;
     const auto description_text = std::string(description);
@@ -216,6 +217,7 @@ void Importer::error(const char* message, const char* description, const char* c
         std::cerr << "|line "<< line << "\n";
         std::cerr << "|start "<< start+1 << "\n";
         std::cerr << "|end "<< end+1 << "\n";
+        if(partial) return;
         throw std::runtime_error(message);
     }
 
@@ -226,7 +228,7 @@ void Importer::error(const char* message, const char* description, const char* c
         caret += std::string(start, ' ');
     if(end>start)
         caret += std::string(end-start, '^');
-    auto content_width = std::max({
+    auto content_width = partial?partial:std::max({
         header_text.size(),
         description_text.size(),
         location.size(),
@@ -256,6 +258,41 @@ void Importer::error(const char* message, const char* description, const char* c
         line_box(caret, ansi::red);
     }
     line_box(description_text, ansi::reset);
+    if(partial) return;
     std::cout << color << "╰" << repeat("─", content_width + 2) << "╯" << ansi::reset << "\n";
+    throw std::runtime_error(message);
+}
+
+void Importer::type_error_partial_start(const char* message) const {
+    error("Type error", message, ansi::purple, 60);
+    if(compiler_options.lsp) 
+        std::cout << "\n```\n";
+}
+
+void Importer::type_error_partial_line(const char* message) const {
+    if(compiler_options.lsp) {
+        std::cout << message << "\n";
+        return;
+    }
+    auto content_width = size_t{60};
+    std::cout << ansi::purple << "│ " << ansi::reset << message;
+    if(std::strlen(message) < content_width)
+        std::cout << std::string(content_width - std::strlen(message), ' ');
+    std::cout << "\n" << ansi::reset;
+}
+
+void Importer::type_error_partial_end(const char* message) const {
+    if(compiler_options.lsp) { 
+        std::cout << "\n```\n";
+        throw std::runtime_error(message);
+    }
+    auto content_width = size_t{60};
+    auto repeat = [](const std::string& s, size_t n) {
+        std::string out;
+        out.reserve(s.size() * n);
+        for(size_t i = 0; i < n; ++i) out += s;
+        return out;
+    };
+    std::cout << ansi::purple << "╰" << repeat("─", content_width + 2) << "╯\n" << ansi::reset;
     throw std::runtime_error(message);
 }

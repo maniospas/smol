@@ -19,6 +19,7 @@ extern std::unordered_map<Token, std::string> code2failure;
 extern std::unordered_map<std::string, Token> constant2code;
 extern std::unordered_map<Token, std::string> code2constant;
 Token get_token_id(const std::string& name);
+Token create_temp();
 
 class Function;
 class Arg {

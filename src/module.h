@@ -63,6 +63,11 @@ public:
     size_t counter; // used by various temporary counters
     std::unordered_set<Function*> candidates; // used during polymorphic type resolution
     std::vector<Token> arguments; // used when accumulating `returned` as arguments in polymorphic type resolution
+    Token return_grouping;  // this is used when basically returning a variable
+
+    void clear_returns() {
+        returned.clear();
+    }
 
     SpecializedFunction(Function* function, Module* base_module) 
         : function(function), base_module(base_module), helper_function(nullptr), counter(0) {}

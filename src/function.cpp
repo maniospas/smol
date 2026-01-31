@@ -90,6 +90,8 @@ void Function::bring_in(const Importer& importer, Function * other, Token prefix
     }
 }
 
+extern Function* NOMINAL_FUNCTION;
+
 std::string Function::export_signature() const {
     auto ars = std::string{""};
     for(size_t i=0;i<info.args.size();++i) {
@@ -106,12 +108,13 @@ std::string Function::export_signature() const {
         if(arg.is_own) ars += ansi::purple+std::string{"@own "};
         if(arg.is_access) ars += ansi::purple+std::string{"@access "};
         if(arg.is_mut) ars += ansi::purple+std::string{"@mut "};
-        ars += ansi::green+(arg.type?id2token[arg.type->info.custom_name]:"unknown");
+        if(arg.type==this) ars += ansi::green+id2token[NOMINAL_FUNCTION->info.name];
+        else ars += ansi::green+(arg.type?id2token[arg.type->info.custom_name]:"unknown");
         if(arg.is_buffer) ars += ansi::cyan+std::string{"[]"};
         ars += ansi::reset;
         ars += " "+id2token[arg.name];
         // skip nominal dependent type contents
-        if(arg.is_new && arg.type && arg.type->info.returns.size() && (i || !info.is_nominal)) 
+        if(arg.type && arg.type->info.returns.size() && arg.type!=this) 
             i += arg.type->info.returns.size()-1;
     }
     auto ret = std::string{""};
@@ -129,12 +132,13 @@ std::string Function::export_signature() const {
         if(arg.is_own) ret += ansi::purple+std::string{"@own "};
         if(arg.is_access) ret += ansi::purple+std::string{"@access "};
         if(arg.is_mut) ret += ansi::purple+std::string{"@mut "};
-        ret += ansi::green+(arg.type?id2token[arg.type->info.custom_name]:"unknown");
+        if(arg.type==this) ret += ansi::green+id2token[NOMINAL_FUNCTION->info.name];
+        else ret += ansi::green+(arg.type?id2token[arg.type->info.custom_name]:"unknown");
         if(arg.is_buffer) ars += ansi::cyan+std::string{"[]"};
         ret += ansi::reset;
         ret += " "+id2token[arg.name];
         // skip nominal dependent type contents
-        if(arg.is_new && arg.type && arg.type->info.returns.size() && (i || !info.is_nominal)) 
+        if(arg.type && arg.type->info.returns.size() && arg.type!=this) 
             i += arg.type->info.returns.size()-1;
     }
 
@@ -157,6 +161,7 @@ std::string Function::export_inits(const std::string& prefix) const {
     }
     for(const auto& [token, var] : vars) {
         if(!var.name) continue;
+        if(var.type==this) continue; // skip `new` argument
         if(var.type->info.is_primitive) ret += var.type->export_body()+" "+prefix+id2token[token]+"=0;\n";
         else ret += var.type->export_inits(id2token[token]+"__");
     }
