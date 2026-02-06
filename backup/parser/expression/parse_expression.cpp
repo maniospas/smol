@@ -190,7 +190,7 @@ Variable Def::parse_expression_no_par(size_t& p, const Variable& first_token, Ty
         Variable var = parse_expression(p, runtype, types, EMPTY_VAR);
         mutables.insert(var);
         type_trackers.insert(var);
-        return  var;
+        return var;
     }
     if(types.contains(first_token) || first_token==name) 
         return parse_runtype(p, first_token, types, curry, first_token_pos);

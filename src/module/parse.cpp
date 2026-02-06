@@ -99,7 +99,7 @@ Function* SpecializedFunction::get_type(const Importer& importer, Token name, bo
     return selected;
 }
 
-void Module::parse_expression_for_arguments(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next) {
+void Module::parse_expression_for_arguments(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next, int curried_priority) {
     auto saved_arguments = std::vector<std::vector<Token>>{};
     auto saved_candidates = std::vector<std::vector<Function*>>{};
     for(size_t i=0;i<variations.size();++i) {
@@ -116,7 +116,7 @@ void Module::parse_expression_for_arguments(Importer& importer, std::vector<Spec
         variation.arguments.clear();
         variation.candidates.clear();
     }
-    parse_expression(importer, variations, next);
+    parse_expression(importer, variations, next, curried_priority);
     for(size_t i=0;i<variations.size();++i) {
         auto& variation = variations[i];
         variation.arguments.clear();
@@ -143,20 +143,378 @@ void Module::parse_code_block(Importer& importer, std::vector<SpecializedFunctio
                 return;
             }
         }
-        parse_expression(importer, variations, next);
+        parse_expression(importer, variations, next, 0);
         next = importer.next();
     }
 }
 
-void Module::parse_expression(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next) {
+std::string Module::find_common_prefix(std::vector<Token>& arguments) {
+    auto common_prefix = std::string{""};
+    auto has_found_common_prefix = false;
+    for(auto arg : arguments) {
+        auto prefix = get_var_prefix(arg);
+        if(common_prefix==prefix) 
+            continue;
+        if(!has_found_common_prefix) {
+            common_prefix = prefix;
+            has_found_common_prefix = true;
+            continue;
+        }
+        common_prefix = std::string{""};
+        break;
+    }
+    return common_prefix;
+}
+
+void Module::parse_expression(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next, int curried_priority) {
     // handle redundant parentheses
     if(next=="(") {
-        parse_expression(importer, variations, importer.next());
+        parse_expression(importer, variations, importer.next(), curried_priority);
         if(importer.next()!=")") importer.syntax_error("Needed to close an opened parenthesis here.");
-        return;
     }
+    else 
+        parse_expression_simple(importer, variations, next, curried_priority);
+    while(true) {
+        next = importer.next();
+        auto overload = static_cast<const char*>(nullptr);
+        auto overload_priority = int{0}; // high priority = first
+        if(next=="+")  {overload = "add";overload_priority=2;}
+        if(next=="-")  {overload = "sub";overload_priority=1;}
+        if(next=="*")  {overload = "mul";overload_priority=5;}
+        if(next=="/")  {overload = "div";overload_priority=4;}
+        if(next=="%")  {overload = "mod";overload_priority=3;}
+        if(next=="<")  {overload = "lt"; overload_priority=-1;}
+        if(next==">")  {overload = "gt"; overload_priority=-1;}
+        if(next=="<=") {overload = "le"; overload_priority=-1;}
+        if(next==">=") {overload = "ge"; overload_priority=-1;}
+        if(next=="==") {overload = "eq"; overload_priority=-1;}
+        if(next=="!=") {overload = "neq";overload_priority=-1;}
+        if(next=="and") {overload = "and";overload_priority=-2;}
+        if(next=="or") {overload = "or";overload_priority=-2;}
+        if(overload_priority && curried_priority) {
+            if(overload_priority==-1 && curried_priority==-1)
+                importer.format_error("Chained comparisons without parentheses have ambiguous priority.");
+            if(overload_priority<curried_priority) overload = nullptr;
+        }
+        if(!overload) {
+            importer.rollback_token();
+            return;
+        }
+        // current status is first set of arguments
+        for(auto& variation : variations) {
+            variation.arguments.clear();
+            // for(auto ret : variation.returned)
+            //     variation.arguments.emplace_back(ret);
+            // variation.returned.clear();
+        }
+        auto operator_id = get_token_id(overload_priority==-2?"bool":overload);
+        // check that overloads exist
+        auto count_is_call = size_t{0};
+        for(auto& variation : variations) {
+            // gather candidates
+            variation.candidates.clear();
+            bool is_call = false;
+            auto ut = variation.base_module->unions.find(operator_id);
+            if(ut!=variation.base_module->unions.end()) {
+                for(auto func : ut->second->functions)
+                    if(func) variation.candidates.insert(func);
+                is_call = true;
+            }
+            else {
+                auto it = variation.poly.find(operator_id);
+                if(it!=variation.poly.end()) {
+                    variation.candidates.insert(it->second);
+                    is_call = true;
+                }
+            }
+            if(is_call) ++count_is_call;
+        }
+        if(count_is_call && count_is_call!=variations.size()) {
+            if(overload_priority==-2)
+                importer.internal_error("This operator requires a bool conversion overload that is missing in at least one variation.");
+            importer.internal_error("This operator's overload is missing in at least one variation.");
+        }
+        // parse everything gathered
+        parse_more_call_arguments(importer, variations, operator_id);
+        // handle `and` and `or`
+        if(overload_priority==-2) {
+            auto is_or = overload==std::string{"or"};
+            auto tmp = create_temp();
+            auto tmp_name = id2token[tmp];
+            // assign to tmp variable
+            for(auto& variation : variations) {
+                auto f = variation.function;
+                auto common_prefix = find_common_prefix(variation.arguments);
+                auto common_prefix_size = common_prefix.size();
+                for(size_t i=0;i<variation.arguments.size();++i) {
+                    auto& ret = variation.arguments[i];
+                    auto new_name = tmp_name+"__"+(common_prefix_size?id2token[ret].substr(common_prefix.size()):id2token[ret]);
+                    auto new_name_id = get_token_id(new_name);
+                    auto rhs = f->vars.find(ret);
+                    f->collections[tmp].emplace_back(new_name_id);
+                    if(rhs==f->vars.end())
+                        importer.internal_error("A value does not exist.");
+                    auto& a = rhs->second;
+                    auto it = f->vars.find(new_name_id);
+                    if(it==f->vars.end()) // should always be true here due to tmp
+                        f->var(importer, new_name_id, a.type, a.is_mut, a.is_buffer);
+                    if(f->vars[a.name].type->info.is_primitive) { // skip nominals
+                        f->token(new_name_id);
+                        f->token("=");
+                        f->token(a.name);
+                        f->token(";");
+                        f->token("\n");
+                    }
+                }
+            }
+            // run the boolean evaluation
+            resolve_gathered_call(importer, variations);
+            // check that the boolean is actually a boolean
+            for(auto& variation : variations) {
+                if(variation.returned.size()!=1)
+                    importer.type_error("Failed to return a boolean");
+                auto ret = variation.returned[0];
+                auto f = variation.function;
+                auto it = f->vars.find(ret);
+                if(it==f->vars.end())
+                    importer.type_error("Failed to return a variable");
+                if(!it->second.type || !it->second.type->info.is_primitive|| it->second.type->info.name!=get_token_id("bool"))
+                    importer.type_error("Failed to return a bool");
+                f->token("if");
+                f->token("(");
+                if(is_or)
+                    f->token("!");
+                f->token(ret);
+                f->token(")");
+                f->token("{");
+                f->token("\n");
+            }
+            // do this again
+            for(auto& variation : variations) {
+                variation.arguments.clear();
+                variation.returned.clear();
+            }
+            // just plain old parsing again (we can lose the arguments because we have set everything on tmp)
+            parse_expression(importer, variations, importer.next(), overload_priority);
+            // assign to tmp variable
+            for(auto& variation : variations) {
+                auto f = variation.function;
+                //auto common_prefix = find_common_prefix(variation.arguments);
+                //auto common_prefix_size = common_prefix.size();
+                for(size_t i=0;i<variation.returned.size();++i) {
+                    auto& ret = variation.returned[i];
+                    //auto new_name = tmp_name+"__"+(common_prefix_size?id2token[ret].substr(common_prefix.size()):id2token[ret]);
+                    //auto new_name_id = get_token_id(new_name);
+                    auto new_name_id = f->collections[tmp][i];
+                    auto rhs = f->vars.find(ret);
+                    if(rhs==f->vars.end())
+                        importer.internal_error("A value does not exist.");
+                    auto& a = rhs->second;
+                    auto it = f->vars.find(new_name_id); // always finds
+                    if(it->second.type!=rhs->second.type || it->second.is_buffer!=rhs->second.is_buffer) 
+                        importer.type_error("Different type");
+                    if(f->vars[a.name].type->info.is_primitive) { // skip nominals
+                        f->token(new_name_id);
+                        f->token("=");
+                        f->token(a.name);
+                        f->token(";");
+                        f->token("\n");
+                    }
+                    ret = new_name_id;//replace name
+                }
+            }
+            // close the condition
+            for(auto& variation : variations) {
+                auto f = variation.function;
+                f->token("}");
+                f->token("\n");
+            }
+            continue;
+        }
+        // get second argument
+        parse_expression_for_arguments(importer, variations, importer.next(), overload_priority);
+        // add all new arguments to the variation, but also remove incompatible candidates immediately
+        parse_more_call_arguments(importer, variations, operator_id);
+        resolve_gathered_call(importer, variations);
+    }
+}
+
+void Module::parse_more_call_arguments(Importer& importer, std::vector<SpecializedFunction>& variations, Token next_id) {
+    for(auto& variation : variations) 
+        for(auto& arg : variation.returned) {
+            auto f = variation.function;
+            auto new_candidates = std::vector<Function*>{};
+            new_candidates.reserve(variation.candidates.size());
+            auto pos = variation.arguments.size();
+            // check compatibility only for new candidates
+            for(auto candidate : variation.candidates) {
+                if(pos>=candidate->info.args.size()) {
+                    //std::cout << "Wrong number of arguments\n";
+                    continue;
+                }
+                auto it1 = candidate->vars.find(candidate->info.args[pos]);
+                auto it2 = f->vars.find(arg);
+                if(it1==candidate->vars.end()) continue;
+                if(it2==f->vars.end()) {
+                    //std::cout << "no type for var "+id2token[arg] << "\n";
+                    continue; 
+                }
+                if(it2->second.type==NOMINAL_FUNCTION && it1->second.type==candidate) {
+                    //std::cout << "nominal\n";
+                    new_candidates.emplace_back(candidate);
+                    continue;
+                }
+                if(it1->second.type!=it2->second.type || it1->second.is_buffer!=it2->second.is_buffer) {
+                    // std::cout << "Incompatible types (function vs given argument):\n";
+                    // std::cout << it1->second.type->export_signature() << "\n";
+                    // std::cout << it2->second.type->export_signature() << "\n";
+                    continue;
+                }
+                new_candidates.emplace_back(candidate);
+            }
+            // move new candidates to the candidate list
+            if(new_candidates.empty()) {
+                //importer.type_error("Failed to resolve to any viable function call.");
+                importer.type_error_partial_start("Failed to resolve to any viable function call.");
+                if(variations.size()>1){
+                    importer.type_error_partial_line("Issue first found during implementation of overload:");
+                    auto message = "   "+f->export_signature();
+                    importer.type_error_partial_line(message.c_str());
+                }
+                
+                importer.type_error_partial_line("Signature so far:");
+                {
+                    auto message = std::string{""};
+                    for(size_t i = 0;i<variation.arguments.size();++i) {
+                        auto& arg = variation.arguments[i];
+                        if(message.size()) message += std::string{ansi::cyan}+",";
+                        message += ansi::green;
+                        auto it2 = f->vars.find(arg);
+                        if(it2==f->vars.end() || !it2->second.type) message += "[unknown type for "+id2token[arg]+"]";
+                        message += id2token[it2->second.type->info.name];
+                        if(it2->second.is_buffer) message+="[]";
+                        if(!it2->second.type->info.is_primitive && it2->second.type->info.returns.size()) 
+                            i += it2->second.type->info.returns.size()-1;
+                    }
+                    for(size_t i = 0;i<variation.returned.size();++i) {
+                        auto& arg = variation.returned[i];
+                        if(message.size()) message += std::string{ansi::cyan}+",";
+                        message += ansi::green;
+                        auto it2 = f->vars.find(arg);
+                        if(it2==f->vars.end() || !it2->second.type) message += "[unknown type for "+id2token[arg]+"]";
+                        message += id2token[it2->second.type->info.name];
+                        if(it2->second.is_buffer) message+="[]";
+                        if(!it2->second.type->info.is_primitive && it2->second.type->info.returns.size()) 
+                            i += it2->second.type->info.returns.size()-1; 
+                    }
+                    message = "   "+std::string{ansi::green}+id2token[next_id]+ansi::cyan+"("+message;
+                    message += ansi::cyan;
+                    message += " ...";
+                    message += ")";
+                    importer.type_error_partial_line(message.c_str());
+                }
+                importer.type_error_partial_line("Unable to continue with one of these:");
+                for(auto candidate : variation.candidates) {
+                    auto message = " - "+candidate->export_signature();
+                    importer.type_error_partial_line(message.c_str());
+                }
+                bool has_other_candidates = false;
+                {
+                    auto ut = variation.base_module->unions.find(next_id);
+                    if(ut!=variation.base_module->unions.end()) {
+                        for(auto func : ut->second->functions)
+                            if(func && !variation.candidates.contains(func)) has_other_candidates = true;
+                    }
+                    else {
+                        auto it = variation.poly.find(next_id);
+                        if(it!=variation.poly.end()) {
+                            auto func = it->second;
+                            if(func && !variation.candidates.contains(func)) has_other_candidates = true;
+                        }
+                    }
+                }
+                if(has_other_candidates) importer.type_error_partial_line("Other candidates already incompatible:");
+                {
+                    auto ut = variation.base_module->unions.find(next_id);
+                    if(ut!=variation.base_module->unions.end()) {
+                        for(auto func : ut->second->functions)
+                            if(func && !variation.candidates.contains(func)) {
+                                auto message = " - "+func->export_signature();
+                                importer.type_error_partial_line(message.c_str());
+                            }
+                    }
+                    else {
+                        auto it = variation.poly.find(next_id);
+                        if(it!=variation.poly.end()) {
+                            auto func = it->second;
+                            if(func && !variation.candidates.contains(func)) {
+                                auto message = " - "+func->export_signature();
+                                importer.type_error_partial_line(message.c_str());
+                            }
+                        }
+                    }
+                }
+                importer.type_error_partial_end("Failed to resolve to any viable function call.");
+            }
+            variation.candidates.clear();
+            for(auto candidate : new_candidates) 
+                variation.candidates.insert(candidate);
+            variation.arguments.emplace_back(arg);
+        }
+}
+
+void Module::resolve_gathered_call(Importer& importer, std::vector<SpecializedFunction>& variations) {
+    for(auto& variation : variations) {
+        Function* selected = nullptr;
+        bool multiple_candidates = false;
+        // select exactly complete argument lists
+        for(auto candidate : variation.candidates) {
+            if(candidate->info.args.size()==variation.arguments.size()) {
+                if(selected) {
+                    multiple_candidates = true;
+                    break;
+                }
+                selected = candidate;
+            }
+        }
+        if(multiple_candidates) {
+            importer.type_error_partial_start("More than one candidates.");
+            importer.type_error_partial_line("The following accept the same arguments:");
+            for(auto candidate : variation.candidates) {
+                auto message = " - "+candidate->export_signature();
+                importer.type_error_partial_line(message.c_str());
+            }
+            importer.type_error_partial_end("More than one candidates.");
+        }
+
+        if(!selected) 
+            importer.type_error("Failed to resolve to any viable function call.");
+        auto temp = create_temp();
+        auto f = variation.function;
+        for(size_t i=0; i<variation.arguments.size();++i) { 
+            auto it = variation.function->vars.find(variation.arguments[i]);
+            if(it==variation.function->vars.end()) {
+                auto message = "Failed to find gathered variable: "+id2token[variation.arguments[i]];
+                importer.internal_error(message.c_str());
+            }
+            if(!it->second.type->info.is_primitive) continue; // skip nominals
+            f->token(id2token[temp]+"__"+id2token[selected->info.args[i]]);
+            f->token("=");
+            f->token(variation.arguments[i]);
+            f->token(";");
+            f->token("\n");
+        }
+        f->bring_in(importer, selected, temp); // also handles collections and injects all vars
+        variation.clear_returns();
+        for(auto ret : selected->info.returns) 
+            variation.returned.emplace_back(get_token_id(id2token[temp]+"__"+id2token[ret]));
+    }
+}
+
+void Module::parse_expression_simple(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next, int curried_priority) {
     // handle inline directives
     if(next=="@") {
+        if(curried_priority) importer.syntax_error("Previous expression's operator did not have a second argument.");
         next = importer.next();
         if(next=="args") {
             // copy all arguments here
@@ -170,10 +528,11 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
         return;
     }
     if(next=="if") {
+        if(curried_priority) importer.syntax_error("Previous expression's operator did not have a second argument.");
         if(!importer.has_changed_line())
             importer.syntax_error("If statements should start at the beginning of each line.");
         auto indentation = importer.get_token_start();
-        parse_expression(importer, variations, importer.next());
+        parse_expression(importer, variations, importer.next(), 0);
         for(auto& variation : variations) {
             auto f = variation.function;
             if(variation.returned.size()!=1)
@@ -208,6 +567,7 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
     }
     // handle return statements
     if(next=="fail") {
+        if(curried_priority) importer.syntax_error("Previous expression's operator did not have a second argument.");
         next = importer.next();
         if(!is_string(next)) importer.type_error("Expecting a string literal for failure");
         for(auto& variation : variations) {
@@ -217,10 +577,11 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
         return;
     }
     if(next=="return") {
+        if(curried_priority) importer.syntax_error("Previous expression's operator did not have a second argument.");
         for(auto& variation : variations) 
             variation.counter = 0;
         while(true) {
-            parse_expression(importer, variations, importer.next());
+            parse_expression(importer, variations, importer.next(), 0);
             for(auto& variation : variations) {
                 auto f = variation.function;
                 for(auto var : variation.returned) {
@@ -334,135 +695,21 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
         if(is_call) ++count_is_call;
     }
     if(count_is_call && count_is_call!=variations.size()) 
-        importer.internal_error("This type is missing in at least one variation");
+        importer.internal_error("This type is missing in at least one variation.");
     // now that we know that we have a valid type, actually parse the call
     if(count_is_call) {
         next = importer.next();
-        if(next=="[") importer.internal_error("Buffers not implemented yet");
-        else if(next==".") importer.internal_error("Dot notation on types not implemented yet");
+        if(next=="[") importer.internal_error("Buffers not implemented yet.");
+        else if(next==".") importer.internal_error("Dot notation on types not implemented yet.");
         else if(next=="(") {
             // we will accumulate arguments returned by comma-separated expressions
             for(auto& variation : variations)  
                 variation.arguments.clear();
             next = importer.next();
             while(next!=")") {
-                parse_expression_for_arguments(importer, variations, next);
+                parse_expression_for_arguments(importer, variations, next, 0);
                 // add all new arguments to the variation, but also remove incompatible candidates immediately
-                for(auto& variation : variations) 
-                    for(auto& arg : variation.returned) {
-                        auto f = variation.function;
-                        auto new_candidates = std::vector<Function*>{};
-                        new_candidates.reserve(variation.candidates.size());
-                        auto pos = variation.arguments.size();
-                        // check compatibility only for new candidates
-                        for(auto candidate : variation.candidates) {
-                            if(pos>=candidate->info.args.size()) {
-                                //std::cout << "Wrong number of arguments\n";
-                                continue;
-                            }
-                            auto it1 = candidate->vars.find(candidate->info.args[pos]);
-                            auto it2 = f->vars.find(arg);
-                            if(it1==candidate->vars.end()) continue;
-                            if(it2==f->vars.end()) {
-                                //std::cout << "no type for var "+id2token[arg] << "\n";
-                                continue; 
-                            }
-                            if(it2->second.type==NOMINAL_FUNCTION && it1->second.type==candidate) {
-                                //std::cout << "nominal\n";
-                                new_candidates.emplace_back(candidate);
-                                continue;
-                            }
-                            if(it1->second.type!=it2->second.type || it1->second.is_buffer!=it2->second.is_buffer) {
-                                // std::cout << "Incompatible types (function vs given argument):\n";
-                                // std::cout << it1->second.type->export_signature() << "\n";
-                                // std::cout << it2->second.type->export_signature() << "\n";
-                                continue;
-                            }
-                            new_candidates.emplace_back(candidate);
-                        }
-                        // move new candidates to the candidate list
-                        if(new_candidates.empty()) {
-                            //importer.type_error("Failed to resolve to any viable function call.");
-                            importer.type_error_partial_start("Failed to resolve to any viable function call.");
-                            if(variations.size()>1){
-                                importer.type_error_partial_line("Issue first found during implementation of overload:");
-                                auto message = "   "+f->export_signature();
-                                importer.type_error_partial_line(message.c_str());
-                            }
-                            
-                            importer.type_error_partial_line("Signature so far:");
-                            {
-                                auto message = std::string{""};
-                                for(auto& arg : variation.arguments) {
-                                    if(message.size()) message += std::string{ansi::cyan}+",";
-                                    message += ansi::green;
-                                    auto it2 = f->vars.find(arg);
-                                    if(it2==f->vars.end() || !it2->second.type) message += "[unknown type for "+id2token[arg]+"]";
-                                    message += id2token[it2->second.type->info.name];
-                                    if(it2->second.is_buffer) message+="[]";
-                                }
-                                for(auto& arg : variation.returned) {
-                                    if(message.size()) message += std::string{ansi::cyan}+",";
-                                    message += ansi::green;
-                                    auto it2 = f->vars.find(arg);
-                                    if(it2==f->vars.end() || !it2->second.type) message += "[unknown type for "+id2token[arg]+"]";
-                                    message += id2token[it2->second.type->info.name];
-                                    if(it2->second.is_buffer) message+="[]";
-                                }
-                                message = "   "+std::string{ansi::green}+id2token[next_id]+ansi::cyan+"("+message;
-                                message += ansi::cyan;
-                                message += " ...";
-                                message += ")";
-                                importer.type_error_partial_line(message.c_str());
-                            }
-                            importer.type_error_partial_line("Unable to follow:");
-                            for(auto candidate : variation.candidates) {
-                                auto message = " - "+candidate->export_signature();
-                                importer.type_error_partial_line(message.c_str());
-                            }
-                            bool has_other_candidates = false;
-                            {
-                                auto ut = variation.base_module->unions.find(next_id);
-                                if(ut!=variation.base_module->unions.end()) {
-                                    for(auto func : ut->second->functions)
-                                        if(func && !variation.candidates.contains(func)) has_other_candidates = true;
-                                }
-                                else {
-                                    auto it = variation.poly.find(next_id);
-                                    if(it!=variation.poly.end()) {
-                                        auto func = it->second;
-                                        if(func && !variation.candidates.contains(func)) has_other_candidates = true;
-                                    }
-                                }
-                            }
-                            if(has_other_candidates) importer.type_error_partial_line("Other candidates:");
-                            {
-                                auto ut = variation.base_module->unions.find(next_id);
-                                if(ut!=variation.base_module->unions.end()) {
-                                    for(auto func : ut->second->functions)
-                                        if(func && !variation.candidates.contains(func)) {
-                                            auto message = " - "+func->export_signature();
-                                            importer.type_error_partial_line(message.c_str());
-                                        }
-                                }
-                                else {
-                                    auto it = variation.poly.find(next_id);
-                                    if(it!=variation.poly.end()) {
-                                        auto func = it->second;
-                                        if(func && !variation.candidates.contains(func)) {
-                                            auto message = " - "+func->export_signature();
-                                            importer.type_error_partial_line(message.c_str());
-                                        }
-                                    }
-                                }
-                            }
-                            importer.type_error_partial_end("Failed to resolve to any viable function call.");
-                        }
-                        variation.candidates.clear();
-                        for(auto candidate : new_candidates) 
-                            variation.candidates.insert(candidate);
-                        variation.arguments.emplace_back(arg);
-                    }
+                parse_more_call_arguments(importer, variations, next_id);
                 // continue with the comma and then the token after the comma
                 next = importer.next();
                 if(next!=",") break;
@@ -470,63 +717,20 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
             }
             if(next!=")") importer.syntax_error("Missing closing parenthesis of function call. Perhaps an argument's expression ended prematurely.");
         }
-        for(auto& variation : variations) {
-            Function* selected = nullptr;
-            bool multiple_candidates = false;
-            // select exactly complete argument lists
-            for(auto candidate : variation.candidates) {
-                if(candidate->info.args.size()==variation.arguments.size()) {
-                    if(selected) {
-                        multiple_candidates = true;
-                        break;
-                    }
-                    selected = candidate;
-                }
-            }
-            if(multiple_candidates) {
-                importer.type_error_partial_start("More than one candidates.");
-                importer.type_error_partial_line("The following accept the same arguments:");
-                for(auto candidate : variation.candidates) {
-                    auto message = " - "+candidate->export_signature();
-                    importer.type_error_partial_line(message.c_str());
-                }
-                importer.type_error_partial_end("More than one candidates.");
-            }
-
-            if(!selected) 
-                importer.type_error("Failed to resolve to any viable function call.");
-            auto temp = create_temp();
-            auto f = variation.function;
-            for(size_t i=0; i<variation.arguments.size();++i) { 
-                auto it = variation.function->vars.find(variation.arguments[i]);
-                if(it==variation.function->vars.end()) {
-                    auto message = "Failed to find gathered variable: "+id2token[variation.arguments[i]];
-                    importer.internal_error(message.c_str());
-                }
-                if(!it->second.type->info.is_primitive) continue; // skip nominals
-                f->token(id2token[temp]+"__"+id2token[selected->info.args[i]]);
-                f->token("=");
-                f->token(variation.arguments[i]);
-                f->token(";");
-                f->token("\n");
-            }
-            f->bring_in(importer, selected, temp); // also handles collections and injects all vars
-            variation.clear_returns();
-            for(auto ret : selected->info.returns) 
-                variation.returned.emplace_back(get_token_id(id2token[temp]+"__"+id2token[ret]));
-        }
+        resolve_gathered_call(importer, variations);
         return;
     }
 
     // handle assignment (peek at next symbol and rollback)
     next = importer.next();
     if(next=="=") {
+        if(curried_priority) importer.syntax_error("Previous expression's operator did not have a second argument.");
         for(auto& variation : variations)  
             variation.arguments.clear();
         next = importer.next();
         // gather arguments
         while(true) {
-            parse_expression_for_arguments(importer, variations, next);
+            parse_expression_for_arguments(importer, variations, next, 0);
             for(auto& variation : variations) {
                 if(variation.returned.empty())
                     importer.type_error("The right side of the assignment evaluates to an empty type.");
@@ -548,20 +752,7 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
                     importer.type_error("Cannot assign to incompatible variable.");
                 // type checking in implemented in the next `for` for clarity
             } 
-            auto common_prefix = std::string{""};
-            auto has_found_common_prefix = false;
-            for(auto arg : variation.arguments) {
-                auto prefix = get_var_prefix(arg);
-                if(common_prefix==prefix) 
-                    continue;
-                if(!has_found_common_prefix) {
-                    common_prefix = prefix;
-                    has_found_common_prefix = true;
-                    continue;
-                }
-                common_prefix = std::string{""};
-                break;
-            }
+            auto common_prefix = find_common_prefix(variation.arguments);
             auto common_prefix_size = common_prefix.size();
             for(size_t i=0;i<variation.arguments.size();++i) {
                 auto& ret = variation.arguments[i];
@@ -663,8 +854,6 @@ void Module::parse_expression(Importer& importer, std::vector<SpecializedFunctio
             next_id = field_id;
             next_as_string = std::move(field);
         }
-        else if(next=="+" || next=="-" || next=="*" || next=="/" || next=="<" || next==">") 
-            importer.internal_error("Operator overloading not implemented yet");
         else {
             importer.rollback_token();
             break;

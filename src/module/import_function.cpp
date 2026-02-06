@@ -325,7 +325,7 @@ void Module::import_function(Importer& importer, bool is_service) {
             else 
                 importer.syntax_error("This kind of directive is not valid within function definitions");
         }
-        else parse_expression(importer, variations, next);
+        else parse_expression(importer, variations, next, 0);
         
         next = importer.next();
         if(importer.has_changed_line()) {
