@@ -120,7 +120,7 @@ void Module::import() {
                 }
             }
             else if(!recovering)
-                importer.syntax_error("Unknown command or directive");
+                importer.syntax_error("Unknown command or directive. Perhaps you meant to indent this in the previous function.");
         }
         catch (const std::runtime_error&) {
             recovering = true;

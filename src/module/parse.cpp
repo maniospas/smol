@@ -169,7 +169,7 @@ std::string Module::find_common_prefix(std::vector<Token>& arguments) {
 void Module::parse_expression(Importer& importer, std::vector<SpecializedFunction>& variations, std::string_view next, int curried_priority) {
     // handle redundant parentheses
     if(next=="(") {
-        parse_expression(importer, variations, importer.next(), curried_priority);
+        parse_expression(importer, variations, importer.next(), 0);
         if(importer.next()!=")") importer.syntax_error("Needed to close an opened parenthesis here.");
     }
     else 
