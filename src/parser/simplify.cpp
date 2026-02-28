@@ -20,8 +20,12 @@
 #include <regex>
 #include <memory>
 
+/*
+TODO: tests/unit/earlyret.s is wrong with current simplifications, so they have been disabled
+*/
+
 void Def::simplify() {
-    //return;
+    return;
     // TODO: mutables should not be optimized for equality anywhere
     // TODO: BUG loop variables that are modified (replicate: in Split.next make @mut prev immutable, comment its mutable reassignment, and run tests/qualitative/banana.s)
     if(implementation.is_empty()) 

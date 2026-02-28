@@ -66,8 +66,9 @@ void Def::parse_return(size_t& p, Variable next, Types& types) {
 
     // return from function
     auto tentative = map_to_return(p, types, true);
-    if(!uplifting[0].has_returned) 
+    if(!uplifting[0].has_returned) { 
         packs = tentative;
+    }
     else if(packs.size()!=tentative.size()) 
         imp->error(return_p, "Incompatible returns\nprevious "
             +signature_like(types, packs)

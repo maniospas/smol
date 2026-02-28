@@ -492,7 +492,7 @@ shared_ptr<Import> tokenize(const string& path) {
                     else tokens.emplace_back(substr, line_num, start_col, main_file);
                     if(main_file->indentation_mode && substr=="then")
                         main_file->error(tokens.size() - 1, "`then` is available only in `@serial` mode");
-                    if (main_file->indentation_mode && (substr == "if" || substr == "while") && !in_brackets) {
+                    if (main_file->indentation_mode && (substr == "if" || substr == "while" || substr == "algorithm") && !in_brackets) {
                         bool valid =
                             (start_col == indent + 1) || 
                             (!tokens.empty() &&

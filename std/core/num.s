@@ -20,6 +20,10 @@
 @about 
 "Standard library wrapping of C basic arithmetics and printing."
 
+@about ok
+"Designates an empty set that contains no data. For example, functions "
+"without any return values may return ok early."
+
 @about print
 "Prints a primitive number, character, or boolean to the console."
 
@@ -129,12 +133,6 @@
 
 union Number = u64 or f64 or i64
 def ok()
-// def int(i64 x) 
-//     return x
-// def float(f64 x)
-//     return x
-// def size(u64 x)
-//     return x
 
 def print(@access f64 message)
     @c_head{#include <stdio.h>}

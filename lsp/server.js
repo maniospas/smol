@@ -287,7 +287,7 @@ connection.onHover((params) => {
   // keyword descriptions
   const keywordDocs = {
     "def": "**def** — defines an inlined function. Its returned value is a named tuple.",
-    "return": "**return** — returns a value from the current function or capture.",
+    "return": "**return** — returns a value from the current function.",
     "service": "**service** — defines a new *runtype* that runs as a co-routine service with safe execution, even on internal failures.",
     "union": "**union** — defines a symbol that expands definitions to several type alternatives.",
     "if": "**if** — decides what to execute next based on a condition.",
@@ -306,7 +306,6 @@ connection.onHover((params) => {
     "ptr": "**ptr** — a pointer to a memory address. Manual pointer handling is inherently unsafe and usually requires the file to be set as <code>@unsafe</code>.",
     "char": "**char** — a single byte character. Aligned to 64 bits in buffers.",
     "algorithm": "**algorithm** — code block that intercepts returns.",
-    "yield": "**yield** — ends the current block without returning.",
     "then": "**then** — run the next expression and end the current block.",
   };
   if (keywordDocs[word]) contents += keywordDocs[word];
