@@ -64,8 +64,9 @@ void handle_include(
 
     auto included_file = get_file(files, path);
     auto filter = unordered_set<Variable>{};
-    if(p < imp->size() - 1 && imp->at(p + 1) == "return") {
+    if(p < imp->size() - 1 && imp->at(p + 1) == ":") {
         p += 2;
+        if(imp->at(p++)!=":") imp->error(p, "Only double :: expected.");
         while(p < imp->size() - 1) {
             if(included_file->vars.find(imp->at(p)) == included_file->vars.end())
                 imp->error(p, "Could not import " + imp->at(p) + " from " + path);

@@ -45,8 +45,13 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
         p++;
         if(imp->at(p++)!=":") imp->error(--p, "Only double :: allowed.");
         auto next = imp->at(p++);
-        if(type->retrievable_parameters.find(next)==type->retrievable_parameters.end()) 
+        if(type->retrievable_parameters.find(next)==type->retrievable_parameters.end()) {
+            // auto count_options = size_t{0};
+            // if(type->options.size() && type->name!=next) {
+            //     for(auto type->options)
+            // }
             imp->error(--p, "Cannot find the specialization "+type->name.to_string()+"::"+next+" in this context");
+        }
         type = type->retrievable_parameters[next];
     }
     if(type.get()==this && options.size()==0) {

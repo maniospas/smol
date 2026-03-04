@@ -1,5 +1,4 @@
-@include std.core 
-    return Number, range, fail
+@include std.core :: Number, range, fail
 @include std.math
 @include std.mem
 
@@ -63,10 +62,10 @@ service main()
     .len()
     .range()
     .while next(@mut u64 i)
-        if shapes.types[i]==:Square
+        if shapes.types[i]==Square.tag()
             printin("Square: ")
             shapes.at(Square, i).volume(1.0).print()
-        elif shapes.types[i]==:Circle 
+        elif shapes.types[i]==Circle.tag() 
             printin("Circle: ")
             shapes.at(Circle, i).volume(1.0).print()
         else 

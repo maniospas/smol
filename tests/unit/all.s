@@ -1,9 +1,7 @@
 @include std.core
 @include std.mem
-@include std.os  
-    return Process
-@include std.time
-    return time
+@include std.os :: Process
+@include std.time :: time
 
 service run(@own String command)
     @mut process = Process.open(command)

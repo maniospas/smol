@@ -1,8 +1,6 @@
 @include std.core
-@include std.mem
-    return Stack, KB, circular
-@include std.file
-    return ReadFile
+@include std.mem :: Stack, KB, circular
+@include std.file :: ReadFile
 
 service main()
     end_line = "\n".str().first // get `\n` as a character

@@ -1,7 +1,5 @@
-@include std.core
-    return Number
-@include std.time 
-    return sleep, time
+@include std.core :: Number
+@include std.time :: sleep, time
 
 service fib(u64 n) 
     // It is very inefficient to set up this as a service.
