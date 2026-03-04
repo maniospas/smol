@@ -41,6 +41,14 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
             +pretty_runtype(first_token.to_string())
             +recommend_runtype(types, first_token)
         );
+    while(imp->at(p)==":") {
+        p++;
+        if(imp->at(p++)!=":") imp->error(--p, "Only double :: allowed.");
+        auto next = imp->at(p++);
+        if(type->retrievable_parameters.find(next)==type->retrievable_parameters.end()) 
+            imp->error(--p, "Cannot find the specialization "+type->name.to_string()+"::"+next+" in this context");
+        type = type->retrievable_parameters[next];
+    }
     if(type.get()==this && options.size()==0) {
         if(!is_service)
             imp->error(--p, "def definition cannot return itself\nConsider converting it to a service or use a previous runtype.");
@@ -157,6 +165,11 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
         // }
         // else unpacks.push_back(curry);
     }
+    else if(imp->at(p)==":") {
+        p++;
+        if(imp->at(p++)!=":") imp->error(--p, "Only double :: allowed.");
+        imp->error(--p, ":: is misplaced here.");
+    }
     else if(imp->at(p)==")" || imp->at(p)=="]" || imp->at(p)=="," 
         //|| imp->at(p)==":" 
         //|| (imp->at(p)=="." && p<imp->size()-2 && imp->at(p+2)=="(")
@@ -171,7 +184,7 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
         int highest_choice_power = 0;
         if(parametric_types.find(type->name)!=parametric_types.end()) 
             type = parametric_types[type->name];
-        string candidates("");
+        auto candidates = std::string{""};
         for(const auto& option : type->get_options()) {
             if(option->choice_power>highest_choice_power) {
                 highest_choice_power = option->choice_power;
@@ -184,11 +197,11 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
             type = option;
             candidates += "\n"+option->signature(types);
         }
-
+        
         if(num_choices==0)
-            imp->error(--p, "Overloaded or union runtype has no alternative");
+            imp->error(--p, "Overloaded type or union has no alternative");
         if(num_choices!=1) {
-            if(!highest_choice_power) 
+            if(!highest_choice_power)
                 imp->error(--p, "Overloaded or union runtype names are ambiguous."
                     "\nConsider defining exactly one of them as new (with nom first argument)"
                     "\nto break the priority stalemate."

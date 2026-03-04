@@ -80,6 +80,7 @@ const extern Variable TASK_VAR;
 const extern Variable STATE_VAR;
 const extern Variable STRUCT_VAR;
 const extern Variable ARGS_VAR;
+const extern Variable TAG_VAR;
 const extern Variable VALUE_VAR;
 const extern Variable AT_VAR;
 const extern Variable DOT_VAR;

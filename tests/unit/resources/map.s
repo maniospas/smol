@@ -5,7 +5,7 @@ def run()
     @mut keys = new.StringHash(100)
     @mut values = u64[].expect(keys.size)
     @on Heap.dynamic()
-    values.put(keys["a".copy()], 1)
+    values.put(keys[str.copy("a")], 1)
     values.put(keys["b"], 2)
     values.put(keys[""], 3)
     return keys, values

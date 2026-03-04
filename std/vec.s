@@ -281,7 +281,8 @@ def div(@access @mut Vec result, @access Vec x1, @access Vec x2)
     return result
 
 def print(@access Vec v)
-    @mut size = algorithm 
+    @mut size = 
+    algorithm 
         if v.size>10 
             return 10
         return v.size

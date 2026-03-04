@@ -54,6 +54,7 @@ const Variable TASK_VAR = Variable("__task");
 const Variable STATE_VAR = Variable("__state");
 const Variable STRUCT_VAR = Variable("struct");
 const Variable ARGS_VAR = Variable("args");
+const Variable TAG_VAR = Variable("tag");
 const Variable VALUE_VAR = Variable("__value");
 const Variable RET_VAR = Variable("__ret");
 const Variable AT_VAR = Variable("@");

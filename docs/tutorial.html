@@ -1548,18 +1548,18 @@ def lambda(tag func, u64 n)
 def ping(u64 n, cstr message)
     printin(message)
     print("ping")
-    return :pong.lambda(n)
+    return &pong.lambda(n)
 
 def pong(u64 n, cstr message)
     if n == 0
         return :done.lambda(u64)
     printin(message)
     print("pong")
-    return :ping.lambda(n-1)
+    return &ping.lambda(n-1)
 
 service main()
     @mut pending = :pong.lambda(2)
-    while :done!=pending.func
+    while &done!=pending.func
         pending = @dynamic(ping,pong) pending("next - ")
 </code></pre>
 
@@ -1605,9 +1605,9 @@ def fib_start(u64 n)
 
 def fib_step(u64 n, u64 a, u64 b)
     if n == 0
-        return :done.lambda(u64, a, b)
+        return @tag done.lambda(u64, a, b)
     // compute next step
-    return :fib_step.lambda(n-1, b, a+b)
+    return @tag fib_step.lambda(n-1, b, a+b)
 
 service main()
     n = 10

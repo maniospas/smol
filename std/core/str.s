@@ -199,6 +199,7 @@ def nstr (
     return @args
 
 union CString = cstr or nstr
+union AllocatedString = nstr or str
 union String  = CString or str
 union IndependentString = String
 
@@ -289,7 +290,7 @@ def slice(@access String self, u64 from, u64 to)
         char first = from==to?0:((__builtin_constant_p(from) && from == 0) ? s__first : ((char*)s__contents)[from]);
     }
     return new.str(contents, to-from, first, s.contents)
-    
+
 def slice(@access String self, u64 from) 
     return self.slice(from, 0)
 

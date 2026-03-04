@@ -79,7 +79,7 @@ void Def::parse_signature(size_t& p, Types& types) {
         if(types.vars.find(next)==types.vars.end()) 
             imp->error(--p, "Missing type: "+next);
 
-        Variable arg_name = imp->at(p++);
+        auto arg_name = Variable{imp->at(p++)};
         bool arg_is_buffer = false;
         if(arg_name=="[") {
             arg_is_buffer = true;
@@ -101,7 +101,7 @@ void Def::parse_signature(size_t& p, Types& types) {
             );
         if(next==NOM_VAR && mut) 
             imp->error(p-2, "Cannot have a @mut new argument");
-        Type argType = types.vars[next];
+        auto argType = types.vars[next];
         if(arg_name=="," || arg_name==")") {
             arg_name = create_temp();
             --p;
@@ -195,9 +195,9 @@ void Def::parse_signature(size_t& p, Types& types) {
                 args.emplace_back(arg_name+it.name, it.type, mut || it.mut, needs_to_own || it.owned);
                 vars[arg_name+it.name] = it.type;
                 implementation += it.type->rebase(it.type->implementation, arg_name);
-                for(const string& pre : it.type->preamble) 
+                for(const auto& pre : it.type->preamble) 
                     add_preamble(pre);
-                for(const string& pre : it.type->linker) 
+                for(const auto& pre : it.type->linker) 
                     add_linker(pre);
                 for(const auto& it : it.type->buffer_types)
                     buffer_types[arg_name+it.first] = it.second;
@@ -287,17 +287,17 @@ vector<Type>& Def::get_options() {
 }
 
 void Def::signature_until_position(vector<unordered_map<Variable, Type>>& results, const vector<Variable>& parametric_names, size_t i, const unordered_map<Variable, Type>& current, const Types& types) {
-    unordered_map<Variable, Type> next(current);
+    auto next = unordered_map<Variable, Type>{current};
     if(i>=parametric_names.size()) {
         results.push_back(next);
         return;
     }
-    Variable parametric_name = parametric_names[i];
+    auto parametric_name = parametric_names[i];
     if(current.find(parametric_name)!=current.end()) 
         return signature_until_position(results, parametric_names, i+1, current, types);
     auto& arg_options = types.vars.find(parametric_name)->second->get_options();
     bool progressed = false;
-    for(const Type& option : arg_options) {
+    for(const auto& option : arg_options) {
         if(option->alias_for.exists()
             && option->alias_for.exists() 
             && ranges::find(arg_options, option->vars[option->alias_for]) != arg_options.end()
@@ -346,7 +346,7 @@ bool Def::start_option_resolution(const Types& _types) {
         parse_signature(p, types);
     }
     catch(const runtime_error& e) {
-        string what = e.what();
+        auto what = string{e.what()};
         log_depth -= 1;
         if(!what.starts_with("\033[33mNot found a branch")) 
             throw e;
@@ -437,11 +437,10 @@ bool Def::complete_option_resolution(const Types& _types) {
 }
 
 vector<Type> Def::get_lazy_options(Types& _types) {
-    vector<Variable> parametric_names;
+    auto parametric_names = vector<Variable>{};
+    auto argoptions = vector<unordered_map<Variable, Type>>{};
     for(const auto& it : parametric_types) 
         parametric_names.push_back(it.first);
-
-    vector<unordered_map<Variable, Type>> argoptions;
     signature_until_position(
         argoptions, 
         parametric_names, 
@@ -449,8 +448,7 @@ vector<Type> Def::get_lazy_options(Types& _types) {
         unordered_map<Variable, Type>(), 
         _types
     );
-
-    for(const unordered_map<Variable, Type>& argoption : argoptions) {
+    for(const auto& argoption : argoptions) {
         auto def = make_shared<Def>(_types);
         def->retrievable_parameters = argoption;
         def->pos = pos;
@@ -461,6 +459,7 @@ vector<Type> Def::get_lazy_options(Types& _types) {
             continue;
         options.push_back(def);
         all_types.push_back(def);
+        def->options.push_back(def);
     }
     if(options.size()==0) 
         imp->error(pos, "Failed to show that a valid version exists.\n"

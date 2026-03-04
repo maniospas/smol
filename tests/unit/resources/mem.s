@@ -4,6 +4,6 @@
 
 service main()
     @mut memory = Heap.allocate(1.KB()).arena()
-    s = memory.copy("MYSTRING".str())
+    s = memory.copy(str, "MYSTRING")
     print(s)
    

@@ -2,7 +2,8 @@
 
 def test_sgn()
     x = 1.0
-    s = algorithm
+    s = 
+    algorithm
         if x>0.0 
             return "positive"
         return "negative" 

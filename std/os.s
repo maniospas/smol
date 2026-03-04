@@ -147,7 +147,7 @@ def system(cstr command)
     if result!=0 fail("Error: System call failed")
 
 def system(str command) 
-    system(Stack.copy(command).memory.cstr())
+    system(Stack.copy(nstr, command).memory.cstr())
 
 def open(@access @mut Process, str command)
     mem = Stack.allocate(command.length+1)

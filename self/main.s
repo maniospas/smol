@@ -2,59 +2,70 @@
 @include std.file
 @include std.mem
 @include std.map
+@include self.utils
 
-def skip(str line, @mut u64 pos, char c)
-    range(pos, line.len())
-    .while next(pos)
-        if line[pos]!=c
-            return ok
+def Tokens(@mut Arena memory, u64 map_size)
+    @mut name2id = new.StringHash(map_size)
+    @mut names = str[].expect(map_size)
+    @mut contents = u64[]
+    return name2id, names, contents, memory
 
-def in(char c, String _line)
-    line = _line.str()
-    line.len().range()
-    .while next(@mut u64 pos)
-        if line[pos]==c
-            return true
-    return false
+def push(@access @mut Tokens tokens, AllocatedString _token)
+    @on tokens.memory
+    token = str.copy(_token)
+    id = tokens.name2id[token]
+    tokens.names[id] = token
+    tokens.contents.push(id)
 
-def first(cstr c)
-    return c.str().first
+def push(@access @mut Tokens tokens, cstr _token)
+    token = _token.str()
+    id = tokens.name2id[token]
+    tokens.names[id] = token
+    tokens.contents.push(id)
 
-def grow_for_index(@mut str[] names, u64 id)
-    if id>=names.len()
-        names.expect((id-names.len())+1)
+def len(@access @mut Tokens tokens)
+    return tokens.contents.len()
+
+def at(@access @mut Tokens tokens, u64 i)
+    id = tokens.contents[i]
+    return tokens.names[id]
 
 def tokenize(@mut Arena memory, @mut ReadFile source)
-    map_size = 1024*1024
-    @mut name2id = new.StringHash(map_size)
-    @mut names = str[]
-    @mut tokens = u64[]
-    @on memory
+    @mut tokens = Tokens(memory, 50000) // up to 50k different tokens, takes care of copying the tokens in the memory
+    SYMBOLS = " \\/()@,.+-*\"'=!"
+    SPACE = " ".first()
+    TAB = "\t".first()
+    SLASH = "\\".first()
+    @on memory.allocate(1.MB()).circular() // 1 MB per line max
     while source.next_line(@mut str line)
         @mut pos = 0
-        skip(line, pos, " ".first())
+        skip(line, pos, SPACE)
+        skip(line, pos, TAB)
         @mut prev = pos
         range(pos, line.len())
         .while next(pos) 
             algorithm
-                if line[pos].in(" \\\n/()@,.").not()
+                if (line[pos]==SLASH) and (line.len()>pos+1) and (line[pos+1]==SLASH)
+                    pos = line.len()
+                    prev = line.len()
                     return ok
-                if prev>=pos
+                if line[pos].in(SYMBOLS).not()
                     return ok
-                token = line[prev to pos]
-                id = name2id[token]
-                names.grow_for_index(id)
-                names[id] = token
-                tokens.push(id)
-                prev = pos+1
-    return tokens, names, name2id
+                if pos>prev+1
+                    tokens.push(line[prev to pos])
+                if line[pos]!=SPACE
+                    tokens.push(line[pos upto pos])
+                prev = pos+1       
+        if prev<pos
+            tokens.push(line[prev to pos])
+    return tokens
 
 service main()
+    @on Heap.allocate(10.MB()).arena()
     path = "tests/app/file.s"
-    @access @mut tok = Heap.allocate(10.MB()).arena().tokenize(ReadFile.open(path))
-    printin(@all "Number of tokens: "tok.tokens.len()"\n")
-    tok.tokens.len().range()
-    .while next(u64& i) 
-        id = tok.tokens[i]
-        print(tok.names[id])
+    @mut tok = tokenize(ReadFile.open(path))
+    printin(@all "Number of tokens: "tok.len()"\n")
+    tok.len().range()
+    .while next(@mut u64 i)
+        print(tok[i])
     

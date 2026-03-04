@@ -81,7 +81,7 @@ Variable Def::next_var_field(Variable next, size_t& p, const Variable& first_tok
     ) {
         if(can_access_mutable_fields.find(next)==can_access_mutable_fields.end() 
             && vars[next]->mutables.find(next_token)!=vars[next]->mutables.end())
-            imp->error(--p, "No access to immutable field: "
+            imp->error(--p, "No access to mutable field: "
                 +pretty_var((next+next_token).to_string())
                 +"\nMutable fields are marked with `@mut` at their first declaration."
                 +" Mutability may be transferred only through `@mut` arguments, but"
@@ -137,7 +137,7 @@ Variable Def::next_var_field(Variable next, size_t& p, const Variable& first_tok
         
         if(can_access_mutable_fields.find(next)==can_access_mutable_fields.end() 
             && vars[next]->mutables.find(next_token)!=vars[next]->mutables.end())
-            imp->error(--p, "No access to immutable field: "
+            imp->error(--p, "No access to mutable field: "
                 +pretty_var((next+next_token).to_string())
                 +"\nMutable fields are marked with `@mut` at their first declaration."
                 +" Mutability may be transferred only through `@mut` arguments, but"

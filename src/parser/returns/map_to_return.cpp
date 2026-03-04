@@ -21,7 +21,7 @@ vector<Variable> Def::map_to_return(size_t& p, Types& types, bool is_zero_level)
         packs.push_back(ERR_VAR);
         vars[ERR_VAR] = types.vars[ERRCODE_VAR];
     }
-    if(next==AT_VAR) {
+    if(next==AT_VAR && !(p>=imp->size()-1 || imp->at(p)==TAG_VAR)) {
         next = imp->at(p++);
         if(next!=ARGS_VAR) 
             imp->error(--p, "Use `return @args`");

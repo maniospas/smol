@@ -45,7 +45,7 @@
 "Provides methods for converting numbers to strings that are stored on provided "
 "Memory allocators. The result is a null-terminated nstr."
 
-def copy(@access @mut Memory allocator, String _s)
+def copy(@access @mut Memory allocator, nstr, String _s)
     s = _s.str()
     mem = allocator.allocate(s.length+1)
     @c_body{
@@ -53,6 +53,13 @@ def copy(@access @mut Memory allocator, String _s)
         ((char*)mem__mem)[s__length] = 0;
     }
     return new.nstr(mem.mem, s.length, s.first, mem.underlying)
+
+def copy(@access @mut Memory allocator, str, String _s)
+    // this allocates one less byte than a nstr copy
+    s = _s.str()
+    mem = allocator.allocate(s.length)
+    @c_body{memcpy((char*)mem__mem, s__contents, s__length);}
+    return new.str(mem.mem, s.length, s.first, mem.underlying)
 
 def add(@access @mut Memory allocator, String _x, IndependentString _y)
     x = _x.str()
@@ -68,7 +75,7 @@ def add(@access @mut Memory allocator, String _x, IndependentString _y)
     mem = allocator.allocate(total_len+1)
     @c_body{bool would_corrupt = ((char*)x__memory>=((char*)mem__mem) && (char*)x__memory<=((char*)mem__mem)+len_x) || (((char*)y__memory)+len_x>=((char*)mem__mem) && (char*)y__memory<=((char*)mem__mem)+total_len);}
     if would_corrupt
-        @c_fail{printf("String concatenation would corrupt one of the operands due to writing on its memory region - consider larger or non-overlapping circular buffers or arenas.\n");}
+        fail("String concatenation would corrupt one of the operands due to writing on its memory region - consider larger or non-overlapping circular buffers or arenas.")
     _contents = mem.mem
     @c_body{
         memcpy((char*)_contents, (char*)x__contents, len_x);
@@ -96,8 +103,8 @@ def nstr(@access @mut Memory allocator, i64 number)
             }
         }
     }
-    if contents.exists().not() 
-        @c_fail{printf("Failed to allocate str from number\n");}
+    if contents.exists().not()
+        fail("Failed to allocate str from number")
     return new.nstr(contents, length, first, mem.underlying)
 
 def nstr(@access @mut Memory allocator, u64 number)
@@ -120,7 +127,7 @@ def nstr(@access @mut Memory allocator, u64 number)
         }
     }
     if contents.exists().not() 
-        @c_fail{printf("Failed to allocate str from number\n");}
+        fail("Failed to allocate str from number")
     return new.nstr(contents, length, first, mem.underlying)
 
 def nstr(@access @mut Memory allocator, f64 number)
@@ -143,7 +150,7 @@ def nstr(@access @mut Memory allocator, f64 number)
         }
     }
     if contents.exists().not() 
-        @c_fail{printf("Failed to allocate str from number\n");}
+        fail("Failed to allocate str from number")
     return new.nstr(contents, length, first, mem.underlying)
 
 def str(@access ContiguousMemory region)

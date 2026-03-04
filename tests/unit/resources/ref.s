@@ -9,6 +9,6 @@ service main()
     @mut memory1 = Heap.allocate(128).arena() // allocate 128 bytes, & indicates a mutable variable
     @mut memory2 = copy_state(memory1) // we could only define this previously thanks to @unsafe
 
-    test1 = memory1.copy("123".str())
-    test2 = memory2.copy("456".str())
+    test1 = memory1.copy(str, "123")
+    test2 = memory2.copy(str, "456")
     print(test1)  // prints 456
