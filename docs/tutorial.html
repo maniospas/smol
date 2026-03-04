@@ -620,11 +620,10 @@ negative
 <p><b>Breaking away from loops:</b>
 The <code class="language-smolambda">algorithm</code> structure can be used as a means from
 breaking away from loops. Below is an example, where some commands are merged in the same line
-for conciseness. Having an explicit <code class="language-smolambda">return</code> statement 
-in all situations is necessary - the language would complain otherwise. The example returns
-the <code class="language-smolambda">ok</code> value provided by <code>std.core</code>, 
-which has no contents. As a side-note, the "algorithm" keyword is deliberately long to be 
-easy to spot and match nested returns to.
+for conciseness. The same types should be yielded by all <code class="language-smolambda">return</code>
+values. Do note that the <code class="language-smolambda">ok</code> value provided by <code>std.core</code>, 
+matches no returns. As a side-note, the "algorithm" keyword is deliberately long to be 
+easy to spot and match with subsequent returns.
 </p>
 
 <pre><code class="language-smolambda">// main.s
@@ -639,7 +638,6 @@ service main()
             if i==limit
                 return ok
             i = i+1
-        return ok  // runs if nothing else is returned
     print("ended while")
     print(i)
 </code></pre>
@@ -828,14 +826,14 @@ The same colon also works with loops provided by the standard library (like <cod
 <p>
 <b>Reduction:</b> 
 It is often desire-able to iteratively apply a function to several values. This concept is known as <i>reduction</i>,
-and is applied with a pattern like <code class="language-smolambda">add(@all 1 2 1+2*2)</code>. To understand how this works,
+and is applied with a pattern like <code class="language-smolambda">add(@all 1 2 (2+1)*2)</code>. To understand how this works,
 first we need to understand that each expression within <code>add</code> will be evaluated separately, thus resulting
-to the evaluation of <code class="language-smolambda">add(@all 1 2 5)</code>.</p>
+to the evaluation of <code class="language-smolambda">add(@all 1 2 6)</code>.</p>
 
 <p>Then, the called function is applied to the first
 arguments and replaces them with the result, yielding an under-the-hood representation 
-<code class="language-smolambda">add(@all 3 5)</code>. This process is repeated until eventually all arguments are used and
-<code>8</code> is yielded. Here is an example that also showcases usage of <code>printin</code> to print multiple strings
+<code class="language-smolambda">add(@all 3 6)</code>. This process is repeated until eventually all arguments are used and
+<code>9</code> is yielded. Here is an example that also showcases usage of <code>printin</code> to print multiple strings
 in the same line:
 </p>
 
@@ -861,7 +859,6 @@ service main()
 6
 Hi there!
 </pre>
-
 
 
 <h2 id="returns">Returns <a href="#returns" class="anchor-link">🔗</a></h2>
@@ -968,9 +965,7 @@ def print(@access Point p)
     // p is not mutable but you still need `@access` 
     // to look at p.x, p.y because their original 
     // declaration was mutable
-    printin(x)
-    printin(",")
-    print(y)
+    printin(@all p.x "," p.y "\n")
 
 service main()
     @mut p = Point(1.0, 2.0)
@@ -1059,7 +1054,7 @@ an assignment, where the right-hand-side types are separated by <code class="lan
 
 <p>
 This definition means that <code class="language-smolambda">Number</code> can represent 
-<code>u64 class="language-smolambda"</code>, 
+<code class="language-smolambda">u64</code>, 
 <code class="language-smolambda">f64</code>, or <code class="language-smolambda">i64</code>. 
 Once the union is defined, you can write 
 functions that take a <code>Number</code> and automatically work with whichever 
@@ -1096,8 +1091,7 @@ service main()
 </pre>
 
 <p>
-Behind the scenes, <i>smoλ</i> makes sure that union usage is safe and the right code runs 
-depending on which variant you are using; new functions immediately
+Unions are secure as, behind the scenes, functions 
 check if they can work for all variations of union members to report errors early.
 </p>
 
@@ -1223,6 +1217,46 @@ service main()
 5
 </pre>
 
+<!-- 
+<p><b>Shared memory:</b>
+Allocated memory can be reused across different arenas and buffers. Furthermore, 
+arenas admit a <code class="language-smolambda">clear()</code> function that allows
+rewriting their contents from scratch. This means that you can deliberately corrupt
+data or work with low-level representations of datatypes.
+</p>
+
+<p>Even in those cases, <b><i>Smoλ</i> is safe</b>. 
+To achieve this, the compiler creates an error if you try to manipulate
+different types of data on the same memory region, and keeps the spacing (aka <i>alignment</i>)
+between memory contents constants. Therefore, even if you choose to corrupt data,
+valid data that respect type contracts -that is, the generation process- are read back.
+</p>
+<p>
+Below is an example of sharing memory in action. 
+Once allocated memory is matched to holding characters, it cannot be directly e-interpreted as holding strings
+and a proper conversion should be made.
+<code class="language-smolambda">contents.str(2)</code>
+is a standard library interpretation of the first 2 characters of a character buffer as a string.
+</p>
+
+
+<pre><code class="language-smolambda"> // main.s  
+@include std.core
+@include std.mem
+
+service main()
+    @mut contents = Heap.allocate(1024) // no type attached to this yet
+    char[contents]
+    .push("h".str().first)
+    .push("i".str().first)
+    print(contents.str(2))
+
+    char[contents].expect(4).put(0, "H".str().first)
+    print(contents.str(2))
+
+    //print(str[contents].expect(1).at(0)) // ERROR - would correctly identify that we cannot repurpose the memory
+</code></pre> -->
+
 
 <p><b>Dynamic memory:</b>
 You can also choose to maintain a collection of dynamically allocated memory segments,
@@ -1235,22 +1269,19 @@ dynamic memory.
 
 
 <i>For more types of memory and operations, refer to the standard library's
-documentation <a href="std.html">here</a>. Among other things, the
-implemented memory model allows parameterization of functions by being able 
-to allocate on segments of allocated memory.
+documentation <a href="std.html">here</a>.
 </i>
 
 
 <h2 id="strings">Strings <a href="#strings" class="anchor-link">🔗</a></h2>
 
 <p>
-<i>Smoλ</i> provides three main string types: 
+<i>Smoλ</i>'s standard library provides three main string types: 
 <code class="language-smolambda">cstr</code> (a constant string enclosed in quotations during compilation, null-terminated), 
 <code class="language-smolambda">nstr</code> (null-terminated with length information), and 
 <code class="language-smolambda">str</code> (a string segment). For most purposes, you can convert the other two to
-<code class="language-smolambda">str</code>. That said, there are some places where the other two are needed.
-For example, null-terminated strings are how most operating
-systems calls expect information.
+<code class="language-smolambda">str</code>. That said, null-termination is required for the
+syscalls of most operating systems, for example in <code>std.os</code>.
 </p>
 
 <p>
@@ -1350,7 +1381,7 @@ service main()
 <p>
 <b>Custom buffer allocation:</b> By default, buffers use dynamically sized Heap memory to store their data. However, you can
 also create them on memory allocations provided by the standard library; all types of memory
-accept an ,<code>allocate(size)</code> function for setting aside a fixed-size region, within
+accept <code>memory.allocate(size)</code> for setting aside a fixed-size region, within
 which buffers can grow. Below is an example. Do note that data can be pushed onto buffers during
 their creation, while they are temporary variables -and hence mutable- and the result can be 
 assigned to an immutable variable.
@@ -1383,7 +1414,7 @@ service main()
 
 <p>
 Buffers preserve mutability rules: 
-only if a buffer itself is mutable can its contents can be changed or extended.
+only if a buffer itself is mutable can its contents be changed or extended.
 That said, you can assign immutable buffers to mutable ones and alter the contents
 of the latter.
 Strings can also be stored in buffers or arrays <b>given that they reside
@@ -1391,7 +1422,7 @@ in the same memory surface</b>.
 Below is an example.
 </p>
 
-<pre><code class="language-smolambda">\\ main.s
+<pre><code class="language-smolambda">// main.s
 @include std.core
 @include std.mem
 
@@ -1466,8 +1497,8 @@ You can share the same data between multiple buffers, even if those are mutable.
 This can allow one to make changes to another. You can even use an allocated 
 memory region to declare a <code class="language-smolambda">char[]</code> buffer
 and then use the same region to allocate strings. Safety is preserved in that allocated
-memory regions accept only the same kinds of data; the compiler runs some analysis
-to determine this and creates an error if such problematic behavior is found. 
+memory regions accept only the same kinds of data; the compiler shows an error if 
+contract violations are found about how data are generated. 
 As a result, replaced data may be modified but they will always be safe to read
 and write. Below is an example:
 </p>
@@ -1526,40 +1557,48 @@ This way, recursion does not pile up memory; it just reuses a single loop.
 <p>
 Below is an example that demonstrates how to do this using a <code class="language-smolambda">tag</code> primitive that 
 we have not addressed so far. Values of that type are created by writing 
-<code class="language-smolambda">@tag name</code>. Tags behave like a number with a given value.
-Importantly, they can be later resolved into function calls with the <code class="language-smolambda">@dynamic</code>
-exemplified below.
+<code class="language-smolambda">@tag name</code>. Obtaining a tag this way is consider the highest-priority operator. 
+Tags behave like a number with a given value, but can 
+be later resolved into function calls with the <code class="language-smolambda">@dynamic</code> operator exemplified below.
 </p>
 
 <p>In the example, a <code class="language-smolambda">tag</code> primitive type lets us reference 
-<code class="language-smolambda">@tag ping</code> or <code class="language-smolambda">@tag pong</code> anywhere,
-even before those are being defined. Then, the <code class="language-smolambda">@dynamic</code> instruction chooses to call a function
-among a list of specified alternatives (<code>ping</code> or <code>pong</code> here) depending on the next tag value. Additional
-values following the tag are added arguments.
-If something unexpected happens, such as another tag was found, the service just fails safely, without memory leaks or crashes.
-At the same time, types are safe and are checked during compilation.</p>
+<code class="language-smolambda">@tag ping</code> or <code class="language-smolambda">@tag pong</code> within our tracked state.
+Importantly the state is defined before either of those functions are defined. 
+Then, the <code class="language-smolambda">@dynamic</code> instruction chooses to call a function
+among a list of specified alternatives (<code>ping</code> or <code>pong</code> here) depending on the next tag value. For example, one could call ping per the over-engineered pattern:
+<pre><code class="language-smolambda">p=@tag ping
+@dynamic(ping) p(n, "ping")</code>.
+</pre></p>
+<p>
+Additional values packed into <code>p</code>, as in the example, serve as arguments. So, when the example calls
+<code class="language-smolambda">@dynamic(ping,pong) pending("next - ")</code> it resolves to either:
+<code class="language-smolambda">ping(pending.n, "next - ")</code> or <code class="language-smolambda">pong(pending.n, "next - ")</code>,
+depending on the value of <code class="language-smolambda">pending.func</code>.
+If something unexpected happens, such as another tag occurring, the current service fails safely, without memory leaks or crashes.
+Type safety is still checked during compilation.</p>
 
 <pre><code class="language-smolambda">// main.s  
 @include std.core
 
-def lambda(tag func, u64 n) 
+def state(tag func, u64 n) 
     return @args
 
 def ping(u64 n, cstr message)
     printin(message)
     print("ping")
-    return @tag pong.lambda(n)
+    return @tag pong.state(n)
 
 def pong(u64 n, cstr message)
     if n == 0
-        return :done.lambda(u64)
+        return @tag done.state(u64)
     printin(message)
     print("pong")
-    return @tag ping.lambda(n-1)
+    return @tag ping.state(n-1)
 
 service main()
-    @mut pending = :pong.lambda(2)
-    while &done!=pending.func
+    @mut pending = @tag pong.state(2)
+    while @tag done!=pending.func
         pending = @dynamic(ping,pong) pending("next - ")
 </code></pre>
 
@@ -1596,23 +1635,23 @@ handles, so do not overuse it to avoid creating exceptionally large executables.
 <pre><code class="language-smolambda">// main.s
 @include std.core
 
-def lambda(tag func, u64 n, u64 a, u64 b)
+def fib_state(tag func, u64 n, u64 a, u64 b)
     return @args
 
 def fib_start(u64 n)
     // initialize Fibonacci sequence with first two numbers
-    return :fib_step.lambda(n, 0, 1)
+    return @tag fib_step.fib_state(n, 0, 1)
 
 def fib_step(u64 n, u64 a, u64 b)
     if n == 0
-        return @tag done.lambda(u64, a, b)
-    // compute next step
-    return @tag fib_step.lambda(n-1, b, a+b)
+        // next is equivalent to return fib_state(@tag done, u64, a, b)
+        return @tag done.fib_state(u64, a, b)
+    return @tag fib_step.fib_state(n-1, b, a+b)
 
 service main()
     n = 10
     @mut pending = :fib_start.lambda(n)
-    while :done != pending.func
+    while @tag done != pending.func
         pending = @dynamic(fib_start, fib_step) pending()
     // when done, print result (b is the n-th Fibonacci number)
     print("Fibonacci result:")

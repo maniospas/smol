@@ -319,7 +319,7 @@ Variable Def::call_type(
             auto expected = type->extract_buffer_type(type->args[i].name, p-1);
             auto actual = extract_buffer_type(unpacks[i], p-1);
             if (expected.get() && actual.get() != expected.get() && actual.get())
-                imp->error(p-1, "The same memory has been accessed as a different kind of buffer before. " 
+                imp->error(p-1, "Mismatching buffer types.\nThe same memory has been accessed as a different kind of buffer before. " 
                     + pretty_var(unpacks[i].to_string())
                     + "\nInternal usage: "+expected->signature(types)
                     + "\nBut got: "+actual->signature(types)
