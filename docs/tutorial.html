@@ -146,7 +146,7 @@
       <a href="#memory">Memory</a><br>
       <a href="#strings">Strings</a><br>
       <a href="#buffers">Buffers</a><br>
-      <a href="#recursion">Recursion</a>
+      <a href="#dynamic">Dynamic calls</a>
     </div>
   </div>
 </div>
@@ -216,7 +216,9 @@ The default runtime prints a link to the language's repository so that you can r
 and then automatically selects whether the application should be single-threaded or multi-threaded.
 </p>
 <p>
-A quick preview on the source code of our first program: <code class="language-smolambda">@include std.core</code> 
+A quick preview on the source code of our first program: <code>//</code>
+turns the remainder of the line into a comment that is ignored.
+<code class="language-smolambda">@include std.core</code> 
 adds basic functionality, like <code class="language-smolambda">print</code>. Then  
 <code class="language-smolambda">service main()</code> is the actual program.
 Why it's called a <i>service</i> is a mystery that will be addressed later.
@@ -1165,8 +1167,7 @@ statement automatically adds the arena as a first argument to all operations ins
 @include std.vec
 
 service main()
-    // allocate a stack arena of 1024 bytes
-    @mut memory = Stack.arena(1024)
+    @mut memory = Stack.allocate(1.MB()).arena() // converts allocation of 1MB to arena
 
     @on memory    // automatically apply as first argument
     v = vector(5) // calls vector(memory,5)
@@ -1203,7 +1204,7 @@ Remember that the arena's consumed memory is released only when the vector is no
 @include std.vec
 
 service main()
-    @on Stack.arena(1024) 
+    @on Stack.allocate(1024).arena() 
     v = vector(5)
 
     @on ok // empty @on context for safety
@@ -1247,9 +1248,9 @@ to allocate on segments of allocated memory.
 <code class="language-smolambda">cstr</code> (a constant string enclosed in quotations during compilation, null-terminated), 
 <code class="language-smolambda">nstr</code> (null-terminated with length information), and 
 <code class="language-smolambda">str</code> (a string segment). For most purposes, you can convert the other two to
-<code class="language-smolambda">str</code>. That said, there are some places where the other two are needed, 
-as null-termination, that is, having an extra zero character at the end of strings, is needed when exchangin information
-with the operating system.
+<code class="language-smolambda">str</code>. That said, there are some places where the other two are needed.
+For example, null-terminated strings are how most operating
+systems calls expect information.
 </p>
 
 <p>
@@ -1277,11 +1278,9 @@ def Segment(String _value)
     return new.Segment(value)
 
 def combine(Segment[] segments)
-    @mut combined = "".str()  // mutable string with known size
-    @on Stack.arena(1024)     // automatically use as argument if needed (for string operations)
-    segments
-    .len()
-    .range()
+    @mut combined = "".str() // mutable string with known size
+    @on Stack.allocate(1024).arena() // automatically use as argument if needed (for string operations)
+    segments.len().range()
     .while next(@mut u64 i) 
         combined = add(@all combined segments[i].value " ").str()
     return combined
@@ -1505,20 +1504,20 @@ Hi#
 
 </details>
 
-<h2 id="recursion">Recursion <a href="#recursion" class="anchor-link">🔗</a></h2>
+<h2 id="dynamic">Dynamic calls <a href="#dynamic" class="anchor-link">🔗</a></h2>
 
 <p>
-In most languages, <i>recursion</i> means that a function calls itself, or that 
-it calls another function that eventually calls itself.
-This is useful, but it usually comes at a cost: every call stacks on top of the previous one, 
-and if you recurse too deeply, you might run out of memory (a “stack overflow”).
-<i>Smoλ</i> functions can only look at previously declared or imported functions
-in an effort to protect such unconstrained behavior. But the same recursive computations
-are still possible.
+In most languages, functions call freely each other, or even themselves.
+This is useful for quickly expressing complex programs
+but comes at a cost: every call stacks on top of the previous one, 
+and if you create a circular recursion you might run out of memory (a “stack overflow”).
+<i>Smoλ</i> functions can only look at previously declared or imported code
+in an effort to protect such unconstrained behavior.
 </p>
 
 <p>
-In particular, instead of creating dependent calls, the language uses a trick called <b>trampolining</b>.  
+To still enable similar recursive computations, 
+the language uses a trick called <b>trampolining</b>.  
 Think of it like a ball bouncing back and forth between two or more functions: 
 each one decides what the next step is, and we loop until the process finishes.  
 This way, recursion does not pile up memory; it just reuses a single loop.
@@ -1526,16 +1525,17 @@ This way, recursion does not pile up memory; it just reuses a single loop.
 
 <p>
 Below is an example that demonstrates how to do this using a <code class="language-smolambda">tag</code> primitive that 
-we have not addressed so far. That consists of writing 
-<code class="language-smolambda">;name</code> and behaves like a number with a given value.
-Importantly, tag values, can overlap with function names, which a <code class="language-smolambda">@dynamic</code>
-instruction uses to its advantage to execute different functions given different tag values.
+we have not addressed so far. Values of that type are created by writing 
+<code class="language-smolambda">@tag name</code>. Tags behave like a number with a given value.
+Importantly, they can be later resolved into function calls with the <code class="language-smolambda">@dynamic</code>
+exemplified below.
 </p>
 
-<p>The <code class="language-smolambda">tag</code> primitive type lets us reference <code>:ping</code> or <code>:pong</code> anywhere,
-even before those are being defined. Then, the <code>@dynamic</code> instruction chooses to call a function
-among various options (<code>ping</code> or <code>pong</code> here) depending on the next tag value. Additional
-tag values are added as first arguments.
+<p>In the example, a <code class="language-smolambda">tag</code> primitive type lets us reference 
+<code class="language-smolambda">@tag ping</code> or <code class="language-smolambda">@tag pong</code> anywhere,
+even before those are being defined. Then, the <code class="language-smolambda">@dynamic</code> instruction chooses to call a function
+among a list of specified alternatives (<code>ping</code> or <code>pong</code> here) depending on the next tag value. Additional
+values following the tag are added arguments.
 If something unexpected happens, such as another tag was found, the service just fails safely, without memory leaks or crashes.
 At the same time, types are safe and are checked during compilation.</p>
 
@@ -1548,14 +1548,14 @@ def lambda(tag func, u64 n)
 def ping(u64 n, cstr message)
     printin(message)
     print("ping")
-    return &pong.lambda(n)
+    return @tag pong.lambda(n)
 
 def pong(u64 n, cstr message)
     if n == 0
         return :done.lambda(u64)
     printin(message)
     print("pong")
-    return &ping.lambda(n-1)
+    return @tag ping.lambda(n-1)
 
 service main()
     @mut pending = :pong.lambda(2)

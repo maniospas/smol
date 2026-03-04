@@ -77,15 +77,13 @@ def Segment(new, str value)
     return @args // return all inputs
 
 def Segment(String _value)
-    value = _value.str()  // convert from all String types
+    value = _value.str() // convert from all String types
     return new.Segment(value)
 
 def combine(Segment[] segments)
-    @mut s = str("")      // convert "" to mutable str
+    @mut s = str("")
     @on Stack.arena(1024) // automatic use when needed
-    segments
-    .len()
-    .range()
+    segments.len().range()
     .while next(@mut u64 i) // define i with values from the range
         s = add(@all s segments[i].value " ").str()
     return s
@@ -94,9 +92,7 @@ service main()
     segments = Segment[] 
     .push(Segment("I think."))
     .push(Segment("Therefore I am."))
-    segments
-    .combine()
-    .print()
+    segments.combine().print()
 </code></pre>
 
     <button id="toggle-example" class="explain-button">
