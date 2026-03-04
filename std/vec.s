@@ -18,6 +18,7 @@
 @include std.core
 @include std.rand
 @include std.mem
+@include std.math
 @unsafe
 
 @about 
@@ -58,6 +59,7 @@
 "\n@on Heap.dynamic()"
 "\nv1 = rnd.vector(10)"
 "\nv2 = rnd.vector(10)"
+"\n@on Heap.dynamic() // independent memory batch for result"
 "\nv3 = v1+v2</pre>"
 
 @about mul
@@ -70,6 +72,7 @@
 "\n@on Heap.dynamic()"
 "\nv1 = rnd.vector(10)"
 "\nv2 = rnd.vector(10)"
+"\n@on Heap.dynamic() // independent memory batch for result"
 "\nv3 = v1*v2</pre>"
 
 @about sub
@@ -82,6 +85,7 @@
 "\n@on Heap.dynamic()"
 "\nv1 = rnd.vector(10)"
 "\nv2 = rnd.vector(10)"
+"\n@on Heap.dynamic() // independent memory batch for result"
 "\nv3 = v1-v2</pre>"
 
 @about div
@@ -95,6 +99,7 @@
 "\n@on Heap.dynamic()"
 "\nv1 = rnd.vector(10)"
 "\nv2 = rnd.vector(10)"
+"\n@on Heap.dynamic() // independent memory batch for result"
 "\nv3 = v1/v2</pre>"
 
 @about len
@@ -105,6 +110,12 @@
 "access operation like this:"
 "<pre>vec = Rand().vector(Heap.dynamic(), 10)"
 "\nprint(vev[0])</pre>"
+
+@about min
+"The minimum f64 value and the corresponding u64 position in a vector."
+
+@about max
+"The maximum f64 value and the corresponding u64 position in a vector."
 
 def Vec(new, ptr contents, u64 size, ptr surface) 
     return @args
@@ -120,8 +131,10 @@ def len(@access Vec v)
     return v.size
 
 def slice(@access Vec v, u64 from, u64 to) 
-    if from >= to fail("Empty Vec slice")
-    if to > v.size fail("Vec out of bounds")
+    if from >= to 
+        fail("Empty Vec slice")
+    if to > v.size 
+        fail("Vec out of bounds")
     // so we have 0<=from < to <= v.size
     @c_body{ptr contents=(ptr)(&((f64*)v__contents)[from]);}
     return new.Vec(contents, to-from, v.surface)
@@ -281,11 +294,7 @@ def div(@access @mut Vec result, @access Vec x1, @access Vec x2)
     return result
 
 def print(@access Vec v)
-    @mut size = 
-    algorithm 
-        if v.size>10 
-            return 10
-        return v.size
+    @mut size = min(10, v.size)
     printin("[")
     range(size)
     .while next(@mut u64 pos)
@@ -295,3 +304,25 @@ def print(@access Vec v)
     if size!=v.size 
         printin(" ...")
     print("]")
+
+def min(@access Vec v)
+    @mut value = v[0]
+    @mut pos = 0
+    range(1, v.size)
+    .while next(@mut u64 i)
+        element = v[i]
+        if element<value
+            pos = i
+            value = element
+    return pos, value
+
+def max(@access Vec v)
+    @mut value = v[0]
+    @mut pos = 0
+    range(1, v.size)
+    .while next(@mut u64 i)
+        element = v[i]
+        if element>value
+            pos = i
+            value = element
+    return pos, value

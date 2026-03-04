@@ -140,13 +140,20 @@
   </div>
 
   <div class="sidebar-section">
-    <a class="sidebar-title" href="#advanced"><span class="sidebar-name">Advanced</span></a>
+    <a class="sidebar-title" href="#typesystem"><span class="sidebar-name">Typesystem</span></a>
     <div class="sidebar-sub">
       <a href="#unions">Unions</a><br>
+      <a href="#dynamic">Dynamic calls</a><br>
+      <a href="#conditional-compilation">Conditional compilation</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="sidebar-title" href="#advanced"><span class="sidebar-name">Advanced</span></a>
+    <div class="sidebar-sub">
       <a href="#memory">Memory</a><br>
       <a href="#strings">Strings</a><br>
-      <a href="#buffers">Buffers</a><br>
-      <a href="#dynamic">Dynamic calls</a>
+      <a href="#buffers">Buffers</a>
     </div>
   </div>
 </div>
@@ -1035,7 +1042,7 @@ This approach keeps the happy path simple; you try running the service and, if i
 </p>
 
 
-<h1 id="advanced">Advanced <a href="#advanced" class="anchor-link">🔗</a></h1>
+<h1 id="typesystem">Typesystem <a href="#typesystem" class="anchor-link">🔗</a></h1>
 
 <h2 id="unions">Unions <a href="#unions" class="anchor-link">🔗</a></h2>
 
@@ -1112,6 +1119,198 @@ to write the same code conceptually.”</i>
 
 </details>
 
+
+<h2 id="dynamic">Dynamic calls <a href="#dynamic" class="anchor-link">🔗</a></h2>
+
+<p>
+In most languages, functions call freely each other, or even themselves.
+This is useful for quickly expressing complex programs
+but comes at a cost: every call stacks on top of the previous one, 
+and if you create a circular recursion you might run out of memory (a “stack overflow”).
+<i>Smoλ</i> functions can only look at previously declared or imported code
+in an effort to protect such unconstrained behavior.
+</p>
+
+<p>
+To still enable similar recursive computations, 
+the language uses a trick called <b>trampolining</b>.  
+Think of it like a ball bouncing back and forth between two or more functions: 
+each one decides what the next step is, and we loop until the process finishes.  
+This way, recursion does not pile up memory; it just reuses a single loop.
+</p>
+
+<p>
+Below is an example that demonstrates how to do this using a <code class="language-smolambda">tag</code> primitive that 
+we have not addressed so far. Values of that type are created by writing 
+<code class="language-smolambda">@tag name</code>. Obtaining a tag this way is consider the highest-priority operator. 
+Tags behave like a number with a given value, but can 
+be later resolved into function calls with the <code class="language-smolambda">@dynamic</code> operator exemplified below.
+</p>
+
+<p>In the example, a <code class="language-smolambda">tag</code> primitive type lets us reference 
+<code class="language-smolambda">@tag ping</code> or <code class="language-smolambda">@tag pong</code> within our tracked state.
+Importantly the state is defined before either of those functions are defined. 
+Then, the <code class="language-smolambda">@dynamic</code> instruction chooses to call a function
+among a list of specified alternatives (<code>ping</code> or <code>pong</code> here) depending on the next tag value. For example, one could call ping per the over-engineered pattern:
+<pre><code class="language-smolambda">p = @tag ping
+@dynamic(ping) p(n, "ping")</code>.
+</pre></p>
+<p>
+Additional values packed into <code>p</code>, as in the example, serve as arguments. So, when the example calls
+<code class="language-smolambda">@dynamic(ping,pong) pending("next - ")</code> it resolves to either:
+<code class="language-smolambda">ping(pending.n, "next - ")</code> or <code class="language-smolambda">pong(pending.n, "next - ")</code>,
+depending on the value of <code class="language-smolambda">pending.func</code>.
+If something unexpected happens, such as another tag occurring, the current service fails safely, without memory leaks or crashes.
+Type safety is still checked during compilation.</p>
+
+<pre><code class="language-smolambda">// main.s  
+@include std.core
+
+def state(tag func, u64 n) 
+    return @args
+
+def ping(u64 n, cstr message)
+    printin(message)
+    print("ping")
+    return @tag pong.state(n)
+
+def pong(u64 n, cstr message)
+    if n == 0
+        return @tag done.state(u64)
+    printin(message)
+    print("pong")
+    return @tag ping.state(n-1)
+
+service main()
+    @mut pending = @tag pong.state(2)
+    while @tag done!=pending.func
+        pending = @dynamic(ping,pong) pending("next - ")
+</code></pre>
+
+<pre style="background-color: #222; color: white;">> smol main.s
+<span style="color: #b072d1;">codegen</span> --workers 1 ██████████ 7/7 files  22ms
+<span style="color: #b072d1;">compile</span> --back gcc  --runtime std/runtime/auto.h  66ms
+<span style="color: #7cd15d;">running</span> tests/unit/tutorial/hello
+
+<span style="color:#5dc1b9">🔹</span> https://github.com/maniospas/smol
+<span style="color:#5dc1b9">🔹</span> single threaded
+
+next - pong
+next - ping
+next - pong
+next - ping
+</pre>
+
+<p>
+To sum up, in the example above <code>ping</code> and <code>pong</code> call each other back and forth.
+Instead of diving deeper into the stack, they just return a next state marked with a tag
+(<code class="language-smolambda">:ping</code>, <code class="language-smolambda">:pong</code>, or <code class="language-smolambda">:done</code>). 
+The main loop keeps track of which step is next, and runs it until it reaches the <code>:done</code> tag.</li>
+</ul>
+
+<p>
+So whenever you would normally write a recursive function, you can instead write it 
+as a loop with tags. It feels a bit like building a tiny “interpreter” 
+for your recursive logic that is safe and efficient, and performant. Do note that 
+<code class="language-smolambda">@dynamic</code> may inject code from all functions it
+handles, so do not overuse it to avoid creating exceptionally large executables.
+</p>
+
+
+<pre><code class="language-smolambda">// main.s
+@include std.core
+
+def fib_state(tag func, u64 n, u64 a, u64 b)
+    return @args
+
+def fib_start(u64 n)
+    // initialize Fibonacci sequence with first two numbers
+    return @tag fib_step.fib_state(n, 0, 1)
+
+def fib_step(u64 n, u64 a, u64 b)
+    if n == 0
+        // next is equivalent to return fib_state(@tag done, u64, a, b)
+        return @tag done.fib_state(u64, a, b)
+    return @tag fib_step.fib_state(n-1, b, a+b)
+
+service main()
+    n = 10
+    @mut pending = :fib_start.lambda(n)
+    while @tag done != pending.func
+        pending = @dynamic(fib_start, fib_step) pending()
+    // when done, print result (b is the n-th Fibonacci number)
+    print("Fibonacci result:")
+    print(pending.b)
+</code></pre>
+
+<h2 id="conditional-compilation">Conditional Compilation <a href="#conditional-compilation" class="anchor-link">🔗</a></h2>
+
+<p>
+When writing code that leverages union data types, you will often find yourself at a point where some kind
+of specialization or edge case should be handled different for some alternative. For example, there may be
+a non-copying -and hence faster- implementation. As an alternative to rewriting the same code with minor
+differences each time, <i>smoλ</i> lets you conditionally compile segments of a function. Related choices
+are handled during compilation and do not incur any runtime overhead. (By contrast, dynamic calls add actual
+checks during runtime.)
+</p>
+
+<p><b>Compile a function only for certain argument types:</b> One might think that this could be as simple as
+declaring proper arguments, but more than one combinations could be allowed and checked with a type comparison
+only later on. In this case, use the syntax <code class="language-smolambda">case ... qed</code>, where type
+errors of any enclosed code just prevent the function variation from being compiled instead of creating an
+actual compilation error. Below is an example from the standard library, which transforms the argument <code>_k</code>
+to one of standardized type before making a check against the kind of data a hash indexer.
+This lets the <code>find</code> function operate only on hashable data types that are compared only to the type of data
+handled by the hash index.
+</p>
+
+<pre><code class="language-smolambda">def find(@access @mut Hash self, Hashable _k, @mut u64 idx)
+    k = _k.to_hash_base()
+    case k.is(Hash.to_hash_base()) qed // reject different types between k and hash base
+    if k.is_zero()
+        return true
+    pos = hash(k, self.size)
+    range(0, self.size)
+    .while next(@mut u64 i)
+        idx = (pos+i).mod(self.size)
+        if idx.bool() and self.entries[idx].is_zero().not() and self.entries[idx]==k 
+            return true
+    return false
+</code></pre>
+
+<p><b>Retrieve union resolution:</b> You can also retrieve the exact type a union has resolved to within a types's arguments.
+Do this by employing the <code class="language-smolambda">::</code> operator, as in the
+example below. Function argument types are lexically scoped, so <code>NumberType</code>
+remains the same between <code>_x,_y</code> and within the function body of <code>Point</code>.
+Thus, <code class="language-smolambda">Point::FunctionBody</code> retrieves the kind of number
+currently in use by the point's data structure, so as to convert <code>1</code> to the respective format.
+There are three variation of this structure, depending
+on the type, and thus three variations of <code>inc</code> too.
+</p>
+
+<pre><code class="language-smolambda">// main.s
+@include std.core
+
+union NumberType = i64 or u64 or f64 // replicates std.core::Number for completeness
+
+def Point(NumberType _x, NumberType _y)
+    @mut x = _x
+    @mut y = _y
+    return x,y
+
+def inc(@access @mut Point p)
+    p.x = p.x+Point::NumberType(1)
+    p.y = p.y+Point::NumberType(1)
+
+service main()
+    value = 1.f64()
+    @access p = Point(value, value)
+    p.inc()
+    print(p.x)
+</code></pre>
+
+
+<h1 id="advanced">Advanced <a href="#advanced" class="anchor-link">🔗</a></h1>
 
 <h2 id="memory">Memory <a href="#memory" class="anchor-link">🔗</a></h2>
 
@@ -1534,130 +1733,6 @@ Hi#
 </pre>
 
 </details>
-
-<h2 id="dynamic">Dynamic calls <a href="#dynamic" class="anchor-link">🔗</a></h2>
-
-<p>
-In most languages, functions call freely each other, or even themselves.
-This is useful for quickly expressing complex programs
-but comes at a cost: every call stacks on top of the previous one, 
-and if you create a circular recursion you might run out of memory (a “stack overflow”).
-<i>Smoλ</i> functions can only look at previously declared or imported code
-in an effort to protect such unconstrained behavior.
-</p>
-
-<p>
-To still enable similar recursive computations, 
-the language uses a trick called <b>trampolining</b>.  
-Think of it like a ball bouncing back and forth between two or more functions: 
-each one decides what the next step is, and we loop until the process finishes.  
-This way, recursion does not pile up memory; it just reuses a single loop.
-</p>
-
-<p>
-Below is an example that demonstrates how to do this using a <code class="language-smolambda">tag</code> primitive that 
-we have not addressed so far. Values of that type are created by writing 
-<code class="language-smolambda">@tag name</code>. Obtaining a tag this way is consider the highest-priority operator. 
-Tags behave like a number with a given value, but can 
-be later resolved into function calls with the <code class="language-smolambda">@dynamic</code> operator exemplified below.
-</p>
-
-<p>In the example, a <code class="language-smolambda">tag</code> primitive type lets us reference 
-<code class="language-smolambda">@tag ping</code> or <code class="language-smolambda">@tag pong</code> within our tracked state.
-Importantly the state is defined before either of those functions are defined. 
-Then, the <code class="language-smolambda">@dynamic</code> instruction chooses to call a function
-among a list of specified alternatives (<code>ping</code> or <code>pong</code> here) depending on the next tag value. For example, one could call ping per the over-engineered pattern:
-<pre><code class="language-smolambda">p=@tag ping
-@dynamic(ping) p(n, "ping")</code>.
-</pre></p>
-<p>
-Additional values packed into <code>p</code>, as in the example, serve as arguments. So, when the example calls
-<code class="language-smolambda">@dynamic(ping,pong) pending("next - ")</code> it resolves to either:
-<code class="language-smolambda">ping(pending.n, "next - ")</code> or <code class="language-smolambda">pong(pending.n, "next - ")</code>,
-depending on the value of <code class="language-smolambda">pending.func</code>.
-If something unexpected happens, such as another tag occurring, the current service fails safely, without memory leaks or crashes.
-Type safety is still checked during compilation.</p>
-
-<pre><code class="language-smolambda">// main.s  
-@include std.core
-
-def state(tag func, u64 n) 
-    return @args
-
-def ping(u64 n, cstr message)
-    printin(message)
-    print("ping")
-    return @tag pong.state(n)
-
-def pong(u64 n, cstr message)
-    if n == 0
-        return @tag done.state(u64)
-    printin(message)
-    print("pong")
-    return @tag ping.state(n-1)
-
-service main()
-    @mut pending = @tag pong.state(2)
-    while @tag done!=pending.func
-        pending = @dynamic(ping,pong) pending("next - ")
-</code></pre>
-
-<pre style="background-color: #222; color: white;">> smol main.s
-<span style="color: #b072d1;">codegen</span> --workers 1 ██████████ 7/7 files  22ms
-<span style="color: #b072d1;">compile</span> --back gcc  --runtime std/runtime/auto.h  66ms
-<span style="color: #7cd15d;">running</span> tests/unit/tutorial/hello
-
-<span style="color:#5dc1b9">🔹</span> https://github.com/maniospas/smol
-<span style="color:#5dc1b9">🔹</span> single threaded
-
-next - pong
-next - ping
-next - pong
-next - ping
-</pre>
-
-<p>
-To sum up, in the example above <code>ping</code> and <code>pong</code> call each other back and forth.
-Instead of diving deeper into the stack, they just return a next state marked with a tag
-(<code class="language-smolambda">:ping</code>, <code class="language-smolambda">:pong</code>, or <code class="language-smolambda">:done</code>). 
-The main loop keeps track of which step is next, and runs it until it reaches the <code>:done</code> tag.</li>
-</ul>
-
-<p>
-So whenever you would normally write a recursive function, you can instead write it 
-as a loop with tags. It feels a bit like building a tiny “interpreter” 
-for your recursive logic that is safe and efficient, and performant. Do note that 
-<code class="language-smolambda">@dynamic</code> may inject code from all functions it
-handles, so do not overuse it to avoid creating exceptionally large executables.
-</p>
-
-
-<pre><code class="language-smolambda">// main.s
-@include std.core
-
-def fib_state(tag func, u64 n, u64 a, u64 b)
-    return @args
-
-def fib_start(u64 n)
-    // initialize Fibonacci sequence with first two numbers
-    return @tag fib_step.fib_state(n, 0, 1)
-
-def fib_step(u64 n, u64 a, u64 b)
-    if n == 0
-        // next is equivalent to return fib_state(@tag done, u64, a, b)
-        return @tag done.fib_state(u64, a, b)
-    return @tag fib_step.fib_state(n-1, b, a+b)
-
-service main()
-    n = 10
-    @mut pending = :fib_start.lambda(n)
-    while @tag done != pending.func
-        pending = @dynamic(fib_start, fib_step) pending()
-    // when done, print result (b is the n-th Fibonacci number)
-    print("Fibonacci result:")
-    print(pending.b)
-
-</code></pre>
 
 
 

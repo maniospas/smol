@@ -166,7 +166,14 @@ int main(int argc, char* argv[]) {
             size_t number = 1;
             if(Def::export_docs) {
                 string docs = "";
-                string toc = "<h1 id=\"toc\">Contents</h1>\n";
+                // Enhanced TOC with search and better structure
+                string toc = "<h1 id=\"toc\">Contents</h1>\n"
+                    "<input type=\"text\" id=\"toc-search\" placeholder=\"Search functions/types...\" "
+                    "onkeyup=\"filterToc(this.value)\" "
+                    "style=\"width: 100%; padding: 12px; margin-bottom: 1em; border: 1px solid #ddd; "
+                    "border-radius: 6px; font-size: 1em; background: white;\">\n"
+                    "<div class=\"toc-container\" style=\"background: #f5f5f8; border-radius: 8px; padding: 1.5em; margin-bottom: 2em;\">\n";
+                
                 for(auto& include : included) {
                     string display_name = include.first;
                     if(display_name.size() >= 2 && display_name.substr(display_name.size() - 2) == ".s")
@@ -176,7 +183,27 @@ int main(int argc, char* argv[]) {
                     if(include.second->imp->allow_unsafe) 
                         unsafe_html = " <span class=\"unsafe-badge\">unsafe</span>";
                     string file_anchor = "file_" + display_name;
-                    toc += "<br><b><a href=\"#" + file_anchor + "\">" + display_name + "</a></b><div style=\"color:gray\">";
+                    
+                    // Count items for this file
+                    int item_count = 0;
+                    for(const auto& type : include.second->vars) {
+                        for(const auto& subtype : type.second->options)
+                            if(include.second->imp.get() == subtype->imp.get()) {
+                                try {
+                                    ansi_to_html(subtype->signature(*include.second.get()));
+                                    item_count++;
+                                } catch (const runtime_error&) {}
+                            }
+                    }
+                    
+                    // Enhanced TOC entry with count badge
+                    toc += "<div class=\"toc-file\" data-search=\"" + display_name + "\">\n";
+                    toc += "  <div style=\"margin-bottom: 0.5em;\">\n";
+                    toc += "    <b><a href=\"#" + file_anchor + "\">" + display_name + "</a>" + unsafe_html + "</b>";
+                    toc += "    <span style=\"font-size: 0.75em; color: #888; background: #e0e0e5; border-radius: 10px; padding: 2px 8px; margin-left: 8px;\">" + to_string(item_count) + "</span>";
+                    toc += "  </div>\n";
+                    toc += "  <div style=\"margin-left: 1em; color: gray; display: flex; flex-wrap: wrap; gap: 0.5em 1em;\">";
+                    
                     docs += "<h1 id=\"file_" + display_name + "\"><span style=\"color:black\"> " 
                         + display_name 
                         + unsafe_html 
@@ -229,9 +256,8 @@ int main(int argc, char* argv[]) {
                                 desc = "<p>"+(desc.substr(1,desc.size()-2))+"</p>";
                             }
                             string type_anchor = file_anchor + "_" + type.first.to_string();
-                            if(has_prev)
-                                toc += "<br>";
-                            toc += "<a style=\"color:gray\" href=\"#" + type_anchor + "\">" + type.first.to_string() + "</a>";
+                        
+                            toc += "<a class=\"toc-item\" data-search=\"" + type.first.to_string() + "\" style=\"color:gray\" href=\"#" + type_anchor + "\">" + type.first.to_string() + "</a>";
                             has_prev = true;
                             
                             if(type.second->options.size() != 1) 
@@ -245,8 +271,10 @@ int main(int argc, char* argv[]) {
                         }
                     }
                     docs += overload_docs;
-                    toc += "</div>";
+                    toc += "</div>\n</div>\n";
                 }
+                toc += "</div>\n"; // Close toc-container
+                
                 ofstream out(file.substr(0, file.size()-2)+".html");
                 out << "<!DOCTYPE html>\n<html>\n<head>\n"
                 "<meta charset=\"UTF-8\">\n"
@@ -255,14 +283,20 @@ int main(int argc, char* argv[]) {
                 "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js\"></script>\n"
                 "<script src=\"https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-clike.min.js\"></script>\n"
                 "<style>\n"
-                "a { text-decoration: none; display: inline-block; transition: transform 0.2s ease;  }"
-                "a:hover { transform: scale(1.2); }"
+                "a { text-decoration: none; display: inline-block; transition: transform 0.2s ease;  }\n"
+                "a:hover { transform: scale(1.02); }\n"
                 "body { font-family: sans-serif; max-width: 960px; margin: auto; padding: 2em; background: #fafaff; }\n"
                 "h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.2em;}\n"
                 ".sig { font-size:1.3em; font-family: monospace; }\n"
                 ".notice { color: #888; margin-left:3em; margin-right:3em; }\n"
                 ".unsafe-badge { font-size: 0.65em; height:1em; color: #fff; background: #d72a2a; border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
                 ".overload-badge { font-size: 0.65em; height:1em; color: #fff; background:rgb(126, 123, 149); border-radius: 4px; padding: 0.1em 0.6em; margin-left: 0.5em; vertical-align: middle; letter-spacing: 1px; }\n"
+                ".toc-file { border-bottom: 1px solid #e0e0e0; padding: 0.8em 0; }\n"
+                ".toc-file:last-child { border-bottom: none; }\n"
+                ".toc-item { font-size:0.8rem}\n"
+                ".toc-item:hover { color: #0066cc !important; }\n"
+                "#toc-search:focus { outline: none; border-color: #0066cc; box-shadow: 0 0 0 3px rgba(0,102,204,0.1); }\n"
+                ".toc-hidden { display: none !important; }\n"
                 "</style>\n"
                 "<script>\n"
                 "Prism.languages.smolambda = {\n"
@@ -277,6 +311,23 @@ int main(int argc, char* argv[]) {
                 "  'string': { pattern: /\"(?:\\\\.|[^\"\\\\])*\"/, greedy: true }\n"
                 "};\n"
                 "Prism.highlightAll();\n"
+                "function filterToc(searchTerm) {\n"
+                "  searchTerm = searchTerm.toLowerCase();\n"
+                "  const files = document.querySelectorAll('.toc-file');\n"
+                "  files.forEach(file => {\n"
+                "    const fileSearch = file.getAttribute('data-search') || '';\n"
+                "    const items = file.querySelectorAll('.toc-item');\n"
+                "    let hasMatch = false;\n"
+                "    items.forEach(item => {\n"
+                "      const itemSearch = item.getAttribute('data-search') || '';\n"
+                "      const matches = searchTerm === '' || fileSearch.includes(searchTerm) || itemSearch.includes(searchTerm);\n"
+                "      item.style.display = matches ? 'inline' : 'none';\n"
+                "      if(matches) hasMatch = true;\n"
+                "    });\n"
+                "    const showFile = searchTerm === '' || fileSearch.includes(searchTerm) || hasMatch;\n"
+                "    file.classList.toggle('toc-hidden', !showFile);\n"
+                "  });\n"
+                "}\n"
                 "</script>\n"
                 "</head>\n<body>\n"
                 <<toc
@@ -285,6 +336,7 @@ int main(int argc, char* argv[]) {
                 included.clear();
                 continue;
             }
+
             if(selected_task==Task::Verify) {
                 cout << task_report;
                 included.clear();

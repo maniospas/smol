@@ -19,5 +19,5 @@
 "<br><br><code>@mut</code> indicates mutability. If this is absent, the language promises to not modify values "
 "- the standard library promises to respect that too when considering whether it is allowed to modify pointer contents.<br><br>"
 "<code>@access</code> indicates that arguments can view mutable fields, though not necessarily edit them. This marking also "
-"imports the function together with those that could result to arguments from the same import file. For example, the following "
-"snippet imports all numeric but not string operations from the standard library's core: <pre>@import std.core -> Number</pre>"
+"sets up functions to be imported alongside respective types. For example, the following "
+"imports all numeric but not string operations from the standard library's core: <pre>@import std.core :: Number</pre>"

@@ -21,6 +21,14 @@
 @about 
 "Standard library wrapping of C math operations."
 
+@about min
+"The minimum between two numbers. Example:"
+"<pre>print(min(1.0, 2.0)) // prints 1.0</pre>"
+
+@about max
+"The maximum between two numbers. Example:"
+"<pre>print(max(1.0, 2.0)) // prints 1.0</pre>"
+
 @about cos
 "Computes the cosine of an angle given in radians. Example:"
 "<pre>print(cos(0.0))       // prints 1.0"
@@ -102,6 +110,15 @@
 "<pre>print(log(exp(1.0))) // prints 1.0"
 "\nprint(log(10.0))     // prints approximately 2.30259</pre>"
 
+def min(Number x, Number y)
+    if x<y
+        return x
+    return y
+
+def max(Number x, Number y)
+    if x>y
+        return x
+    return y
 
 def cos(f64 x)
     @c_head{#include <math.h>}
