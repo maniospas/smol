@@ -81,8 +81,8 @@ def Segment(String _value)
     return new.Segment(value)
 
 def combine(Segment[] segments)
-    @mut s = str("")
-    @on Stack.arena(1024) // automatic use when needed
+    @mut s = "".str()
+    @on Stack.allocate(1.KB()).arena() // automatic use when needed
     segments.len().range()
     .while next(@mut u64 i) // define i with values from the range
         s = add(@all s segments[i].value " ").str()

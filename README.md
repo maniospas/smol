@@ -36,8 +36,8 @@ def Stats(
     return @args // return all inputs
 
 def print(file_stats stats)
-    // @all to use printin (print without \n ending) to reduce expressions 
-    // no commas in this syntax makes it look like string interpolation
+    // @all to reduce the expression with printin (print without \n ending)
+    // no commas in this syntax makes it our string interpolation
     printin(@all stats.lines" lines, "stats.chars" bytes\n")
 
 def file_reader(String path, @mut Memory memory) // for all String variations

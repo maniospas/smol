@@ -17,16 +17,16 @@ Variable Def::parse_primitive(size_t& p, const Variable& first_token, Types& typ
     if(curry.exists())
         imp->error(p-1, "Primitive is not callable.");
     string vartype = type_primitive(first_token.to_string());
-    string defval = "0";
-    if(p<imp->size() && imp->at(p)=="@" && imp->at(p+1)=="else") {
-        defval = imp->at(p+2);
-        p += 3;
-        auto found_type = type_primitive(defval);
-        if(vartype!=vartype) 
-            imp->error(first_token_pos, "Required "+vartype+" primitive but found "+vartype);
-    }
+    // string defval = "0";
+    // if(p<imp->size() && imp->at(p)=="@" && imp->at(p+1)=="first") {
+    //     defval = imp->at(p+2);
+    //     p += 3;
+    //     auto found_type = type_primitive(defval);
+    //     if(vartype!=vartype) 
+    //         imp->error(first_token_pos, "Required "+vartype+" primitive but found "+vartype);
+    // }
     string var = create_temp();
-    if(!types.contains(vartype)) 
+    if(!types.contains(vartype))
         return first_token;// fallback
     vars[var] = types.vars[vartype];
     // vardecl += vartype+" "+var+" = "+defval+";\n"; // always set vars to zero because they may reside in if blocks

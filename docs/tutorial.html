@@ -149,11 +149,13 @@
   </div>
 
   <div class="sidebar-section">
-    <a class="sidebar-title" href="#advanced"><span class="sidebar-name">Advanced</span></a>
+    <a class="sidebar-title" href="#resources"><span class="sidebar-name">Resources</span></a>
     <div class="sidebar-sub">
       <a href="#memory">Memory</a><br>
       <a href="#strings">Strings</a><br>
-      <a href="#buffers">Buffers</a>
+      <a href="#buffers">Buffers</a><br>
+      <a href="#filesystem">Filesystem</a><br>
+      <a href="#release">Release</a>
     </div>
   </div>
 </div>
@@ -1125,17 +1127,19 @@ to write the same code conceptually.”</i>
 <p>
 In most languages, functions call freely each other, or even themselves.
 This is useful for quickly expressing complex programs
-but comes at a cost: every call stacks on top of the previous one, 
-and if you create a circular recursion you might run out of memory (a “stack overflow”).
-<i>Smoλ</i> functions can only look at previously declared or imported code
-in an effort to protect such unconstrained behavior.
+but comes at a cost: every call stacks on top of the previous one. At worst, you can 
+create a circular recursion you might run out of memory for tracking call inputs and 
+returns (a “stack overflow”). In an effort to protect against such unconstrained behavior,
+<i>smoλ</i> functions can only look at previously declared or imported code.
 </p>
 
 <p>
-To still enable similar recursive computations, 
+To still enable similar computations where functions call each other arbitrarily, 
 the language uses a trick called <b>trampolining</b>.  
 Think of it like a ball bouncing back and forth between two or more functions: 
-each one decides what the next step is, and we loop until the process finishes.  
+each one decides what the next step is, and we loop until the process finishes.
+The trick is that you, the programmer, is the one keeping track of the ball. Therefore
+you can notice immediately if you are doing too complex stuff. 
 This way, recursion does not pile up memory; it just reuses a single loop.
 </p>
 
@@ -1310,7 +1314,7 @@ service main()
 </code></pre>
 
 
-<h1 id="advanced">Advanced <a href="#advanced" class="anchor-link">🔗</a></h1>
+<h1 id="resources">Resources <a href="#resources" class="anchor-link">🔗</a></h1>
 
 <h2 id="memory">Memory <a href="#memory" class="anchor-link">🔗</a></h2>
 
@@ -1733,6 +1737,85 @@ Hi#
 </pre>
 
 </details>
+
+<h2 id="filesystem">Filesystem <a href="#filesystem" class="anchor-link">🔗</a></h2>
+
+<pre><code class="language-smolambda">// main.s
+@include std.core
+@include std.mem
+@include std.file :: File
+
+def file_stats(
+    new, 
+    u64 lines,
+    u64 chars
+)
+    return @args
+
+def print(file_stats stats)
+    printin(@all stats.lines " lines, " stats.chars " bytes\n")
+
+def file_reader(
+    String path,
+    @mut ContiguousMemory memory
+)
+    @mut stat_lines = 0
+    @mut stat_chars = 0
+    @mut file = ReadFile.open(path)
+    endl = "\n".str().first
+    @on memory.arena()
+    while file.next_line(@mut str line)
+        stat_lines = stat_lines + 1
+        stat_chars = stat_chars + line.len()
+        printin(@all "| " line "\n")
+    fstats = new.file_stats(stat_lines, stat_chars)
+    return fstats, memory
+
+service main()
+    @mut memory = Stack.allocate(1.MB())
+    @access @mut stats = file_reader("README.md", memory)
+    print(stats.fstats)
+
+</code></pre>
+
+<h2 id="release">Release <a href="#release" class="anchor-link">🔗</a></h2>
+
+<p>
+Sometimes, you may want to preemptively release resources, such as memory
+or open files. Releasing is interpreted differently, depending on the resource
+type, but in general is an indicator that whatever is associated with the variable
+should stop encumbering the computer as soon as possible. Recall that resources
+no longer in use are released at the end of functions or services.</p>
+<p>In general, you can employ the syntax 
+<code class="language-smolambda">@release variable</code> to release all
+resources associated with the variable. The compiler will create an
+error if you accidentally reuse one of those resources.
+Beware that resources could be shared across unforeseen places and could
+thus require patching up your code to enable a release of only one of them. 
+For example, if you store multiple strings on the same arena releasing
+one of the strings invalidates the others too.</p>
+<p>Below is an example that opens a new console terminal, and uses
+<code class="language-smolambda">@release</code> to pre-emptively close it.
+</p>
+
+<pre><code class="language-smolambda">// main.s
+@include std.core
+@include std.file
+@include std.mem
+
+service main()
+    // 2 bytes of memory to read a null-terminated character from the console
+    @mut keyreader = Stack.allocate(2).circular() 
+    @mut cons = WriteFile.console()
+    cons.print("hello world!\n")
+    printin("Press enter here to close the open console...")
+    keyreader.read()
+    @release cons // safely close the resource preemptively
+    print("We are done. Press enter again...")
+    keyreader.read()
+</code></pre>
+
+
 
 
 

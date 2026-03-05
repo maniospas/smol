@@ -342,8 +342,9 @@ Variable Def::parse_runtype(size_t& p, const Variable& first_token, Types& types
                 unpacks.insert(unpacks.begin()+i, ret+vars[ret]->packs[i]);
         leftover_unpacks_size--;
         if(leftover_unpacks_size<=0) 
-            imp->error(first_token_pos, "Reduction via @all is too slow"
-                "\nThe reduction's converge to a stable state is too stable for this function; perhaps it never converges."
+            imp->error(first_token_pos, "Reduction via @all does not converge fast enough"
+                "\nThe reduction's convergence too slow in that it has not consumed all inputs after being applied a greater number of times. "
+                "Leftover data format: "+signature_like(types, unpacks)
             );
     }
 

@@ -146,8 +146,11 @@ def system(cstr command)
     @c_body{u64 result = system((char*)command);}
     if result!=0 fail("Error: System call failed")
 
-def system(str command) 
-    system(Stack.copy(nstr, command).memory.cstr())
+def system(nstr command)
+    system(command.memory.cstr())
+
+def system(str command)
+    system(Stack.ncopy(command).memory.cstr())
 
 def open(@access @mut Process, str command)
     mem = Stack.allocate(command.length+1)

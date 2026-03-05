@@ -45,7 +45,7 @@
 "Provides methods for converting numbers to strings that are stored on provided "
 "Memory allocators. The result is a null-terminated nstr."
 
-def copy(@access @mut Memory allocator, nstr, String _s)
+def ncopy(@access @mut Memory allocator, String _s)
     s = _s.str()
     mem = allocator.allocate(s.length+1)
     @c_body{
@@ -54,7 +54,7 @@ def copy(@access @mut Memory allocator, nstr, String _s)
     }
     return new.nstr(mem.mem, s.length, s.first, mem.underlying)
 
-def copy(@access @mut Memory allocator, str, String _s)
+def copy(@access @mut Memory allocator, String _s)
     // this allocates one less byte than a nstr copy
     s = _s.str()
     mem = allocator.allocate(s.length)

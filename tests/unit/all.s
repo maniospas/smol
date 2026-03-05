@@ -58,6 +58,7 @@ service all()
     std_test("types/range_test")
     std_test("types/union")
     std_test("types/units")
+    std_test("types/multiapply")
     std_test("sgn")
 
 service main()

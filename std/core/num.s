@@ -174,9 +174,9 @@ def printin(@access char message)
     @c_head{#include <stdio.h>}
     @c_body{printf("%c", message);}
 
-def print()
-    @c_head{#include <stdio.h>}
-    @c_body{fflush(stdout);}
+// def print()
+//     @c_head{#include <stdio.h>}
+//     @c_body{fflush(stdout);}
 
 def le(@access Number x, Number y)
     @c_body{bool z=x<=y;}
